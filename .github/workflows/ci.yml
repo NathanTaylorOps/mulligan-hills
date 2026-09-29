@@ -2,6 +2,7 @@ name: CI (import and unit tests)
 
 on:
   push:
+    branches-ignore: [ci-results]
   pull_request:
   workflow_dispatch:
     inputs:
@@ -19,7 +20,7 @@ concurrency:
   cancel-in-progress: true
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   test:
@@ -61,3 +62,9 @@ jobs:
             ci-out/import*.log
             ci-out/godot-checksums.txt
           if-no-files-found: warn
+
+      - name: Publish results to ci-results branch
+        if: always()
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: tools/ci/publish_results.sh ci ci-out

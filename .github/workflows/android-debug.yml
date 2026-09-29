@@ -2,6 +2,7 @@ name: Android debug APK
 
 on:
   push:
+    branches-ignore: [ci-results]
   workflow_dispatch:
     inputs:
       game_path:
@@ -25,7 +26,7 @@ concurrency:
   cancel-in-progress: true
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   apk:
@@ -132,3 +133,9 @@ jobs:
             ci-out/android/*.log
             ci-out/import*.log
           if-no-files-found: ignore
+
+      - name: Publish results to ci-results branch
+        if: always()
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: tools/ci/publish_results.sh android ci-out

@@ -16,7 +16,7 @@ on:
         description: "Renderer for this build"
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   windows:
@@ -79,3 +79,9 @@ jobs:
           name: windows-dev
           path: ci-out/windows/
           if-no-files-found: warn
+
+      - name: Publish results to ci-results branch
+        if: always()
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: tools/ci/publish_results.sh windows ci-out
