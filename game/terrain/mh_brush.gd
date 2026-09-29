@@ -7,7 +7,8 @@ extends RefCounted
 ## target by strength_per_mille * w / (1024 * 1000), truncating toward zero.
 ## All divisions use non-negative operands or idiv() so GDScript and Python agree.
 
-enum Mode { RAISE = 0, LOWER = 1, SMOOTH = 2, FLATTEN = 3 }
+## PAINT (4) is handled by MHTerrainEditor (splat layer paint); MHBrush.apply_dab ignores it (no height change).
+enum Mode { RAISE = 0, LOWER = 1, SMOOTH = 2, FLATTEN = 3, PAINT = 4 }
 
 static var _falloff: PackedInt32Array = PackedInt32Array()
 

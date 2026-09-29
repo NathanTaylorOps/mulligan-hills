@@ -67,6 +67,7 @@ jobs:
       - name: Prepare project
         run: |
           tools/ci/set_project_options.sh
+          tools/ci/gen_build_info.sh
           tools/ci/import_project.sh
 
       - name: Export, sign, upload

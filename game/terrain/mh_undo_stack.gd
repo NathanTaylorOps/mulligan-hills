@@ -3,6 +3,8 @@ extends RefCounted
 ## Undo/redo of finished strokes plus the lifecycle of the single open stroke.
 ## begin -> (dabs write via MHBrush with the open stroke) -> commit or cancel.
 ## cancel() rolls the grid back exactly and touches neither undo nor redo lists.
+## A stroke may hold height and/or splat (paint) diffs; pass the splat map to every call so both are
+## recorded, restored and cleared together.
 ## An empty stroke (nothing changed) is discarded on commit and does not clear redo.
 
 var max_strokes: int = 128
@@ -34,21 +36,23 @@ func undo_bytes() -> int:
 	return _undo_bytes
 
 
-func begin(grid: MHHeightGrid) -> MHStroke:
+func begin(grid: MHHeightGrid, splat: MHSplatMap = null) -> MHStroke:
 	if _open != null:
 		return null
 	grid.ensure_stroke_marks()
+	if splat != null:
+		splat.ensure_stroke_marks()
 	_open = MHStroke.new()
 	return _open
 
 
 ## Returns the committed stroke, or null if it changed nothing (or none was open).
-func commit(grid: MHHeightGrid) -> MHStroke:
+func commit(grid: MHHeightGrid, splat: MHSplatMap = null) -> MHStroke:
 	if _open == null:
 		return null
 	var s: MHStroke = _open
 	_open = null
-	s.finalize(grid)
+	s.finalize(grid, splat)
 	if s.changed_count() == 0:
 		return null
 	_redo.clear()
@@ -59,31 +63,31 @@ func commit(grid: MHHeightGrid) -> MHStroke:
 
 
 ## Rolls back the open stroke. Returns the rolled-back rect (for dirty marking).
-func cancel(grid: MHHeightGrid) -> Rect2i:
+func cancel(grid: MHHeightGrid, splat: MHSplatMap = null) -> Rect2i:
 	if _open == null:
 		return Rect2i()
 	var s: MHStroke = _open
 	_open = null
 	var r: Rect2i = s.bounds()
-	s.rollback(grid)
+	s.rollback(grid, splat)
 	return r
 
 
-func undo(grid: MHHeightGrid) -> MHStroke:
+func undo(grid: MHHeightGrid, splat: MHSplatMap = null) -> MHStroke:
 	if _open != null or _undo.is_empty():
 		return null
 	var s: MHStroke = _undo.pop_back()
 	_undo_bytes -= s.byte_size()
-	s.apply_old(grid)
+	s.apply_old(grid, splat)
 	_redo.append(s)
 	return s
 
 
-func redo(grid: MHHeightGrid) -> MHStroke:
+func redo(grid: MHHeightGrid, splat: MHSplatMap = null) -> MHStroke:
 	if _open != null or _redo.is_empty():
 		return null
 	var s: MHStroke = _redo.pop_back()
-	s.apply_new(grid)
+	s.apply_new(grid, splat)
 	_undo.append(s)
 	_undo_bytes += s.byte_size()
 	_trim()

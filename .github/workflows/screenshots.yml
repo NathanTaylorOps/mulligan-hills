@@ -57,7 +57,9 @@ jobs:
         run: tools/ci/download_godot.sh
 
       - name: Set renderer for this run
-        run: MH_RENDERER="$RENDERER" tools/ci/set_project_options.sh
+        run: |
+          MH_RENDERER="$RENDERER" tools/ci/set_project_options.sh
+          MH_RENDERER="$RENDERER" tools/ci/gen_build_info.sh
 
       - name: Import project
         run: tools/ci/import_project.sh

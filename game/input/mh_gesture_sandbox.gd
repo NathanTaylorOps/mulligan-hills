@@ -58,10 +58,7 @@ func _screen_to_cell(screen_pos: Vector2) -> Vector2i:
 	var origin: Vector3 = cam.project_ray_origin(screen_pos)
 	var dir: Vector3 = cam.project_ray_normal(screen_pos)
 	var hit: Variant = Plane(Vector3.UP, 0.0).intersects_ray(origin, dir)
-	if hit == null:
-		return MHStrokeBridge.NO_CELL
-	var p: Vector3 = hit
-	return Vector2i(floori(p.x), floori(p.z))
+	return MHCellSentinel.from_ground_hit(hit)
 
 
 func _build_world() -> void:

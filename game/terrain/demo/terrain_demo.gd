@@ -124,6 +124,8 @@ func _unhandled_input(event: InputEvent) -> void:
 			editor.set_brush(MHBrush.Mode.SMOOTH, editor.brush_radius, 500)
 		elif k.keycode == KEY_4:
 			editor.set_brush(MHBrush.Mode.FLATTEN, editor.brush_radius, 500)
+		elif k.keycode == KEY_5:
+			editor.set_paint_brush(MHSplatMap.Layer.BUNKER_SAND, editor.brush_radius, 600)
 		elif k.keycode == KEY_BRACKETLEFT:
 			editor.brush_radius = maxi(1, editor.brush_radius - 2)
 		elif k.keycode == KEY_BRACKETRIGHT:
@@ -134,7 +136,7 @@ func _unhandled_input(event: InputEvent) -> void:
 			print("save err=", err, " ms=", float(Time.get_ticks_usec() - t0) / 1000.0)
 		elif k.keycode == KEY_F9:
 			var t1: int = Time.get_ticks_usec()
-			var res: MHTerrainSave.LoadResult = MHTerrainSave.load_from_file(SAVE_PATH)
+			var res: MHTerrainSave.LoadResult = MHTerrainSave.load_with_fallback(SAVE_PATH)
 			print("load err=", res.error, " ", res.message, " ms=", float(Time.get_ticks_usec() - t1) / 1000.0)
 			if res.error == OK:
 				editor.grid.heights = res.grid.heights
@@ -159,7 +161,7 @@ func _process(delta: float) -> void:
 	if Input.is_key_pressed(KEY_E):
 		v.y += 1.0
 	camera.position += v * 80.0 * delta
-	var modes: Array[String] = ["raise", "lower", "smooth", "flatten"]
+	var modes: Array[String] = ["raise", "lower", "smooth", "flatten", "paint"]
 	label.text = "FPS %d | mode %s r=%d s=%d | chunks flushed %d texels %d %.2f ms\nundo %d redo %d bytes %d\n%s" % [
 		Engine.get_frames_per_second(), modes[editor.brush_mode], editor.brush_radius, editor.brush_strength,
 		chunks.last_flush_chunks, chunks.last_flush_texels, float(chunks.last_flush_usec) / 1000.0,

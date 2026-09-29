@@ -28,6 +28,9 @@ game/android/build/.gdignore
 *.xcarchive
 build/
 
+# Build info baked by tools/ci/gen_build_info.sh
+game/build_info.json
+
 # CI scratch output
 ci-out/
 

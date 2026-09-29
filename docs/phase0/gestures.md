@@ -66,6 +66,12 @@ Check against https://docs.godotengine.org/en/stable/ (classes InputEventScreenT
 - Lead or workstream A: set `res://input/mh_gesture_sandbox.tscn` as the main scene for the gesture test build, and confirm the two emulate settings above.
 - Terrain must make `cancel_stroke()` a real rollback.
 
+## 6. Update 2026-09-29: picking sentinel fix and terrain-connected gesture scene
+- Bug found: `MHPicking.MISS` is `Vector2i(-1, -1)` but `MHStrokeBridge.NO_CELL` is `Vector2i(INT_MIN, INT_MIN)`. A picker returning `MISS` straight into the bridge would dab cell (-1, -1) instead of skipping.
+- Fix: `game/input/mh_cell_sentinel.gd` (`MHCellSentinel`): `from_pick(cell)` (MISS to NO_CELL), `from_ground_hit(hit)` (flat plane, used by `mh_gesture_sandbox.gd`), `pick_terrain(grid, origin, dir)`, and `MHCellSentinel.TerrainPicker` whose `screen_to_cell` Callable is what `MHInputRouter.setup` takes for a real terrain. Rule: every `screen_to_cell` handed to the router or bridge must return one of these helpers' results. Tests: `game/tests/input/test_cell_sentinel.gd` (NOT YET RUN).
+- The terrain-connected gesture scene is `res://gate0/terrain_paint.tscn` (600 x 400 cells, real `MHTerrainEditor`, Undo/Redo buttons, router on the real pick). Its unit tests live in `game/tests/gate0/`. See `docs/phase0/gate0_scenes.md`. Still NOT YET RUN on any device.
+- UI buttons: with `emulate_mouse_from_touch` off, Godot `Button` nodes may not react to a finger (unverified). The Gate 0 panel therefore hit-tests its buttons on raw touch, and the terrain scene registers them as router UI regions so a button tap never paints.
+
 ## For Nathan
 Prerequisite: the lead tells you an Android build with the gesture sandbox scene is ready and where to download it. If not told, stop here; there is nothing for you to do yet.
 

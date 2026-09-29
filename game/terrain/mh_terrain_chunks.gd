@@ -3,14 +3,15 @@ extends Node3D
 ## Chunked terrain renderer. See docs/phase0/terrain.md.
 ## - One shared ArrayMesh (chunk_size+1)^2 vertices, flat, reused by every chunk MeshInstance3D.
 ## - Each chunk has its own small height texture (RG8, (chunk_size+3)^2 texels) and splat texture
-##   (RGBA8, same size) and its own ShaderMaterial. Vertex shader displaces from the height texture.
+##   (3 x RGBA8, same size, 11 layers, see MHSplatMap) and its own ShaderMaterial. Vertex shader displaces from the height texture.
 ## - Updates: only chunks reported dirty are touched; only the dirty rect is rewritten in the CPU byte
 ##   buffer; then Image.set_data + ImageTexture.update on that chunk's small texture (about 2.4 KB height,
-##   4.9 KB splat at chunk_size 32). Godot's ImageTexture.update takes a whole image, so "region update"
+##   14.7 KB splat (3 textures) at chunk_size 32). Godot's ImageTexture.update takes a whole image, so "region update"
 ##   here means "small per-chunk texture", not a sub-rectangle GPU upload.
 ## - Seams: adjacent chunks sample identical texels for shared edge vertices and share one-texel borders
 ##   for normals, so there are no cracks. No LOD, therefore no skirts.
-## Grid cells should be a multiple of chunk_size (512 / 32 = 16 chunks per side).
+## Grid cells need not be a multiple of chunk_size: the last chunk row/column is partial and its
+## texels past the grid edge are clamped copies of the edge sample (600 / 32 = 18.75 -> 19 chunks).
 
 const SHADER_PATH: String = "res://terrain/terrain.gdshader"
 
@@ -51,23 +52,26 @@ func setup(grid: MHHeightGrid, splat: MHSplatMap, p_chunk_size: int = 32) -> voi
 		for cx in range(chunks_x):
 			var hb := PackedByteArray()
 			hb.resize(tex_n * tex_n * 2)
-			var sb := PackedByteArray()
-			sb.resize(tex_n * tex_n * 4)
 			_hbuf.append(hb)
-			_sbuf.append(sb)
+			for _p in range(MHSplatMap.TEXTURE_COUNT):
+				var sb := PackedByteArray()
+				sb.resize(tex_n * tex_n * 4)
+				_sbuf.append(sb)
 			_write_rect(cx, cy, 0, 0, tex_n - 1, tex_n - 1)
+			var cidx: int = cy * chunks_x + cx
 			var himg: Image = Image.create_from_data(tex_n, tex_n, false, Image.FORMAT_RG8, hb)
-			var simg: Image = Image.create_from_data(tex_n, tex_n, false, Image.FORMAT_RGBA8, sb)
 			var htex: ImageTexture = ImageTexture.create_from_image(himg)
-			var stex: ImageTexture = ImageTexture.create_from_image(simg)
 			_himg.append(himg)
-			_simg.append(simg)
 			_htex.append(htex)
-			_stex.append(stex)
 			var mat := ShaderMaterial.new()
 			mat.shader = shader
 			mat.set_shader_parameter("height_tex", htex)
-			mat.set_shader_parameter("splat_tex", stex)
+			for p in range(MHSplatMap.TEXTURE_COUNT):
+				var simg: Image = Image.create_from_data(tex_n, tex_n, false, Image.FORMAT_RGBA8, _sbuf[cidx * 3 + p])
+				var stex: ImageTexture = ImageTexture.create_from_image(simg)
+				_simg.append(simg)
+				_stex.append(stex)
+				mat.set_shader_parameter("splat_tex%d" % p, stex)
 			mat.set_shader_parameter("cell_size_m", cell_size_m)
 			mat.set_shader_parameter("tex_size", float(tex_n))
 			var mi := MeshInstance3D.new()
@@ -121,7 +125,6 @@ func _build_grid_mesh() -> ArrayMesh:
 func _write_rect(cx: int, cy: int, tx0: int, ty0: int, tx1: int, ty1: int) -> void:
 	var c: int = cy * chunks_x + cx
 	var hb: PackedByteArray = _hbuf[c]
-	var sb: PackedByteArray = _sbuf[c]
 	var sx: int = _grid.samples_x
 	var sy: int = _grid.samples_y
 	for ty in range(ty0, ty1 + 1):
@@ -134,15 +137,16 @@ func _write_rect(cx: int, cy: int, tx0: int, ty0: int, tx1: int, ty1: int) -> vo
 			hb[o] = u >> 8
 			hb[o + 1] = u & 255
 			var so: int = (ty * tex_n + tx) * 4
-			var sso: int = si * 4
-			sb[so] = _splat.bytes[sso]
-			sb[so + 1] = _splat.bytes[sso + 1]
-			sb[so + 2] = _splat.bytes[sso + 2]
-			sb[so + 3] = _splat.bytes[sso + 3]
+			var sso: int = si * MHSplatMap.LAYER_COUNT
+			for p in range(MHSplatMap.TEXTURE_COUNT):
+				var sb: PackedByteArray = _sbuf[c * 3 + p]
+				for ch in range(4):
+					var layer: int = p * 4 + ch
+					sb[so + ch] = _splat.bytes[sso + layer] if layer < MHSplatMap.LAYER_COUNT else 0
+				_sbuf[c * 3 + p] = sb
 	# hb and sb are the same objects stored in the arrays (typed arrays hold references),
 	# but write back explicitly so correctness does not depend on that.
 	_hbuf[c] = hb
-	_sbuf[c] = sb
 
 
 ## Uploads every dirty chunk reported by the tracker (and clears it). Call once per frame.
@@ -181,8 +185,9 @@ func flush(tracker: MHDirtyTracker) -> void:
 		texels += (tx1 - tx0 + 1) * (ty1 - ty0 + 1)
 		_himg[c].set_data(tex_n, tex_n, false, Image.FORMAT_RG8, _hbuf[c])
 		_htex[c].update(_himg[c])
-		_simg[c].set_data(tex_n, tex_n, false, Image.FORMAT_RGBA8, _sbuf[c])
-		_stex[c].update(_simg[c])
+		for p in range(MHSplatMap.TEXTURE_COUNT):
+			_simg[c * 3 + p].set_data(tex_n, tex_n, false, Image.FORMAT_RGBA8, _sbuf[c * 3 + p])
+			_stex[c * 3 + p].update(_simg[c * 3 + p])
 	last_flush_chunks = count
 	last_flush_texels = texels
 	last_flush_usec = Time.get_ticks_usec() - t0

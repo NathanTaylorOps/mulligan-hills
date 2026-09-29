@@ -52,6 +52,25 @@ Export presets template: 0 Android Debug APK, 1 Android Debug AAB, 2 Android Rel
 by `render_export_presets.sh`; the rendered `game/export_presets.cfg` is git-ignored. Release
 signing placeholders exist but there is no release workflow yet (Phase 0 needs debug builds).
 
+## 1a. Launcher and build info (added later, NOT YET RUN)
+
+- `game/ui/mh_launcher.tscn` (script `mh_launcher.gd`, class `MHLauncher`) is now `run/main_scene`,
+  so a plain push APK opens a phone-friendly list of Phase 0 scenes with the build label on top.
+  Entries are a data array (`MHLauncher.SCENES`); a button shows only if `ResourceLoader.exists(path)`.
+  Listed: bench, gesture sandbox, terrain demo, and the expected `res://gate0/sim_hash.tscn`,
+  `terrain_paint.tscn`, `save_kill.tscn` (hidden until they exist). To add a scene, add a row.
+- **Back-to-launcher convention:** any scene may add a Button whose handler calls
+  `get_tree().change_scene_to_file("res://ui/mh_launcher.tscn")` (or `MHLauncher.LAUNCHER_PATH`).
+- The `scene` workflow input still overrides `run/main_scene` (`set_project_options.sh`), so pass
+  the bench scene there to boot straight into it. `screenshots.yml` passes its scene on the command
+  line, unaffected by the main scene.
+- `tools/ci/gen_build_info.sh` writes `game/build_info.json` (git sha short, run number, run id,
+  build time UTC, workflow name, renderer) in android-debug, windows-dev, ios-testflight and
+  screenshots, after `set_project_options.sh` and before import/export. The file is git-ignored and
+  the export presets' `include_filter` is `build_info.json` so non-resource JSON is packed.
+  `MHBuildInfo.load()` / `label_text()` (`game/ui/mh_build_info.gd`) read `res://build_info.json`
+  and return "dev" values when it is absent; unit tests (`game/tests/ui/`) do not need the file.
+
 ## 2. How it is tested (and what has NOT been run)
 
 Run here: `bash -n` on every script; YAML parsed with Python `yaml` for all six workflows;

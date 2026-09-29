@@ -25,6 +25,8 @@ var brush_radius: int = 8
 var brush_strength: int = 100
 ## FLATTEN_AUTO = level is the height under the first dab of the stroke.
 var flatten_level_mm: int = FLATTEN_AUTO
+## Surface layer painted in PAINT mode (MHSplatMap.Layer). Strength for PAINT is per mille 0..1000.
+var brush_layer: int = MHSplatMap.Layer.FAIRWAY
 
 var _stroke: MHStroke = null
 
@@ -42,6 +44,14 @@ func set_brush(mode: int, radius_cells: int, strength: int) -> void:
 	brush_strength = strength
 
 
+## Selects PAINT mode with a surface layer. strength_per_mille 0..1000.
+func set_paint_brush(layer: int, radius_cells: int, strength_per_mille: int) -> void:
+	brush_mode = MHBrush.Mode.PAINT
+	brush_layer = clampi(layer, 0, MHSplatMap.LAYER_COUNT - 1)
+	brush_radius = maxi(radius_cells, 1)
+	brush_strength = strength_per_mille
+
+
 func is_stroke_open() -> bool:
 	return _stroke != null
 
@@ -49,7 +59,7 @@ func is_stroke_open() -> bool:
 func begin_stroke() -> bool:
 	if _stroke != null:
 		return false
-	_stroke = undo_stack.begin(grid)
+	_stroke = undo_stack.begin(grid, splat)
 	if _stroke == null:
 		return false
 	stroke_began.emit()
@@ -59,6 +69,11 @@ func begin_stroke() -> bool:
 func apply_brush_at(cell_x: int, cell_y: int) -> void:
 	if _stroke == null:
 		push_warning("MHTerrainEditor.apply_brush_at called with no open stroke; ignored")
+		return
+	if brush_mode == MHBrush.Mode.PAINT:
+		var prect: Rect2i = splat.paint_disc(cell_x, cell_y, brush_radius, brush_layer, brush_strength, _stroke)
+		_stroke.dab_count += 1
+		_emit_dirty(prect)
 		return
 	var level: int = 0
 	if brush_mode == MHBrush.Mode.FLATTEN:
@@ -91,7 +106,7 @@ func end_stroke() -> int:
 	if _stroke == null:
 		return 0
 	_stroke = null
-	var s: MHStroke = undo_stack.commit(grid)
+	var s: MHStroke = undo_stack.commit(grid, splat)
 	var n: int = 0 if s == null else s.changed_count()
 	stroke_ended.emit(n)
 	return n
@@ -101,7 +116,7 @@ func cancel_stroke() -> void:
 	if _stroke == null:
 		return
 	_stroke = null
-	var r: Rect2i = undo_stack.cancel(grid)
+	var r: Rect2i = undo_stack.cancel(grid, splat)
 	_emit_dirty(r)
 	stroke_cancelled.emit()
 
@@ -109,7 +124,7 @@ func cancel_stroke() -> void:
 func undo() -> bool:
 	if _stroke != null:
 		return false
-	var s: MHStroke = undo_stack.undo(grid)
+	var s: MHStroke = undo_stack.undo(grid, splat)
 	if s == null:
 		return false
 	_emit_dirty(s.bounds())
@@ -120,7 +135,7 @@ func undo() -> bool:
 func redo() -> bool:
 	if _stroke != null:
 		return false
-	var s: MHStroke = undo_stack.redo(grid)
+	var s: MHStroke = undo_stack.redo(grid, splat)
 	if s == null:
 		return false
 	_emit_dirty(s.bounds())
@@ -128,7 +143,7 @@ func redo() -> bool:
 	return true
 
 
-## Not undoable in Phase 0.
+## NOT undoable (no stroke). Prefer set_paint_brush() plus begin_stroke/apply_brush_at/end_stroke.
 func paint_splat_at(cell_x: int, cell_y: int, radius: int, layer: int, strength_per_mille: int) -> void:
 	_emit_dirty(splat.paint_disc(cell_x, cell_y, radius, layer, strength_per_mille))
 

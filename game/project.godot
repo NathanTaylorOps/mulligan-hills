@@ -14,7 +14,7 @@ config_version=5
 config/name="Mulligan Hills"
 config/features=PackedStringArray("4.7")
 config/icon="res://icon.png"
-run/main_scene="res://bench/bench_scene.tscn"
+run/main_scene="res://ui/mh_launcher.tscn"
 
 [debug]
 

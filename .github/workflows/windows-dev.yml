@@ -54,6 +54,7 @@ jobs:
         run: |
           tools/ci/ensure_icon.sh
           tools/ci/set_project_options.sh
+          tools/ci/gen_build_info.sh
           MH_VERSION_CODE="${{ github.run_number }}" tools/ci/render_export_presets.sh
 
       - name: Import project
