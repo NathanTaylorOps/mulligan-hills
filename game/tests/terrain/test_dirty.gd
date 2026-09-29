@@ -74,6 +74,6 @@ func test_editor_stroke_marks_footprint_chunks_only() -> void:
 	var e := MHTerrainEditor.new(MHHeightGrid.new(512, 512))
 	e.set_brush(MHBrush.Mode.RAISE, 4, 100)
 	e.begin_stroke()
-	e.apply_brush_at(100, 100)
+	e.apply_brush_at(112, 112)
 	e.end_stroke()
 	assert_int(e.dirty.dirty_count()).is_equal(1)

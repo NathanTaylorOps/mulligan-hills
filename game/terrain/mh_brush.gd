@@ -26,7 +26,7 @@ static func falloff_hash() -> int:
 	var table: PackedInt32Array = falloff_table()
 	var h: int = MHHeightGrid.FNV_OFFSET
 	for i in range(table.size()):
-		var u: int = table[i]
+		var u: int = table[i] + 32768
 		h = ((h ^ (u & 255)) * MHHeightGrid.FNV_PRIME) & 0xFFFFFFFF
 		h = ((h ^ (u >> 8)) * MHHeightGrid.FNV_PRIME) & 0xFFFFFFFF
 	return h
