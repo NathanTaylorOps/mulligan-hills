@@ -1,7 +1,7 @@
 extends GdUnitTestSuite
 ## State machine, tracker and bridge tests using synthetic events. NOT YET RUN.
 
-const H = MHInputTestHelpers
+const H = preload("res://tests/input/input_test_helpers.gd")
 
 var _m: MHGestureStateMachine
 var _r: MHInputTestHelpers.Recorder

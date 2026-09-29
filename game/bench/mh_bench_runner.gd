@@ -59,7 +59,7 @@ func start(new_mode: String, seconds_override: float = -1.0) -> void:
 	_start_us = Time.get_ticks_usec()
 	_last_us = _start_us
 	_win_start_us = _start_us
-	_batt_start = OS.get_power_percent_left()
+	_batt_start = -1  # Godot 4 has no battery API; read manually per device_runbook
 	running = true
 	set_process(true)
 
@@ -114,7 +114,7 @@ func _snapshot_common() -> Dictionary:
 		"primitives_max": int(_prim_max),
 		"static_mem_mb": snappedf(mem, 0.1),
 		"video_mem_mb": snappedf(vram, 0.1),
-		"battery_pct": OS.get_power_percent_left(),
+		"battery_pct": -1  # Godot 4 has no battery API; read manually per device_runbook,
 	}
 	if context_cb.is_valid():
 		var ctx: Dictionary = context_cb.call()
