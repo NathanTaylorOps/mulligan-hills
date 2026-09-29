@@ -71,7 +71,7 @@ static func crc32(data: PackedByteArray) -> int:
 		_crc_table = t
 	var crc: int = 0xFFFFFFFF
 	for i in range(data.size()):
-		crc = _crc_table[(crc ^ data[i]) & 0xFF] ^ (crc >> 8)
+		crc = (_crc_table[(crc ^ data[i]) & 0xFF] & 0xFFFFFFFF) ^ (crc >> 8)
 	return crc ^ 0xFFFFFFFF
 
 
