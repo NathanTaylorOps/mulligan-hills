@@ -1,0 +1,122 @@
+{
+ "id": "06",
+ "title": "Unavoidable water in the only landing zone",
+ "kind": "holes",
+ "case": "case 6",
+ "holes": {
+  "plain": {
+   "slot_id": 1,
+   "tee": [
+    0,
+    0
+   ],
+   "green": [
+    0,
+    400,
+    14
+   ],
+   "tee_z_mm": 0,
+   "green_z_mm": 0,
+   "features": [
+    {
+     "t": "fairway",
+     "rect": [
+      -40,
+      0,
+      40,
+      395
+     ]
+    }
+   ]
+  },
+  "forced": {
+   "slot_id": 2,
+   "tee": [
+    0,
+    0
+   ],
+   "green": [
+    0,
+    400,
+    14
+   ],
+   "features": [
+    {
+     "t": "fairway",
+     "rect": [
+      -25,
+      0,
+      25,
+      120
+     ]
+    },
+    {
+     "t": "water",
+     "rect": [
+      -25,
+      121,
+      -6,
+      395
+     ]
+    },
+    {
+     "t": "water",
+     "rect": [
+      6,
+      121,
+      25,
+      395
+     ]
+    },
+    {
+     "t": "fairway",
+     "rect": [
+      -6,
+      121,
+      6,
+      395
+     ]
+    },
+    {
+     "t": "ob",
+     "rect": [
+      -120,
+      121,
+      -26,
+      420
+     ]
+    },
+    {
+     "t": "ob",
+     "rect": [
+      26,
+      121,
+      120,
+      420
+     ]
+    }
+   ]
+  }
+ },
+ "expect_summary": "Fairness below 250, advisor codes RC021 and RC022 fire, total below half of the plain hole.",
+ "checks": [
+  {
+   "text": "fairness at most 250",
+   "op": "le",
+   "a": "forced.F",
+   "b": 250
+  },
+  {
+   "text": "unchosen penalty rate at least 500 permille",
+   "op": "ge",
+   "a": "forced.unch",
+   "b": 500
+  },
+  {
+   "text": "total at most half of plain",
+   "op": "le",
+   "a": "forced.score_pm",
+   "b": 300
+  }
+ ]
+}

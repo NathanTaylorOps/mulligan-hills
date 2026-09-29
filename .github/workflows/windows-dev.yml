@@ -1,0 +1,81 @@
+name: Windows dev build
+
+on:
+  workflow_dispatch:
+    inputs:
+      game_path:
+        description: "Godot project folder relative to the repo root"
+        default: "game"
+      scene:
+        description: "Main scene to launch (res:// path). Empty = project default"
+        default: ""
+      renderer:
+        type: choice
+        options: [compatibility, mobile]
+        default: compatibility
+        description: "Renderer for this build"
+
+permissions:
+  contents: read
+
+jobs:
+  windows:
+    runs-on: windows-latest
+    timeout-minutes: 45
+    defaults:
+      run:
+        shell: bash
+    env:
+      GAME_PATH: ${{ inputs.game_path || 'game' }}
+      MH_MAIN_SCENE: ${{ inputs.scene || '' }}
+      MH_RENDERER: ${{ inputs.renderer || 'compatibility' }}
+      TEMPLATE_PLATFORMS: windows
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          lfs: true
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Cache Godot binaries and templates
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/mh-godot
+          key: godot-${{ runner.os }}-windows-${{ hashFiles('tools/ci/versions.env') }}
+
+      - name: Download Godot and templates
+        run: |
+          tools/ci/download_godot.sh
+          tools/ci/setup_templates.sh
+
+      - name: Prepare project
+        run: |
+          tools/ci/ensure_icon.sh
+          tools/ci/set_project_options.sh
+          MH_VERSION_CODE="${{ github.run_number }}" tools/ci/render_export_presets.sh
+
+      - name: Import project
+        run: tools/ci/import_project.sh
+
+      - name: Export dev build (debug template)
+        run: |
+          mkdir -p ci-out/windows
+          "$GODOT_BIN" --headless --path "$GITHUB_WORKSPACE/$GAME_PATH" \
+            --export-debug "Windows Desktop" "$GITHUB_WORKSPACE/ci-out/windows/MulliganHills-dev.exe" \
+            2>&1 | tee ci-out/windows/export.log
+          test -s ci-out/windows/MulliganHills-dev.exe
+          {
+            echo "## Windows dev build"
+            echo
+            ls -l ci-out/windows | sed 's/^/    /'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload build
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-dev
+          path: ci-out/windows/
+          if-no-files-found: warn

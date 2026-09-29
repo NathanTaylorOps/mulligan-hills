@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Reference for what the FINAL merged manifest must contain. With Godot's custom Gradle build most of this is
+  produced by export-preset checkboxes and by plugin AARs (manifest merger). Do NOT paste blindly: compare with
+  the merged manifest (see android/README.md, "Inspect the merged manifest"). UNVERIFIED: exact checkbox names.
+-->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- Export preset: Permissions > Internet (needed for Supabase verification). -->
+    <uses-permission android:name="android.permission.INTERNET" />
+
+    <!-- Added automatically by the Play Billing library via manifest merge. Listed for reference only. -->
+    <uses-permission android:name="com.android.vending.BILLING" />
+
+    <!-- Android 13+ runtime permission for local notifications. Ask at a meaningful moment, not at launch. -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+
+    <!-- Exact alarms are NOT needed. Do not add SCHEDULE_EXACT_ALARM (Play policy review). -->
+
+    <application>
+        <!-- Play Games Services: Godot preset option godot_play_game_services/game_id writes the
+             com.google.android.gms.games.APP_ID meta-data for you (per the plugin docs). If it does not, add: -->
+        <!-- <meta-data android:name="com.google.android.gms.games.APP_ID" android:value="@string/game_services_project_id" /> -->
+
+        <!-- Our Play Integrity plugin is registered by its own AAR manifest (plugin/.../AndroidManifest.xml). -->
+    </application>
+</manifest>

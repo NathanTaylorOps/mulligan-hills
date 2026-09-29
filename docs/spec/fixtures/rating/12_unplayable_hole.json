@@ -1,0 +1,64 @@
+{
+ "id": "12",
+ "title": "Green reachable only across unbroken water",
+ "kind": "holes",
+ "case": "extra: unplayable",
+ "holes": {
+  "island_tee": {
+   "slot_id": 4,
+   "tee": [
+    0,
+    0
+   ],
+   "green": [
+    0,
+    400,
+    14
+   ],
+   "features": [
+    {
+     "t": "fairway",
+     "rect": [
+      -8,
+      0,
+      8,
+      12
+     ]
+    },
+    {
+     "t": "water",
+     "rect": [
+      -120,
+      13,
+      120,
+      395
+     ]
+    },
+    {
+     "t": "ob",
+     "rect": [
+      -121,
+      -30,
+      -121,
+      420
+     ]
+    }
+   ]
+  }
+ },
+ "expect_summary": "All scratch golfers pick up; hole is marked unplayable (RC007), score 0, no crash, advisor tells the player which stretch is unreachable.",
+ "checks": [
+  {
+   "text": "unplayable hole scores 0",
+   "op": "eq",
+   "a": "island_tee.score_pm",
+   "b": 0
+  },
+  {
+   "text": "marked invalid",
+   "op": "eq",
+   "a": "island_tee.valid",
+   "b": false
+  }
+ ]
+}

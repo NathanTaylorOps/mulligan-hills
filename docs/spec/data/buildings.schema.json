@@ -1,0 +1,360 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.mulliganhills.example/buildings.schema.json",
+  "title": "Mulligan Hills buildings data v1",
+  "description": "10 buildings x 5 tiers. Loaded at start; balance changes need no code. Remote config may override costs within clamps.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "schema_version",
+    "status",
+    "score_scale",
+    "land",
+    "hole_cap",
+    "cost_multiplier_x100",
+    "rules",
+    "buildings"
+  ],
+  "properties": {
+    "schema": {
+      "const": "mh.buildings"
+    },
+    "schema_version": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 1
+    },
+    "status": {
+      "type": "string"
+    },
+    "score_scale": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "min",
+        "max",
+        "gate_basis"
+      ],
+      "properties": {
+        "min": {
+          "const": 0
+        },
+        "max": {
+          "const": 100
+        },
+        "gate_basis": {
+          "const": "average_hole_score"
+        }
+      }
+    },
+    "land": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "unit",
+        "holes_per_parcel",
+        "start_parcels",
+        "max_parcels"
+      ],
+      "properties": {
+        "unit": {
+          "const": "parcel"
+        },
+        "holes_per_parcel": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 9
+        },
+        "start_parcels": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 9
+        },
+        "max_parcels": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 16
+        }
+      }
+    },
+    "hole_cap": {
+      "const": 18
+    },
+    "cost_multiplier_x100": {
+      "type": "array",
+      "minItems": 5,
+      "maxItems": 5,
+      "items": {
+        "type": "integer",
+        "minimum": 1,
+        "maximum": 100000
+      }
+    },
+    "rules": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "gates_persistent",
+        "gates_checked_at_purchase_only",
+        "note"
+      ],
+      "properties": {
+        "gates_persistent": {
+          "const": true
+        },
+        "gates_checked_at_purchase_only": {
+          "const": false
+        },
+        "note": {
+          "type": "string"
+        }
+      }
+    },
+    "buildings": {
+      "type": "array",
+      "minItems": 10,
+      "maxItems": 10,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "name_key",
+          "desc_key",
+          "base_cost",
+          "land_class",
+          "demo_max_tier",
+          "tier3_specs",
+          "tiers"
+        ],
+        "properties": {
+          "id": {
+            "enum": [
+              "clubhouse",
+              "pro_shop",
+              "driving_range",
+              "restaurant",
+              "pool_spa",
+              "cart_barn",
+              "maintenance",
+              "lodging",
+              "homes",
+              "landmark"
+            ]
+          },
+          "name_key": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9_]*(\\.[a-z0-9_]+){1,4}$",
+            "maxLength": 80
+          },
+          "desc_key": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9_]*(\\.[a-z0-9_]+){1,4}$",
+            "maxLength": 80
+          },
+          "base_cost": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 10000000
+          },
+          "land_class": {
+            "enum": [
+              "light",
+              "heavy"
+            ]
+          },
+          "demo_max_tier": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 5
+          },
+          "tier3_specs": {
+            "type": "array",
+            "minItems": 2,
+            "maxItems": 2,
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "id",
+                "name_key"
+              ],
+              "properties": {
+                "id": {
+                  "enum": [
+                    "a",
+                    "b"
+                  ]
+                },
+                "name_key": {
+                  "type": "string",
+                  "pattern": "^[a-z][a-z0-9_]*(\\.[a-z0-9_]+){1,4}$",
+                  "maxLength": 80
+                }
+              }
+            }
+          },
+          "tiers": {
+            "type": "array",
+            "minItems": 5,
+            "maxItems": 5,
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "tier",
+                "name_key",
+                "cost",
+                "upkeep_per_day",
+                "requires"
+              ],
+              "properties": {
+                "tier": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 5
+                },
+                "name_key": {
+                  "type": "string",
+                  "pattern": "^[a-z][a-z0-9_]*(\\.[a-z0-9_]+){1,4}$",
+                  "maxLength": 80
+                },
+                "cost": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 1000000000
+                },
+                "upkeep_per_day": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 1000000
+                },
+                "requires": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "min_holes",
+                    "min_avg_hole_score",
+                    "min_parcels_owned",
+                    "min_members",
+                    "specific",
+                    "any_others",
+                    "hosted_tournament"
+                  ],
+                  "properties": {
+                    "min_holes": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 18
+                    },
+                    "min_avg_hole_score": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 100
+                    },
+                    "min_parcels_owned": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 9
+                    },
+                    "min_members": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 10000
+                    },
+                    "specific": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": [
+                          "building",
+                          "min_tier"
+                        ],
+                        "properties": {
+                          "building": {
+                            "enum": [
+                              "clubhouse",
+                              "pro_shop",
+                              "driving_range",
+                              "restaurant",
+                              "pool_spa",
+                              "cart_barn",
+                              "maintenance",
+                              "lodging",
+                              "homes",
+                              "landmark"
+                            ]
+                          },
+                          "min_tier": {
+                            "type": "integer",
+                            "minimum": 1,
+                            "maximum": 5
+                          }
+                        }
+                      },
+                      "minItems": 0,
+                      "maxItems": 5
+                    },
+                    "any_others": {
+                      "oneOf": [
+                        {
+                          "type": "null"
+                        },
+                        {
+                          "type": "object",
+                          "additionalProperties": false,
+                          "required": [
+                            "count",
+                            "min_tier"
+                          ],
+                          "properties": {
+                            "count": {
+                              "type": "integer",
+                              "minimum": 1,
+                              "maximum": 9
+                            },
+                            "min_tier": {
+                              "type": "integer",
+                              "minimum": 1,
+                              "maximum": 5
+                            }
+                          }
+                        }
+                      ]
+                    },
+                    "hosted_tournament": {
+                      "oneOf": [
+                        {
+                          "type": "null"
+                        },
+                        {
+                          "type": "object",
+                          "additionalProperties": false,
+                          "required": [
+                            "min_level"
+                          ],
+                          "properties": {
+                            "min_level": {
+                              "enum": [
+                                "local",
+                                "regional",
+                                "national",
+                                "major"
+                              ]
+                            }
+                          }
+                        }
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

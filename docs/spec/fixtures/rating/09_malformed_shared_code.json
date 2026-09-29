@@ -1,0 +1,482 @@
+{
+ "id": "09",
+ "title": "Malformed shared hole input fuzz set",
+ "kind": "fuzz",
+ "case": "case 9",
+ "expect_summary": "Every case rejected with the listed code, deterministically, in under 50 ms each on the reference phone budget; an embedded claimed score is ignored and the hole is rated from geometry only.",
+ "cases": [
+  {
+   "name": "nan_string",
+   "input": {
+    "schema": 1,
+    "engine": "MHRATE-1.0.0",
+    "hole": {
+     "tee": [
+      "NaN",
+      0
+     ],
+     "green": [
+      0,
+      300,
+      12
+     ],
+     "features": [
+      {
+       "t": "fairway",
+       "rect": [
+        -20,
+        0,
+        20,
+        295
+       ]
+      }
+     ]
+    }
+   },
+   "expect_code": "E07_NON_INTEGER"
+  },
+  {
+   "name": "float_coordinate",
+   "input": {
+    "schema": 1,
+    "engine": "MHRATE-1.0.0",
+    "hole": {
+     "tee": [
+      0.5,
+      0
+     ],
+     "green": [
+      0,
+      300,
+      12
+     ],
+     "features": [
+      {
+       "t": "fairway",
+       "rect": [
+        -20,
+        0,
+        20,
+        295
+       ]
+      }
+     ]
+    }
+   },
+   "expect_code": "E07_NON_INTEGER"
+  },
+  {
+   "name": "infinity_string",
+   "input": {
+    "schema": 1,
+    "engine": "MHRATE-1.0.0",
+    "hole": {
+     "tee": [
+      0,
+      0
+     ],
+     "green": [
+      0,
+      "Infinity",
+      12
+     ],
+     "features": [
+      {
+       "t": "fairway",
+       "rect": [
+        -20,
+        0,
+        20,
+        295
+       ]
+      }
+     ]
+    }
+   },
+   "expect_code": "E07_NON_INTEGER"
+  },
+  {
+   "name": "negative_green_radius",
+   "input": {
+    "schema": 1,
+    "engine": "MHRATE-1.0.0",
+    "hole": {
+     "tee": [
+      0,
+      0
+     ],
+     "green": [
+      0,
+      300,
+      -5
+     ],
+     "features": [
+      {
+       "t": "fairway",
+       "rect": [
+        -20,
+        0,
+        20,
+        295
+       ]
+      }
+     ]
+    }
+   },
+   "expect_code": "E09_NEGATIVE_SIZE"
+  },
+  {
+   "name": "negative_rect",
+   "input": {
+    "schema": 1,
+    "engine": "MHRATE-1.0.0",
+    "hole": {
+     "tee": [
+      0,
+      0
+     ],
+     "green": [
+      0,
+      300,
+      12
+     ],
+     "features": [
+      {
+       "t": "fairway",
+       "rect": [
+        -20,
+        0,
+        20,
+        295
+       ]
+      },
+      {
+       "t": "water",
+       "rect": [
+        10,
+        10,
+        0,
+        0
+       ]
+      }
+     ]
+    }
+   },
+   "expect_code": "E09_NEGATIVE_SIZE"
+  },
+  {
+   "name": "one_million_objects",
+   "input": {
+    "schema": 1,
+    "engine": "MHRATE-1.0.0",
+    "hole": {
+     "tee": [
+      0,
+      0
+     ],
+     "green": [
+      0,
+      300,
+      12
+     ],
+     "features": {
+      "_len": 1000000
+     }
+    }
+   },
+   "expect_code": "E05_TOO_MANY_OBJECTS",
+   "note": "harness builds a real list of 1,000,000 features; the count check must reject before any per-feature work"
+  },
+  {
+   "name": "tree_count_bomb",
+   "input": {
+    "schema": 1,
+    "engine": "MHRATE-1.0.0",
+    "hole": {
+     "tee": [
+      0,
+      0
+     ],
+     "green": [
+      0,
+      300,
+      12
+     ],
+     "features": [
+      {
+       "t": "fairway",
+       "rect": [
+        -20,
+        0,
+        20,
+        295
+       ]
+      },
+      {
+       "t": "tree",
+       "rect": [
+        0,
+        0,
+        50,
+        50
+       ],
+       "count": 100000
+      }
+     ]
+    }
+   },
+   "expect_code": "E05_TOO_MANY_OBJECTS"
+  },
+  {
+   "name": "truncated_tee",
+   "input": {
+    "schema": 1,
+    "engine": "MHRATE-1.0.0",
+    "hole": {
+     "tee": [
+      0
+     ],
+     "green": [
+      0,
+      300,
+      12
+     ],
+     "features": [
+      {
+       "t": "fairway",
+       "rect": [
+        -20,
+        0,
+        20,
+        295
+       ]
+      }
+     ]
+    }
+   },
+   "expect_code": "E06_TRUNCATED_OR_SHAPE"
+  },
+  {
+   "name": "missing_features",
+   "input": {
+    "schema": 1,
+    "engine": "MHRATE-1.0.0",
+    "hole": {
+     "tee": [
+      0,
+      0
+     ],
+     "green": [
+      0,
+      300,
+      12
+     ]
+    }
+   },
+   "expect_code": "E04_MISSING_FIELD"
+  },
+  {
+   "name": "wrong_schema",
+   "input": {
+    "schema": 99,
+    "engine": "MHRATE-1.0.0",
+    "hole": {
+     "tee": [
+      0,
+      0
+     ],
+     "green": [
+      0,
+      300,
+      12
+     ],
+     "features": [
+      {
+       "t": "fairway",
+       "rect": [
+        -20,
+        0,
+        20,
+        295
+       ]
+      }
+     ]
+    }
+   },
+   "expect_code": "E02_BAD_SCHEMA_VERSION"
+  },
+  {
+   "name": "wrong_engine_version",
+   "input": {
+    "schema": 1,
+    "engine": "MHRATE-0.9.0",
+    "hole": {
+     "tee": [
+      0,
+      0
+     ],
+     "green": [
+      0,
+      300,
+      12
+     ],
+     "features": [
+      {
+       "t": "fairway",
+       "rect": [
+        -20,
+        0,
+        20,
+        295
+       ]
+      }
+     ]
+    }
+   },
+   "expect_code": "E03_ENGINE_MISMATCH"
+  },
+  {
+   "name": "coordinate_out_of_range",
+   "input": {
+    "schema": 1,
+    "engine": "MHRATE-1.0.0",
+    "hole": {
+     "tee": [
+      0,
+      0
+     ],
+     "green": [
+      0,
+      999999,
+      12
+     ],
+     "features": [
+      {
+       "t": "fairway",
+       "rect": [
+        -20,
+        0,
+        20,
+        295
+       ]
+      }
+     ]
+    }
+   },
+   "expect_code": "E08_OUT_OF_RANGE"
+  },
+  {
+   "name": "unknown_feature_type",
+   "input": {
+    "schema": 1,
+    "engine": "MHRATE-1.0.0",
+    "hole": {
+     "tee": [
+      0,
+      0
+     ],
+     "green": [
+      0,
+      300,
+      12
+     ],
+     "features": [
+      {
+       "t": "fairway",
+       "rect": [
+        -20,
+        0,
+        20,
+        295
+       ]
+      },
+      {
+       "t": "lava",
+       "rect": [
+        0,
+        0,
+        5,
+        5
+       ]
+      }
+     ]
+    }
+   },
+   "expect_code": "E10_BAD_FEATURE_TYPE"
+  },
+  {
+   "name": "not_an_object",
+   "input": [
+    1,
+    2,
+    3
+   ],
+   "expect_code": "E01_NOT_OBJECT"
+  }
+ ],
+ "embedded_score_case": {
+  "input": {
+   "schema": 1,
+   "engine": "MHRATE-1.0.0",
+   "hole": {
+    "tee": [
+     0,
+     0
+    ],
+    "green": [
+     0,
+     300,
+     12
+    ],
+    "features": [
+     {
+      "t": "fairway",
+      "rect": [
+       -20,
+       0,
+       20,
+       295
+      ]
+     }
+    ],
+    "slot_id": 9
+   },
+   "claimed_score": 999,
+   "claimed_hole_scores": [
+    100,
+    100,
+    100,
+    100,
+    100,
+    100,
+    100,
+    100,
+    100,
+    100,
+    100,
+    100,
+    100,
+    100,
+    100,
+    100,
+    100,
+    100
+   ]
+  }
+ },
+ "checks": [
+  {
+   "text": "embedded claimed score of 999 ignored",
+   "op": "le",
+   "a": "embedded.score_pm",
+   "b": 1000
+  },
+  {
+   "text": "embedded claimed score is not used",
+   "op": "between",
+   "a": "embedded.score_pm",
+   "lo": 1,
+   "hi": 900
+  }
+ ]
+}

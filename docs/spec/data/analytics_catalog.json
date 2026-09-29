@@ -1,0 +1,405 @@
+{
+  "schema": "mh.analytics_catalog",
+  "schema_version": 1,
+  "privacy": {
+    "no_personal_data": true,
+    "no_free_text": true,
+    "no_precise_location": true,
+    "no_advertising_id": true,
+    "no_hardware_ids": true,
+    "consent_required": true,
+    "identifiers": "random install_id (resettable in settings) and random per-launch session_id only",
+    "retention_days": 180
+  },
+  "events": [
+    {
+      "name": "app_open",
+      "description": "App opened (cold start).",
+      "props": {
+        "first_run": {
+          "type": "boolean"
+        },
+        "build_kind": {
+          "enum": [
+            "demo",
+            "full"
+          ]
+        },
+        "quality_tier": {
+          "enum": [
+            "low",
+            "medium",
+            "high"
+          ]
+        }
+      },
+      "required": [
+        "first_run",
+        "build_kind"
+      ]
+    },
+    {
+      "name": "consent_decision",
+      "description": "Player answered the consent prompt.",
+      "props": {
+        "analytics": {
+          "type": "boolean"
+        },
+        "notifications": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "analytics"
+      ]
+    },
+    {
+      "name": "tutorial_step",
+      "description": "A tutorial step finished.",
+      "props": {
+        "step": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 100
+        },
+        "seconds_in_step": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 3600
+        }
+      },
+      "required": [
+        "step"
+      ]
+    },
+    {
+      "name": "first_stroke",
+      "description": "First terrain stroke ever.",
+      "props": {
+        "seconds_since_open": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 86400
+        }
+      },
+      "required": []
+    },
+    {
+      "name": "hole_completed_design",
+      "description": "Player finished placing tee and green for a hole.",
+      "props": {
+        "hole_no": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 18
+        },
+        "par": {
+          "type": "integer",
+          "minimum": 3,
+          "maximum": 5
+        }
+      },
+      "required": [
+        "hole_no"
+      ]
+    },
+    {
+      "name": "first_golfer_finished",
+      "description": "First simulated golfer completed a hole.",
+      "props": {
+        "seconds_since_open": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 86400
+        }
+      },
+      "required": []
+    },
+    {
+      "name": "rating_viewed",
+      "description": "Player opened the rating panel.",
+      "props": {
+        "hole_no": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 18
+        },
+        "score": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 100
+        }
+      },
+      "required": [
+        "score"
+      ]
+    },
+    {
+      "name": "speed_changed",
+      "description": "Game speed changed.",
+      "props": {
+        "speed": {
+          "enum": [
+            "1x",
+            "2x",
+            "4x",
+            "skip"
+          ]
+        }
+      },
+      "required": [
+        "speed"
+      ]
+    },
+    {
+      "name": "building_upgraded",
+      "description": "A building tier was bought.",
+      "props": {
+        "building": {
+          "enum": [
+            "clubhouse",
+            "pro_shop",
+            "driving_range",
+            "restaurant",
+            "pool_spa",
+            "cart_barn",
+            "maintenance",
+            "lodging",
+            "homes",
+            "landmark"
+          ]
+        },
+        "tier": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 5
+        },
+        "day": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 100000
+        }
+      },
+      "required": [
+        "building",
+        "tier"
+      ]
+    },
+    {
+      "name": "parcel_bought",
+      "description": "A land parcel was bought.",
+      "props": {
+        "parcels_owned": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 16
+        }
+      },
+      "required": [
+        "parcels_owned"
+      ]
+    },
+    {
+      "name": "tournament_hosted",
+      "description": "A tournament finished.",
+      "props": {
+        "level": {
+          "enum": [
+            "local",
+            "regional",
+            "national",
+            "major"
+          ]
+        },
+        "result": {
+          "enum": [
+            "success",
+            "failed"
+          ]
+        }
+      },
+      "required": [
+        "level",
+        "result"
+      ]
+    },
+    {
+      "name": "commission_done",
+      "description": "A commission ended.",
+      "props": {
+        "result": {
+          "enum": [
+            "success",
+            "fail",
+            "expired"
+          ]
+        }
+      },
+      "required": [
+        "result"
+      ]
+    },
+    {
+      "name": "card_choice",
+      "description": "Event card choice made.",
+      "props": {
+        "card_id": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]{1,39}$"
+        },
+        "choice": {
+          "enum": [
+            "a",
+            "b",
+            "c"
+          ]
+        }
+      },
+      "required": [
+        "card_id",
+        "choice"
+      ]
+    },
+    {
+      "name": "demo_wall_seen",
+      "description": "Player reached the demo limit.",
+      "props": {
+        "reason": {
+          "enum": [
+            "holes",
+            "building_tier",
+            "tournament",
+            "other"
+          ]
+        },
+        "session_minutes": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 100000
+        },
+        "total_play_minutes": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 1000000
+        }
+      },
+      "required": [
+        "reason"
+      ]
+    },
+    {
+      "name": "unlock_flow",
+      "description": "Step in the purchase flow (no payment data).",
+      "props": {
+        "step": {
+          "enum": [
+            "shown",
+            "started",
+            "completed",
+            "cancelled",
+            "failed",
+            "restored"
+          ]
+        }
+      },
+      "required": [
+        "step"
+      ]
+    },
+    {
+      "name": "session_end",
+      "description": "Session ended.",
+      "props": {
+        "minutes": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 1440
+        },
+        "days_played": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 10000
+        },
+        "avg_fps_bucket": {
+          "enum": [
+            "lt20",
+            "20_29",
+            "30_44",
+            "45_plus"
+          ]
+        }
+      },
+      "required": [
+        "minutes"
+      ]
+    },
+    {
+      "name": "save_result",
+      "description": "Save or cloud sync result.",
+      "props": {
+        "kind": {
+          "enum": [
+            "local",
+            "cloud_up",
+            "cloud_down",
+            "migrate"
+          ]
+        },
+        "ok": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "kind",
+        "ok"
+      ]
+    },
+    {
+      "name": "perf_sample",
+      "description": "Performance sample, once per 5 minutes.",
+      "props": {
+        "fps_bucket": {
+          "enum": [
+            "lt20",
+            "20_29",
+            "30_44",
+            "45_plus"
+          ]
+        },
+        "thermal": {
+          "enum": [
+            "normal",
+            "warm",
+            "hot"
+          ]
+        },
+        "quality_tier": {
+          "enum": [
+            "low",
+            "medium",
+            "high"
+          ]
+        }
+      },
+      "required": [
+        "fps_bucket"
+      ]
+    },
+    {
+      "name": "feedback_sent",
+      "description": "Player sent in-app feedback (text is NOT in the event).",
+      "props": {
+        "kind": {
+          "enum": [
+            "bug",
+            "idea",
+            "other"
+          ]
+        }
+      },
+      "required": [
+        "kind"
+      ]
+    }
+  ]
+}

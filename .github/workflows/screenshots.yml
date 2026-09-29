@@ -1,0 +1,75 @@
+name: Screenshots and bench (software GL)
+
+on:
+  push:
+  workflow_dispatch:
+    inputs:
+      game_path:
+        description: "Godot project folder relative to the repo root"
+        default: "game"
+      scene:
+        description: "Bench scene (res:// path)"
+        default: "res://bench/bench_scene.tscn"
+      renderer:
+        description: "compatibility = OpenGL via Mesa llvmpipe. mobile = Vulkan via Mesa lavapipe"
+        type: choice
+        options: [compatibility, mobile]
+        default: compatibility
+      bench_args:
+        description: "User args passed to the scene after --"
+        default: "--autostart --mode=quick --tier=medium --quit-after-bench"
+
+concurrency:
+  group: screenshots-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  bench:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      GAME_PATH: ${{ inputs.game_path || 'game' }}
+      SCENE: ${{ inputs.scene || 'res://bench/bench_scene.tscn' }}
+      RENDERER: ${{ inputs.renderer || 'compatibility' }}
+      BENCH_ARGS: ${{ inputs.bench_args || '--autostart --mode=quick --tier=medium --quit-after-bench' }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          lfs: true
+
+      - name: Cache Godot binaries
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/mh-godot
+          key: godot-${{ runner.os }}-editor-${{ hashFiles('tools/ci/versions.env') }}
+
+      - name: Install xvfb and Mesa software drivers
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends xvfb mesa-utils libgl1-mesa-dri libglx-mesa0 imagemagick \
+            libegl1 mesa-vulkan-drivers libxcursor1 libxinerama1 libxi6 libxrandr2 libfontconfig1
+
+      - name: Download Godot
+        run: tools/ci/download_godot.sh
+
+      - name: Set renderer for this run
+        run: MH_RENDERER="$RENDERER" tools/ci/set_project_options.sh
+
+      - name: Import project
+        run: tools/ci/import_project.sh
+
+      - name: Run bench scene
+        run: tools/ci/run_bench.sh
+
+      - name: Upload screenshots and bench JSON
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: bench-${{ github.run_number }}
+          path: |
+            ci-out/bench/
+            ci-out/import*.log
+          if-no-files-found: warn

@@ -1,0 +1,183 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.mulliganhills.example/event_cards.schema.json",
+  "title": "Mulligan Hills event and decision cards v1",
+  "description": "Random events and decision cards (storms, VIP visits, celebrity rounds, member complaints). Launch target about 40 cards. All effects are integer and bounded; cards never touch the sim or rating engine, only cash, reputation, members, prestige and flags. Picked deterministically from the save RNG.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "schema_version",
+    "cards"
+  ],
+  "properties": {
+    "schema": {
+      "const": "mh.event_cards"
+    },
+    "schema_version": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 1
+    },
+    "cards": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 200,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "category",
+          "weight",
+          "min_day",
+          "cooldown_days",
+          "once",
+          "title_key",
+          "body_key",
+          "choices"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9_]{1,39}$"
+          },
+          "category": {
+            "enum": [
+              "weather",
+              "vip",
+              "celebrity",
+              "member",
+              "staff",
+              "finance",
+              "community"
+            ]
+          },
+          "weight": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 1000
+          },
+          "min_day": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 100000
+          },
+          "cooldown_days": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 1000
+          },
+          "once": {
+            "type": "boolean"
+          },
+          "min_avg_hole_score": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 100
+          },
+          "min_members": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 100000
+          },
+          "title_key": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9_]*(\\.[a-z0-9_]+){1,4}$",
+            "maxLength": 80
+          },
+          "body_key": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9_]*(\\.[a-z0-9_]+){1,4}$",
+            "maxLength": 80
+          },
+          "choices": {
+            "type": "array",
+            "minItems": 2,
+            "maxItems": 3,
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "id",
+                "label_key",
+                "outcome_key",
+                "effects"
+              ],
+              "properties": {
+                "id": {
+                  "enum": [
+                    "a",
+                    "b",
+                    "c"
+                  ]
+                },
+                "label_key": {
+                  "type": "string",
+                  "pattern": "^[a-z][a-z0-9_]*(\\.[a-z0-9_]+){1,4}$",
+                  "maxLength": 80
+                },
+                "outcome_key": {
+                  "type": "string",
+                  "pattern": "^[a-z][a-z0-9_]*(\\.[a-z0-9_]+){1,4}$",
+                  "maxLength": 80
+                },
+                "requires": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "properties": {
+                    "min_cash": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 1000000000
+                    },
+                    "min_reputation": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 100000
+                    }
+                  }
+                },
+                "effects": {
+                  "type": "array",
+                  "minItems": 0,
+                  "maxItems": 4,
+                  "items": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": [
+                      "op",
+                      "amount"
+                    ],
+                    "properties": {
+                      "op": {
+                        "enum": [
+                          "add_cash",
+                          "add_reputation",
+                          "add_members",
+                          "add_prestige",
+                          "set_flag",
+                          "clear_flag",
+                          "weather_next_day"
+                        ]
+                      },
+                      "amount": {
+                        "type": "integer",
+                        "minimum": -100000000,
+                        "maximum": 100000000
+                      },
+                      "flag": {
+                        "type": "string",
+                        "pattern": "^[a-z][a-z0-9_]{1,39}$"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

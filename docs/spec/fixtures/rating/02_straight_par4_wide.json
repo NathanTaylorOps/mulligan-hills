@@ -1,0 +1,108 @@
+{
+ "id": "02",
+ "title": "Straight 400y par 4, wide fairway, no hazards",
+ "kind": "holes",
+ "case": "case 2",
+ "holes": {
+  "plain": {
+   "slot_id": 1,
+   "tee": [
+    0,
+    0
+   ],
+   "green": [
+    0,
+    400,
+    14
+   ],
+   "tee_z_mm": 0,
+   "green_z_mm": 0,
+   "features": [
+    {
+     "t": "fairway",
+     "rect": [
+      -40,
+      0,
+      40,
+      395
+     ]
+    }
+   ]
+  },
+  "strategic": {
+   "slot_id": 5,
+   "tee": [
+    0,
+    0
+   ],
+   "green": [
+    0,
+    400,
+    14
+   ],
+   "tee_z_mm": 0,
+   "green_z_mm": 0,
+   "features": [
+    {
+     "t": "fairway",
+     "rect": [
+      -40,
+      0,
+      40,
+      395
+     ]
+    },
+    {
+     "t": "water",
+     "rect": [
+      -14,
+      190,
+      14,
+      300
+     ]
+    }
+   ]
+  }
+ },
+ "expect_summary": "High fairness, Accuracy at least 500, Imagination near 0, Beauty 100 to 300, total mediocre and clearly below a hole with a real strategic choice.",
+ "checks": [
+  {
+   "text": "fairness at least 900",
+   "op": "ge",
+   "a": "plain.F",
+   "b": 900
+  },
+  {
+   "text": "accuracy at least 500",
+   "op": "ge",
+   "a": "plain.A",
+   "b": 500
+  },
+  {
+   "text": "imagination at most 60",
+   "op": "le",
+   "a": "plain.I",
+   "b": 60
+  },
+  {
+   "text": "beauty between 100 and 300",
+   "op": "between",
+   "a": "plain.B",
+   "lo": 100,
+   "hi": 300
+  },
+  {
+   "text": "plain total at most 480",
+   "op": "le",
+   "a": "plain.score_pm",
+   "b": 480
+  },
+  {
+   "text": "strategic hole beats plain by 100 or more",
+   "op": "ge",
+   "a": "strategic.score_pm",
+   "b": "plain.score_pm",
+   "margin": 100
+  }
+ ]
+}

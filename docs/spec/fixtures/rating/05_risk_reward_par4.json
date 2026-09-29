@@ -1,0 +1,138 @@
+{
+ "id": "05",
+ "title": "Par 4 with a central lake: choice of lines",
+ "kind": "holes",
+ "case": "case 5",
+ "holes": {
+  "nochoice": {
+   "slot_id": 1,
+   "tee": [
+    0,
+    0
+   ],
+   "green": [
+    0,
+    400,
+    14
+   ],
+   "tee_z_mm": 0,
+   "green_z_mm": 0,
+   "features": [
+    {
+     "t": "fairway",
+     "rect": [
+      -40,
+      0,
+      40,
+      395
+     ]
+    }
+   ]
+  },
+  "choice": {
+   "slot_id": 5,
+   "tee": [
+    0,
+    0
+   ],
+   "green": [
+    0,
+    400,
+    14
+   ],
+   "tee_z_mm": 0,
+   "green_z_mm": 0,
+   "features": [
+    {
+     "t": "fairway",
+     "rect": [
+      -40,
+      0,
+      40,
+      395
+     ]
+    },
+    {
+     "t": "water",
+     "rect": [
+      -14,
+      190,
+      14,
+      300
+     ]
+    }
+   ]
+  },
+  "choice_wide": {
+   "slot_id": 6,
+   "tee": [
+    0,
+    0
+   ],
+   "green": [
+    0,
+    400,
+    14
+   ],
+   "tee_z_mm": 0,
+   "green_z_mm": 0,
+   "features": [
+    {
+     "t": "fairway",
+     "rect": [
+      -40,
+      0,
+      40,
+      395
+     ]
+    },
+    {
+     "t": "water",
+     "rect": [
+      -18,
+      170,
+      18,
+      290
+     ]
+    }
+   ]
+  }
+ },
+ "expect_summary": "Fairness within 60 permille of the no-choice hole, Imagination at least 300 higher, geometric corridor count at least 2.",
+ "checks": [
+  {
+   "text": "fairness not below no-choice hole minus 60",
+   "op": "ge",
+   "a": "choice.F",
+   "b": "nochoice.F",
+   "margin": -60
+  },
+  {
+   "text": "second variant fairness not below minus 100",
+   "op": "ge",
+   "a": "choice_wide.F",
+   "b": "nochoice.F",
+   "margin": -100
+  },
+  {
+   "text": "second variant imagination at least 200 higher",
+   "op": "ge",
+   "a": "choice_wide.I",
+   "b": "nochoice.I",
+   "margin": 200
+  },
+  {
+   "text": "imagination at least 300 higher",
+   "op": "ge",
+   "a": "choice.I",
+   "b": "nochoice.I",
+   "margin": 300
+  },
+  {
+   "text": "at least 2 separate corridors",
+   "op": "ge",
+   "a": "choice.comps",
+   "b": 2
+  }
+ ]
+}

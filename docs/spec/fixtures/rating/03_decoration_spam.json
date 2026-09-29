@@ -1,0 +1,101 @@
+{
+ "id": "03",
+ "title": "Case 2 plus 500 decorative trees off the line",
+ "kind": "holes",
+ "case": "case 3",
+ "holes": {
+  "plain": {
+   "slot_id": 1,
+   "tee": [
+    0,
+    0
+   ],
+   "green": [
+    0,
+    400,
+    14
+   ],
+   "tee_z_mm": 0,
+   "green_z_mm": 0,
+   "features": [
+    {
+     "t": "fairway",
+     "rect": [
+      -40,
+      0,
+      40,
+      395
+     ]
+    }
+   ]
+  },
+  "spam": {
+   "slot_id": 1,
+   "tee": [
+    0,
+    0
+   ],
+   "green": [
+    0,
+    400,
+    14
+   ],
+   "tee_z_mm": 0,
+   "green_z_mm": 0,
+   "features": [
+    {
+     "t": "fairway",
+     "rect": [
+      -40,
+      0,
+      40,
+      395
+     ]
+    },
+    {
+     "t": "tree",
+     "rect": [
+      50,
+      10,
+      60,
+      390
+     ],
+     "count": 250
+    },
+    {
+     "t": "tree",
+     "rect": [
+      -60,
+      10,
+      -50,
+      390
+     ],
+     "count": 250
+    }
+   ]
+  }
+ },
+ "expect_summary": "Beauty rises but to a cap; total gain at most 40 permille (4 hole points). Engine dedupes trees to 3 yard cells and counts at most 60.",
+ "checks": [
+  {
+   "text": "beauty rises",
+   "op": "gt",
+   "a": "spam.B",
+   "b": "plain.B"
+  },
+  {
+   "text": "beauty gain at most 200",
+   "op": "le",
+   "a": "spam.B",
+   "b": "plain.B",
+   "margin": 200
+  },
+  {
+   "text": "total gain at most 40 permille",
+   "op": "le",
+   "a": "spam.score_pm",
+   "b": "plain.score_pm",
+   "margin": 40
+  }
+ ]
+}

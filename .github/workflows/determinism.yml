@@ -1,0 +1,92 @@
+name: Determinism (cross-platform hash)
+
+on:
+  push:
+    paths:
+      - "game/core/**"
+      - "game/tests/core/**"
+      - "tools/ci/**"
+      - ".github/workflows/determinism.yml"
+  workflow_dispatch:
+    inputs:
+      game_path:
+        description: "Godot project folder relative to the repo root"
+        default: "game"
+      test_path:
+        description: "gdUnit4 path holding the deterministic sim tests"
+        default: "res://tests/core"
+
+concurrency:
+  group: determinism-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  hash:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
+    env:
+      GAME_PATH: ${{ inputs.game_path || 'game' }}
+      TEST_PATH: ${{ inputs.test_path || 'res://tests/core' }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          lfs: true
+
+      - name: Cache Godot binaries
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/mh-godot
+          key: godot-${{ runner.os }}-editor-${{ hashFiles('tools/ci/versions.env') }}
+
+      - name: Download Godot
+        run: tools/ci/download_godot.sh
+
+      - name: Install gdUnit4
+        run: tools/ci/install_gdunit4.sh
+
+      - name: Import project
+        run: tools/ci/import_project.sh
+
+      - name: Run sim tests and capture hashes
+        run: tools/ci/run_tests.sh
+
+      - name: Show hashes
+        if: always()
+        run: |
+          echo "### Hashes on ${{ matrix.os }} ($(uname -m))" >> "$GITHUB_STEP_SUMMARY"
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
+          cat ci-out/tests/hashes.txt >> "$GITHUB_STEP_SUMMARY" || true
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload hashes
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: hashes-${{ matrix.os }}
+          path: |
+            ci-out/tests/hashes.txt
+            ci-out/tests/test.log
+          if-no-files-found: warn
+
+  compare:
+    needs: hash
+    if: always()
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: hashes-*
+          path: hashes
+
+      - name: Compare hashes across platforms
+        run: tools/ci/compare_hashes.sh hashes

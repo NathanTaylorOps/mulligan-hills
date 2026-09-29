@@ -1,0 +1,57 @@
+{
+  "schema": "mh.strings",
+  "schema_version": 1,
+  "lang": "en",
+  "strings": {
+    "ui.common.ok": {
+      "text": "OK",
+      "ctx": "Generic confirm button",
+      "max": 8,
+      "status": "approved"
+    },
+    "ui.common.cancel": {
+      "text": "Cancel",
+      "ctx": "Generic cancel button",
+      "max": 10,
+      "status": "approved"
+    },
+    "building.clubhouse.name": {
+      "text": "Clubhouse",
+      "ctx": "Building card title",
+      "max": 20,
+      "status": "approved"
+    },
+    "building.clubhouse.tier2.name": {
+      "text": "Members Lounge",
+      "ctx": "Clubhouse tier 2 name on the upgrade card",
+      "max": 24,
+      "status": "draft"
+    },
+    "advisor.length.too_short": {
+      "text": "Hole {hole_no} plays short for a par {par}. Golfers reach the green with a wedge.",
+      "ctx": "Advisor sentence, rating reason code length.too_short",
+      "max": 90,
+      "placeholders": [
+        "hole_no",
+        "par"
+      ],
+      "status": "draft"
+    },
+    "card.storm_warning.title": {
+      "text": "Storm warning",
+      "ctx": "Event card title",
+      "max": 28,
+      "status": "draft"
+    },
+    "toast.upgrade.done": {
+      "text": "{building} upgraded to tier {tier}.",
+      "ctx": "Toast after a building upgrade",
+      "max": 60,
+      "placeholders": [
+        "building",
+        "tier"
+      ],
+      "status": "draft"
+    }
+  }
+}

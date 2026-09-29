@@ -1,0 +1,63 @@
+name: CI (import and unit tests)
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+    inputs:
+      game_path:
+        description: "Godot project folder relative to the repo root"
+        default: "game"
+        required: false
+      test_path:
+        description: "gdUnit4 test path (res:// style)"
+        default: "res://"
+        required: false
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      GAME_PATH: ${{ inputs.game_path || 'game' }}
+      TEST_PATH: ${{ inputs.test_path || 'res://' }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          lfs: true
+
+      - name: Cache Godot binaries
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/mh-godot
+          key: godot-${{ runner.os }}-editor-${{ hashFiles('tools/ci/versions.env') }}
+
+      - name: Download Godot (checksum verified)
+        run: tools/ci/download_godot.sh
+
+      - name: Install gdUnit4
+        run: tools/ci/install_gdunit4.sh
+
+      - name: Import project (headless)
+        run: tools/ci/import_project.sh
+
+      - name: Run tests (headless, JUnit)
+        run: tools/ci/run_tests.sh
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results
+          path: |
+            ci-out/tests/
+            ci-out/import*.log
+            ci-out/godot-checksums.txt
+          if-no-files-found: warn

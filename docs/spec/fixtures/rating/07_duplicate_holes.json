@@ -1,0 +1,1395 @@
+{
+ "id": "07",
+ "title": "18 copies of one hole vs 18 varied holes",
+ "kind": "course",
+ "case": "case 7",
+ "holes": {
+  "v00": {
+   "slot_id": 100,
+   "tee": [
+    0,
+    0
+   ],
+   "green": [
+    -8,
+    350,
+    14
+   ],
+   "tee_z_mm": 0,
+   "green_z_mm": 0,
+   "features": [
+    {
+     "t": "fairway",
+     "rect": [
+      -45,
+      0,
+      45,
+      345
+     ]
+    },
+    {
+     "t": "water",
+     "rect": [
+      -30,
+      110,
+      -10,
+      150
+     ]
+    },
+    {
+     "t": "bunker",
+     "rect": [
+      14,
+      310,
+      30,
+      335
+     ]
+    }
+   ]
+  },
+  "c00": {
+   "slot_id": 200,
+   "tee": [
+    0,
+    0
+   ],
+   "green": [
+    8,
+    394,
+    14
+   ],
+   "tee_z_mm": 0,
+   "green_z_mm": 0,
+   "features": [
+    {
+     "t": "fairway",
+     "rect": [
+      -45,
+      0,
+      45,
+      389
+     ]
+    },
+    {
+     "t": "water",
+     "rect": [
+      -21,
+      258,
+      1,
+      320
+     ]
+    }
+   ]
+  },
+  "v01": {
+   "slot_id": 101,
+   "tee": [
+    0,
+    0
+   ],
+   "green": [
+    -4,
+    361,
+    14
+   ],
+   "tee_z_mm": 0,
+   "green_z_mm": 0,
+   "features": [
+    {
+     "t": "fairway",
+     "rect": [
+      -45,
+      0,
+      45,
+      356
+     ]
+    },
+    {
+     "t": "water",
+     "rect": [
+      -14,
+      147,
+      20,
+      200
+     ]
+    },
+    {
+     "t": "bunker",
+     "rect": [
+      -34,
+      301,
+      -20,
+      331
+     ]
+    }
+   ]
+  },
+  "c01": {
+   "slot_id": 201,
+   "tee": [
+    0,
+    0
+   ],
+   "green": [
+    8,
+    394,
+    14
+   ],
+   "tee_z_mm": 0,
+   "green_z_mm": 0,
+   "features": [
+    {
+     "t": "fairway",
+     "rect": [
+      -45,
+      0,
+      45,
+      389
+     ]
+    },
+    {
+     "t": "water",
+     "rect": [
+      -21,
+      258,
+      1,
+      320
+     ]
+    }
+   ]
+  },
+  "v02": {
+   "slot_id": 102,
+   "tee": [
+    0,
+    0
+   ],
+   "green": [
+    0,
+    372,
+    14
+   ],
+   "tee_z_mm": 0,
+   "green_z_mm": 0,
+   "features": [
+    {
+     "t": "fairway",
+     "rect": [
+      -45,
+      0,
+      45,
+      367
+     ]
+    },
+    {
+     "t": "water",
+     "rect": [
+      -30,
+      184,
+      0,
+      250
+     ]
+    }
+   ]
+  },
+  "c02": {
+   "slot_id": 202,
+   "tee": [
+    0,
+    0
+   ],
+   "green": [
+    8,
+    394,
+    14
+   ],
+   "tee_z_mm": 0,
+   "green_z_mm": 0,
+   "features": [
+    {
+     "t": "fairway",
+     "rect": [
+      -45,
+      0,
+      45,
+      389
+     ]
+    },
+    {
+     "t": "water",
+     "rect": [
+      -21,
+      258,
+      1,
+      320
+     ]
+    }
+   ]
+  },
+  "v03": {
+   "slot_id": 103,
+   "tee": [
+    0,
+    0
+   ],
+   "green": [
+    4,
+    383,
+    14
+   ],
+   "tee_z_mm": 0,
+   "green_z_mm": 0,
+   "features": [
+    {
+     "t": "fairway",
+     "rect": [
+      -45,
+      0,
+      45,
+      378
+     ]
+    },
+    {
+     "t": "water",
+     "rect": [
+      -5,
+      221,
+      21,
+      270
+     ]
+    },
+    {
+     "t": "bunker",
+     "rect": [
+      23,
+      343,
+      39,
+      368
+     ]
+    }
+   ]
+  },
+  "c03": {
+   "slot_id": 203,
+   "tee": [
+    0,
+    0
+   ],
+   "green": [
+    8,
+    394,
+    14
+   ],
+   "tee_z_mm": 0,
+   "green_z_mm": 0,
+   "features": [
+    {
+     "t": "fairway",
+     "rect": [
+      -45,
+      0,
+      45,
+      389
+     ]
+    },
+    {
+     "t": "water",
+     "rect": [
+      -21,
+      258,
+      1,
+      320
+     ]
+    }
+   ]
+  },
+  "v04": {
+   "slot_id": 104,
+   "tee": [
+    0,
+    0
+   ],
+   "green": [
+    8,
+    394,
+    14
+   ],
+   "tee_z_mm": 0,
+   "green_z_mm": 0,
+   "features": [
+    {
+     "t": "fairway",
+     "rect": [
+      -45,
+      0,
+      45,
+      389
+     ]
+    },
+    {
+     "t": "water",
+     "rect": [
+      -21,
+      258,
+      1,
+      320
+     ]
+    }
+   ]
+  },
+  "c04": {
+   "slot_id": 204,
+   "tee": [
+    0,
+    0
+   ],
+   "green": [
+    8,
+    394,
+    14
+   ],
+   "tee_z_mm": 0,
+   "green_z_mm": 0,
+   "features": [
+    {
+     "t": "fairway",
+     "rect": [
+      -45,
+      0,
+      45,
+      389
+     ]
+    },
+    {
+     "t": "water",
+     "rect": [
+      -21,
+      258,
+      1,
+      320
+     ]
+    }
+   ]
+  },
+  "v05": {
+   "slot_id": 105,
+   "tee": [
+    0,
+    0
+   ],
+   "green": [
+    -8,
+    405,
+    14
+   ],
+   "tee_z_mm": 0,
+   "green_z_mm": 0,
+   "features": [
+    {
+     "t": "fairway",
+     "rect": [
+      -45,
+      0,
+      45,
+      400
+     ]
+    },
+    {
+     "t": "water",
+     "rect": [
+      -5,
+      110,
+      31,
+      155
+     ]
+    },
+    {
+     "t": "bunker",
+     "rect": [
+      -34,
+      345,
+      -20,
+      375
+     ]
+    }
+   ]
+  },
+  "c05": {
+   "slot_id": 205,
+   "tee": [
+    0,
+    0
+   ],
+   "green": [
+    8,
+    394,
+    14
+   ],
+   "tee_z_mm": 0,
+   "green_z_mm": 0,
+   "features": [
+    {
+     "t": "fairway",
+     "rect": [
+      -45,
+      0,
+      45,
+      389
+     ]
+    },
+    {
+     "t": "water",
+     "rect": [
+      -21,
+      258,
+      1,
+      320
+     ]
+    }
+   ]
+  },
+  "v06": {
+   "slot_id": 106,
+   "tee": [
+    0,
+    0
+   ],
+   "green": [
+    -4,
+    416,
+    14
+   ],
+   "tee_z_mm": 0,
+   "green_z_mm": 0,
+   "features": [
+    {
+     "t": "fairway",
+     "rect": [
+      -45,
+      0,
+      45,
+      411
+     ]
+    },
+    {
+     "t": "water",
+     "rect": [
+      -21,
+      136,
+      11,
+      194
+     ]
+    },
+    {
+     "t": "bunker",
+     "rect": [
+      17,
+      376,
+      36,
+      401
+     ]
+    }
+   ]
+  },
+  "c06": {
+   "slot_id": 206,
+   "tee": [
+    0,
+    0
+   ],
+   "green": [
+    8,
+    394,
+    14
+   ],
+   "tee_z_mm": 0,
+   "green_z_mm": 0,
+   "features": [
+    {
+     "t": "fairway",
+     "rect": [
+      -45,
+      0,
+      45,
+      389
+     ]
+    },
+    {
+     "t": "water",
+     "rect": [
+      -21,
+      258,
+      1,
+      320
+     ]
+    }
+   ]
+  },
+  "v07": {
+   "slot_id": 107,
+   "tee": [
+    0,
+    0
+   ],
+   "green": [
+    0,
+    427,
+    14
+   ],
+   "tee_z_mm": 0,
+   "green_z_mm": 0,
+   "features": [
+    {
+     "t": "fairway",
+     "rect": [
+      -45,
+      0,
+      45,
+      422
+     ]
+    },
+    {
+     "t": "water",
+     "rect": [
+      4,
+      162,
+      32,
+      203
+     ]
+    }
+   ]
+  },
+  "c07": {
+   "slot_id": 207,
+   "tee": [
+    0,
+    0
+   ],
+   "green": [
+    8,
+    394,
+    14
+   ],
+   "tee_z_mm": 0,
+   "green_z_mm": 0,
+   "features": [
+    {
+     "t": "fairway",
+     "rect": [
+      -45,
+      0,
+      45,
+      389
+     ]
+    },
+    {
+     "t": "water",
+     "rect": [
+      -21,
+      258,
+      1,
+      320
+     ]
+    }
+   ]
+  },
+  "v08": {
+   "slot_id": 108,
+   "tee": [
+    0,
+    0
+   ],
+   "green": [
+    4,
+    438,
+    14
+   ],
+   "tee_z_mm": 0,
+   "green_z_mm": 0,
+   "features": [
+    {
+     "t": "fairway",
+     "rect": [
+      -45,
+      0,
+      45,
+      433
+     ]
+    },
+    {
+     "t": "water",
+     "rect": [
+      -12,
+      188,
+      12,
+      242
+     ]
+    }
+   ]
+  },
+  "c08": {
+   "slot_id": 208,
+   "tee": [
+    0,
+    0
+   ],
+   "green": [
+    8,
+    394,
+    14
+   ],
+   "tee_z_mm": 0,
+   "green_z_mm": 0,
+   "features": [
+    {
+     "t": "fairway",
+     "rect": [
+      -45,
+      0,
+      45,
+      389
+     ]
+    },
+    {
+     "t": "water",
+     "rect": [
+      -21,
+      258,
+      1,
+      320
+     ]
+    }
+   ]
+  },
+  "v09": {
+   "slot_id": 109,
+   "tee": [
+    0,
+    0
+   ],
+   "green": [
+    8,
+    359,
+    14
+   ],
+   "tee_z_mm": 0,
+   "green_z_mm": 0,
+   "features": [
+    {
+     "t": "fairway",
+     "rect": [
+      -45,
+      0,
+      45,
+      354
+     ]
+    },
+    {
+     "t": "water",
+     "rect": [
+      -28,
+      165,
+      -8,
+      232
+     ]
+    },
+    {
+     "t": "bunker",
+     "rect": [
+      26,
+      319,
+      33,
+      344
+     ]
+    },
+    {
+     "t": "bunker",
+     "rect": [
+      -34,
+      299,
+      -20,
+      329
+     ]
+    }
+   ]
+  },
+  "c09": {
+   "slot_id": 209,
+   "tee": [
+    0,
+    0
+   ],
+   "green": [
+    8,
+    394,
+    14
+   ],
+   "tee_z_mm": 0,
+   "green_z_mm": 0,
+   "features": [
+    {
+     "t": "fairway",
+     "rect": [
+      -45,
+      0,
+      45,
+      389
+     ]
+    },
+    {
+     "t": "water",
+     "rect": [
+      -21,
+      258,
+      1,
+      320
+     ]
+    }
+   ]
+  },
+  "v10": {
+   "slot_id": 110,
+   "tee": [
+    0,
+    0
+   ],
+   "green": [
+    -8,
+    370,
+    14
+   ],
+   "tee_z_mm": 0,
+   "green_z_mm": 0,
+   "features": [
+    {
+     "t": "fairway",
+     "rect": [
+      -45,
+      0,
+      45,
+      365
+     ]
+    },
+    {
+     "t": "water",
+     "rect": [
+      -12,
+      180,
+      22,
+      230
+     ]
+    }
+   ]
+  },
+  "c10": {
+   "slot_id": 210,
+   "tee": [
+    0,
+    0
+   ],
+   "green": [
+    8,
+    394,
+    14
+   ],
+   "tee_z_mm": 0,
+   "green_z_mm": 0,
+   "features": [
+    {
+     "t": "fairway",
+     "rect": [
+      -45,
+      0,
+      45,
+      389
+     ]
+    },
+    {
+     "t": "water",
+     "rect": [
+      -21,
+      258,
+      1,
+      320
+     ]
+    }
+   ]
+  },
+  "v11": {
+   "slot_id": 111,
+   "tee": [
+    0,
+    0
+   ],
+   "green": [
+    -4,
+    381,
+    14
+   ],
+   "tee_z_mm": 0,
+   "green_z_mm": 0,
+   "features": [
+    {
+     "t": "fairway",
+     "rect": [
+      -45,
+      0,
+      45,
+      376
+     ]
+    },
+    {
+     "t": "water",
+     "rect": [
+      -28,
+      195,
+      2,
+      258
+     ]
+    }
+   ]
+  },
+  "c11": {
+   "slot_id": 211,
+   "tee": [
+    0,
+    0
+   ],
+   "green": [
+    8,
+    394,
+    14
+   ],
+   "tee_z_mm": 0,
+   "green_z_mm": 0,
+   "features": [
+    {
+     "t": "fairway",
+     "rect": [
+      -45,
+      0,
+      45,
+      389
+     ]
+    },
+    {
+     "t": "water",
+     "rect": [
+      -21,
+      258,
+      1,
+      320
+     ]
+    }
+   ]
+  },
+  "v12": {
+   "slot_id": 112,
+   "tee": [
+    0,
+    0
+   ],
+   "green": [
+    0,
+    392,
+    14
+   ],
+   "tee_z_mm": 0,
+   "green_z_mm": 0,
+   "features": [
+    {
+     "t": "fairway",
+     "rect": [
+      -45,
+      0,
+      45,
+      387
+     ]
+    },
+    {
+     "t": "water",
+     "rect": [
+      -3,
+      210,
+      23,
+      256
+     ]
+    },
+    {
+     "t": "bunker",
+     "rect": [
+      20,
+      352,
+      30,
+      377
+     ]
+    }
+   ]
+  },
+  "c12": {
+   "slot_id": 212,
+   "tee": [
+    0,
+    0
+   ],
+   "green": [
+    8,
+    394,
+    14
+   ],
+   "tee_z_mm": 0,
+   "green_z_mm": 0,
+   "features": [
+    {
+     "t": "fairway",
+     "rect": [
+      -45,
+      0,
+      45,
+      389
+     ]
+    },
+    {
+     "t": "water",
+     "rect": [
+      -21,
+      258,
+      1,
+      320
+     ]
+    }
+   ]
+  },
+  "v13": {
+   "slot_id": 113,
+   "tee": [
+    0,
+    0
+   ],
+   "green": [
+    4,
+    403,
+    14
+   ],
+   "tee_z_mm": 0,
+   "green_z_mm": 0,
+   "features": [
+    {
+     "t": "fairway",
+     "rect": [
+      -45,
+      0,
+      45,
+      398
+     ]
+    },
+    {
+     "t": "water",
+     "rect": [
+      -19,
+      225,
+      3,
+      284
+     ]
+    },
+    {
+     "t": "bunker",
+     "rect": [
+      -34,
+      343,
+      -20,
+      373
+     ]
+    }
+   ]
+  },
+  "c13": {
+   "slot_id": 213,
+   "tee": [
+    0,
+    0
+   ],
+   "green": [
+    8,
+    394,
+    14
+   ],
+   "tee_z_mm": 0,
+   "green_z_mm": 0,
+   "features": [
+    {
+     "t": "fairway",
+     "rect": [
+      -45,
+      0,
+      45,
+      389
+     ]
+    },
+    {
+     "t": "water",
+     "rect": [
+      -21,
+      258,
+      1,
+      320
+     ]
+    }
+   ]
+  },
+  "v14": {
+   "slot_id": 114,
+   "tee": [
+    0,
+    0
+   ],
+   "green": [
+    8,
+    414,
+    14
+   ],
+   "tee_z_mm": 0,
+   "green_z_mm": 0,
+   "features": [
+    {
+     "t": "fairway",
+     "rect": [
+      -45,
+      0,
+      45,
+      409
+     ]
+    },
+    {
+     "t": "water",
+     "rect": [
+      -3,
+      240,
+      33,
+      282
+     ]
+    }
+   ]
+  },
+  "c14": {
+   "slot_id": 214,
+   "tee": [
+    0,
+    0
+   ],
+   "green": [
+    8,
+    394,
+    14
+   ],
+   "tee_z_mm": 0,
+   "green_z_mm": 0,
+   "features": [
+    {
+     "t": "fairway",
+     "rect": [
+      -45,
+      0,
+      45,
+      389
+     ]
+    },
+    {
+     "t": "water",
+     "rect": [
+      -21,
+      258,
+      1,
+      320
+     ]
+    }
+   ]
+  },
+  "v15": {
+   "slot_id": 115,
+   "tee": [
+    0,
+    0
+   ],
+   "green": [
+    -8,
+    425,
+    14
+   ],
+   "tee_z_mm": 0,
+   "green_z_mm": 0,
+   "features": [
+    {
+     "t": "fairway",
+     "rect": [
+      -45,
+      0,
+      45,
+      420
+     ]
+    },
+    {
+     "t": "water",
+     "rect": [
+      -19,
+      255,
+      13,
+      310
+     ]
+    },
+    {
+     "t": "bunker",
+     "rect": [
+      14,
+      385,
+      39,
+      410
+     ]
+    }
+   ]
+  },
+  "c15": {
+   "slot_id": 215,
+   "tee": [
+    0,
+    0
+   ],
+   "green": [
+    8,
+    394,
+    14
+   ],
+   "tee_z_mm": 0,
+   "green_z_mm": 0,
+   "features": [
+    {
+     "t": "fairway",
+     "rect": [
+      -45,
+      0,
+      45,
+      389
+     ]
+    },
+    {
+     "t": "water",
+     "rect": [
+      -21,
+      258,
+      1,
+      320
+     ]
+    }
+   ]
+  },
+  "v16": {
+   "slot_id": 116,
+   "tee": [
+    0,
+    0
+   ],
+   "green": [
+    -4,
+    436,
+    14
+   ],
+   "tee_z_mm": 0,
+   "green_z_mm": 0,
+   "features": [
+    {
+     "t": "fairway",
+     "rect": [
+      -45,
+      0,
+      45,
+      431
+     ]
+    },
+    {
+     "t": "water",
+     "rect": [
+      6,
+      270,
+      34,
+      338
+     ]
+    }
+   ]
+  },
+  "c16": {
+   "slot_id": 216,
+   "tee": [
+    0,
+    0
+   ],
+   "green": [
+    8,
+    394,
+    14
+   ],
+   "tee_z_mm": 0,
+   "green_z_mm": 0,
+   "features": [
+    {
+     "t": "fairway",
+     "rect": [
+      -45,
+      0,
+      45,
+      389
+     ]
+    },
+    {
+     "t": "water",
+     "rect": [
+      -21,
+      258,
+      1,
+      320
+     ]
+    }
+   ]
+  },
+  "v17": {
+   "slot_id": 117,
+   "tee": [
+    0,
+    0
+   ],
+   "green": [
+    0,
+    357,
+    14
+   ],
+   "tee_z_mm": 0,
+   "green_z_mm": 0,
+   "features": [
+    {
+     "t": "fairway",
+     "rect": [
+      -45,
+      0,
+      45,
+      352
+     ]
+    },
+    {
+     "t": "water",
+     "rect": [
+      -10,
+      191,
+      14,
+      242
+     ]
+    },
+    {
+     "t": "bunker",
+     "rect": [
+      -34,
+      297,
+      -20,
+      327
+     ]
+    }
+   ]
+  },
+  "c17": {
+   "slot_id": 217,
+   "tee": [
+    0,
+    0
+   ],
+   "green": [
+    8,
+    394,
+    14
+   ],
+   "tee_z_mm": 0,
+   "green_z_mm": 0,
+   "features": [
+    {
+     "t": "fairway",
+     "rect": [
+      -45,
+      0,
+      45,
+      389
+     ]
+    },
+    {
+     "t": "water",
+     "rect": [
+      -21,
+      258,
+      1,
+      320
+     ]
+    }
+   ]
+  }
+ },
+ "courses": {
+  "varied": [
+   "v00",
+   "v01",
+   "v02",
+   "v03",
+   "v04",
+   "v05",
+   "v06",
+   "v07",
+   "v08",
+   "v09",
+   "v10",
+   "v11",
+   "v12",
+   "v13",
+   "v14",
+   "v15",
+   "v16",
+   "v17"
+  ],
+  "copies": [
+   "c00",
+   "c01",
+   "c02",
+   "c03",
+   "c04",
+   "c05",
+   "c06",
+   "c07",
+   "c08",
+   "c09",
+   "c10",
+   "c11",
+   "c12",
+   "c13",
+   "c14",
+   "c15",
+   "c16",
+   "c17"
+  ]
+ },
+ "expect_summary": "Varied course scores strictly higher (at least 100 permille). Copies after the first take the duplicate factor (0.4 at similarity 1000).",
+ "checks": [
+  {
+   "text": "varied course at least 100 permille above copies",
+   "op": "ge",
+   "a": "course:varied.course_x10",
+   "b": "course:copies.course_x10",
+   "margin": 100
+  },
+  {
+   "text": "at least 15 of 18 copies take a factor of 500 or lower",
+   "op": "ge",
+   "a": "course:copies.n_dup",
+   "b": 15
+  },
+  {
+   "text": "varied course has at most 2 such holes",
+   "op": "le",
+   "a": "course:varied.n_dup",
+   "b": 2
+  }
+ ]
+}

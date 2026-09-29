@@ -1,0 +1,143 @@
+{
+ "id": "13",
+ "title": "Mirrored copy of a hole",
+ "kind": "mirror",
+ "case": "extra: mirror",
+ "holes": {
+  "orig": {
+   "slot_id": 20,
+   "tee": [
+    0,
+    0
+   ],
+   "green": [
+    4,
+    383,
+    14
+   ],
+   "tee_z_mm": 0,
+   "green_z_mm": 0,
+   "features": [
+    {
+     "t": "fairway",
+     "rect": [
+      -45,
+      0,
+      45,
+      378
+     ]
+    },
+    {
+     "t": "water",
+     "rect": [
+      -5,
+      221,
+      21,
+      270
+     ]
+    },
+    {
+     "t": "bunker",
+     "rect": [
+      23,
+      343,
+      39,
+      368
+     ]
+    },
+    {
+     "t": "tree",
+     "at": [
+      [
+       30,
+       100
+      ],
+      [
+       -33,
+       200
+      ]
+     ]
+    }
+   ]
+  },
+  "mirror": {
+   "slot_id": 70,
+   "tee": [
+    0,
+    0
+   ],
+   "green": [
+    -4,
+    383,
+    14
+   ],
+   "tee_z_mm": 0,
+   "green_z_mm": 0,
+   "features": [
+    {
+     "t": "fairway",
+     "rect": [
+      -45,
+      0,
+      45,
+      378
+     ]
+    },
+    {
+     "t": "water",
+     "rect": [
+      -21,
+      221,
+      5,
+      270
+     ]
+    },
+    {
+     "t": "bunker",
+     "rect": [
+      -39,
+      343,
+      -23,
+      368
+     ]
+    },
+    {
+     "t": "tree",
+     "at": [
+      [
+       -30,
+       100
+      ],
+      [
+       33,
+       200
+      ]
+     ]
+    }
+   ]
+  }
+ },
+ "expect_summary": "Similarity of a hole and its mirror image is at least 900, so the copy takes the duplicate factor 0.6 or lower. Rating of the mirror is within 80 permille of the original.",
+ "checks": [
+  {
+   "text": "similarity at least 900",
+   "op": "ge",
+   "a": "sim.S",
+   "b": 900
+  },
+  {
+   "text": "mirror rating within 80 permille (upper)",
+   "op": "le",
+   "a": "mirror.score_pm",
+   "b": "orig.score_pm",
+   "margin": 80
+  },
+  {
+   "text": "mirror rating within 80 permille (lower)",
+   "op": "ge",
+   "a": "mirror.score_pm",
+   "b": "orig.score_pm",
+   "margin": -80
+  }
+ ]
+}

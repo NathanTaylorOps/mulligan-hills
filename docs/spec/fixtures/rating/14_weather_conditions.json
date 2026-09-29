@@ -1,0 +1,92 @@
+{
+ "id": "14",
+ "title": "Wind and rain change results deterministically",
+ "kind": "weather",
+ "case": "extra: weather",
+ "holes": {
+  "base": {
+   "slot_id": 30,
+   "tee": [
+    0,
+    0
+   ],
+   "green": [
+    0,
+    372,
+    14
+   ],
+   "tee_z_mm": 0,
+   "green_z_mm": 0,
+   "features": [
+    {
+     "t": "fairway",
+     "rect": [
+      -45,
+      0,
+      45,
+      367
+     ]
+    },
+    {
+     "t": "water",
+     "rect": [
+      -30,
+      184,
+      0,
+      250
+     ]
+    }
+   ]
+  }
+ },
+ "conds": {
+  "calm": {
+   "wx": 0,
+   "wy": 0,
+   "rain": 0
+  },
+  "head15": {
+   "wx": 0,
+   "wy": -15,
+   "rain": 0
+  },
+  "tail15": {
+   "wx": 0,
+   "wy": 15,
+   "rain": 0
+  },
+  "cross15": {
+   "wx": 15,
+   "wy": 0,
+   "rain": 0
+  },
+  "wet2": {
+   "wx": 0,
+   "wy": 0,
+   "rain": 2
+  }
+ },
+ "expect_summary": "Official rating always uses the calm reference condition. Headwind raises mean strokes, tailwind lowers or holds them, rain raises them. Same inputs give the same hash.",
+ "checks": [
+  {
+   "text": "headwind mean strokes at least 10 higher than calm",
+   "op": "ge",
+   "a": "w:head15.mean_all",
+   "b": "w:calm.mean_all",
+   "margin": 10
+  },
+  {
+   "text": "tailwind not higher than calm plus 5",
+   "op": "le",
+   "a": "w:tail15.mean_all",
+   "b": "w:calm.mean_all",
+   "margin": 5
+  },
+  {
+   "text": "rain not lower than calm",
+   "op": "ge",
+   "a": "w:wet2.mean_all",
+   "b": "w:calm.mean_all"
+  }
+ ]
+}

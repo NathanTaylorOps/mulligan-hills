@@ -1,0 +1,221 @@
+{
+  "schema": "mh.tournaments",
+  "schema_version": 1,
+  "status": "PARAMETERS, NOT FINAL. Thresholds, costs and weights are placeholders for the economy simulation. Building requirements are capped at tier 4 by schema.",
+  "spectator_capacity_by_clubhouse_tier": [
+    0,
+    50,
+    150,
+    400,
+    800
+  ],
+  "prestige": {
+    "snapshot_window_days": 14,
+    "sustained_min_days": 10,
+    "facility_tier_cap": 4,
+    "weights_permille": {
+      "course_score": 450,
+      "pace": 200,
+      "facilities": 200,
+      "field_satisfaction": 150
+    }
+  },
+  "levels": [
+    {
+      "level": "local",
+      "name_key": "tournament.local.name",
+      "desc_key": "tournament.local.desc",
+      "entry": {
+        "min_holes": 10,
+        "min_avg_hole_score": 30,
+        "min_pace_score": 50,
+        "buildings": [
+          {
+            "building": "clubhouse",
+            "min_tier": 3
+          },
+          {
+            "building": "cart_barn",
+            "min_tier": 2
+          },
+          {
+            "building": "maintenance",
+            "min_tier": 2
+          }
+        ],
+        "min_staff": 4,
+        "min_spectator_capacity": 150
+      },
+      "field_size": 12,
+      "duration_days": 1,
+      "prep_days": 3,
+      "cooldown_days": 10,
+      "host_cost": 10000,
+      "prestige_base": 100,
+      "reward": {
+        "cash": 15000,
+        "reputation": 50
+      },
+      "failure": {
+        "reputation_loss": 25,
+        "cash_loss": 5000,
+        "cooldown_extra_days": 5,
+        "triggers": [
+          "slow_pace",
+          "unfair_hole",
+          "bad_conditions",
+          "low_snapshot_score"
+        ]
+      }
+    },
+    {
+      "level": "regional",
+      "name_key": "tournament.regional.name",
+      "desc_key": "tournament.regional.desc",
+      "entry": {
+        "min_holes": 14,
+        "min_avg_hole_score": 36,
+        "min_pace_score": 55,
+        "buildings": [
+          {
+            "building": "clubhouse",
+            "min_tier": 3
+          },
+          {
+            "building": "cart_barn",
+            "min_tier": 3
+          },
+          {
+            "building": "maintenance",
+            "min_tier": 3
+          }
+        ],
+        "min_staff": 6,
+        "min_spectator_capacity": 150
+      },
+      "field_size": 24,
+      "duration_days": 2,
+      "prep_days": 3,
+      "cooldown_days": 20,
+      "host_cost": 25000,
+      "prestige_base": 250,
+      "reward": {
+        "cash": 40000,
+        "reputation": 120
+      },
+      "failure": {
+        "reputation_loss": 60,
+        "cash_loss": 12500,
+        "cooldown_extra_days": 10,
+        "triggers": [
+          "slow_pace",
+          "unfair_hole",
+          "bad_conditions",
+          "low_snapshot_score"
+        ]
+      }
+    },
+    {
+      "level": "national",
+      "name_key": "tournament.national.name",
+      "desc_key": "tournament.national.desc",
+      "entry": {
+        "min_holes": 18,
+        "min_avg_hole_score": 42,
+        "min_pace_score": 60,
+        "buildings": [
+          {
+            "building": "clubhouse",
+            "min_tier": 4
+          },
+          {
+            "building": "cart_barn",
+            "min_tier": 3
+          },
+          {
+            "building": "maintenance",
+            "min_tier": 3
+          },
+          {
+            "building": "restaurant",
+            "min_tier": 3
+          }
+        ],
+        "min_staff": 10,
+        "min_spectator_capacity": 400
+      },
+      "field_size": 36,
+      "duration_days": 3,
+      "prep_days": 3,
+      "cooldown_days": 30,
+      "host_cost": 60000,
+      "prestige_base": 600,
+      "reward": {
+        "cash": 100000,
+        "reputation": 300
+      },
+      "failure": {
+        "reputation_loss": 150,
+        "cash_loss": 30000,
+        "cooldown_extra_days": 15,
+        "triggers": [
+          "slow_pace",
+          "unfair_hole",
+          "bad_conditions",
+          "low_snapshot_score"
+        ]
+      }
+    },
+    {
+      "level": "major",
+      "name_key": "tournament.major.name",
+      "desc_key": "tournament.major.desc",
+      "entry": {
+        "min_holes": 18,
+        "min_avg_hole_score": 50,
+        "min_pace_score": 65,
+        "buildings": [
+          {
+            "building": "clubhouse",
+            "min_tier": 4
+          },
+          {
+            "building": "cart_barn",
+            "min_tier": 4
+          },
+          {
+            "building": "maintenance",
+            "min_tier": 4
+          },
+          {
+            "building": "restaurant",
+            "min_tier": 4
+          }
+        ],
+        "min_staff": 14,
+        "min_spectator_capacity": 400
+      },
+      "field_size": 48,
+      "duration_days": 4,
+      "prep_days": 3,
+      "cooldown_days": 45,
+      "host_cost": 150000,
+      "prestige_base": 1500,
+      "reward": {
+        "cash": 250000,
+        "reputation": 800
+      },
+      "failure": {
+        "reputation_loss": 400,
+        "cash_loss": 75000,
+        "cooldown_extra_days": 22,
+        "triggers": [
+          "slow_pace",
+          "unfair_hole",
+          "bad_conditions",
+          "low_snapshot_score"
+        ]
+      }
+    }
+  ]
+}

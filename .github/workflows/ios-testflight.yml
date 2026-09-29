@@ -1,0 +1,84 @@
+name: iOS TestFlight
+
+# Manual only: macOS minutes are expensive and Apple processing is slow.
+# Read docs/phase0/ci.md ("iOS secrets") BEFORE running: five secrets must exist first.
+on:
+  workflow_dispatch:
+    inputs:
+      game_path:
+        description: "Godot project folder relative to the repo root"
+        default: "game"
+      scene:
+        description: "Main scene to launch (res:// path). Empty = project default"
+        default: ""
+      renderer:
+        type: choice
+        options: [compatibility, mobile]
+        default: compatibility
+        description: "Renderer for this build"
+      dry_run:
+        description: "Build and sign but do NOT upload to TestFlight"
+        type: boolean
+        default: true
+
+permissions:
+  contents: read
+
+jobs:
+  ios:
+    runs-on: macos-latest
+    timeout-minutes: 60
+    env:
+      GAME_PATH: ${{ inputs.game_path || 'game' }}
+      MH_MAIN_SCENE: ${{ inputs.scene || '' }}
+      MH_RENDERER: ${{ inputs.renderer || 'compatibility' }}
+      MH_PACKAGE_ID: ${{ vars.IOS_BUNDLE_ID || 'com.mulliganhills.game' }}
+      MH_VERSION_CODE: ${{ github.run_number }}
+      TEMPLATE_PLATFORMS: ios
+      APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+      ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+      ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
+      ASC_KEY_P8_B64: ${{ secrets.ASC_KEY_P8_B64 }}
+      DRY_RUN: ${{ inputs.dry_run && '1' || '0' }}
+    steps:
+      - name: Check secrets exist
+        run: |
+          missing=0
+          for n in APPLE_TEAM_ID ASC_KEY_ID ASC_ISSUER_ID ASC_KEY_P8_B64; do
+            if [ -z "${!n}" ]; then echo "::error::Missing secret $n (see docs/phase0/ci.md)"; missing=1; fi
+          done
+          exit $missing
+
+      - uses: actions/checkout@v4
+        with:
+          lfs: true
+
+      - name: Cache Godot binaries and templates
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/mh-godot
+          key: godot-${{ runner.os }}-ios-${{ hashFiles('tools/ci/versions.env') }}
+
+      - name: Download Godot and templates
+        run: |
+          tools/ci/download_godot.sh
+          tools/ci/setup_templates.sh
+
+      - name: Prepare project
+        run: |
+          tools/ci/set_project_options.sh
+          tools/ci/import_project.sh
+
+      - name: Export, sign, upload
+        run: tools/ci/ios_build_upload.sh
+
+      - name: Upload logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-logs
+          path: |
+            ci-out/ios/*.log
+            ci-out/ios/xcode-version.txt
+            ci-out/ios/ExportOptions.plist
+          if-no-files-found: ignore

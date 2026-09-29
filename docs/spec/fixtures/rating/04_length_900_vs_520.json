@@ -1,0 +1,105 @@
+{
+ "id": "04",
+ "title": "900y par 5 vs 520y par 5",
+ "kind": "holes",
+ "case": "case 4",
+ "holes": {
+  "long900": {
+   "slot_id": 1,
+   "tee": [
+    0,
+    0
+   ],
+   "green": [
+    0,
+    900,
+    14
+   ],
+   "tee_z_mm": 0,
+   "green_z_mm": 0,
+   "features": [
+    {
+     "t": "fairway",
+     "rect": [
+      -40,
+      0,
+      40,
+      895
+     ]
+    }
+   ]
+  },
+  "good520": {
+   "slot_id": 1,
+   "tee": [
+    0,
+    0
+   ],
+   "green": [
+    0,
+    520,
+    14
+   ],
+   "tee_z_mm": 0,
+   "green_z_mm": 0,
+   "features": [
+    {
+     "t": "fairway",
+     "rect": [
+      -40,
+      0,
+      40,
+      515
+     ]
+    }
+   ]
+  },
+  "short520": {
+   "slot_id": 2,
+   "tee": [
+    0,
+    0
+   ],
+   "green": [
+    0,
+    520,
+    14
+   ],
+   "tee_z_mm": 0,
+   "green_z_mm": 0,
+   "features": [
+    {
+     "t": "fairway",
+     "rect": [
+      -40,
+      0,
+      40,
+      515
+     ]
+    }
+   ]
+  }
+ },
+ "expect_summary": "Length peaks 500 to 570 yards for a par 5, is 0 at 850 and beyond. 900y total is well below 520y.",
+ "checks": [
+  {
+   "text": "length axis of 900y is 0",
+   "op": "eq",
+   "a": "long900.Len",
+   "b": 0
+  },
+  {
+   "text": "length axis of 520y is at least 900",
+   "op": "ge",
+   "a": "good520.Len",
+   "b": 900
+  },
+  {
+   "text": "900y total below 520y total by 100 or more",
+   "op": "le",
+   "a": "long900.score_pm",
+   "b": "good520.score_pm",
+   "margin": -100
+  }
+ ]
+}

@@ -1,0 +1,1086 @@
+{
+  "schema": "mh.buildings",
+  "schema_version": 1,
+  "status": "PARAMETERS, NOT FINAL. Costs, score gates, land, upkeep and demo tiers are placeholders to be tuned by the economy simulation and remote config. Structure and prerequisite links are fixed by the Master Plan review results.",
+  "score_scale": {
+    "min": 0,
+    "max": 100,
+    "gate_basis": "average_hole_score"
+  },
+  "land": {
+    "unit": "parcel",
+    "holes_per_parcel": 3,
+    "start_parcels": 2,
+    "max_parcels": 9
+  },
+  "hole_cap": 18,
+  "cost_multiplier_x100": [
+    100,
+    200,
+    400,
+    800,
+    1400
+  ],
+  "rules": {
+    "gates_persistent": true,
+    "gates_checked_at_purchase_only": false,
+    "note": "A purchased tier's dependencies (holes, buildings, land) cannot be demolished or sold while the tier stands."
+  },
+  "buildings": [
+    {
+      "id": "clubhouse",
+      "name_key": "building.clubhouse.name",
+      "desc_key": "building.clubhouse.desc",
+      "base_cost": 20000,
+      "land_class": "light",
+      "demo_max_tier": 3,
+      "tier3_specs": [
+        {
+          "id": "a",
+          "name_key": "building.clubhouse.spec_a"
+        },
+        {
+          "id": "b",
+          "name_key": "building.clubhouse.spec_b"
+        }
+      ],
+      "tiers": [
+        {
+          "tier": 1,
+          "name_key": "building.clubhouse.tier1.name",
+          "cost": 20000,
+          "upkeep_per_day": 50,
+          "requires": {
+            "min_holes": 0,
+            "min_avg_hole_score": 0,
+            "min_parcels_owned": 2,
+            "min_members": 0,
+            "specific": [],
+            "any_others": null,
+            "hosted_tournament": null
+          }
+        },
+        {
+          "tier": 2,
+          "name_key": "building.clubhouse.tier2.name",
+          "cost": 40000,
+          "upkeep_per_day": 100,
+          "requires": {
+            "min_holes": 6,
+            "min_avg_hole_score": 25,
+            "min_parcels_owned": 2,
+            "min_members": 0,
+            "specific": [],
+            "any_others": null,
+            "hosted_tournament": null
+          }
+        },
+        {
+          "tier": 3,
+          "name_key": "building.clubhouse.tier3.name",
+          "cost": 80000,
+          "upkeep_per_day": 200,
+          "requires": {
+            "min_holes": 10,
+            "min_avg_hole_score": 30,
+            "min_parcels_owned": 3,
+            "min_members": 0,
+            "specific": [],
+            "any_others": {
+              "count": 1,
+              "min_tier": 2
+            },
+            "hosted_tournament": null
+          }
+        },
+        {
+          "tier": 4,
+          "name_key": "building.clubhouse.tier4.name",
+          "cost": 160000,
+          "upkeep_per_day": 400,
+          "requires": {
+            "min_holes": 14,
+            "min_avg_hole_score": 36,
+            "min_parcels_owned": 5,
+            "min_members": 50,
+            "specific": [],
+            "any_others": {
+              "count": 2,
+              "min_tier": 3
+            },
+            "hosted_tournament": null
+          }
+        },
+        {
+          "tier": 5,
+          "name_key": "building.clubhouse.tier5.name",
+          "cost": 280000,
+          "upkeep_per_day": 700,
+          "requires": {
+            "min_holes": 18,
+            "min_avg_hole_score": 42,
+            "min_parcels_owned": 7,
+            "min_members": 0,
+            "specific": [],
+            "any_others": null,
+            "hosted_tournament": {
+              "min_level": "local"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "pro_shop",
+      "name_key": "building.pro_shop.name",
+      "desc_key": "building.pro_shop.desc",
+      "base_cost": 8000,
+      "land_class": "light",
+      "demo_max_tier": 2,
+      "tier3_specs": [
+        {
+          "id": "a",
+          "name_key": "building.pro_shop.spec_a"
+        },
+        {
+          "id": "b",
+          "name_key": "building.pro_shop.spec_b"
+        }
+      ],
+      "tiers": [
+        {
+          "tier": 1,
+          "name_key": "building.pro_shop.tier1.name",
+          "cost": 8000,
+          "upkeep_per_day": 20,
+          "requires": {
+            "min_holes": 0,
+            "min_avg_hole_score": 0,
+            "min_parcels_owned": 2,
+            "min_members": 0,
+            "specific": [],
+            "any_others": null,
+            "hosted_tournament": null
+          }
+        },
+        {
+          "tier": 2,
+          "name_key": "building.pro_shop.tier2.name",
+          "cost": 16000,
+          "upkeep_per_day": 40,
+          "requires": {
+            "min_holes": 6,
+            "min_avg_hole_score": 25,
+            "min_parcels_owned": 2,
+            "min_members": 0,
+            "specific": [],
+            "any_others": null,
+            "hosted_tournament": null
+          }
+        },
+        {
+          "tier": 3,
+          "name_key": "building.pro_shop.tier3.name",
+          "cost": 32000,
+          "upkeep_per_day": 80,
+          "requires": {
+            "min_holes": 10,
+            "min_avg_hole_score": 30,
+            "min_parcels_owned": 3,
+            "min_members": 0,
+            "specific": [],
+            "any_others": {
+              "count": 1,
+              "min_tier": 2
+            },
+            "hosted_tournament": null
+          }
+        },
+        {
+          "tier": 4,
+          "name_key": "building.pro_shop.tier4.name",
+          "cost": 64000,
+          "upkeep_per_day": 160,
+          "requires": {
+            "min_holes": 14,
+            "min_avg_hole_score": 36,
+            "min_parcels_owned": 5,
+            "min_members": 50,
+            "specific": [
+              {
+                "building": "driving_range",
+                "min_tier": 3
+              }
+            ],
+            "any_others": {
+              "count": 2,
+              "min_tier": 3
+            },
+            "hosted_tournament": null
+          }
+        },
+        {
+          "tier": 5,
+          "name_key": "building.pro_shop.tier5.name",
+          "cost": 112000,
+          "upkeep_per_day": 280,
+          "requires": {
+            "min_holes": 18,
+            "min_avg_hole_score": 42,
+            "min_parcels_owned": 7,
+            "min_members": 0,
+            "specific": [],
+            "any_others": null,
+            "hosted_tournament": {
+              "min_level": "local"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "driving_range",
+      "name_key": "building.driving_range.name",
+      "desc_key": "building.driving_range.desc",
+      "base_cost": 12000,
+      "land_class": "heavy",
+      "demo_max_tier": 2,
+      "tier3_specs": [
+        {
+          "id": "a",
+          "name_key": "building.driving_range.spec_a"
+        },
+        {
+          "id": "b",
+          "name_key": "building.driving_range.spec_b"
+        }
+      ],
+      "tiers": [
+        {
+          "tier": 1,
+          "name_key": "building.driving_range.tier1.name",
+          "cost": 12000,
+          "upkeep_per_day": 30,
+          "requires": {
+            "min_holes": 0,
+            "min_avg_hole_score": 0,
+            "min_parcels_owned": 2,
+            "min_members": 0,
+            "specific": [],
+            "any_others": null,
+            "hosted_tournament": null
+          }
+        },
+        {
+          "tier": 2,
+          "name_key": "building.driving_range.tier2.name",
+          "cost": 24000,
+          "upkeep_per_day": 60,
+          "requires": {
+            "min_holes": 6,
+            "min_avg_hole_score": 25,
+            "min_parcels_owned": 3,
+            "min_members": 0,
+            "specific": [],
+            "any_others": null,
+            "hosted_tournament": null
+          }
+        },
+        {
+          "tier": 3,
+          "name_key": "building.driving_range.tier3.name",
+          "cost": 48000,
+          "upkeep_per_day": 120,
+          "requires": {
+            "min_holes": 10,
+            "min_avg_hole_score": 30,
+            "min_parcels_owned": 4,
+            "min_members": 0,
+            "specific": [],
+            "any_others": {
+              "count": 1,
+              "min_tier": 2
+            },
+            "hosted_tournament": null
+          }
+        },
+        {
+          "tier": 4,
+          "name_key": "building.driving_range.tier4.name",
+          "cost": 96000,
+          "upkeep_per_day": 240,
+          "requires": {
+            "min_holes": 14,
+            "min_avg_hole_score": 36,
+            "min_parcels_owned": 6,
+            "min_members": 50,
+            "specific": [],
+            "any_others": {
+              "count": 2,
+              "min_tier": 3
+            },
+            "hosted_tournament": null
+          }
+        },
+        {
+          "tier": 5,
+          "name_key": "building.driving_range.tier5.name",
+          "cost": 168000,
+          "upkeep_per_day": 420,
+          "requires": {
+            "min_holes": 18,
+            "min_avg_hole_score": 42,
+            "min_parcels_owned": 8,
+            "min_members": 0,
+            "specific": [],
+            "any_others": null,
+            "hosted_tournament": {
+              "min_level": "local"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "restaurant",
+      "name_key": "building.restaurant.name",
+      "desc_key": "building.restaurant.desc",
+      "base_cost": 15000,
+      "land_class": "light",
+      "demo_max_tier": 0,
+      "tier3_specs": [
+        {
+          "id": "a",
+          "name_key": "building.restaurant.spec_a"
+        },
+        {
+          "id": "b",
+          "name_key": "building.restaurant.spec_b"
+        }
+      ],
+      "tiers": [
+        {
+          "tier": 1,
+          "name_key": "building.restaurant.tier1.name",
+          "cost": 15000,
+          "upkeep_per_day": 37,
+          "requires": {
+            "min_holes": 0,
+            "min_avg_hole_score": 0,
+            "min_parcels_owned": 2,
+            "min_members": 0,
+            "specific": [],
+            "any_others": null,
+            "hosted_tournament": null
+          }
+        },
+        {
+          "tier": 2,
+          "name_key": "building.restaurant.tier2.name",
+          "cost": 30000,
+          "upkeep_per_day": 75,
+          "requires": {
+            "min_holes": 6,
+            "min_avg_hole_score": 25,
+            "min_parcels_owned": 2,
+            "min_members": 0,
+            "specific": [],
+            "any_others": null,
+            "hosted_tournament": null
+          }
+        },
+        {
+          "tier": 3,
+          "name_key": "building.restaurant.tier3.name",
+          "cost": 60000,
+          "upkeep_per_day": 150,
+          "requires": {
+            "min_holes": 10,
+            "min_avg_hole_score": 30,
+            "min_parcels_owned": 3,
+            "min_members": 0,
+            "specific": [
+              {
+                "building": "clubhouse",
+                "min_tier": 3
+              }
+            ],
+            "any_others": {
+              "count": 1,
+              "min_tier": 2
+            },
+            "hosted_tournament": null
+          }
+        },
+        {
+          "tier": 4,
+          "name_key": "building.restaurant.tier4.name",
+          "cost": 120000,
+          "upkeep_per_day": 300,
+          "requires": {
+            "min_holes": 14,
+            "min_avg_hole_score": 36,
+            "min_parcels_owned": 5,
+            "min_members": 50,
+            "specific": [],
+            "any_others": {
+              "count": 2,
+              "min_tier": 3
+            },
+            "hosted_tournament": null
+          }
+        },
+        {
+          "tier": 5,
+          "name_key": "building.restaurant.tier5.name",
+          "cost": 210000,
+          "upkeep_per_day": 525,
+          "requires": {
+            "min_holes": 18,
+            "min_avg_hole_score": 42,
+            "min_parcels_owned": 7,
+            "min_members": 0,
+            "specific": [],
+            "any_others": null,
+            "hosted_tournament": {
+              "min_level": "local"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "pool_spa",
+      "name_key": "building.pool_spa.name",
+      "desc_key": "building.pool_spa.desc",
+      "base_cost": 25000,
+      "land_class": "heavy",
+      "demo_max_tier": 0,
+      "tier3_specs": [
+        {
+          "id": "a",
+          "name_key": "building.pool_spa.spec_a"
+        },
+        {
+          "id": "b",
+          "name_key": "building.pool_spa.spec_b"
+        }
+      ],
+      "tiers": [
+        {
+          "tier": 1,
+          "name_key": "building.pool_spa.tier1.name",
+          "cost": 25000,
+          "upkeep_per_day": 62,
+          "requires": {
+            "min_holes": 0,
+            "min_avg_hole_score": 0,
+            "min_parcels_owned": 2,
+            "min_members": 0,
+            "specific": [],
+            "any_others": null,
+            "hosted_tournament": null
+          }
+        },
+        {
+          "tier": 2,
+          "name_key": "building.pool_spa.tier2.name",
+          "cost": 50000,
+          "upkeep_per_day": 125,
+          "requires": {
+            "min_holes": 6,
+            "min_avg_hole_score": 25,
+            "min_parcels_owned": 3,
+            "min_members": 0,
+            "specific": [],
+            "any_others": null,
+            "hosted_tournament": null
+          }
+        },
+        {
+          "tier": 3,
+          "name_key": "building.pool_spa.tier3.name",
+          "cost": 100000,
+          "upkeep_per_day": 250,
+          "requires": {
+            "min_holes": 10,
+            "min_avg_hole_score": 30,
+            "min_parcels_owned": 4,
+            "min_members": 0,
+            "specific": [],
+            "any_others": {
+              "count": 1,
+              "min_tier": 2
+            },
+            "hosted_tournament": null
+          }
+        },
+        {
+          "tier": 4,
+          "name_key": "building.pool_spa.tier4.name",
+          "cost": 200000,
+          "upkeep_per_day": 500,
+          "requires": {
+            "min_holes": 14,
+            "min_avg_hole_score": 36,
+            "min_parcels_owned": 6,
+            "min_members": 50,
+            "specific": [],
+            "any_others": {
+              "count": 2,
+              "min_tier": 3
+            },
+            "hosted_tournament": null
+          }
+        },
+        {
+          "tier": 5,
+          "name_key": "building.pool_spa.tier5.name",
+          "cost": 350000,
+          "upkeep_per_day": 875,
+          "requires": {
+            "min_holes": 18,
+            "min_avg_hole_score": 42,
+            "min_parcels_owned": 8,
+            "min_members": 0,
+            "specific": [],
+            "any_others": null,
+            "hosted_tournament": {
+              "min_level": "local"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "cart_barn",
+      "name_key": "building.cart_barn.name",
+      "desc_key": "building.cart_barn.desc",
+      "base_cost": 8000,
+      "land_class": "light",
+      "demo_max_tier": 0,
+      "tier3_specs": [
+        {
+          "id": "a",
+          "name_key": "building.cart_barn.spec_a"
+        },
+        {
+          "id": "b",
+          "name_key": "building.cart_barn.spec_b"
+        }
+      ],
+      "tiers": [
+        {
+          "tier": 1,
+          "name_key": "building.cart_barn.tier1.name",
+          "cost": 8000,
+          "upkeep_per_day": 20,
+          "requires": {
+            "min_holes": 0,
+            "min_avg_hole_score": 0,
+            "min_parcels_owned": 2,
+            "min_members": 0,
+            "specific": [],
+            "any_others": null,
+            "hosted_tournament": null
+          }
+        },
+        {
+          "tier": 2,
+          "name_key": "building.cart_barn.tier2.name",
+          "cost": 16000,
+          "upkeep_per_day": 40,
+          "requires": {
+            "min_holes": 6,
+            "min_avg_hole_score": 25,
+            "min_parcels_owned": 2,
+            "min_members": 0,
+            "specific": [],
+            "any_others": null,
+            "hosted_tournament": null
+          }
+        },
+        {
+          "tier": 3,
+          "name_key": "building.cart_barn.tier3.name",
+          "cost": 32000,
+          "upkeep_per_day": 80,
+          "requires": {
+            "min_holes": 10,
+            "min_avg_hole_score": 30,
+            "min_parcels_owned": 3,
+            "min_members": 0,
+            "specific": [],
+            "any_others": {
+              "count": 1,
+              "min_tier": 2
+            },
+            "hosted_tournament": null
+          }
+        },
+        {
+          "tier": 4,
+          "name_key": "building.cart_barn.tier4.name",
+          "cost": 64000,
+          "upkeep_per_day": 160,
+          "requires": {
+            "min_holes": 14,
+            "min_avg_hole_score": 36,
+            "min_parcels_owned": 5,
+            "min_members": 50,
+            "specific": [],
+            "any_others": {
+              "count": 2,
+              "min_tier": 3
+            },
+            "hosted_tournament": null
+          }
+        },
+        {
+          "tier": 5,
+          "name_key": "building.cart_barn.tier5.name",
+          "cost": 112000,
+          "upkeep_per_day": 280,
+          "requires": {
+            "min_holes": 18,
+            "min_avg_hole_score": 42,
+            "min_parcels_owned": 7,
+            "min_members": 0,
+            "specific": [],
+            "any_others": null,
+            "hosted_tournament": {
+              "min_level": "local"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "maintenance",
+      "name_key": "building.maintenance.name",
+      "desc_key": "building.maintenance.desc",
+      "base_cost": 10000,
+      "land_class": "light",
+      "demo_max_tier": 0,
+      "tier3_specs": [
+        {
+          "id": "a",
+          "name_key": "building.maintenance.spec_a"
+        },
+        {
+          "id": "b",
+          "name_key": "building.maintenance.spec_b"
+        }
+      ],
+      "tiers": [
+        {
+          "tier": 1,
+          "name_key": "building.maintenance.tier1.name",
+          "cost": 10000,
+          "upkeep_per_day": 25,
+          "requires": {
+            "min_holes": 0,
+            "min_avg_hole_score": 0,
+            "min_parcels_owned": 2,
+            "min_members": 0,
+            "specific": [],
+            "any_others": null,
+            "hosted_tournament": null
+          }
+        },
+        {
+          "tier": 2,
+          "name_key": "building.maintenance.tier2.name",
+          "cost": 20000,
+          "upkeep_per_day": 50,
+          "requires": {
+            "min_holes": 6,
+            "min_avg_hole_score": 25,
+            "min_parcels_owned": 2,
+            "min_members": 0,
+            "specific": [],
+            "any_others": null,
+            "hosted_tournament": null
+          }
+        },
+        {
+          "tier": 3,
+          "name_key": "building.maintenance.tier3.name",
+          "cost": 40000,
+          "upkeep_per_day": 100,
+          "requires": {
+            "min_holes": 10,
+            "min_avg_hole_score": 30,
+            "min_parcels_owned": 3,
+            "min_members": 0,
+            "specific": [],
+            "any_others": {
+              "count": 1,
+              "min_tier": 2
+            },
+            "hosted_tournament": null
+          }
+        },
+        {
+          "tier": 4,
+          "name_key": "building.maintenance.tier4.name",
+          "cost": 80000,
+          "upkeep_per_day": 200,
+          "requires": {
+            "min_holes": 14,
+            "min_avg_hole_score": 36,
+            "min_parcels_owned": 5,
+            "min_members": 50,
+            "specific": [],
+            "any_others": {
+              "count": 2,
+              "min_tier": 3
+            },
+            "hosted_tournament": null
+          }
+        },
+        {
+          "tier": 5,
+          "name_key": "building.maintenance.tier5.name",
+          "cost": 140000,
+          "upkeep_per_day": 350,
+          "requires": {
+            "min_holes": 18,
+            "min_avg_hole_score": 42,
+            "min_parcels_owned": 7,
+            "min_members": 0,
+            "specific": [],
+            "any_others": null,
+            "hosted_tournament": {
+              "min_level": "local"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "lodging",
+      "name_key": "building.lodging.name",
+      "desc_key": "building.lodging.desc",
+      "base_cost": 30000,
+      "land_class": "heavy",
+      "demo_max_tier": 0,
+      "tier3_specs": [
+        {
+          "id": "a",
+          "name_key": "building.lodging.spec_a"
+        },
+        {
+          "id": "b",
+          "name_key": "building.lodging.spec_b"
+        }
+      ],
+      "tiers": [
+        {
+          "tier": 1,
+          "name_key": "building.lodging.tier1.name",
+          "cost": 30000,
+          "upkeep_per_day": 75,
+          "requires": {
+            "min_holes": 0,
+            "min_avg_hole_score": 0,
+            "min_parcels_owned": 2,
+            "min_members": 0,
+            "specific": [],
+            "any_others": null,
+            "hosted_tournament": null
+          }
+        },
+        {
+          "tier": 2,
+          "name_key": "building.lodging.tier2.name",
+          "cost": 60000,
+          "upkeep_per_day": 150,
+          "requires": {
+            "min_holes": 6,
+            "min_avg_hole_score": 25,
+            "min_parcels_owned": 3,
+            "min_members": 0,
+            "specific": [],
+            "any_others": null,
+            "hosted_tournament": null
+          }
+        },
+        {
+          "tier": 3,
+          "name_key": "building.lodging.tier3.name",
+          "cost": 120000,
+          "upkeep_per_day": 300,
+          "requires": {
+            "min_holes": 10,
+            "min_avg_hole_score": 30,
+            "min_parcels_owned": 4,
+            "min_members": 0,
+            "specific": [
+              {
+                "building": "restaurant",
+                "min_tier": 3
+              }
+            ],
+            "any_others": {
+              "count": 1,
+              "min_tier": 2
+            },
+            "hosted_tournament": null
+          }
+        },
+        {
+          "tier": 4,
+          "name_key": "building.lodging.tier4.name",
+          "cost": 240000,
+          "upkeep_per_day": 600,
+          "requires": {
+            "min_holes": 14,
+            "min_avg_hole_score": 36,
+            "min_parcels_owned": 6,
+            "min_members": 50,
+            "specific": [],
+            "any_others": {
+              "count": 2,
+              "min_tier": 3
+            },
+            "hosted_tournament": null
+          }
+        },
+        {
+          "tier": 5,
+          "name_key": "building.lodging.tier5.name",
+          "cost": 420000,
+          "upkeep_per_day": 1050,
+          "requires": {
+            "min_holes": 18,
+            "min_avg_hole_score": 42,
+            "min_parcels_owned": 8,
+            "min_members": 0,
+            "specific": [],
+            "any_others": null,
+            "hosted_tournament": {
+              "min_level": "local"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "homes",
+      "name_key": "building.homes.name",
+      "desc_key": "building.homes.desc",
+      "base_cost": 40000,
+      "land_class": "heavy",
+      "demo_max_tier": 0,
+      "tier3_specs": [
+        {
+          "id": "a",
+          "name_key": "building.homes.spec_a"
+        },
+        {
+          "id": "b",
+          "name_key": "building.homes.spec_b"
+        }
+      ],
+      "tiers": [
+        {
+          "tier": 1,
+          "name_key": "building.homes.tier1.name",
+          "cost": 40000,
+          "upkeep_per_day": 100,
+          "requires": {
+            "min_holes": 0,
+            "min_avg_hole_score": 0,
+            "min_parcels_owned": 2,
+            "min_members": 0,
+            "specific": [],
+            "any_others": null,
+            "hosted_tournament": null
+          }
+        },
+        {
+          "tier": 2,
+          "name_key": "building.homes.tier2.name",
+          "cost": 80000,
+          "upkeep_per_day": 200,
+          "requires": {
+            "min_holes": 6,
+            "min_avg_hole_score": 25,
+            "min_parcels_owned": 3,
+            "min_members": 0,
+            "specific": [],
+            "any_others": null,
+            "hosted_tournament": null
+          }
+        },
+        {
+          "tier": 3,
+          "name_key": "building.homes.tier3.name",
+          "cost": 160000,
+          "upkeep_per_day": 400,
+          "requires": {
+            "min_holes": 10,
+            "min_avg_hole_score": 30,
+            "min_parcels_owned": 4,
+            "min_members": 0,
+            "specific": [],
+            "any_others": {
+              "count": 1,
+              "min_tier": 2
+            },
+            "hosted_tournament": null
+          }
+        },
+        {
+          "tier": 4,
+          "name_key": "building.homes.tier4.name",
+          "cost": 320000,
+          "upkeep_per_day": 800,
+          "requires": {
+            "min_holes": 14,
+            "min_avg_hole_score": 36,
+            "min_parcels_owned": 6,
+            "min_members": 50,
+            "specific": [
+              {
+                "building": "clubhouse",
+                "min_tier": 4
+              }
+            ],
+            "any_others": {
+              "count": 2,
+              "min_tier": 3
+            },
+            "hosted_tournament": null
+          }
+        },
+        {
+          "tier": 5,
+          "name_key": "building.homes.tier5.name",
+          "cost": 560000,
+          "upkeep_per_day": 1400,
+          "requires": {
+            "min_holes": 18,
+            "min_avg_hole_score": 42,
+            "min_parcels_owned": 8,
+            "min_members": 0,
+            "specific": [],
+            "any_others": null,
+            "hosted_tournament": {
+              "min_level": "local"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "landmark",
+      "name_key": "building.landmark.name",
+      "desc_key": "building.landmark.desc",
+      "base_cost": 60000,
+      "land_class": "heavy",
+      "demo_max_tier": 0,
+      "tier3_specs": [
+        {
+          "id": "a",
+          "name_key": "building.landmark.spec_a"
+        },
+        {
+          "id": "b",
+          "name_key": "building.landmark.spec_b"
+        }
+      ],
+      "tiers": [
+        {
+          "tier": 1,
+          "name_key": "building.landmark.tier1.name",
+          "cost": 60000,
+          "upkeep_per_day": 150,
+          "requires": {
+            "min_holes": 0,
+            "min_avg_hole_score": 0,
+            "min_parcels_owned": 2,
+            "min_members": 0,
+            "specific": [],
+            "any_others": null,
+            "hosted_tournament": null
+          }
+        },
+        {
+          "tier": 2,
+          "name_key": "building.landmark.tier2.name",
+          "cost": 120000,
+          "upkeep_per_day": 300,
+          "requires": {
+            "min_holes": 6,
+            "min_avg_hole_score": 25,
+            "min_parcels_owned": 3,
+            "min_members": 0,
+            "specific": [],
+            "any_others": null,
+            "hosted_tournament": null
+          }
+        },
+        {
+          "tier": 3,
+          "name_key": "building.landmark.tier3.name",
+          "cost": 240000,
+          "upkeep_per_day": 600,
+          "requires": {
+            "min_holes": 10,
+            "min_avg_hole_score": 30,
+            "min_parcels_owned": 4,
+            "min_members": 0,
+            "specific": [],
+            "any_others": {
+              "count": 1,
+              "min_tier": 2
+            },
+            "hosted_tournament": null
+          }
+        },
+        {
+          "tier": 4,
+          "name_key": "building.landmark.tier4.name",
+          "cost": 480000,
+          "upkeep_per_day": 1200,
+          "requires": {
+            "min_holes": 14,
+            "min_avg_hole_score": 36,
+            "min_parcels_owned": 6,
+            "min_members": 50,
+            "specific": [],
+            "any_others": {
+              "count": 2,
+              "min_tier": 3
+            },
+            "hosted_tournament": null
+          }
+        },
+        {
+          "tier": 5,
+          "name_key": "building.landmark.tier5.name",
+          "cost": 840000,
+          "upkeep_per_day": 2100,
+          "requires": {
+            "min_holes": 18,
+            "min_avg_hole_score": 42,
+            "min_parcels_owned": 8,
+            "min_members": 0,
+            "specific": [
+              {
+                "building": "homes",
+                "min_tier": 3
+              }
+            ],
+            "any_others": null,
+            "hosted_tournament": {
+              "min_level": "regional"
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

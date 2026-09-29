@@ -1,0 +1,116 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.mulliganhills.example/analytics_catalog.schema.json",
+  "title": "Mulligan Hills analytics catalog v1",
+  "description": "The allowed analytics events. Properties are bounded ints, enums or bools only. Adding an event is a reviewed data change and must be reflected in the store Data Safety form and privacy policy.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "schema_version",
+    "privacy",
+    "events"
+  ],
+  "properties": {
+    "schema": {
+      "const": "mh.analytics_catalog"
+    },
+    "schema_version": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 1
+    },
+    "privacy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "no_personal_data",
+        "no_free_text",
+        "no_precise_location",
+        "no_advertising_id",
+        "no_hardware_ids",
+        "consent_required",
+        "identifiers",
+        "retention_days"
+      ],
+      "properties": {
+        "no_personal_data": {
+          "const": true
+        },
+        "no_free_text": {
+          "const": true
+        },
+        "no_precise_location": {
+          "const": true
+        },
+        "no_advertising_id": {
+          "const": true
+        },
+        "no_hardware_ids": {
+          "const": true
+        },
+        "consent_required": {
+          "const": true
+        },
+        "identifiers": {
+          "type": "string"
+        },
+        "retention_days": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 365
+        }
+      }
+    },
+    "events": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 80,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "name",
+          "description",
+          "props",
+          "required"
+        ],
+        "properties": {
+          "name": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9_]{2,39}$"
+          },
+          "description": {
+            "type": "string",
+            "maxLength": 200
+          },
+          "props": {
+            "type": "object",
+            "maxProperties": 8,
+            "propertyNames": {
+              "pattern": "^[a-z][a-z0-9_]{1,29}$"
+            },
+            "additionalProperties": {
+              "type": "object",
+              "properties": {
+                "type": {
+                  "enum": [
+                    "integer",
+                    "boolean",
+                    "string"
+                  ]
+                }
+              }
+            }
+          },
+          "required": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    }
+  }
+}

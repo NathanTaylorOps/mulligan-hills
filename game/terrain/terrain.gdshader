@@ -1,0 +1,47 @@
+shader_type spatial;
+render_mode cull_back, diffuse_lambert, specular_disabled;
+
+// One flat 33x33 vertex grid mesh (x,z in cell units, y = 0) is shared by all chunks.
+// Each chunk has its own material with:
+//   height_tex: RG8, 35x35 texels (chunk 33x33 vertices + 1 texel border for normals).
+//               value = (height_mm + 32768) as 16 bit: R = high byte, G = low byte.
+//   splat_tex : RGBA8, same 35x35 layout. R fairway, G rough, B sand, A green.
+// Vertex (i, j) of the chunk reads texel (i + 1, j + 1). Neighbouring chunks read identical
+// texels for shared edge vertices, so there are no cracks (no LOD in Phase 0, no skirts needed).
+
+uniform sampler2D height_tex : filter_nearest, repeat_disable;
+uniform sampler2D splat_tex : filter_linear, repeat_disable;
+uniform float cell_size_m = 1.0;
+uniform float tex_size = 35.0;
+uniform vec4 col_fairway : source_color = vec4(0.36, 0.62, 0.25, 1.0);
+uniform vec4 col_rough : source_color = vec4(0.22, 0.42, 0.16, 1.0);
+uniform vec4 col_sand : source_color = vec4(0.85, 0.78, 0.55, 1.0);
+uniform vec4 col_green : source_color = vec4(0.45, 0.75, 0.32, 1.0);
+
+varying vec2 splat_uv;
+
+float decode_h_mm(ivec2 t) {
+	vec4 c = texelFetch(height_tex, t, 0);
+	float hi = floor(c.r * 255.0 + 0.5);
+	float lo = floor(c.g * 255.0 + 0.5);
+	return hi * 256.0 + lo - 32768.0;
+}
+
+void vertex() {
+	ivec2 t = ivec2(int(VERTEX.x + 0.5), int(VERTEX.z + 0.5)) + ivec2(1, 1);
+	float hc = decode_h_mm(t);
+	float hl = decode_h_mm(t + ivec2(-1, 0));
+	float hr = decode_h_mm(t + ivec2(1, 0));
+	float hu = decode_h_mm(t + ivec2(0, -1));
+	float hd = decode_h_mm(t + ivec2(0, 1));
+	NORMAL = normalize(vec3(hl - hr, 2.0 * cell_size_m * 1000.0, hu - hd));
+	VERTEX = vec3(VERTEX.x * cell_size_m, hc * 0.001, VERTEX.z * cell_size_m);
+	splat_uv = (vec2(t) + vec2(0.5)) / tex_size;
+}
+
+void fragment() {
+	vec4 s = texture(splat_tex, splat_uv);
+	float total = max(s.r + s.g + s.b + s.a, 0.001);
+	ALBEDO = (s.r * col_fairway.rgb + s.g * col_rough.rgb + s.b * col_sand.rgb + s.a * col_green.rgb) / total;
+	ROUGHNESS = 1.0;
+}

@@ -1,0 +1,403 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.mulliganhills.example/course.schema.json",
+  "title": "Mulligan Hills course data v1",
+  "description": "Course geometry and references only. Horizontal coordinates are integer decimetres (dm, 1 dm = 100 mm) on a plan grid: x grows east, y grows south, origin top-left, range 0..65535. Heights live in the terrain blob (int16 millimetres), never in this JSON. No floats anywhere. No score is ever stored here; ratings are recomputed by the rating engine on load.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "schema_version",
+    "rating_engine_version",
+    "course_id",
+    "name_preset_id",
+    "world",
+    "terrain",
+    "holes",
+    "objects",
+    "paths"
+  ],
+  "properties": {
+    "schema": {
+      "const": "mh.course"
+    },
+    "schema_version": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 1
+    },
+    "rating_engine_version": {
+      "type": "string",
+      "pattern": "^[A-Z0-9][A-Za-z0-9._-]{0,31}$",
+      "description": "Engine version tag as defined by workstream B, for example MHRATE-1.0.0 or MHSIM-1.0.0."
+    },
+    "course_id": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+    },
+    "name_preset_id": {
+      "description": "Course names are preset-only in v1. Index into the preset name list (string keys preset.course_name.NNN).",
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 9999
+    },
+    "world": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "width_dm",
+        "height_dm",
+        "parcels"
+      ],
+      "properties": {
+        "width_dm": {
+          "type": "integer",
+          "minimum": 1000,
+          "maximum": 65535
+        },
+        "height_dm": {
+          "type": "integer",
+          "minimum": 1000,
+          "maximum": 65535
+        },
+        "parcels": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 16,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "parcel_id",
+              "x0",
+              "y0",
+              "x1",
+              "y1",
+              "owned"
+            ],
+            "properties": {
+              "parcel_id": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 15
+              },
+              "x0": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 65535
+              },
+              "y0": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 65535
+              },
+              "x1": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 65535
+              },
+              "y1": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 65535
+              },
+              "owned": {
+                "type": "boolean"
+              }
+            }
+          }
+        }
+      }
+    },
+    "terrain": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "format_version",
+        "file",
+        "content_hash",
+        "width_cells",
+        "height_cells",
+        "cell_size_dm",
+        "height_unit_mm",
+        "height_min_mm",
+        "height_max_mm",
+        "surface_layers"
+      ],
+      "description": "Reference to the terrain blob owned by the terrain module. Height array is int16 millimetres, row-major, plus per-cell surface layer bytes. The blob layout is defined in docs/spec/interfaces/terrain.md and docs/phase0/terrain.md.",
+      "properties": {
+        "format_version": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 255
+        },
+        "file": {
+          "type": "string",
+          "pattern": "^[a-z0-9_.-]{1,64}$"
+        },
+        "width_cells": {
+          "type": "integer",
+          "minimum": 16,
+          "maximum": 2048
+        },
+        "height_cells": {
+          "type": "integer",
+          "minimum": 16,
+          "maximum": 2048
+        },
+        "cell_size_dm": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 100
+        },
+        "height_unit_mm": {
+          "const": 1
+        },
+        "height_min_mm": {
+          "type": "integer",
+          "minimum": -32768,
+          "maximum": 32767
+        },
+        "height_max_mm": {
+          "type": "integer",
+          "minimum": -32768,
+          "maximum": 32767
+        },
+        "surface_layers": {
+          "type": "array",
+          "uniqueItems": true,
+          "minItems": 1,
+          "maxItems": 16,
+          "items": {
+            "enum": [
+              "rough",
+              "fairway",
+              "first_cut",
+              "green",
+              "fringe",
+              "tee",
+              "bunker_sand",
+              "water",
+              "path",
+              "waste",
+              "dirt"
+            ]
+          }
+        },
+        "content_hash": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{8,64}$",
+          "description": "Hex hash of the height data as the terrain module defines it (workstream C currently uses FNV-1a over int16 heights; may become sha256)."
+        }
+      }
+    },
+    "holes": {
+      "type": "array",
+      "minItems": 0,
+      "maxItems": 18,
+      "items": {
+        "$ref": "#/$defs/hole"
+      }
+    },
+    "objects": {
+      "type": "array",
+      "maxItems": 4000,
+      "items": {
+        "$ref": "#/$defs/object"
+      }
+    },
+    "paths": {
+      "type": "array",
+      "maxItems": 64,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "kind",
+          "points"
+        ],
+        "properties": {
+          "kind": {
+            "enum": [
+              "cart_path",
+              "walk_path"
+            ]
+          },
+          "points": {
+            "type": "array",
+            "minItems": 2,
+            "maxItems": 64,
+            "items": {
+              "$ref": "#/$defs/point"
+            }
+          }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "point": {
+      "type": "array",
+      "items": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 65535
+      },
+      "minItems": 2,
+      "maxItems": 2
+    },
+    "polygon": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/point"
+      },
+      "minItems": 3,
+      "maxItems": 64
+    },
+    "hole": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "hole_no",
+        "par",
+        "tees",
+        "green",
+        "fairways",
+        "hazards"
+      ],
+      "properties": {
+        "hole_no": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 18
+        },
+        "par": {
+          "type": "integer",
+          "minimum": 3,
+          "maximum": 5
+        },
+        "plaque_preset_id": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 999
+        },
+        "template_id": {
+          "description": "Optional id of the hole template this hole was copied from. Informational, feeds the similarity penalty inputs.",
+          "type": "string",
+          "pattern": "^[a-z0-9_]{1,40}$"
+        },
+        "mirrored": {
+          "type": "boolean"
+        },
+        "tees": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 4,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "tee_class",
+              "pos"
+            ],
+            "properties": {
+              "tee_class": {
+                "enum": [
+                  "forward",
+                  "member",
+                  "back",
+                  "tournament"
+                ]
+              },
+              "pos": {
+                "$ref": "#/$defs/point"
+              }
+            }
+          }
+        },
+        "green": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "outline",
+            "pins"
+          ],
+          "properties": {
+            "outline": {
+              "$ref": "#/$defs/polygon"
+            },
+            "pins": {
+              "type": "array",
+              "minItems": 1,
+              "maxItems": 6,
+              "items": {
+                "$ref": "#/$defs/point"
+              }
+            }
+          }
+        },
+        "fairways": {
+          "type": "array",
+          "maxItems": 8,
+          "items": {
+            "$ref": "#/$defs/polygon"
+          }
+        },
+        "hazards": {
+          "type": "array",
+          "maxItems": 48,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "kind",
+              "outline"
+            ],
+            "properties": {
+              "kind": {
+                "enum": [
+                  "water",
+                  "lateral_water",
+                  "bunker",
+                  "waste_area",
+                  "out_of_bounds"
+                ]
+              },
+              "outline": {
+                "$ref": "#/$defs/polygon"
+              }
+            }
+          }
+        }
+      }
+    },
+    "object": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "pos"
+      ],
+      "properties": {
+        "kind": {
+          "description": "Prop id from the prop catalog (tree_oak, rock_small, bench...).",
+          "type": "string",
+          "pattern": "^[a-z0-9_]{1,32}$"
+        },
+        "pos": {
+          "$ref": "#/$defs/point"
+        },
+        "rot_deg": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 359
+        },
+        "scale_pct": {
+          "type": "integer",
+          "minimum": 50,
+          "maximum": 200
+        }
+      }
+    }
+  }
+}

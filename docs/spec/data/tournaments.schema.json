@@ -1,0 +1,303 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.mulliganhills.example/tournaments.schema.json",
+  "title": "Mulligan Hills tournament data v1",
+  "description": "Tournament ladder, hosting prerequisites, spectator capacity by Clubhouse tier and prestige parameters. Every building requirement must be at tier 4 or lower (schema max 4) so tier 5 cannot gate itself.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "schema_version",
+    "status",
+    "spectator_capacity_by_clubhouse_tier",
+    "prestige",
+    "levels"
+  ],
+  "properties": {
+    "schema": {
+      "const": "mh.tournaments"
+    },
+    "schema_version": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 1
+    },
+    "status": {
+      "type": "string"
+    },
+    "spectator_capacity_by_clubhouse_tier": {
+      "description": "Grandstands are a Clubhouse tier feature. Index 0 is tier 1.",
+      "type": "array",
+      "minItems": 5,
+      "maxItems": 5,
+      "items": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 100000
+      }
+    },
+    "prestige": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "snapshot_window_days",
+        "sustained_min_days",
+        "weights_permille",
+        "facility_tier_cap"
+      ],
+      "properties": {
+        "snapshot_window_days": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 60
+        },
+        "sustained_min_days": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 60
+        },
+        "facility_tier_cap": {
+          "const": 4,
+          "description": "Facilities score counts tiers up to 4 only, so prestige cannot depend on tier-5 buildings."
+        },
+        "weights_permille": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "course_score",
+            "pace",
+            "facilities",
+            "field_satisfaction"
+          ],
+          "properties": {
+            "course_score": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 1000
+            },
+            "pace": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 1000
+            },
+            "facilities": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 1000
+            },
+            "field_satisfaction": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 1000
+            }
+          }
+        }
+      }
+    },
+    "levels": {
+      "type": "array",
+      "minItems": 4,
+      "maxItems": 4,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "level",
+          "name_key",
+          "desc_key",
+          "entry",
+          "field_size",
+          "duration_days",
+          "prep_days",
+          "cooldown_days",
+          "host_cost",
+          "prestige_base",
+          "reward",
+          "failure"
+        ],
+        "properties": {
+          "level": {
+            "enum": [
+              "local",
+              "regional",
+              "national",
+              "major"
+            ]
+          },
+          "name_key": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9_]*(\\.[a-z0-9_]+){1,4}$",
+            "maxLength": 80
+          },
+          "desc_key": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9_]*(\\.[a-z0-9_]+){1,4}$",
+            "maxLength": 80
+          },
+          "entry": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "min_holes",
+              "min_avg_hole_score",
+              "min_pace_score",
+              "buildings",
+              "min_staff",
+              "min_spectator_capacity"
+            ],
+            "properties": {
+              "min_holes": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 18
+              },
+              "min_avg_hole_score": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 100
+              },
+              "min_pace_score": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 100
+              },
+              "buildings": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "building",
+                    "min_tier"
+                  ],
+                  "properties": {
+                    "building": {
+                      "enum": [
+                        "clubhouse",
+                        "pro_shop",
+                        "driving_range",
+                        "restaurant",
+                        "pool_spa",
+                        "cart_barn",
+                        "maintenance",
+                        "lodging",
+                        "homes",
+                        "landmark"
+                      ]
+                    },
+                    "min_tier": {
+                      "type": "integer",
+                      "minimum": 1,
+                      "maximum": 4
+                    }
+                  }
+                },
+                "minItems": 0,
+                "maxItems": 6
+              },
+              "min_staff": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 200
+              },
+              "min_spectator_capacity": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 100000
+              }
+            }
+          },
+          "field_size": {
+            "type": "integer",
+            "minimum": 4,
+            "maximum": 64
+          },
+          "duration_days": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 7
+          },
+          "prep_days": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 30
+          },
+          "cooldown_days": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 365
+          },
+          "host_cost": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 100000000
+          },
+          "prestige_base": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 100000
+          },
+          "reward": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "cash",
+              "reputation"
+            ],
+            "properties": {
+              "cash": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 100000000
+              },
+              "reputation": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 100000
+              }
+            }
+          },
+          "failure": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "reputation_loss",
+              "cash_loss",
+              "cooldown_extra_days",
+              "triggers"
+            ],
+            "properties": {
+              "reputation_loss": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 100000
+              },
+              "cash_loss": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 100000000
+              },
+              "cooldown_extra_days": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 365
+              },
+              "triggers": {
+                "type": "array",
+                "minItems": 1,
+                "items": {
+                  "enum": [
+                    "slow_pace",
+                    "unfair_hole",
+                    "bad_conditions",
+                    "low_snapshot_score"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

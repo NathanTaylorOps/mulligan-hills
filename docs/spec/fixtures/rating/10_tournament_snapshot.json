@@ -1,0 +1,45 @@
+{
+ "id": "10",
+ "title": "Dress up 18 pretty holes the day before, then revert",
+ "kind": "tournament",
+ "case": "case 10",
+ "tournament": {
+  "honest_checkpoints": [
+   520,
+   520,
+   530,
+   520,
+   525,
+   530,
+   520,
+   525
+  ],
+  "gamed_checkpoints": [
+   380,
+   380,
+   390,
+   380,
+   385,
+   380,
+   380,
+   700
+  ],
+  "fac_pts": 120
+ },
+ "expect_summary": "Sustained score is the lower of the current score and the median of the last 8 checkpoints (missing checkpoints count as 0). The gamed course gets prestige below the honest course; editing holes after applying cancels the application.",
+ "checks": [
+  {
+   "text": "gamed sustained equals its median not its spike",
+   "op": "le",
+   "a": "sust_gamed",
+   "b": 400
+  },
+  {
+   "text": "honest prestige exceeds gamed prestige by 60 or more",
+   "op": "ge",
+   "a": "prestige_honest",
+   "b": "prestige_gamed",
+   "margin": 60
+  }
+ ]
+}

@@ -1,0 +1,39 @@
+{
+  "schema": "mh.commission_templates",
+  "schema_version": 1,
+  "templates": [
+    {
+      "id": "short_par3",
+      "weight": 100,
+      "min_avg_hole_score": 20,
+      "min_day": 5,
+      "expires_days": 10,
+      "client_kind": "member",
+      "brief": {
+        "par": [
+          3
+        ],
+        "min_length_yd": 110,
+        "max_length_yd": 170
+      },
+      "constraints": {
+        "require_hazards": [
+          "water"
+        ],
+        "max_trees": 40,
+        "min_hole_score": 55
+      },
+      "reward": {
+        "cash": 3000,
+        "reputation": 40
+      },
+      "text_keys": {
+        "title": "commission.short_par3.title",
+        "body": "commission.short_par3.body",
+        "success": "commission.short_par3.success",
+        "fail": "commission.short_par3.fail"
+      },
+      "variants": 3
+    }
+  ]
+}

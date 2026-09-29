@@ -1,0 +1,134 @@
+name: Android debug APK
+
+on:
+  push:
+  workflow_dispatch:
+    inputs:
+      game_path:
+        description: "Godot project folder relative to the repo root"
+        default: "game"
+      scene:
+        description: "Main scene to launch (res:// path). Empty = whatever project.godot says"
+        default: ""
+      renderer:
+        description: "Renderer for this build"
+        type: choice
+        options: [compatibility, mobile]
+        default: compatibility
+      build_aab:
+        description: "Also export a debug AAB"
+        type: boolean
+        default: false
+
+concurrency:
+  group: android-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  apk:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    env:
+      GAME_PATH: ${{ inputs.game_path || 'game' }}
+      MH_MAIN_SCENE: ${{ inputs.scene || '' }}
+      MH_RENDERER: ${{ inputs.renderer || 'compatibility' }}
+      ANDROID_DEBUG_KEYSTORE_B64: ${{ secrets.ANDROID_DEBUG_KEYSTORE_B64 }}
+      TEMPLATE_PLATFORMS: android
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          lfs: true
+
+      - name: Cache Godot binaries and templates
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/mh-godot
+          key: godot-${{ runner.os }}-android-${{ hashFiles('tools/ci/versions.env') }}
+
+      - name: Cache Gradle
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: gradle-${{ runner.os }}-${{ hashFiles('tools/ci/versions.env') }}
+          restore-keys: gradle-${{ runner.os }}-
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Download Godot and export templates
+        run: |
+          tools/ci/download_godot.sh
+          tools/ci/setup_templates.sh
+
+      - name: Android SDK, editor settings, debug keystore
+        run: tools/ci/setup_android_env.sh
+
+      - name: Prepare project
+        run: |
+          tools/ci/ensure_icon.sh
+          tools/ci/set_project_options.sh
+          MH_VERSION_CODE="${{ github.run_number }}" tools/ci/render_export_presets.sh
+          tools/ci/install_android_template.sh
+
+      - name: Import project
+        run: tools/ci/import_project.sh
+
+      - name: Export debug APK
+        run: |
+          mkdir -p ci-out/android
+          "$GODOT_BIN" --headless --path "$GITHUB_WORKSPACE/$GAME_PATH" \
+            --export-debug "Android Debug APK" "$GITHUB_WORKSPACE/ci-out/android/mulligan-hills-debug.apk" \
+            2>&1 | tee ci-out/android/export-apk.log
+          test -s ci-out/android/mulligan-hills-debug.apk
+
+      - name: Export debug AAB (optional)
+        if: ${{ inputs.build_aab }}
+        run: |
+          "$GODOT_BIN" --headless --path "$GITHUB_WORKSPACE/$GAME_PATH" \
+            --export-debug "Android Debug AAB" "$GITHUB_WORKSPACE/ci-out/android/mulligan-hills-debug.aab" \
+            2>&1 | tee ci-out/android/export-aab.log
+          test -s ci-out/android/mulligan-hills-debug.aab
+
+      - name: Report size
+        if: always()
+        run: |
+          {
+            echo "## Android debug build"
+            echo
+            echo "Godot ${GODOT_BIN##*/}, renderer: ${MH_RENDERER}, scene: ${MH_MAIN_SCENE:-project default}"
+            echo
+            echo "| file | size |"
+            echo "| --- | ---: |"
+            for f in ci-out/android/*.apk ci-out/android/*.aab; do
+              [ -f "$f" ] && echo "| $(basename "$f") | $(du -h "$f" | cut -f1) ($(stat -c %s "$f") bytes) |"
+            done
+            echo
+            echo "Install: download the artifact \`android-debug-apk\`, unzip it, copy the .apk to the phone. See docs/phase0/ci.md."
+          } | tee -a "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload build
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-debug-apk
+          path: |
+            ci-out/android/*.apk
+            ci-out/android/*.aab
+          if-no-files-found: warn
+
+      - name: Upload logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-logs
+          path: |
+            ci-out/android/*.log
+            ci-out/import*.log
+          if-no-files-found: ignore

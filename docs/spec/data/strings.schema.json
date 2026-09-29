@@ -1,0 +1,84 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.mulliganhills.example/strings.schema.json",
+  "title": "Mulligan Hills string table v1",
+  "description": "One language file (game/data/strings/<lang>.json). See LOCALIZATION.md for key conventions and the length-limit table. Placeholders use {name}. validate.py additionally checks len(text) <= max and that placeholders in text equal the declared list.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "schema_version",
+    "lang",
+    "strings"
+  ],
+  "properties": {
+    "schema": {
+      "const": "mh.strings"
+    },
+    "schema_version": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 1
+    },
+    "lang": {
+      "type": "string",
+      "pattern": "^[a-z]{2}(-[A-Z]{2})?$"
+    },
+    "strings": {
+      "type": "object",
+      "propertyNames": {
+        "type": "string",
+        "pattern": "^[a-z][a-z0-9_]*(\\.[a-z0-9_]+){1,4}$",
+        "maxLength": 80
+      },
+      "minProperties": 1,
+      "additionalProperties": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "text",
+          "ctx",
+          "max"
+        ],
+        "properties": {
+          "text": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 600
+          },
+          "ctx": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 160,
+            "description": "Context note for writers and translators: where it shows, who speaks."
+          },
+          "max": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 600
+          },
+          "placeholders": {
+            "type": "array",
+            "uniqueItems": true,
+            "items": {
+              "type": "string",
+              "pattern": "^[a-z][a-z0-9_]*$"
+            }
+          },
+          "status": {
+            "enum": [
+              "draft",
+              "edited",
+              "approved"
+            ]
+          },
+          "plural_of": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9_]*(\\.[a-z0-9_]+){1,4}$",
+            "maxLength": 80
+          }
+        }
+      }
+    }
+  }
+}

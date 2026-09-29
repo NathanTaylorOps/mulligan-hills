@@ -1,0 +1,237 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.mulliganhills.example/commission_templates.schema.json",
+  "title": "Mulligan Hills commission templates v1",
+  "description": "Design commissions: a client asks for a specific hole, pays cash and reputation. Slots are filled from the commission seed by the deterministic RNG. Client names come from preset lists (never free text, never real people or brands).",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "schema_version",
+    "templates"
+  ],
+  "properties": {
+    "schema": {
+      "const": "mh.commission_templates"
+    },
+    "schema_version": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 1
+    },
+    "templates": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 100,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "weight",
+          "min_avg_hole_score",
+          "min_day",
+          "expires_days",
+          "client_kind",
+          "brief",
+          "constraints",
+          "reward",
+          "text_keys"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9_]{1,39}$"
+          },
+          "weight": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 1000
+          },
+          "min_avg_hole_score": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 100
+          },
+          "min_day": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 100000
+          },
+          "expires_days": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 60
+          },
+          "client_kind": {
+            "enum": [
+              "member",
+              "local_business",
+              "visiting_pro",
+              "charity",
+              "celebrity"
+            ]
+          },
+          "brief": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "par",
+              "min_length_yd",
+              "max_length_yd"
+            ],
+            "properties": {
+              "par": {
+                "type": "array",
+                "minItems": 1,
+                "maxItems": 3,
+                "uniqueItems": true,
+                "items": {
+                  "type": "integer",
+                  "minimum": 3,
+                  "maximum": 5
+                }
+              },
+              "min_length_yd": {
+                "type": "integer",
+                "minimum": 50,
+                "maximum": 700
+              },
+              "max_length_yd": {
+                "type": "integer",
+                "minimum": 50,
+                "maximum": 700
+              }
+            }
+          },
+          "constraints": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "require_hazards": {
+                "type": "array",
+                "uniqueItems": true,
+                "items": {
+                  "enum": [
+                    "water",
+                    "bunker",
+                    "waste_area"
+                  ]
+                }
+              },
+              "max_trees": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 4000
+              },
+              "budget": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 100000000
+              },
+              "min_hole_score": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 100
+              },
+              "min_axis": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "accuracy": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 100
+                  },
+                  "imagination": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 100
+                  },
+                  "length": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 100
+                  },
+                  "beauty": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 100
+                  },
+                  "fairness": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 100
+                  }
+                }
+              }
+            }
+          },
+          "reward": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "cash",
+              "reputation"
+            ],
+            "properties": {
+              "cash": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 100000000
+              },
+              "reputation": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 100000
+              },
+              "prestige": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 100000
+              }
+            }
+          },
+          "text_keys": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "title",
+              "body",
+              "success",
+              "fail"
+            ],
+            "properties": {
+              "title": {
+                "type": "string",
+                "pattern": "^[a-z][a-z0-9_]*(\\.[a-z0-9_]+){1,4}$",
+                "maxLength": 80
+              },
+              "body": {
+                "type": "string",
+                "pattern": "^[a-z][a-z0-9_]*(\\.[a-z0-9_]+){1,4}$",
+                "maxLength": 80
+              },
+              "success": {
+                "type": "string",
+                "pattern": "^[a-z][a-z0-9_]*(\\.[a-z0-9_]+){1,4}$",
+                "maxLength": 80
+              },
+              "fail": {
+                "type": "string",
+                "pattern": "^[a-z][a-z0-9_]*(\\.[a-z0-9_]+){1,4}$",
+                "maxLength": 80
+              }
+            }
+          },
+          "variants": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 5,
+            "description": "Number of wording variants, keys suffixed .v1..vN"
+          }
+        }
+      }
+    }
+  }
+}

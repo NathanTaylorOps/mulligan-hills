@@ -1,0 +1,16 @@
+{
+  "schema_version": 1,
+  "event_id": "0b5c2a3e-1111-4222-8333-444455556666",
+  "name": "building_upgraded",
+  "ts_unix": 1790000100,
+  "session_id": "aaaaaaaa-1111-4222-8333-444455556666",
+  "install_id": "9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d",
+  "app_version": "0.1.0",
+  "platform": "android",
+  "build_kind": "demo",
+  "props": {
+    "building": "clubhouse",
+    "tier": 2,
+    "day": 17
+  }
+}

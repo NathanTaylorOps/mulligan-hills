@@ -1,0 +1,52 @@
+# Normalise text; keep shell and GDScript LF everywhere (CI runs on Linux and macOS).
+* text=auto eol=lf
+*.sh text eol=lf
+*.gd text eol=lf
+*.tscn text eol=lf
+*.tres text eol=lf
+*.godot text eol=lf
+*.cfg text eol=lf
+*.yml text eol=lf
+*.md text eol=lf
+*.bat text eol=crlf
+
+# Large binaries go to Git LFS. Run `git lfs install` once per machine before the first
+# commit that adds any of these. CI checkouts use lfs: true.
+# Images and textures
+# LFS disabled for Phase 0 (upload blocked from this environment): *.png filter=lfs diff=lfs merge=lfs -text
+# LFS disabled for Phase 0 (upload blocked from this environment): *.jpg filter=lfs diff=lfs merge=lfs -text
+# LFS disabled for Phase 0 (upload blocked from this environment): *.jpeg filter=lfs diff=lfs merge=lfs -text
+# LFS disabled for Phase 0 (upload blocked from this environment): *.webp filter=lfs diff=lfs merge=lfs -text
+# LFS disabled for Phase 0 (upload blocked from this environment): *.exr filter=lfs diff=lfs merge=lfs -text
+# LFS disabled for Phase 0 (upload blocked from this environment): *.hdr filter=lfs diff=lfs merge=lfs -text
+# LFS disabled for Phase 0 (upload blocked from this environment): *.psd filter=lfs diff=lfs merge=lfs -text
+# LFS disabled for Phase 0 (upload blocked from this environment): *.tga filter=lfs diff=lfs merge=lfs -text
+# LFS disabled for Phase 0 (upload blocked from this environment): *.ktx filter=lfs diff=lfs merge=lfs -text
+# LFS disabled for Phase 0 (upload blocked from this environment): *.ktx2 filter=lfs diff=lfs merge=lfs -text
+# 3D and animation
+# LFS disabled for Phase 0 (upload blocked from this environment): *.glb filter=lfs diff=lfs merge=lfs -text
+# LFS disabled for Phase 0 (upload blocked from this environment): *.gltf.bin filter=lfs diff=lfs merge=lfs -text
+# LFS disabled for Phase 0 (upload blocked from this environment): *.fbx filter=lfs diff=lfs merge=lfs -text
+# LFS disabled for Phase 0 (upload blocked from this environment): *.blend filter=lfs diff=lfs merge=lfs -text
+# LFS disabled for Phase 0 (upload blocked from this environment): *.obj filter=lfs diff=lfs merge=lfs -text
+# Audio and video
+# LFS disabled for Phase 0 (upload blocked from this environment): *.wav filter=lfs diff=lfs merge=lfs -text
+# LFS disabled for Phase 0 (upload blocked from this environment): *.ogg filter=lfs diff=lfs merge=lfs -text
+# LFS disabled for Phase 0 (upload blocked from this environment): *.mp3 filter=lfs diff=lfs merge=lfs -text
+# LFS disabled for Phase 0 (upload blocked from this environment): *.flac filter=lfs diff=lfs merge=lfs -text
+# LFS disabled for Phase 0 (upload blocked from this environment): *.mp4 filter=lfs diff=lfs merge=lfs -text
+# LFS disabled for Phase 0 (upload blocked from this environment): *.webm filter=lfs diff=lfs merge=lfs -text
+# Fonts and archives
+# LFS disabled for Phase 0 (upload blocked from this environment): *.ttf filter=lfs diff=lfs merge=lfs -text
+# LFS disabled for Phase 0 (upload blocked from this environment): *.otf filter=lfs diff=lfs merge=lfs -text
+# LFS disabled for Phase 0 (upload blocked from this environment): *.zip filter=lfs diff=lfs merge=lfs -text
+# LFS disabled for Phase 0 (upload blocked from this environment): *.7z filter=lfs diff=lfs merge=lfs -text
+# LFS disabled for Phase 0 (upload blocked from this environment): *.tpz filter=lfs diff=lfs merge=lfs -text
+# Native libs and packed data
+# LFS disabled for Phase 0 (upload blocked from this environment): *.so filter=lfs diff=lfs merge=lfs -text
+# LFS disabled for Phase 0 (upload blocked from this environment): *.dll filter=lfs diff=lfs merge=lfs -text
+# LFS disabled for Phase 0 (upload blocked from this environment): *.dylib filter=lfs diff=lfs merge=lfs -text
+# LFS disabled for Phase 0 (upload blocked from this environment): *.aar filter=lfs diff=lfs merge=lfs -text
+# LFS disabled for Phase 0 (upload blocked from this environment): *.pck filter=lfs diff=lfs merge=lfs -text
+# LFS disabled for Phase 0 (upload blocked from this environment): *.res filter=lfs diff=lfs merge=lfs -text
+# LFS disabled for Phase 0 (upload blocked from this environment): *.scn filter=lfs diff=lfs merge=lfs -text

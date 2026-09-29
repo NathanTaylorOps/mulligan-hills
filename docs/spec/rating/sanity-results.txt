@@ -1,0 +1,191 @@
+Output of: python3 tools/reference/rating_sanity.py  (Python 3.11, run 2026-09-29, reference model, NOT GDScript)
+Format: hole lines list score in permille (0..1000) and axes; see rating-engine.md section 14.
+
+== 01_empty_hole.json - Empty hole (no tee, no green)
+   empty: INVALID RC001,RC002 score=0
+   no_green: INVALID RC002 score=0
+   no_tee: INVALID RC001 score=0
+   [PASS] empty hole is invalid with score 0
+   [PASS] no green scores 0
+   [PASS] no tee scores 0
+   [PASS] empty reports RC001
+== 02_straight_par4_wide.json - Straight 400y par 4, wide fairway, no hazards
+   plain: score=366 A=563 I=0 Len=1000 B=150 F=984 par=4 means=[410, 425, 438, 470, 539, 610] unch=0 pick=8 comps=1 aggr=0 pace=709
+   strategic: score=583 A=668 I=465 Len=1000 B=270 F=1000 par=4 means=[410, 440, 484, 527, 583, 620] unch=0 pick=0 comps=2 aggr=0 pace=754
+   [PASS] fairness at least 900
+   [PASS] accuracy at least 500
+   [PASS] imagination at most 60
+   [PASS] beauty between 100 and 300
+   [PASS] plain total at most 480
+   [PASS] strategic hole beats plain by 100 or more
+== 03_decoration_spam.json - Case 2 plus 500 decorative trees off the line
+   plain: score=366 A=563 I=0 Len=1000 B=150 F=984 par=4 means=[410, 425, 438, 470, 539, 610] unch=0 pick=8 comps=1 aggr=0 pace=709
+   spam: score=378 A=595 I=0 Len=1000 B=259 F=909 par=4 means=[410, 425, 438, 480, 550, 620] unch=0 pick=33 comps=1 aggr=0 pace=709
+   [PASS] beauty rises
+   [PASS] beauty gain at most 200
+   [PASS] total gain at most 40 permille
+== 04_length_900_vs_520.json - 900y par 5 vs 520y par 5
+   long900: score=176 A=719 I=0 Len=0 B=150 F=742 par=5 means=[600, 665, 734, 780, 850, 860] unch=0 pick=75 comps=1 aggr=0 pace=1135
+   good520: score=360 A=561 I=0 Len=950 B=150 F=1000 par=5 means=[460, 500, 513, 560, 600, 710] unch=0 pick=0 comps=1 aggr=0 pace=685
+   short520: score=360 A=569 I=6 Len=950 B=150 F=984 par=5 means=[430, 490, 531, 567, 617, 670] unch=0 pick=8 comps=1 aggr=0 pace=699
+   [PASS] length axis of 900y is 0
+   [PASS] length axis of 520y is at least 900
+   [PASS] 900y total below 520y total by 100 or more
+== 05_risk_reward_par4.json - Par 4 with a central lake: choice of lines
+   nochoice: score=366 A=563 I=0 Len=1000 B=150 F=984 par=4 means=[410, 425, 438, 470, 539, 610] unch=0 pick=8 comps=1 aggr=0 pace=709
+   choice: score=583 A=668 I=465 Len=1000 B=270 F=1000 par=4 means=[410, 440, 484, 527, 583, 620] unch=0 pick=0 comps=2 aggr=0 pace=754
+   choice_wide: score=648 A=772 I=572 Len=1000 B=276 F=1000 par=4 means=[420, 440, 484, 547, 589, 690] unch=0 pick=0 comps=2 aggr=66 pace=729
+   [PASS] fairness not below no-choice hole minus 60
+   [PASS] second variant fairness not below minus 100
+   [PASS] second variant imagination at least 200 higher
+   [PASS] imagination at least 300 higher
+   [PASS] at least 2 separate corridors
+== 06_forced_water.json - Unavoidable water in the only landing zone
+   plain: score=366 A=563 I=0 Len=1000 B=150 F=984 par=4 means=[410, 425, 438, 470, 539, 610] unch=0 pick=8 comps=1 aggr=0 pace=709
+   forced: score=132 A=509 I=0 Len=1000 B=286 F=0 par=4 means=[580, 635, 725, 707, 756, 800] unch=866 pick=383 comps=1 aggr=8 pace=1234
+   [PASS] fairness at most 250
+   [PASS] unchosen penalty rate at least 500 permille
+   [PASS] total at most half of plain
+== 07_duplicate_holes.json - 18 copies of one hole vs 18 varied holes
+   v00: score=549 A=595 I=465 Len=929 B=260 F=1000 par=4 means=[390, 420, 447, 490, 528, 610] unch=0 pick=0 comps=2 aggr=0 pace=654
+   c00: score=561 A=559 I=490 Len=1000 B=253 F=1000 par=4 means=[400, 415, 475, 483, 522, 620] unch=0 pick=0 comps=2 aggr=16 pace=729
+   v01: score=601 A=745 I=490 Len=968 B=285 F=984 par=4 means=[400, 405, 409, 463, 589, 610] unch=0 pick=8 comps=2 aggr=16 pace=649
+   c01: score=546 A=531 I=465 Len=1000 B=253 F=1000 par=4 means=[360, 395, 459, 463, 511, 560] unch=0 pick=0 comps=2 aggr=0 pace=710
+   v02: score=593 A=545 I=585 Len=1000 B=262 F=1000 par=4 means=[400, 450, 478, 493, 544, 580] unch=0 pick=0 comps=2 aggr=0 pace=723
+   c02: score=535 A=490 I=465 Len=1000 B=253 F=1000 par=4 means=[410, 415, 453, 473, 544, 560] unch=0 pick=0 comps=2 aggr=0 pace=706
+   v03: score=539 A=477 I=472 Len=1000 B=275 F=1000 par=4 means=[430, 435, 466, 500, 517, 610] unch=0 pick=0 comps=2 aggr=0 pace=706
+   c03: score=561 A=572 I=479 Len=1000 B=253 F=1000 par=4 means=[420, 430, 463, 500, 544, 610] unch=0 pick=0 comps=2 aggr=0 pace=717
+   v04: score=568 A=604 I=477 Len=1000 B=253 F=1000 par=4 means=[400, 415, 450, 480, 539, 610] unch=0 pick=0 comps=2 aggr=8 pace=710
+   c04: score=595 A=727 I=465 Len=1000 B=253 F=1000 par=4 means=[400, 425, 475, 497, 561, 650] unch=0 pick=0 comps=2 aggr=0 pace=726
+   v05: score=417 A=622 I=18 Len=1000 B=279 F=1000 par=4 means=[390, 420, 466, 500, 572, 600] unch=0 pick=0 comps=1 aggr=0 pace=738
+   c05: score=570 A=627 I=465 Len=1000 B=253 F=1000 par=4 means=[400, 410, 453, 487, 544, 610] unch=0 pick=0 comps=2 aggr=0 pace=713
+   v06: score=623 A=759 I=505 Len=1000 B=284 F=1000 par=4 means=[420, 425, 463, 540, 600, 640] unch=0 pick=0 comps=2 aggr=16 pace=741
+   c06: score=556 A=572 I=465 Len=1000 B=253 F=1000 par=4 means=[400, 410, 444, 473, 528, 600] unch=0 pick=0 comps=2 aggr=0 pace=707
+   v07: score=548 A=550 I=477 Len=1000 B=248 F=984 par=4 means=[430, 480, 506, 543, 578, 620] unch=0 pick=8 comps=2 aggr=8 pace=786
+   c07: score=553 A=559 I=465 Len=1000 B=253 F=1000 par=4 means=[410, 425, 450, 490, 528, 580] unch=0 pick=0 comps=2 aggr=0 pace=714
+   v08: score=584 A=690 I=496 Len=940 B=254 F=1000 par=4 means=[400, 470, 528, 543, 611, 630] unch=0 pick=0 comps=2 aggr=8 pace=830
+   c08: score=535 A=486 I=468 Len=1000 B=253 F=1000 par=4 means=[410, 410, 456, 470, 511, 570] unch=0 pick=0 comps=2 aggr=0 pace=719
+   v09: score=589 A=545 I=585 Len=961 B=280 F=1000 par=4 means=[370, 410, 453, 467, 556, 560] unch=0 pick=0 comps=2 aggr=0 pace=685
+   c09: score=595 A=704 I=483 Len=1000 B=253 F=1000 par=4 means=[380, 410, 438, 490, 578, 590] unch=0 pick=0 comps=2 aggr=0 pace=690
+   v10: score=565 A=463 I=566 Len=1000 B=259 F=1000 par=4 means=[430, 450, 466, 530, 550, 550] unch=0 pick=0 comps=2 aggr=8 pace=703
+   c10: score=548 A=536 I=468 Len=1000 B=253 F=1000 par=4 means=[400, 415, 472, 490, 539, 580] unch=0 pick=0 comps=2 aggr=0 pace=730
+   v11: score=596 A=663 I=531 Len=1000 B=261 F=984 par=4 means=[420, 425, 463, 500, 544, 640] unch=0 pick=8 comps=2 aggr=0 pace=714
+   c11: score=567 A=640 I=465 Len=1000 B=253 F=984 par=4 means=[390, 425, 453, 483, 539, 610] unch=0 pick=8 comps=2 aggr=0 pace=709
+   v12: score=560 A=422 I=574 Len=1000 B=270 F=1000 par=4 means=[420, 440, 456, 477, 517, 570] unch=0 pick=0 comps=2 aggr=0 pace=712
+   c12: score=573 A=640 I=465 Len=1000 B=253 F=1000 par=4 means=[380, 410, 441, 463, 583, 570] unch=0 pick=0 comps=2 aggr=0 pace=708
+   v13: score=592 A=631 I=515 Len=1000 B=272 F=1000 par=4 means=[410, 440, 453, 483, 583, 600] unch=0 pick=0 comps=2 aggr=0 pace=720
+   c13: score=571 A=631 I=465 Len=1000 B=253 F=1000 par=4 means=[410, 420, 466, 490, 550, 620] unch=0 pick=0 comps=2 aggr=0 pace=724
+   v14: score=406 A=622 I=0 Len=1000 B=254 F=1000 par=4 means=[430, 450, 466, 497, 572, 630] unch=0 pick=0 comps=1 aggr=0 pace=741
+   c14: score=531 A=472 I=465 Len=1000 B=253 F=1000 par=4 means=[410, 430, 441, 477, 533, 550] unch=0 pick=0 comps=2 aggr=0 pace=700
+   v15: score=597 A=695 I=478 Len=1000 B=282 F=1000 par=4 means=[400, 425, 463, 527, 567, 630] unch=0 pick=0 comps=2 aggr=0 pace=751
+   c15: score=548 A=540 I=465 Len=1000 B=253 F=1000 par=4 means=[390, 410, 463, 480, 556, 550] unch=0 pick=0 comps=2 aggr=0 pace=718
+   v16: score=608 A=813 I=465 Len=955 B=259 F=1000 par=4 means=[420, 440, 466, 540, 606, 670] unch=0 pick=0 comps=2 aggr=0 pace=764
+   c16: score=533 A=481 I=465 Len=1000 B=253 F=1000 par=4 means=[430, 450, 478, 530, 544, 580] unch=0 pick=0 comps=2 aggr=0 pace=724
+   v17: score=534 A=490 I=477 Len=954 B=273 F=1000 par=4 means=[410, 435, 450, 457, 528, 580] unch=0 pick=0 comps=2 aggr=0 pace=679
+   c17: score=567 A=581 I=489 Len=1000 B=253 F=1000 par=4 means=[410, 415, 475, 500, 550, 580] unch=0 pick=0 comps=2 aggr=0 pace=727
+   course varied: x10=440 mean=513 low_third=400 factors=[636, 712, 742, 758, 784, 868, 984, 994, 1000]
+   course copies: x10=214 mean=241 low_third=215 factors=[400, 1000]
+   [PASS] varied course at least 100 permille above copies
+   [PASS] at least 15 of 18 copies take a factor of 500 or lower
+   [PASS] varied course has at most 2 such holes
+== 08_determinism_stability.json - Same seed 3 runs identical; 1 tree moved 1 yard; epoch spread
+   base: score=563 A=690 I=465 Len=1000 B=290 F=917 par=4 means=[420, 450, 472, 503, 567, 690] unch=0 pick=25 comps=2 aggr=0 pace=727
+   nudged: score=568 A=700 I=465 Len=1000 B=290 F=925 par=4 means=[420, 450, 466, 507, 583, 670] unch=0 pick=25 comps=2 aggr=0 pace=721
+   hash runs distinct=1 ['b2fa7a1f29bf7394']
+   epoch scores [563, 501, 520, 535, 542, 523, 540, 588] spread=87 nudge_delta=5
+   [PASS] hash vector H32 [1, 2, 3]
+   [PASS] hash vector H32 [0, 0, 0, 0]
+   [PASS] hash vector H32 [-1, 4294967295, 7]
+   [PASS] hash vector hash64 
+   [PASS] hash vector hash64 
+   [PASS] hash vector z256_hash 
+   [PASS] hash vector hole_seed [305419896, 1, 7]
+   [PASS] three runs give one hash
+   [PASS] sim hash equals golden
+   [PASS] hole score equals golden
+   [PASS] one tree moved 1 yard changes score by at most 60 permille
+   [PASS] epoch spread at most 150 permille
+== 09_malformed_shared_code.json - Malformed shared hole input fuzz set
+   fuzz nan_string -> E07_NON_INTEGER
+   fuzz float_coordinate -> E07_NON_INTEGER
+   fuzz infinity_string -> E07_NON_INTEGER
+   fuzz negative_green_radius -> E09_NEGATIVE_SIZE
+   fuzz negative_rect -> E09_NEGATIVE_SIZE
+   fuzz one_million_objects -> E05_TOO_MANY_OBJECTS
+   fuzz tree_count_bomb -> E05_TOO_MANY_OBJECTS
+   fuzz truncated_tee -> E06_TRUNCATED_OR_SHAPE
+   fuzz missing_features -> E04_MISSING_FIELD
+   fuzz wrong_schema -> E02_BAD_SCHEMA_VERSION
+   fuzz wrong_engine_version -> E03_ENGINE_MISMATCH
+   fuzz coordinate_out_of_range -> E08_OUT_OF_RANGE
+   fuzz unknown_feature_type -> E10_BAD_FEATURE_TYPE
+   fuzz not_an_object -> E01_NOT_OBJECT
+   embedded claimed score ignored: ok=True rated=317
+   [PASS] fuzz case nan_string rejected with E07_NON_INTEGER
+   [PASS] fuzz case float_coordinate rejected with E07_NON_INTEGER
+   [PASS] fuzz case infinity_string rejected with E07_NON_INTEGER
+   [PASS] fuzz case negative_green_radius rejected with E09_NEGATIVE_SIZE
+   [PASS] fuzz case negative_rect rejected with E09_NEGATIVE_SIZE
+   [PASS] fuzz case one_million_objects rejected with E05_TOO_MANY_OBJECTS
+   [PASS] fuzz case tree_count_bomb rejected with E05_TOO_MANY_OBJECTS
+   [PASS] fuzz case truncated_tee rejected with E06_TRUNCATED_OR_SHAPE
+   [PASS] fuzz case missing_features rejected with E04_MISSING_FIELD
+   [PASS] fuzz case wrong_schema rejected with E02_BAD_SCHEMA_VERSION
+   [PASS] fuzz case wrong_engine_version rejected with E03_ENGINE_MISMATCH
+   [PASS] fuzz case coordinate_out_of_range rejected with E08_OUT_OF_RANGE
+   [PASS] fuzz case unknown_feature_type rejected with E10_BAD_FEATURE_TYPE
+   [PASS] fuzz case not_an_object rejected with E01_NOT_OBJECT
+   [PASS] embedded claimed score of 999 ignored
+   [PASS] embedded claimed score is not used
+== 10_tournament_snapshot.json - Dress up 18 pretty holes the day before, then revert
+   sustained honest=522 gamed=380 ; prestige honest=633 gamed=548
+   [PASS] gamed sustained equals its median not its spike
+   [PASS] honest prestige exceeds gamed prestige by 60 or more
+== 11_dead_holes_rollup.json - 9 decent holes hiding 9 dead holes
+   g00: score=548 A=590 I=465 Len=929 B=260 F=1000 par=4 means=[370, 385, 431, 470, 494, 580] unch=0 pick=0 comps=2 aggr=0 pace=642
+   g01: score=593 A=681 I=493 Len=968 B=285 F=1000 par=4 means=[400, 415, 450, 490, 556, 620] unch=0 pick=0 comps=2 aggr=8 pace=674
+   g02: score=610 A=613 I=585 Len=1000 B=262 F=1000 par=4 means=[440, 450, 472, 507, 572, 620] unch=0 pick=0 comps=2 aggr=0 pace=717
+   g03: score=533 A=463 I=465 Len=1000 B=275 F=1000 par=4 means=[410, 420, 463, 487, 511, 580] unch=0 pick=0 comps=2 aggr=0 pace=706
+   g04: score=551 A=577 I=465 Len=1000 B=253 F=984 par=4 means=[430, 425, 459, 480, 533, 630] unch=0 pick=8 comps=2 aggr=0 pace=716
+   g05: score=397 A=581 I=4 Len=1000 B=279 F=984 par=4 means=[410, 420, 453, 487, 550, 580] unch=0 pick=8 comps=1 aggr=0 pace=724
+   g06: score=582 A=636 I=477 Len=1000 B=284 F=1000 par=4 means=[410, 415, 475, 490, 633, 590] unch=0 pick=0 comps=2 aggr=8 pace=748
+   g07: score=589 A=695 I=475 Len=1000 B=248 F=1000 par=4 means=[380, 435, 491, 537, 561, 620] unch=0 pick=0 comps=2 aggr=0 pace=768
+   g08: score=592 A=750 I=474 Len=940 B=254 F=1000 par=4 means=[410, 445, 513, 547, 589, 650] unch=0 pick=0 comps=2 aggr=0 pace=806
+   d00: score=161 A=681 I=0 Len=1000 B=286 F=0 par=4 means=[520, 630, 653, 733, 794, 770] unch=800 pick=475 comps=1 aggr=8 pace=1187
+   d01: score=157 A=700 I=0 Len=1000 B=286 F=0 par=4 means=[550, 610, 663, 697, 733, 800] unch=808 pick=375 comps=1 aggr=8 pace=1211
+   d02: score=194 A=922 I=0 Len=1000 B=286 F=0 par=4 means=[480, 580, 647, 733, 756, 760] unch=733 pick=375 comps=1 aggr=41 pace=1132
+   d03: score=185 A=877 I=0 Len=1000 B=285 F=0 par=4 means=[490, 570, 663, 710, 761, 780] unch=708 pick=300 comps=1 aggr=8 pace=1172
+   d04: score=152 A=686 I=0 Len=1000 B=287 F=0 par=4 means=[590, 605, 688, 733, 767, 770] unch=783 pick=483 comps=1 aggr=0 pace=1229
+   d05: score=182 A=795 I=0 Len=1000 B=285 F=0 par=4 means=[520, 570, 656, 713, 756, 760] unch=700 pick=375 comps=1 aggr=0 pace=1060
+   d06: score=186 A=840 I=0 Len=1000 B=286 F=0 par=4 means=[430, 560, 653, 687, 733, 750] unch=666 pick=275 comps=1 aggr=8 pace=1116
+   d07: score=172 A=695 I=0 Len=1000 B=284 F=0 par=4 means=[440, 575, 650, 680, 756, 730] unch=575 pick=258 comps=1 aggr=25 pace=1033
+   d08: score=150 A=636 I=0 Len=1000 B=286 F=0 par=4 means=[580, 675, 691, 737, 778, 800] unch=816 pick=450 comps=1 aggr=8 pace=1214
+   good_only: score=626 A=772 I=523 Len=1000 B=253 F=1000 par=4 means=[400, 405, 447, 473, 572, 630] unch=0 pick=0 comps=2 aggr=8 pace=702
+   course mixed: x10=248 mean=339 low_third=109 factors=[478, 480, 570, 648, 742, 840, 860, 1000]
+   [PASS] course score at least 20 permille below adjusted mean
+== 12_unplayable_hole.json - Green reachable only across unbroken water
+   island_tee: INVALID RC007 score=0
+   [PASS] unplayable hole scores 0
+   [PASS] marked invalid
+== 13_mirrored_copy.json - Mirrored copy of a hole
+   orig: score=561 A=568 I=465 Len=1000 B=283 F=1000 par=4 means=[420, 430, 459, 517, 528, 600] unch=0 pick=0 comps=2 aggr=0 pace=706
+   mirror: score=577 A=668 I=465 Len=1000 B=283 F=976 par=4 means=[390, 430, 491, 503, 572, 630] unch=0 pick=8 comps=2 aggr=0 pace=729
+   similarity(orig,mirror)=1000
+   [PASS] similarity at least 900
+   [PASS] mirror rating within 80 permille (upper)
+   [PASS] mirror rating within 80 permille (lower)
+== 14_weather_conditions.json - Wind and rain change results deterministically
+   base: score=541 A=386 I=549 Len=1000 B=262 F=1000 par=4 means=[420, 410, 438, 463, 511, 540] unch=0 pick=0 comps=2 aggr=0 pace=689
+   cond calm: score=541 A=386 I=549 Len=1000 B=262 F=1000 par=4 means=[420 mean_all=463
+   cond head15: score=491 A=204 I=538 Len=1000 B=262 F=1000 par=4 means=[470 mean_all=513
+   cond tail15: score=552 A=422 I=557 Len=1000 B=262 F=1000 par=4 means=[400 mean_all=462
+   cond cross15: score=544 A=381 I=563 Len=1000 B=262 F=1000 par=4 means=[410 mean_all=471
+   cond wet2: score=502 A=254 I=533 Len=1000 B=262 F=1000 par=4 means=[440 mean_all=495
+   [PASS] headwind mean strokes at least 10 higher than calm
+   [PASS] tailwind not higher than calm plus 5
+   [PASS] rain not lower than calm
+== 15_tie_break_ranking.json - Leaderboard tie-break order
+   order ['s5', 's4', 's1', 's2', 's3']
+   [PASS] tie-break order equals expected ['s5', 's4', 's1', 's2', 's3']
+
+TOTAL FAILS: 0

@@ -1,0 +1,205 @@
+{
+ "id": "08",
+ "title": "Same seed 3 runs identical; 1 tree moved 1 yard; epoch spread",
+ "kind": "determinism",
+ "case": "case 8",
+ "secret": 305419896,
+ "epoch": 1,
+ "holes": {
+  "base": {
+   "slot_id": 7,
+   "tee": [
+    0,
+    0
+   ],
+   "green": [
+    8,
+    394,
+    14
+   ],
+   "tee_z_mm": 0,
+   "green_z_mm": 0,
+   "features": [
+    {
+     "t": "fairway",
+     "rect": [
+      -45,
+      0,
+      45,
+      389
+     ]
+    },
+    {
+     "t": "water",
+     "rect": [
+      -21,
+      258,
+      1,
+      320
+     ]
+    },
+    {
+     "t": "tree",
+     "at": [
+      [
+       22,
+       240
+      ],
+      [
+       -22,
+       150
+      ],
+      [
+       24,
+       330
+      ]
+     ]
+    }
+   ]
+  },
+  "nudged": {
+   "slot_id": 7,
+   "tee": [
+    0,
+    0
+   ],
+   "green": [
+    8,
+    394,
+    14
+   ],
+   "tee_z_mm": 0,
+   "green_z_mm": 0,
+   "features": [
+    {
+     "t": "fairway",
+     "rect": [
+      -45,
+      0,
+      45,
+      389
+     ]
+    },
+    {
+     "t": "water",
+     "rect": [
+      -21,
+      258,
+      1,
+      320
+     ]
+    },
+    {
+     "t": "tree",
+     "at": [
+      [
+       23,
+       240
+      ],
+      [
+       -22,
+       150
+      ],
+      [
+       24,
+       330
+      ]
+     ]
+    }
+   ]
+  }
+ },
+ "expect_summary": "Identical hash on every run and on every platform (golden). One tree moved 1 yard changes the score by at most 60 permille. Across 8 epochs the score spread is at most 120 permille.",
+ "hash_vectors": [
+  {
+   "fn": "H32",
+   "args": [
+    1,
+    2,
+    3
+   ],
+   "expect": 836928418
+  },
+  {
+   "fn": "H32",
+   "args": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "expect": 1389239988
+  },
+  {
+   "fn": "H32",
+   "args": [
+    -1,
+    4294967295,
+    7
+   ],
+   "expect": 3615236986
+  },
+  {
+   "fn": "hash64",
+   "hex_input": "616263",
+   "expect": "1a47e90bacf442a4"
+  },
+  {
+   "fn": "hash64",
+   "hex_input": "",
+   "expect": "811c9dc59747b28c"
+  },
+  {
+   "fn": "z256_hash",
+   "expect": "1b8db65b7b58df6a"
+  },
+  {
+   "fn": "hole_seed",
+   "args": [
+    305419896,
+    1,
+    7
+   ],
+   "expect": 2721561374
+  }
+ ],
+ "golden": {
+  "engine": "MHRATE-1.0.0",
+  "sim_version": "MHSIM-1.0.0",
+  "hole_seed": 2721561374,
+  "base_hole_score_pm": 563,
+  "base_sim_hash": "b2fa7a1f29bf7394"
+ },
+ "checks": [
+  {
+   "text": "three runs give one hash",
+   "op": "eq",
+   "a": "n_hashes",
+   "b": 1
+  },
+  {
+   "text": "sim hash equals golden",
+   "op": "eq",
+   "a": "base.hash",
+   "b": "b2fa7a1f29bf7394"
+  },
+  {
+   "text": "hole score equals golden",
+   "op": "eq",
+   "a": "base.score_pm",
+   "b": 563
+  },
+  {
+   "text": "one tree moved 1 yard changes score by at most 60 permille",
+   "op": "le",
+   "a": "nudge_delta",
+   "b": 60
+  },
+  {
+   "text": "epoch spread at most 150 permille",
+   "op": "le",
+   "a": "epoch_spread",
+   "b": 150
+  }
+ ]
+}

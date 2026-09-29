@@ -1,0 +1,713 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.mulliganhills.example/save.schema.json",
+  "title": "Mulligan Hills save file v1",
+  "description": "One save slot. Rules: every integer is within +/-2^53 (Godot JSON parses numbers as float64; 64-bit values such as RNG state are stored as 16-char hex strings). No floats. NO entitlement, unlock flag or receipt is ever stored here (additionalProperties is false, so a stray 'unlocked' key fails validation); the paid unlock lives in the separate signed entitlement cache. In-flight golfers are not saved: the simulation resumes at the start of the saved day. See SAVE_MIGRATION.md.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "save_version",
+    "min_reader_version",
+    "written_by",
+    "slot",
+    "slot_kind",
+    "revision",
+    "saved_at_unix",
+    "install_id",
+    "mode",
+    "ironman",
+    "checksum",
+    "world",
+    "club",
+    "buildings",
+    "land",
+    "course",
+    "sim",
+    "ratings",
+    "progress"
+  ],
+  "properties": {
+    "schema": {
+      "const": "mh.save"
+    },
+    "save_version": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 1000
+    },
+    "min_reader_version": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 1000
+    },
+    "written_by": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "app_version",
+        "sim_version",
+        "rating_version",
+        "platform"
+      ],
+      "properties": {
+        "app_version": {
+          "type": "string",
+          "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"
+        },
+        "sim_version": {
+          "type": "string",
+          "pattern": "^[A-Z0-9][A-Za-z0-9._-]{0,31}$",
+          "description": "Engine version tag as defined by workstream B, for example MHRATE-1.0.0 or MHSIM-1.0.0."
+        },
+        "rating_version": {
+          "type": "string",
+          "pattern": "^[A-Z0-9][A-Za-z0-9._-]{0,31}$",
+          "description": "Engine version tag as defined by workstream B, for example MHRATE-1.0.0 or MHSIM-1.0.0."
+        },
+        "platform": {
+          "enum": [
+            "android",
+            "ios",
+            "desktop",
+            "test"
+          ]
+        }
+      }
+    },
+    "slot": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 4
+    },
+    "slot_kind": {
+      "enum": [
+        "autosave",
+        "manual",
+        "backup",
+        "ironman"
+      ]
+    },
+    "revision": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 9007199254740991
+    },
+    "saved_at_unix": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 9007199254740991
+    },
+    "install_id": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+    },
+    "mode": {
+      "enum": [
+        "relaxed",
+        "standard",
+        "tycoon",
+        "sandbox"
+      ]
+    },
+    "ironman": {
+      "type": "boolean"
+    },
+    "checksum": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "alg",
+        "value"
+      ],
+      "properties": {
+        "alg": {
+          "const": "sha256"
+        },
+        "value": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        }
+      }
+    },
+    "world": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "day",
+        "season"
+      ],
+      "properties": {
+        "day": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 1000000
+        },
+        "season": {
+          "enum": [
+            "spring",
+            "summer",
+            "autumn",
+            "winter"
+          ]
+        }
+      }
+    },
+    "club": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "name_preset_id",
+        "cash",
+        "lifetime_earned",
+        "green_fee",
+        "members",
+        "reputation",
+        "prestige",
+        "staff"
+      ],
+      "properties": {
+        "name_preset_id": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9999
+        },
+        "cash": {
+          "type": "integer",
+          "minimum": -1000000000,
+          "maximum": 9007199254740991
+        },
+        "lifetime_earned": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "green_fee": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 10000
+        },
+        "members": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 100000
+        },
+        "reputation": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 100000
+        },
+        "prestige": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 1000000
+        },
+        "design_style": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "style_id": {
+              "type": "string",
+              "pattern": "^[a-z][a-z0-9_]{1,39}$"
+            },
+            "points": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 1000000
+            }
+          }
+        },
+        "staff": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "greenkeepers",
+            "marshals",
+            "pro_shop_staff",
+            "caterers"
+          ],
+          "properties": {
+            "greenkeepers": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 200
+            },
+            "marshals": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 200
+            },
+            "pro_shop_staff": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 200
+            },
+            "caterers": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 200
+            }
+          }
+        }
+      }
+    },
+    "buildings": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "tier"
+        ],
+        "properties": {
+          "id": {
+            "enum": [
+              "clubhouse",
+              "pro_shop",
+              "driving_range",
+              "restaurant",
+              "pool_spa",
+              "cart_barn",
+              "maintenance",
+              "lodging",
+              "homes",
+              "landmark"
+            ]
+          },
+          "tier": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 5
+          },
+          "spec": {
+            "enum": [
+              null,
+              "a",
+              "b"
+            ]
+          },
+          "built_day": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 1000000
+          }
+        }
+      },
+      "minItems": 0,
+      "maxItems": 10
+    },
+    "land": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "owned_parcel_ids"
+      ],
+      "properties": {
+        "owned_parcel_ids": {
+          "type": "array",
+          "uniqueItems": true,
+          "maxItems": 16,
+          "items": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 15
+          }
+        }
+      }
+    },
+    "course": {
+      "$ref": "https://schemas.mulliganhills.example/course.schema.json"
+    },
+    "sim": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "rating_epoch",
+        "rng_seed",
+        "rng_inc",
+        "golfer_serial"
+      ],
+      "properties": {
+        "rating_epoch": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 1000000
+        },
+        "rng_seed": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{16}$"
+        },
+        "rng_inc": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{16}$"
+        },
+        "golfer_serial": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "regulars": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "regular_id",
+              "visits",
+              "affinity"
+            ],
+            "properties": {
+              "regular_id": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 999
+              },
+              "visits": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 1000000
+              },
+              "affinity": {
+                "type": "integer",
+                "minimum": -100,
+                "maximum": 100
+              },
+              "met_day": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 1000000
+              }
+            }
+          },
+          "minItems": 0,
+          "maxItems": 200
+        }
+      }
+    },
+    "ratings": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "rating_version",
+        "computed_day",
+        "holes",
+        "course_score"
+      ],
+      "description": "Cache only. Recomputed on load if rating_version differs from the running engine.",
+      "properties": {
+        "rating_version": {
+          "type": "string",
+          "pattern": "^[A-Z0-9][A-Za-z0-9._-]{0,31}$",
+          "description": "Engine version tag as defined by workstream B, for example MHRATE-1.0.0 or MHSIM-1.0.0."
+        },
+        "computed_day": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 1000000
+        },
+        "holes": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "hole_no",
+              "score",
+              "axes"
+            ],
+            "properties": {
+              "hole_no": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 18
+              },
+              "score": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 100
+              },
+              "axes": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "accuracy",
+                  "imagination",
+                  "length",
+                  "beauty",
+                  "fairness"
+                ],
+                "properties": {
+                  "accuracy": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 100
+                  },
+                  "imagination": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 100
+                  },
+                  "length": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 100
+                  },
+                  "beauty": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 100
+                  },
+                  "fairness": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 100
+                  }
+                }
+              }
+            }
+          },
+          "minItems": 0,
+          "maxItems": 18
+        },
+        "course_score": {
+          "description": "Average hole score, 0..100 (integer, rounded per rating spec).",
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 100
+        },
+        "daily_snapshots": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "day",
+              "course_score",
+              "pace_score"
+            ],
+            "properties": {
+              "day": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 1000000
+              },
+              "course_score": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 100
+              },
+              "pace_score": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 100
+              }
+            }
+          },
+          "minItems": 0,
+          "maxItems": 30
+        }
+      }
+    },
+    "progress": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "tutorial_step",
+        "achievements",
+        "tournaments"
+      ],
+      "properties": {
+        "tutorial_step": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 100
+        },
+        "tutorial_done": {
+          "type": "boolean"
+        },
+        "achievements": {
+          "type": "array",
+          "uniqueItems": true,
+          "maxItems": 200,
+          "items": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9_]{1,39}$"
+          }
+        },
+        "flags": {
+          "type": "array",
+          "uniqueItems": true,
+          "maxItems": 200,
+          "items": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9_]{1,39}$"
+          }
+        },
+        "tournaments": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "hosted_levels",
+            "cooldown_until_day"
+          ],
+          "properties": {
+            "hosted_levels": {
+              "type": "array",
+              "uniqueItems": true,
+              "maxItems": 4,
+              "items": {
+                "enum": [
+                  "local",
+                  "regional",
+                  "national",
+                  "major"
+                ]
+              }
+            },
+            "cooldown_until_day": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 1000000
+            },
+            "active": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "level",
+                "start_day",
+                "snapshot_score",
+                "status"
+              ],
+              "properties": {
+                "level": {
+                  "enum": [
+                    "local",
+                    "regional",
+                    "national",
+                    "major"
+                  ]
+                },
+                "start_day": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 1000000
+                },
+                "snapshot_score": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 100
+                },
+                "status": {
+                  "enum": [
+                    "preparing",
+                    "running",
+                    "done",
+                    "failed"
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "commissions": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "template_id",
+              "seed",
+              "accepted_day",
+              "state"
+            ],
+            "properties": {
+              "template_id": {
+                "type": "string",
+                "pattern": "^[a-z][a-z0-9_]{1,39}$"
+              },
+              "seed": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 2147483647
+              },
+              "accepted_day": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 1000000
+              },
+              "state": {
+                "enum": [
+                  "offered",
+                  "accepted",
+                  "done",
+                  "expired"
+                ]
+              }
+            }
+          },
+          "minItems": 0,
+          "maxItems": 20
+        },
+        "card_history": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "card_id",
+              "last_day"
+            ],
+            "properties": {
+              "card_id": {
+                "type": "string",
+                "pattern": "^[a-z][a-z0-9_]{1,39}$"
+              },
+              "last_day": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 1000000
+              }
+            }
+          },
+          "minItems": 0,
+          "maxItems": 300
+        },
+        "purchased_tiers": {
+          "description": "Tiers bought so far. Gates are persistent: entries are never removed, and the buildings and holes they depend on cannot be demolished.",
+          "type": "array",
+          "maxItems": 50,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "id",
+              "tier"
+            ],
+            "properties": {
+              "id": {
+                "enum": [
+                  "clubhouse",
+                  "pro_shop",
+                  "driving_range",
+                  "restaurant",
+                  "pool_spa",
+                  "cart_barn",
+                  "maintenance",
+                  "lodging",
+                  "homes",
+                  "landmark"
+                ]
+              },
+              "tier": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 5
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

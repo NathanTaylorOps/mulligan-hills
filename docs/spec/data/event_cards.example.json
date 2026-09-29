@@ -1,0 +1,81 @@
+{
+  "schema": "mh.event_cards",
+  "schema_version": 1,
+  "cards": [
+    {
+      "id": "storm_warning",
+      "category": "weather",
+      "weight": 80,
+      "min_day": 8,
+      "cooldown_days": 30,
+      "once": false,
+      "title_key": "card.storm_warning.title",
+      "body_key": "card.storm_warning.body",
+      "choices": [
+        {
+          "id": "a",
+          "label_key": "card.storm_warning.a",
+          "outcome_key": "card.storm_warning.a_out",
+          "effects": [
+            {
+              "op": "add_cash",
+              "amount": -500
+            }
+          ]
+        },
+        {
+          "id": "b",
+          "label_key": "card.storm_warning.b",
+          "outcome_key": "card.storm_warning.b_out",
+          "effects": [
+            {
+              "op": "add_reputation",
+              "amount": -5
+            },
+            {
+              "op": "weather_next_day",
+              "amount": 1
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "vip_visit",
+      "category": "vip",
+      "weight": 40,
+      "min_day": 20,
+      "cooldown_days": 60,
+      "once": false,
+      "min_avg_hole_score": 30,
+      "title_key": "card.vip_visit.title",
+      "body_key": "card.vip_visit.body",
+      "choices": [
+        {
+          "id": "a",
+          "label_key": "card.vip_visit.a",
+          "outcome_key": "card.vip_visit.a_out",
+          "requires": {
+            "min_cash": 1000
+          },
+          "effects": [
+            {
+              "op": "add_cash",
+              "amount": -1000
+            },
+            {
+              "op": "add_reputation",
+              "amount": 25
+            }
+          ]
+        },
+        {
+          "id": "b",
+          "label_key": "card.vip_visit.b",
+          "outcome_key": "card.vip_visit.b_out",
+          "effects": []
+        }
+      ]
+    }
+  ]
+}

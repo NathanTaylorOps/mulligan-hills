@@ -1,0 +1,782 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.mulliganhills.example/analytics_event.schema.json",
+  "title": "Mulligan Hills analytics event v1",
+  "description": "One event as sent to the analytics endpoint. Kept in sync with analytics_catalog.json (validate.py checks names, props and required lists match). Never add PII, free text, ad IDs or hardware IDs.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "event_id",
+    "name",
+    "ts_unix",
+    "session_id",
+    "install_id",
+    "app_version",
+    "platform",
+    "build_kind",
+    "props"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 1
+    },
+    "event_id": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+    },
+    "name": {
+      "enum": [
+        "app_open",
+        "consent_decision",
+        "tutorial_step",
+        "first_stroke",
+        "hole_completed_design",
+        "first_golfer_finished",
+        "rating_viewed",
+        "speed_changed",
+        "building_upgraded",
+        "parcel_bought",
+        "tournament_hosted",
+        "commission_done",
+        "card_choice",
+        "demo_wall_seen",
+        "unlock_flow",
+        "session_end",
+        "save_result",
+        "perf_sample",
+        "feedback_sent"
+      ]
+    },
+    "ts_unix": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 9007199254740991
+    },
+    "session_id": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+    },
+    "install_id": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+    },
+    "app_version": {
+      "type": "string",
+      "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"
+    },
+    "platform": {
+      "enum": [
+        "android",
+        "ios"
+      ]
+    },
+    "build_kind": {
+      "enum": [
+        "demo",
+        "full"
+      ]
+    },
+    "props": {
+      "type": "object",
+      "maxProperties": 8
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "name": {
+            "const": "app_open"
+          }
+        },
+        "required": [
+          "name"
+        ]
+      },
+      "then": {
+        "properties": {
+          "props": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "first_run": {
+                "type": "boolean"
+              },
+              "build_kind": {
+                "enum": [
+                  "demo",
+                  "full"
+                ]
+              },
+              "quality_tier": {
+                "enum": [
+                  "low",
+                  "medium",
+                  "high"
+                ]
+              }
+            },
+            "required": [
+              "first_run",
+              "build_kind"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "name": {
+            "const": "consent_decision"
+          }
+        },
+        "required": [
+          "name"
+        ]
+      },
+      "then": {
+        "properties": {
+          "props": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "analytics": {
+                "type": "boolean"
+              },
+              "notifications": {
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "analytics"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "name": {
+            "const": "tutorial_step"
+          }
+        },
+        "required": [
+          "name"
+        ]
+      },
+      "then": {
+        "properties": {
+          "props": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "step": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 100
+              },
+              "seconds_in_step": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 3600
+              }
+            },
+            "required": [
+              "step"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "name": {
+            "const": "first_stroke"
+          }
+        },
+        "required": [
+          "name"
+        ]
+      },
+      "then": {
+        "properties": {
+          "props": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "seconds_since_open": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 86400
+              }
+            },
+            "required": []
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "name": {
+            "const": "hole_completed_design"
+          }
+        },
+        "required": [
+          "name"
+        ]
+      },
+      "then": {
+        "properties": {
+          "props": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "hole_no": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 18
+              },
+              "par": {
+                "type": "integer",
+                "minimum": 3,
+                "maximum": 5
+              }
+            },
+            "required": [
+              "hole_no"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "name": {
+            "const": "first_golfer_finished"
+          }
+        },
+        "required": [
+          "name"
+        ]
+      },
+      "then": {
+        "properties": {
+          "props": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "seconds_since_open": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 86400
+              }
+            },
+            "required": []
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "name": {
+            "const": "rating_viewed"
+          }
+        },
+        "required": [
+          "name"
+        ]
+      },
+      "then": {
+        "properties": {
+          "props": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "hole_no": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 18
+              },
+              "score": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 100
+              }
+            },
+            "required": [
+              "score"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "name": {
+            "const": "speed_changed"
+          }
+        },
+        "required": [
+          "name"
+        ]
+      },
+      "then": {
+        "properties": {
+          "props": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "speed": {
+                "enum": [
+                  "1x",
+                  "2x",
+                  "4x",
+                  "skip"
+                ]
+              }
+            },
+            "required": [
+              "speed"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "name": {
+            "const": "building_upgraded"
+          }
+        },
+        "required": [
+          "name"
+        ]
+      },
+      "then": {
+        "properties": {
+          "props": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "building": {
+                "enum": [
+                  "clubhouse",
+                  "pro_shop",
+                  "driving_range",
+                  "restaurant",
+                  "pool_spa",
+                  "cart_barn",
+                  "maintenance",
+                  "lodging",
+                  "homes",
+                  "landmark"
+                ]
+              },
+              "tier": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 5
+              },
+              "day": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 100000
+              }
+            },
+            "required": [
+              "building",
+              "tier"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "name": {
+            "const": "parcel_bought"
+          }
+        },
+        "required": [
+          "name"
+        ]
+      },
+      "then": {
+        "properties": {
+          "props": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "parcels_owned": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 16
+              }
+            },
+            "required": [
+              "parcels_owned"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "name": {
+            "const": "tournament_hosted"
+          }
+        },
+        "required": [
+          "name"
+        ]
+      },
+      "then": {
+        "properties": {
+          "props": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "level": {
+                "enum": [
+                  "local",
+                  "regional",
+                  "national",
+                  "major"
+                ]
+              },
+              "result": {
+                "enum": [
+                  "success",
+                  "failed"
+                ]
+              }
+            },
+            "required": [
+              "level",
+              "result"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "name": {
+            "const": "commission_done"
+          }
+        },
+        "required": [
+          "name"
+        ]
+      },
+      "then": {
+        "properties": {
+          "props": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "result": {
+                "enum": [
+                  "success",
+                  "fail",
+                  "expired"
+                ]
+              }
+            },
+            "required": [
+              "result"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "name": {
+            "const": "card_choice"
+          }
+        },
+        "required": [
+          "name"
+        ]
+      },
+      "then": {
+        "properties": {
+          "props": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "card_id": {
+                "type": "string",
+                "pattern": "^[a-z][a-z0-9_]{1,39}$"
+              },
+              "choice": {
+                "enum": [
+                  "a",
+                  "b",
+                  "c"
+                ]
+              }
+            },
+            "required": [
+              "card_id",
+              "choice"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "name": {
+            "const": "demo_wall_seen"
+          }
+        },
+        "required": [
+          "name"
+        ]
+      },
+      "then": {
+        "properties": {
+          "props": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "reason": {
+                "enum": [
+                  "holes",
+                  "building_tier",
+                  "tournament",
+                  "other"
+                ]
+              },
+              "session_minutes": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 100000
+              },
+              "total_play_minutes": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 1000000
+              }
+            },
+            "required": [
+              "reason"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "name": {
+            "const": "unlock_flow"
+          }
+        },
+        "required": [
+          "name"
+        ]
+      },
+      "then": {
+        "properties": {
+          "props": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "step": {
+                "enum": [
+                  "shown",
+                  "started",
+                  "completed",
+                  "cancelled",
+                  "failed",
+                  "restored"
+                ]
+              }
+            },
+            "required": [
+              "step"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "name": {
+            "const": "session_end"
+          }
+        },
+        "required": [
+          "name"
+        ]
+      },
+      "then": {
+        "properties": {
+          "props": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "minutes": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 1440
+              },
+              "days_played": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 10000
+              },
+              "avg_fps_bucket": {
+                "enum": [
+                  "lt20",
+                  "20_29",
+                  "30_44",
+                  "45_plus"
+                ]
+              }
+            },
+            "required": [
+              "minutes"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "name": {
+            "const": "save_result"
+          }
+        },
+        "required": [
+          "name"
+        ]
+      },
+      "then": {
+        "properties": {
+          "props": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "kind": {
+                "enum": [
+                  "local",
+                  "cloud_up",
+                  "cloud_down",
+                  "migrate"
+                ]
+              },
+              "ok": {
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "kind",
+              "ok"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "name": {
+            "const": "perf_sample"
+          }
+        },
+        "required": [
+          "name"
+        ]
+      },
+      "then": {
+        "properties": {
+          "props": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "fps_bucket": {
+                "enum": [
+                  "lt20",
+                  "20_29",
+                  "30_44",
+                  "45_plus"
+                ]
+              },
+              "thermal": {
+                "enum": [
+                  "normal",
+                  "warm",
+                  "hot"
+                ]
+              },
+              "quality_tier": {
+                "enum": [
+                  "low",
+                  "medium",
+                  "high"
+                ]
+              }
+            },
+            "required": [
+              "fps_bucket"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "name": {
+            "const": "feedback_sent"
+          }
+        },
+        "required": [
+          "name"
+        ]
+      },
+      "then": {
+        "properties": {
+          "props": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "kind": {
+                "enum": [
+                  "bug",
+                  "idea",
+                  "other"
+                ]
+              }
+            },
+            "required": [
+              "kind"
+            ]
+          }
+        }
+      }
+    }
+  ]
+}

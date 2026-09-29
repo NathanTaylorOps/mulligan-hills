@@ -1,0 +1,47 @@
+{
+ "id": "15",
+ "title": "Leaderboard tie-break order",
+ "kind": "ranking",
+ "case": "case 10 tie-break",
+ "entries": [
+  {
+   "sub_id": "s3",
+   "score_pm": 600,
+   "F": 900,
+   "recv_ms": 1000
+  },
+  {
+   "sub_id": "s1",
+   "score_pm": 600,
+   "F": 900,
+   "recv_ms": 900
+  },
+  {
+   "sub_id": "s4",
+   "score_pm": 600,
+   "F": 950,
+   "recv_ms": 5000
+  },
+  {
+   "sub_id": "s2",
+   "score_pm": 600,
+   "F": 900,
+   "recv_ms": 900
+  },
+  {
+   "sub_id": "s5",
+   "score_pm": 610,
+   "F": 100,
+   "recv_ms": 9000
+  }
+ ],
+ "expect_order": [
+  "s5",
+  "s4",
+  "s1",
+  "s2",
+  "s3"
+ ],
+ "expect_summary": "Order by score descending, then Fairness axis descending, then server receive time ascending, then submission id ascending. Client clock is never used.",
+ "checks": []
+}

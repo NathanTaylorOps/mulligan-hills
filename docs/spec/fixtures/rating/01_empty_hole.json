@@ -1,0 +1,56 @@
+{
+ "id": "01",
+ "title": "Empty hole (no tee, no green)",
+ "kind": "holes",
+ "case": "reviews/rating.md case 1",
+ "holes": {
+  "empty": {
+   "slot_id": 1,
+   "features": []
+  },
+  "no_green": {
+   "slot_id": 2,
+   "tee": [
+    0,
+    0
+   ],
+   "features": []
+  },
+  "no_tee": {
+   "slot_id": 3,
+   "green": [
+    0,
+    400,
+    14
+   ],
+   "features": []
+  }
+ },
+ "expect_summary": "Invalid, score 0, reason codes RC001/RC002, no crash, no NaN, advisor text asks for a tee and a green.",
+ "checks": [
+  {
+   "text": "empty hole is invalid with score 0",
+   "op": "eq",
+   "a": "empty.score_pm",
+   "b": 0
+  },
+  {
+   "text": "no green scores 0",
+   "op": "eq",
+   "a": "no_green.score_pm",
+   "b": 0
+  },
+  {
+   "text": "no tee scores 0",
+   "op": "eq",
+   "a": "no_tee.score_pm",
+   "b": 0
+  },
+  {
+   "text": "empty reports RC001",
+   "op": "eq",
+   "a": "empty.valid",
+   "b": false
+  }
+ ]
+}

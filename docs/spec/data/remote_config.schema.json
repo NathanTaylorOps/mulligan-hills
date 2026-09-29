@@ -1,0 +1,172 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.mulliganhills.example/remote_config.schema.json",
+  "title": "Mulligan Hills remote config v1",
+  "description": "Server-tunable values. Clamped: a bad push cannot leave these ranges. Remote config may NEVER carry simulation or rating parameters (they would break determinism, golden files and shared codes) and never the price (the store owns it). Client keeps the last good config and falls back to bundled defaults; unknown keys are rejected.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "schema_version",
+    "config_version",
+    "issued_unix",
+    "min_app_version",
+    "kill_switches",
+    "economy",
+    "events"
+  ],
+  "properties": {
+    "schema": {
+      "const": "mh.remote_config"
+    },
+    "schema_version": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 1
+    },
+    "config_version": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 1000000
+    },
+    "issued_unix": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 9007199254740991
+    },
+    "min_app_version": {
+      "type": "string",
+      "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"
+    },
+    "banner_key": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9_]*(\\.[a-z0-9_]+){1,4}$",
+      "maxLength": 80
+    },
+    "kill_switches": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "cloud_sync",
+        "daily_challenge",
+        "analytics",
+        "purchase_flow",
+        "tournaments",
+        "notifications"
+      ],
+      "properties": {
+        "cloud_sync": {
+          "type": "boolean",
+          "description": "true = feature ON. false = disabled."
+        },
+        "daily_challenge": {
+          "type": "boolean",
+          "description": "true = feature ON. false = disabled."
+        },
+        "analytics": {
+          "type": "boolean",
+          "description": "true = feature ON. false = disabled."
+        },
+        "purchase_flow": {
+          "type": "boolean",
+          "description": "true = feature ON. false = disabled."
+        },
+        "tournaments": {
+          "type": "boolean",
+          "description": "true = feature ON. false = disabled."
+        },
+        "notifications": {
+          "type": "boolean",
+          "description": "true = feature ON. false = disabled."
+        }
+      }
+    },
+    "economy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "cost_multiplier_x100",
+        "building_cost_scale_pct",
+        "parcel_base_cost",
+        "parcel_growth_pct",
+        "hole_cost",
+        "start_cash",
+        "green_fee_min",
+        "green_fee_max"
+      ],
+      "properties": {
+        "cost_multiplier_x100": {
+          "type": "array",
+          "minItems": 5,
+          "maxItems": 5,
+          "items": {
+            "type": "integer",
+            "minimum": 50,
+            "maximum": 5000
+          }
+        },
+        "building_cost_scale_pct": {
+          "type": "integer",
+          "minimum": 25,
+          "maximum": 400
+        },
+        "parcel_base_cost": {
+          "type": "integer",
+          "minimum": 1000,
+          "maximum": 1000000
+        },
+        "parcel_growth_pct": {
+          "type": "integer",
+          "minimum": 100,
+          "maximum": 200
+        },
+        "hole_cost": {
+          "type": "integer",
+          "minimum": 500,
+          "maximum": 100000
+        },
+        "start_cash": {
+          "type": "integer",
+          "minimum": 1000,
+          "maximum": 1000000
+        },
+        "green_fee_min": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 1000
+        },
+        "green_fee_max": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 10000
+        }
+      }
+    },
+    "events": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "random_event_per_day_permille",
+        "commission_offer_per_day_permille",
+        "event_cash_scale_pct"
+      ],
+      "properties": {
+        "random_event_per_day_permille": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 500
+        },
+        "commission_offer_per_day_permille": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 500
+        },
+        "event_cash_scale_pct": {
+          "type": "integer",
+          "minimum": 25,
+          "maximum": 400
+        }
+      }
+    }
+  }
+}

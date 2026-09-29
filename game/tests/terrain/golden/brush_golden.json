@@ -1,0 +1,549 @@
+{
+ "amplitude": 1000,
+ "cells": 64,
+ "falloff_fnv": 1482273814,
+ "falloff_samples": {
+  "0": 0,
+  "1": 0,
+  "100": 27,
+  "1000": 1022,
+  "1023": 1023,
+  "1024": 1024,
+  "256": 160,
+  "512": 512,
+  "768": 864
+ },
+ "final_hash": 1464297843,
+ "initial_hash": 1402737758,
+ "ops": [
+  {
+   "cx": 32,
+   "cy": 32,
+   "hash_after": 2451131015,
+   "level": 0,
+   "mode": 0,
+   "radius": 10,
+   "strength": 500
+  },
+  {
+   "cx": 32,
+   "cy": 32,
+   "hash_after": 4283946791,
+   "level": 0,
+   "mode": 1,
+   "radius": 6,
+   "strength": 200
+  },
+  {
+   "cx": 32,
+   "cy": 32,
+   "hash_after": 487106546,
+   "level": 0,
+   "mode": 2,
+   "radius": 12,
+   "strength": 800
+  },
+  {
+   "cx": 20,
+   "cy": 20,
+   "hash_after": 1392813404,
+   "level": 1234,
+   "mode": 3,
+   "radius": 9,
+   "strength": 700
+  },
+  {
+   "cx": 40,
+   "cy": 40,
+   "hash_after": 1143362575,
+   "level": -3000,
+   "mode": 3,
+   "radius": 9,
+   "strength": 1000
+  },
+  {
+   "cx": 0,
+   "cy": 0,
+   "hash_after": 750974195,
+   "level": 0,
+   "mode": 0,
+   "radius": 8,
+   "strength": 900
+  },
+  {
+   "cx": 64,
+   "cy": 64,
+   "hash_after": 3313115826,
+   "level": 0,
+   "mode": 1,
+   "radius": 8,
+   "strength": 900
+  },
+  {
+   "cx": 0,
+   "cy": 64,
+   "hash_after": 1655028788,
+   "level": 0,
+   "mode": 2,
+   "radius": 7,
+   "strength": 1000
+  },
+  {
+   "cx": 10,
+   "cy": 50,
+   "hash_after": 1059080425,
+   "level": 0,
+   "mode": 0,
+   "radius": 1,
+   "strength": 300
+  },
+  {
+   "cx": -3,
+   "cy": 30,
+   "hash_after": 4133881,
+   "level": 0,
+   "mode": 1,
+   "radius": 6,
+   "strength": 400
+  },
+  {
+   "cx": 70,
+   "cy": 30,
+   "hash_after": 4133881,
+   "level": 0,
+   "mode": 0,
+   "radius": 6,
+   "strength": 400
+  },
+  {
+   "cx": 32,
+   "cy": 32,
+   "hash_after": 1756718305,
+   "level": 0,
+   "mode": 0,
+   "radius": 30,
+   "strength": 40000
+  },
+  {
+   "cx": 32,
+   "cy": 32,
+   "hash_after": 4179900240,
+   "level": 0,
+   "mode": 1,
+   "radius": 30,
+   "strength": 40000
+  },
+  {
+   "cx": 32,
+   "cy": 32,
+   "hash_after": 3997241453,
+   "level": 0,
+   "mode": 2,
+   "radius": 40,
+   "strength": 1000
+  },
+  {
+   "cx": 32,
+   "cy": 32,
+   "hash_after": 3383467701,
+   "level": 0,
+   "mode": 3,
+   "radius": 40,
+   "strength": 1000
+  },
+  {
+   "cx": 30,
+   "cy": 32,
+   "hash_after": 830097052,
+   "level": -453,
+   "mode": 2,
+   "radius": 13,
+   "strength": 791
+  },
+  {
+   "cx": 53,
+   "cy": 24,
+   "hash_after": 1019220958,
+   "level": 98,
+   "mode": 0,
+   "radius": 3,
+   "strength": 289
+  },
+  {
+   "cx": 6,
+   "cy": 50,
+   "hash_after": 642291126,
+   "level": 767,
+   "mode": 1,
+   "radius": 11,
+   "strength": 353
+  },
+  {
+   "cx": 30,
+   "cy": 56,
+   "hash_after": 3709407342,
+   "level": -1839,
+   "mode": 2,
+   "radius": 8,
+   "strength": 763
+  },
+  {
+   "cx": 24,
+   "cy": 38,
+   "hash_after": 3481308267,
+   "level": 275,
+   "mode": 2,
+   "radius": 13,
+   "strength": 224
+  },
+  {
+   "cx": 30,
+   "cy": 56,
+   "hash_after": 1302147746,
+   "level": 1894,
+   "mode": 2,
+   "radius": 3,
+   "strength": 962
+  },
+  {
+   "cx": 56,
+   "cy": 35,
+   "hash_after": 3829680871,
+   "level": -1300,
+   "mode": 2,
+   "radius": 13,
+   "strength": 987
+  },
+  {
+   "cx": 50,
+   "cy": 49,
+   "hash_after": 1682236238,
+   "level": -1714,
+   "mode": 3,
+   "radius": 8,
+   "strength": 975
+  },
+  {
+   "cx": 53,
+   "cy": 6,
+   "hash_after": 75518973,
+   "level": -1365,
+   "mode": 2,
+   "radius": 11,
+   "strength": 593
+  },
+  {
+   "cx": 10,
+   "cy": 32,
+   "hash_after": 1821632011,
+   "level": 494,
+   "mode": 1,
+   "radius": 1,
+   "strength": 321
+  },
+  {
+   "cx": 17,
+   "cy": 47,
+   "hash_after": 3675924599,
+   "level": 109,
+   "mode": 0,
+   "radius": 9,
+   "strength": 270
+  },
+  {
+   "cx": 27,
+   "cy": 63,
+   "hash_after": 1950946971,
+   "level": -200,
+   "mode": 3,
+   "radius": 12,
+   "strength": 807
+  },
+  {
+   "cx": 27,
+   "cy": 10,
+   "hash_after": 1044256109,
+   "level": -715,
+   "mode": 2,
+   "radius": 10,
+   "strength": 494
+  },
+  {
+   "cx": 3,
+   "cy": 15,
+   "hash_after": 2994531679,
+   "level": 580,
+   "mode": 0,
+   "radius": 2,
+   "strength": 262
+  },
+  {
+   "cx": 58,
+   "cy": 38,
+   "hash_after": 13039895,
+   "level": 1584,
+   "mode": 0,
+   "radius": 12,
+   "strength": 69
+  },
+  {
+   "cx": 13,
+   "cy": 2,
+   "hash_after": 2921472436,
+   "level": 1385,
+   "mode": 2,
+   "radius": 8,
+   "strength": 929
+  },
+  {
+   "cx": 3,
+   "cy": 47,
+   "hash_after": 208324042,
+   "level": -399,
+   "mode": 2,
+   "radius": 10,
+   "strength": 422
+  },
+  {
+   "cx": 48,
+   "cy": 11,
+   "hash_after": 4097988502,
+   "level": -454,
+   "mode": 1,
+   "radius": 3,
+   "strength": 293
+  },
+  {
+   "cx": 59,
+   "cy": 31,
+   "hash_after": 3346121293,
+   "level": 649,
+   "mode": 2,
+   "radius": 2,
+   "strength": 599
+  },
+  {
+   "cx": 28,
+   "cy": 20,
+   "hash_after": 3037579187,
+   "level": -597,
+   "mode": 3,
+   "radius": 7,
+   "strength": 894
+  },
+  {
+   "cx": 22,
+   "cy": 52,
+   "hash_after": 3844866902,
+   "level": 739,
+   "mode": 1,
+   "radius": 1,
+   "strength": 156
+  },
+  {
+   "cx": 52,
+   "cy": 30,
+   "hash_after": 3967399727,
+   "level": 362,
+   "mode": 2,
+   "radius": 10,
+   "strength": 425
+  },
+  {
+   "cx": 62,
+   "cy": 8,
+   "hash_after": 4064924279,
+   "level": 414,
+   "mode": 2,
+   "radius": 7,
+   "strength": 118
+  },
+  {
+   "cx": 42,
+   "cy": 36,
+   "hash_after": 966415179,
+   "level": -451,
+   "mode": 3,
+   "radius": 9,
+   "strength": 914
+  },
+  {
+   "cx": 16,
+   "cy": 38,
+   "hash_after": 774774059,
+   "level": -918,
+   "mode": 0,
+   "radius": 3,
+   "strength": 220
+  },
+  {
+   "cx": 38,
+   "cy": 45,
+   "hash_after": 2336619799,
+   "level": 1352,
+   "mode": 0,
+   "radius": 11,
+   "strength": 299
+  },
+  {
+   "cx": 22,
+   "cy": 6,
+   "hash_after": 3602514355,
+   "level": -1162,
+   "mode": 3,
+   "radius": 4,
+   "strength": 502
+  },
+  {
+   "cx": 50,
+   "cy": 6,
+   "hash_after": 1557968337,
+   "level": 880,
+   "mode": 2,
+   "radius": 11,
+   "strength": 592
+  },
+  {
+   "cx": 60,
+   "cy": 3,
+   "hash_after": 3614677,
+   "level": -1252,
+   "mode": 3,
+   "radius": 1,
+   "strength": 669
+  },
+  {
+   "cx": 10,
+   "cy": 50,
+   "hash_after": 107815123,
+   "level": -647,
+   "mode": 2,
+   "radius": 13,
+   "strength": 677
+  },
+  {
+   "cx": 58,
+   "cy": 19,
+   "hash_after": 3993721552,
+   "level": 1585,
+   "mode": 2,
+   "radius": 10,
+   "strength": 448
+  },
+  {
+   "cx": 22,
+   "cy": 49,
+   "hash_after": 3639912650,
+   "level": 968,
+   "mode": 3,
+   "radius": 2,
+   "strength": 554
+  },
+  {
+   "cx": 57,
+   "cy": 22,
+   "hash_after": 37329457,
+   "level": -458,
+   "mode": 1,
+   "radius": 10,
+   "strength": 267
+  },
+  {
+   "cx": 16,
+   "cy": 23,
+   "hash_after": 2524208741,
+   "level": 298,
+   "mode": 2,
+   "radius": 11,
+   "strength": 618
+  },
+  {
+   "cx": 36,
+   "cy": 8,
+   "hash_after": 1274025236,
+   "level": -1270,
+   "mode": 3,
+   "radius": 13,
+   "strength": 880
+  },
+  {
+   "cx": 36,
+   "cy": 15,
+   "hash_after": 4144216088,
+   "level": 589,
+   "mode": 3,
+   "radius": 9,
+   "strength": 486
+  },
+  {
+   "cx": 41,
+   "cy": 63,
+   "hash_after": 2578693108,
+   "level": -1047,
+   "mode": 0,
+   "radius": 14,
+   "strength": 274
+  },
+  {
+   "cx": 27,
+   "cy": 44,
+   "hash_after": 676887086,
+   "level": 1831,
+   "mode": 2,
+   "radius": 7,
+   "strength": 244
+  },
+  {
+   "cx": 4,
+   "cy": 60,
+   "hash_after": 259171558,
+   "level": -45,
+   "mode": 2,
+   "radius": 1,
+   "strength": 613
+  },
+  {
+   "cx": 29,
+   "cy": 34,
+   "hash_after": 1464297843,
+   "level": -137,
+   "mode": 2,
+   "radius": 7,
+   "strength": 564
+  }
+ ],
+ "probe": [
+  [
+   0,
+   0,
+   984
+  ],
+  [
+   32,
+   32,
+   -6
+  ],
+  [
+   64,
+   64,
+   -884
+  ],
+  [
+   10,
+   50,
+   -96
+  ],
+  [
+   63,
+   1,
+   -359
+  ],
+  [
+   1,
+   63,
+   58
+  ]
+ ],
+ "seed": 12345,
+ "version": 1
+}

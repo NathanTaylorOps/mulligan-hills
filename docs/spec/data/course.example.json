@@ -1,0 +1,253 @@
+{
+  "schema": "mh.course",
+  "schema_version": 1,
+  "rating_engine_version": "MHRATE-1.0.0",
+  "course_id": "3f2c9a10-7b1e-4c55-9d0e-1a2b3c4d5e6f",
+  "name_preset_id": 12,
+  "world": {
+    "width_dm": 6000,
+    "height_dm": 4000,
+    "parcels": [
+      {
+        "parcel_id": 0,
+        "x0": 0,
+        "y0": 0,
+        "x1": 2999,
+        "y1": 1999,
+        "owned": true
+      },
+      {
+        "parcel_id": 1,
+        "x0": 3000,
+        "y0": 0,
+        "x1": 5999,
+        "y1": 1999,
+        "owned": true
+      },
+      {
+        "parcel_id": 2,
+        "x0": 0,
+        "y0": 2000,
+        "x1": 2999,
+        "y1": 3999,
+        "owned": false
+      }
+    ]
+  },
+  "terrain": {
+    "format_version": 1,
+    "file": "terrain_0.mhterr",
+    "width_cells": 600,
+    "height_cells": 400,
+    "cell_size_dm": 10,
+    "height_unit_mm": 1,
+    "height_min_mm": -2000,
+    "height_max_mm": 9000,
+    "surface_layers": [
+      "rough",
+      "fairway",
+      "first_cut",
+      "green",
+      "fringe",
+      "tee",
+      "bunker_sand",
+      "water"
+    ],
+    "content_hash": "00000001"
+  },
+  "holes": [
+    {
+      "hole_no": 1,
+      "par": 4,
+      "plaque_preset_id": 3,
+      "tees": [
+        {
+          "tee_class": "member",
+          "pos": [
+            300,
+            1000
+          ]
+        },
+        {
+          "tee_class": "back",
+          "pos": [
+            240,
+            1000
+          ]
+        }
+      ],
+      "green": {
+        "outline": [
+          [
+            2500,
+            950
+          ],
+          [
+            2600,
+            1000
+          ],
+          [
+            2500,
+            1050
+          ],
+          [
+            2440,
+            1000
+          ]
+        ],
+        "pins": [
+          [
+            2520,
+            1000
+          ],
+          [
+            2480,
+            990
+          ]
+        ]
+      },
+      "fairways": [
+        [
+          [
+            400,
+            940
+          ],
+          [
+            2350,
+            940
+          ],
+          [
+            2350,
+            1060
+          ],
+          [
+            400,
+            1060
+          ]
+        ]
+      ],
+      "hazards": [
+        {
+          "kind": "bunker",
+          "outline": [
+            [
+              2380,
+              1080
+            ],
+            [
+              2440,
+              1080
+            ],
+            [
+              2440,
+              1120
+            ],
+            [
+              2380,
+              1120
+            ]
+          ]
+        },
+        {
+          "kind": "water",
+          "outline": [
+            [
+              1200,
+              1100
+            ],
+            [
+              1500,
+              1100
+            ],
+            [
+              1500,
+              1300
+            ],
+            [
+              1200,
+              1300
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "hole_no": 2,
+      "par": 3,
+      "tees": [
+        {
+          "tee_class": "member",
+          "pos": [
+            3300,
+            1000
+          ]
+        }
+      ],
+      "green": {
+        "outline": [
+          [
+            4100,
+            950
+          ],
+          [
+            4200,
+            1000
+          ],
+          [
+            4100,
+            1050
+          ],
+          [
+            4040,
+            1000
+          ]
+        ],
+        "pins": [
+          [
+            4120,
+            1000
+          ]
+        ]
+      },
+      "fairways": [],
+      "hazards": []
+    }
+  ],
+  "objects": [
+    {
+      "kind": "tree_oak",
+      "pos": [
+        700,
+        880
+      ],
+      "rot_deg": 90,
+      "scale_pct": 100
+    },
+    {
+      "kind": "bench",
+      "pos": [
+        310,
+        1040
+      ]
+    }
+  ],
+  "paths": [
+    {
+      "kind": "cart_path",
+      "points": [
+        [
+          300,
+          1100
+        ],
+        [
+          900,
+          1120
+        ],
+        [
+          2400,
+          1120
+        ]
+      ]
+    }
+  ]
+}
