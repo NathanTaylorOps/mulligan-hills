@@ -15,6 +15,8 @@ const LOG_INTERVAL_S: float = 5.0
 const OUTPUT_PATH: String = "user://bench.json"
 const MODE_QUICK: String = "quick"
 const MODE_SOAK: String = "soak"
+const MODE_IDLE: String = "idle"
+const IDLE_SECONDS: float = 30.0
 const QUICK_SECONDS: float = 60.0
 const SOAK_SECONDS: float = 1200.0
 
@@ -44,6 +46,8 @@ var _summary: Dictionary = {}
 func start(new_mode: String, seconds_override: float = -1.0) -> void:
 	mode = new_mode
 	duration_s = SOAK_SECONDS if new_mode == MODE_SOAK else QUICK_SECONDS
+	if new_mode == MODE_IDLE:
+		duration_s = IDLE_SECONDS
 	if seconds_override > 0.0:
 		duration_s = seconds_override
 	_all_ms = PackedFloat32Array()

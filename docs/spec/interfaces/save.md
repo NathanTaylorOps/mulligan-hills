@@ -1,4 +1,7 @@
-# Interface: Save (`game/save/`, owner assigned in Phase 1; atomic file I/O reviewed with F)
+# Interface: Save (`game/core/save/`, owner assigned in Phase 1; atomic file I/O reviewed with F)
+
+## Implementation status (29 Sep 2026)
+No save-store code exists (no `game/core/save/`, no `MHSaveStore`, `MHGameState`, `MHSlotInfo`, `MHResult`). The only implemented persistence is the terrain blob: `MHTerrainSave` (`game/terrain/`, magic `MHTS`, version 1, zstd, CRC32, FNV-1a height hash, write to `<path>.tmp` then rename, no read-back verify step, no `.bak`). See `terrain.md` section 7. The save slot JSON (`docs/spec/data/save.schema.json`) references the blob by `course.terrain.file`; the example name is `terrain_0.mhts`. The terrain blob is a separate binary file, so the "atomic per slot" rule and the kill-during-save test (Gate 0 item 10) must cover the JSON file and the blob together (a torn pair, new JSON with old blob, is not yet handled: `terrain.content_hash` is the check to add). The rules below are the Phase 1 draft.
 
 Purpose: versioned, atomic, migratable saves, slots, backup/export, cloud sync handoff. Format and migration rules: `docs/spec/data/save.schema.json` and `SAVE_MIGRATION.md`.
 

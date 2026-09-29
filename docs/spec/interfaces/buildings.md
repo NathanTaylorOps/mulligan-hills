@@ -1,4 +1,7 @@
-# Interface: Buildings (`game/buildings/`, owner assigned in Phase 1)
+# Interface: Buildings (`game/core/buildings/`, owner assigned in Phase 1)
+
+## Implementation status (29 Sep 2026)
+No code exists (`MHBuildings`, `MHGateView`, `MHGateReport`, `MHEconomy`, `MHResult` are drafts only). The data file `docs/spec/data/buildings.json` exists and validates. Its gates use `min_avg_hole_score` 25 / 30 / 36 / 42 for tiers 2 to 5 on a 0..100 scale, but the rating spec (`docs/spec/rating/rating-engine.md` 7.2, `params.json` `gates_avg_score_x10`) proposes 32 / 42 / 52 / 62. Unreconciled placeholder, see `docs/spec/OPEN_QUESTIONS.md`. The rating spec also says a hole counts toward the hole-count gate only if valid and not dead (`score_pm >= 250`), which `MHGateView.holes` must reflect.
 
 Purpose: the 10 x 5 tier catalogue, gate checking, purchase, specialisation choice, persistence of gates. Reads `buildings.json` (schema `buildings.schema.json`). Gates are persistent: purchased tiers are recorded and their dependencies cannot be demolished.
 

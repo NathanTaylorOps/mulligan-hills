@@ -5,6 +5,8 @@ extends Node3D
 const TOTAL: int = 40
 
 var visible_cap: int = TOTAL
+## When true the golfers stop animating (used by the idle bench scenario).
+var paused: bool = false
 var _mm: MultiMesh
 var _node: MultiMeshInstance3D
 var _homes: PackedVector3Array = PackedVector3Array()
@@ -50,6 +52,8 @@ func apply_tier(cfg: Dictionary) -> void:
 
 
 func _process(delta: float) -> void:
+	if paused:
+		return
 	_t += delta
 	_update_transforms()
 

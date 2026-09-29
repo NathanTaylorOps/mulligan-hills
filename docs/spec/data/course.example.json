@@ -36,7 +36,7 @@
   },
   "terrain": {
     "format_version": 1,
-    "file": "terrain_0.mhterr",
+    "file": "terrain_0.mhts",
     "width_cells": 600,
     "height_cells": 400,
     "cell_size_dm": 10,

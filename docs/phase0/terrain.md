@@ -99,5 +99,9 @@ Per-stroke cost (ESTIMATES, guesses from typical GDScript speed, must be measure
 - The gesture layer must call `apply_brush_at` with integer cells, and use `apply_brush_segment` (or its own interpolation) for fast drags to avoid gaps.
 - Phase 0 has no separate command log; if replay is required, log (mode, radius, strength, cell) per dab. `MHStroke.dab_count` exists but dabs are not stored.
 
+## 5a. Spec reconciliation notes (workstream H, 29 Sep 2026; no code was changed)
+- `docs/spec/interfaces/terrain.md` now describes this module exactly; the drafted `MHTerrain` facade is marked NOT IMPLEMENTED with a mapping table.
+- Open follow-ups found while reconciling: (1) `MHPicking.MISS` is `Vector2i(-1, -1)` but `MHStrokeBridge.NO_CELL` is `Vector2i(INT_MIN, INT_MIN)`, so the `screen_to_cell` callable must translate, otherwise a miss dabs the grid corner region; (2) no integer height or slope query exists for the sim and rating; (3) `content_hash` in the course schema is FNV-1a 32-bit over heights only; (4) course schema lists 11 `surface_layers` but the splat has 4 layers; (5) Gate 0 item 5 uses a 600 x 400 cell grid, which is not a multiple of chunk size 32 (partial last chunk, clamped edge texels; the header comment says cells "should be" a multiple, so add a 600 x 400 case to `test_dirty.gd` and `test_save.gd`); (6) `MHSplatMap` edits are not undoable, so "a terrain stroke, undo and integer save round trip" covers heights only.
+
 ## 6. For Nathan
 Nothing is required from you now. When CI is set up (workstream A), the terrain tests and the Python check run automatically. To try the demo on a desktop later: install Godot 4 (the version in `docs/GODOT_VERSION.md`), open the `game` folder, open `terrain/demo/terrain_demo.tscn` and press F6. Left mouse drag raises, right drag lowers, Ctrl+Z undoes.

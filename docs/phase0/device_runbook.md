@@ -1,210 +1,265 @@
 # Device Runbook (Phase 0): testing builds on real phones
 
-Owner: workstream I (device). Status: written, NOT YET RUN on any device. Nothing here has been tried on a physical phone.
+Owner: workstream I (device). Status: written, NOT YET RUN on any device. Nothing here has been tried on a physical phone. Updated 2026-09-29 with the real workflow, artifact and benchmark screen names from `ci.md`, `forest.md`, `gestures.md` and the code in `game/bench/`.
 
-This document is for Nathan. It assumes no technical knowledge. Menu names differ between phone makers (Samsung, Xiaomi, Motorola, Google, and others). Where a name may differ, the alternatives are listed. If you cannot find something, search the Settings app using the magnifier at the top and type the word in bold.
+This document is for Nathan. It assumes no technical knowledge. Menu names differ between phone makers and Android versions. If you cannot find something, open Settings, tap the magnifier at the top and type the word.
 
-Related docs: `soak_protocol.md` (the 20 minute test), `results_template.md` (the form you fill in), `ci.md` (workstream A: where builds come from), `forest.md` (workstream D: what the benchmark screen looks like).
+Rule for this whole document: text in `code style` marks a name taken from the code or the CI files. Anything marked "NOT CONFIRMED" could not be verified from code and may differ on screen: photograph what you see and tell the lead.
 
-## 0. What you need
-- The Android phone, its charger and cable.
-- A GitHub account that can open the Mulligan Hills repository (signed in on the phone browser).
-- 45 minutes for a first setup, then about 30 minutes per soak test.
-- A room-temperature reading (a wall thermometer, or note "cool / warm / hot" in your own words).
-- Optional but very helpful: a computer, and a second phone or a timer.
+Related docs: `soak_protocol.md` (the 20 minute test), `results_template.md` (the form), `ci.md` (builds), `forest.md` (benchmark), `gestures.md` (gesture test), `GATE0.md` (what each test proves).
 
-## 1. Note the phone details (do this once per phone)
-1. Open Settings.
-2. Scroll to the bottom and tap About phone (may be called About device, or System, then About phone).
-3. Write down: Model name, Model number, Android version, and (if shown) Build number. Photograph the screen instead if easier.
-4. RAM: on many phones it is shown under About phone as Memory or RAM. If not shown, search "RAM" in Settings. Some phones show it in Settings > Battery and device care > Memory (Samsung). If you cannot find it, write "not found" and the model number; engineers can look it up (unverified: model lookups are done by us, not guaranteed).
-5. Storage free: Settings > Storage. You need at least 1 GB free (unverified estimate; the build size is not known yet).
-6. Fill in the Device section of `results_template.md`.
+## 0. Two phones, two jobs
+| Phone | Use it for | Do not use it for |
+| --- | --- | --- |
+| Samsung Galaxy S22 Ultra (yours, flagship) | Part A: install check, gesture tests, thermal soak, 60 fps check, rehearsal of every procedure | Proving the 30 fps floor. It is far faster than the phones the game must run on. A pass here proves nothing about low-end phones. |
+| Low-end Android (to be bought, see section 14) | Part B: everything that decides Gate 0 items 2, 4, 5 (fps part) and 9 | nothing else needed |
+
+Targets (DEC-046, DEC-047; still placeholders until measured): on the low-end phone, at least 30 fps average, 95 percent of frames faster than 33 ms, and no single frame slower than 100 ms. On mid and high phones, 60 fps is the goal. The game will get a player setting with 30, 60 and Auto. That setting does not exist in the code yet; there is nothing to test for it.
+
+What you need: the phone and its charger and cable; a GitHub account that can open the repo (signed in on the phone browser); 45 minutes for first setup and about 30 minutes per soak; a way to note the room temperature (wall thermometer, or write cool / warm / hot); a timer (a second phone or a watch); optional: a computer.
+
+## 1. Note the phone details (once per phone)
+1. Open Settings, scroll to the bottom, tap About phone.
+2. On the S22 Ultra: tap Software information to see the Android version and Build number. Write down Model name, Model number, Android version, Build number. A photo of each screen is fine.
+3. RAM: Settings > Battery and device care > Memory (Samsung). Other makers: search "RAM" in Settings. If not found write "not found".
+4. Storage free: Settings > Battery and device care > Storage (Samsung) or Settings > Storage. Keep at least 1 GB free (estimate, not measured).
+5. Fill the Device section of `results_template.md`.
 
 ## 2. Allow installs from outside the Play Store
-Android calls this "install unknown apps". It is off by default. Phase 0 builds are not on the Play Store, so this must be on for the app you use to open the file.
+Android calls this "install unknown apps". It is off by default.
+1. Samsung: Settings > Apps > tap the three dots at the top right > Special access > Install unknown apps. Other makers: Settings > Apps > Special app access > Install unknown apps, or Settings > Security.
+2. Tap Chrome (or the browser you use) and turn on Allow from this source.
+3. Tap My Files (Samsung) or Files by Google, and turn on Allow from this source there too.
+You do not need Developer options or USB debugging for this runbook.
 
-Generic steps (menu names vary):
-1. Open Settings > Apps > Special app access > Install unknown apps (Samsung: Settings > Apps, then the three dots, then Special access; Xiaomi: Settings > Privacy > Special permissions > Install unknown apps; some phones: Settings > Security > Install unknown apps or Unknown sources).
-2. Tap the app you will open the APK from. Most likely Files (also called My Files, Files by Google, or File Manager) and Chrome (or whichever browser you use).
-3. Turn on Allow from this source.
-4. If you later want to be safe again, come back and turn it off after testing. That is your choice; nothing depends on it.
+## 3. Get a build from GitHub
+A build artifact is the file the automated build produced. GitHub always delivers it as a zip file.
 
-Developer options (only needed for Section 9 extras and if a screen tool asks for it, otherwise you can skip):
-1. Settings > About phone > Software information (Samsung) or just About phone.
-2. Tap Build number 7 times quickly. Enter your screen lock PIN if asked. A message says you are now a developer.
-3. Developer options now appears under Settings > System (or Settings > Additional settings on some makers, or at the bottom of Settings).
-4. You do NOT need USB debugging for this runbook. Leave it off unless an engineer asks.
+The build to use depends on the test. The project has no start scene set, so a build from a plain push may open to nothing (NOT CONFIRMED). For each test below, run the build yourself and pick the scene.
 
-## 3. Get the build from GitHub Actions on the phone
-A "build artifact" is the file the automated build produced. GitHub always gives artifacts as a zip file, even for one APK.
+### 3A. Start a build for a given test (do this first)
+1. On the phone, open Chrome and go to the repo page on github.com (the lead gives the exact link; repo name in DEC-033 is `golf-tycoon`).
+2. Tap the Actions tab. If you see no tabs, open the Chrome menu (three dots) and tick Desktop site.
+3. In the left list tap Android debug APK.
+4. Tap Run workflow (a grey button on the right of the run list). A form opens with three boxes: `game_path` (leave as `game`), `scene` and `renderer`. The exact wording of these boxes is from `ci.md` and the workflow file; the layout on your screen is NOT CONFIRMED.
+5. Fill in the form for the test you want:
 
-1. On the phone, open Chrome (or your browser). Go to the repository page. The address is `https://github.com/<owner>/<repo>` (Nathan: the lead will give the exact link; unverified until the repo is created).
-2. Tap the Actions tab. If you do not see tabs, tap the menu (three lines or "..."), or switch the browser to Desktop site (Chrome menu, three dots, tick Desktop site). The GitHub mobile website hides some tabs.
-3. Tap the workflow run at the top of the list with a green tick that has the name the lead told you (for example "android-debug" or similar; see `ci.md` for the real name, unverified). A red cross means the build failed: do not use it and tell the lead.
-4. Scroll to the bottom of the run page to the section Artifacts.
-5. Tap the artifact whose name contains "apk" (see `ci.md`). You must be signed in to GitHub or the download is refused.
-6. The phone downloads a file ending in .zip. Chrome may ask "Download anyway?" Tap Download.
-7. Write down the run number and the commit id (7 to 40 characters) shown at the top of the run page. This is the Build id for the results form. Photograph the run page if unsure.
-8. Artifacts expire after a retention period (GitHub default is believed to be 90 days; unverified, see GitHub docs: https://docs.github.com/en/actions/managing-workflow-runs-and-deployments/managing-workflow-runs/removing-workflow-artifacts). Use recent runs.
+| Test | scene | renderer |
+| --- | --- | --- |
+| Benchmark, Compatibility renderer | `res://bench/bench_scene.tscn` | `compatibility` |
+| Benchmark, Mobile renderer | `res://bench/bench_scene.tscn` | `mobile` |
+| Gesture test | `res://input/mh_gesture_sandbox.tscn` | `compatibility` |
 
-Unzip on the phone:
-1. Open the Files app (Files by Google, or My Files on Samsung).
-2. Tap Downloads.
-3. Tap the .zip file. Most Files apps offer Extract or Unzip. Tap it, then Extract again. A folder with the same name appears.
-4. Open the folder. Inside is a file ending in .apk. If there is another zip inside, extract that too.
-5. If your Files app cannot unzip: install a free unzip app from the Play Store (the store search for "zip extractor" will show options; choose a well-rated one; we cannot recommend one by name), or use the computer method below.
+6. Tap the green Run workflow button. Wait: the first run can take 10 to 25 minutes (`ci.md`). Refresh the page until the run at the top of the list has a green tick. A red cross means the build failed: do not use it, tell the lead.
+7. Two benchmark runs are needed (one per renderer). Write down which run is which: each run has its own number.
 
-Alternative: download on a computer and transfer.
-1. On a computer, sign in to GitHub and open the same Actions run page, scroll to Artifacts, and click the apk artifact. A zip downloads.
-2. Unzip it (Windows: right-click, Extract All. Mac: double-click the zip).
-3. Move the .apk to the phone by one of: USB cable (connect the phone, choose File transfer on the phone prompt, drag the file into the phone's Download folder); or email it to yourself and open the email on the phone (if the file is too large for email, use Google Drive or another cloud folder you already use and download it on the phone).
+### 3B. Download the APK
+1. Open the green run. Scroll to the bottom to Artifacts. Tap `android-debug-apk`. You must be signed in to GitHub. If Artifacts is missing on the phone, use Desktop site.
+2. A `.zip` downloads. If Chrome asks, tap Download.
+3. Write down the run number and the commit id shown at the top of the run page. That is the Build id for the results form.
+4. Artifacts are deleted after 90 days (`ci.md`; default GitHub setting).
 
-## 4. Install the APK
-1. In the Files app, tap the .apk file.
-2. If a message says "For your security, your phone is not allowed to install unknown apps from this source", tap Settings and turn on Allow from this source (Section 2), then press Back and tap the file again.
+### 3C. Unzip
+1. Open My Files (Samsung) or Files by Google. Tap Downloads.
+2. Tap the zip, then Extract (Samsung: tap Extract, then Done). A folder appears.
+3. Open it. The file is `mulligan-hills-debug.apk`.
+4. If your Files app cannot unzip, download the artifact on a computer (same Actions page), unzip it there, and move the .apk to the phone by USB cable (choose File transfer on the phone) or by uploading to Google Drive and downloading on the phone.
+5. Rename nothing. If you keep two APKs (Compatibility and Mobile), install one, test it, uninstall it, then install the other; copies of the file share the same name, so keep them in separate folders.
+
+## 4. Install
+1. In My Files tap `mulligan-hills-debug.apk`.
+2. If it says installs from this source are blocked, tap Settings, turn on Allow from this source (section 2), press Back, tap the file again.
 3. Tap Install.
-4. If Google Play Protect shows "Blocked" or "App scan recommended", tap More details, then Install anyway (or Scan app, then Install). This is expected because the test build is not from the Play Store. If your phone has no Install anyway option, tell the lead and note the message exactly (photograph it).
-5. Wait for "App installed", then tap Open. The app is named like the game (name unverified; see `platform.md`).
-6. If it says "App not installed": most common causes are too little storage, or an older test build with a different signature still installed. Uninstall the old version first (long-press the app icon, App info, Uninstall), then try again. Photograph any message you see.
-7. If a permission prompt appears (notifications, storage), choose Don't allow unless the lead said otherwise (unverified whether the app asks for any).
+4. If Google Play Protect warns about an unknown app, tap More details, then Install anyway. This is expected for a test build.
+5. Tap Open. The app name should be "Mulligan Hills" (from `project.godot`).
+6. "App not installed" or "conflicts with an existing app": uninstall the old Mulligan Hills first (long-press the icon, App info, Uninstall), then install again. This happens because debug keys change every build unless the lead set up a fixed key (`ci.md`).
+7. If a permission prompt appears, choose Don't allow (whether the app asks for any is NOT CONFIRMED).
 
-## 5. Before every test: set up the phone (consistency matters)
-Results are only useful if each test is done the same way. Do all of this before each run and record it on the form.
-1. Case off. Remove any thick or rubber case. Note "case off".
-2. Battery level: record the percentage. For a soak, start between 50 and 100 percent. A phone below 20 percent may slow itself down; do not start there.
-3. Battery saver / Power saving mode: OFF (Settings > Battery > Battery saver, or Power saving). Also turn off Adaptive battery only if the lead asks; otherwise leave it.
-4. Screen brightness: set to about 50 percent, and turn Adaptive brightness OFF (Settings > Display > Brightness level, and Adaptive brightness). Same setting every test.
-5. Screen timeout: set to the longest (or 30 minutes if available). Settings > Display > Screen timeout. Also turn off "Keep screen on while charging" changes if the lead has not said otherwise: simply confirm the screen stays on for the full test.
-6. Do Not Disturb ON, so calls and notifications do not interrupt (swipe down from the top and tap Do not disturb).
-7. Close other apps: open the recent apps button, tap Close all.
-8. Restart the phone, then wait 3 minutes and do not use it. This gives a clean, cool start.
-9. Charging: choose ONE mode per test and write it down. Standard is "plugged in" for the first soak because it removes battery level as a variable, but charging makes the phone warmer. Do a second soak "on battery" and compare. Never mix modes within one test. Use the phone's own charger and cable.
-10. Airplane mode: standard is ON with Wi-Fi off (removes network activity). If the lead says the app needs a network, put airplane mode ON, then turn Wi-Fi back on. Write down what you chose. Bluetooth off.
-11. Surface and place: put the phone flat on a hard table (not a bed, sofa, or in sunlight), not in your hand. Note the room temperature (thermometer, or "cool 20s / warm / hot"). No fan pointing at the phone for the standard test. Air conditioning should be constant.
-12. Thermal starting state: the phone must feel at room temperature. If it feels warm, wait 15 minutes.
+## 5. Before every test: set up the phone
+Do all of this before each run and record it on the form.
+1. Case off.
+2. Battery: read the percentage from the top of the screen. Start between 50 and 100 percent. Charge above 50 percent before benchmarking. Below 20 percent the phone may slow itself down.
+3. Battery saver OFF. Samsung: Settings > Battery and device care > Battery > Power saving OFF.
+4. Brightness about 50 percent, Adaptive brightness OFF (Settings > Display).
+5. Screen timeout: Settings > Display > Screen timeout > 30 minutes. The benchmark asks the phone to keep the screen on (`DisplayServer.screen_set_keep_on(true)`), whether Android obeys is NOT CONFIRMED, so set the timeout as well.
+6. Do Not Disturb ON: swipe down twice from the top and tap Do not disturb.
+7. Close other apps: recent apps button, then Close all.
+8. Restart the phone, wait 3 minutes, do not use it.
+9. Charging: choose one mode per test and write it down. First soak: plugged in. Second soak: on battery. Never switch mid-test.
+10. Airplane mode ON, Wi-Fi off, Bluetooth off (the benchmark needs no network).
+11. Put the phone flat on a hard table, out of sunlight, no fan on it. Note the room temperature.
+12. The phone must feel room temperature before starting. If warm, wait 15 minutes.
 
-## 6. Run the benchmark
-The benchmark scene and its buttons come from workstream D (`forest.md`). The names below are the intended ones; if the screen differs, photograph it and note the differences (unverified until CI builds exist).
+## 6. Part A: Samsung Galaxy S22 Ultra
 
-Quick mode (about 1 to 2 minutes, a sanity check):
-1. Open the app and go to the Benchmark screen (see `forest.md` for how; unverified).
-2. Tap the Quick button (Quick mode).
-3. Do not touch the screen until it finishes.
-4. Take the results photo (Section 8) and copy the numbers to the form.
+### A1. Install check (Gate 0 item 1, device half)
+1. Do 3A with the benchmark scene and `compatibility`, then 3B, 3C, 4.
+2. When the app opens, you should see a 3D golf scene with trees, a text line at the top left, and a row of buttons along the bottom: `Low`, `Medium`, `High`, `Quick 60s`, `Soak 20min` (from `bench_scene.gd`).
+3. Screenshot it (Power and Volume Down together, about 1 second).
+4. Gate 0 item 1 wants the app to show the commit id. The code has no such display (NOT CONFIRMED that it will be added). Instead write down the run number and commit id from step 3B and tell the lead "installed and launched", with the screenshot.
+5. Record the result on the form (Test type: quick, one row only about install).
 
-Soak mode (20 minutes; the real test, described fully in `soak_protocol.md`):
-1. Do all of Section 5.
-2. Start the screen recording (Section 7).
-3. Tap the Soak button (Soak mode). Start a timer at the same moment.
-4. Leave the phone alone for 20 minutes. Do not touch the screen, except if a warning appears.
-5. At 10 minutes glance at the screen and write the time and the temperature feel (Section 9) without touching it.
-6. When done, stop the recording, photograph the results screen (Section 8), record battery level, and fill in the form.
+### A2. Gesture test (Gate 0 item 6)
+1. Do 3A with the gesture scene, then 3B, 3C, 4. Uninstall the benchmark build first.
+2. Follow these 13 steps (from `gestures.md`; the screens described are from code, NOT YET RUN). Write the result of each on the Gesture section of the form.
+   1. Open the app. You should see a green ground, one tall RED post, and three shorter grey posts.
+   2. Tap the small square outline in the top-left corner of the screen. A black box with text should appear. If not, write "overlay failed" and stop.
+   3. Put ONE finger on the ground and drag slowly. Yellow squares should appear under your finger. The box should say `state: painting` and `fingers: 1`.
+   4. Lift your finger. The box should say `state: idle`. The `strokes started/ended/cancelled` counters should show 1 or more started and ended.
+   5. Start a new drag with one finger. While still dragging, put a SECOND finger down. The yellow squares of that drag should disappear, `cancelled` should go up by 1, and the state should say `camera`. Write down if the squares did not disappear.
+   6. Keep both fingers down and move them apart, then together. The view should zoom in and out and stop at a limit. Write down which direction felt right or wrong.
+   7. Twist your two fingers like turning a dial. The world should turn with your fingers. Write down if it turns the wrong way. Twist through more than half a turn and note any jump.
+   8. Slide both fingers together in one direction. The world should follow your fingers.
+   9. Lift ONE finger and keep dragging with the other. Nothing should paint and the state should stay `camera`. Then lift the last finger.
+   10. Ten times: put one finger down, and about a fifth of a second later put a second finger down. Count how many times a yellow square stays behind. Write the number.
+   11. Put three fingers on the screen and move them. Nothing should paint and the camera should not move; the state says `ignored`.
+   12. Twist the view so the red post is not at the top. Tap the round compass in the top-right. The view should ease back until the red post is at the top of the screen.
+   13. Rest the side of your palm or thumb at the very edge of the screen while painting with another finger. Write down whether stray marks appear.
+3. Also write one sentence: did painting feel delayed at the start of a stroke?
+4. Screen-record the whole test (section 9).
+5. Gate 0 item 6 lists 12 cases; the mapping between those 12 and the steps above is NOT CONFIRMED (for example, tilt limit, long press and the undo button have no step above). The lead will send the checklist `06_gesture_checklist.md` when the mapping is decided.
 
-## 7. Quality tier buttons
-There are quality tiers (names expected to be Low, Medium, High, and maybe Auto; unverified). Rules:
-1. Test one tier at a time, and each tier gets its own results form.
-2. Order: start with Low, then Medium, then High. Between tiers, let the phone cool for 15 minutes.
-3. Tap the tier button before starting Quick or Soak. The chosen tier is normally highlighted or shown on screen. Write it on the form and make sure it is visible in your photo.
-4. If the phone crashes or restarts on a tier, note the tier and stop; do not try the higher tiers until you tell the lead.
+### A3. Rehearsal and 60 fps check
+Purpose: learn the procedure and see how a flagship performs. It cannot pass Gate 0.
+1. Do 3A (benchmark, `compatibility`), install, section 5.
+2. Tap `Low`, then tap `Quick 60s`. Do not touch the screen for 60 seconds. The top-left text shows the tier, fps, scale, draws and prims while it runs, and a counter like `bench 12s/60s`.
+3. The black results screen appears. Do section 8.
+4. Repeat for `Medium` and `High`, resting 15 minutes between tiers if the phone feels warm.
+5. Fill one form per tier.
+6. Reading the result: `avg_fps` near 60 with a low `p95_ms` (about 17 ms or less) means the 60 fps target is met on this flagship. The verdict word on the screen (`PASS_30FPS` or `FAIL_30FPS`) only tests the 30 fps rule (see section 8).
 
-## 8. Reading and photographing the results screen
-1. When a test finishes, the app shows numbers such as average FPS, p95 frame time (in milliseconds), minimum FPS, and maybe renderer name and build id. (Exact list unverified; see `forest.md`.)
-2. Meanings in plain words: FPS is frames per second (higher is better; 30 is the target). p95 frame time is how long the slow frames took; 95 percent of frames were faster than this; lower is better; the pass line is under 50 milliseconds.
-3. Take a phone screenshot for the exact numbers: press Power and Volume Down together for about 1 second (Samsung: Power and Volume Down, or swipe the palm across the screen if enabled). A preview flashes.
-4. Also photograph the screen with a second device if you can, in case the screenshot is blocked. If the screen is not available for a screenshot, hold the camera steady and check the numbers are readable, no glare.
-5. Screenshots are in Gallery or Photos > Screenshots, or Files > Pictures > Screenshots.
-6. Type the numbers into the form as well. Photos alone are not enough, because numbers may be misread.
-7. If results are not shown at the end, do not repeat the test yet. Photograph whatever is on the screen and tell the lead.
+### A4. Thermal soak on the S22 (learning run, not a gate pass)
+1. Section 5, in full. Plugged in for the first run.
+2. Start the screen recording (section 9) if this is the recorded run.
+3. Tap the tier chosen by the lead (default: `Medium`), then tap `Soak 20min`. Start your timer at the same moment.
+4. Do not touch the screen for 20 minutes. At 5, 10, 15 and 20 minutes touch only the back edges of the phone with a finger and write cool / warm / hot.
+5. When the results screen appears, do section 8 before anything else.
+6. Let the phone cool at least 15 minutes before another run.
+7. Full rules, failure conditions and invalid runs are in `soak_protocol.md`. Note that the thresholds for a gate pass apply only to the low-end phone.
 
-## 9. Screen recording (built-in recorder)
-Recording uses some performance, so record only the soak's start and end when the lead asks for low overhead. Default for a soak: record the full 20 minutes only once (mark on the form that the recording was on), and run one un-recorded soak to compare (recorder overhead unverified).
-1. Swipe down from the top of the screen twice to open Quick settings.
-2. Look for Screen record (Samsung: Screen recorder). If it is not there, tap the pencil or Edit icon and drag it in.
-3. Tap Screen record. On some phones a Start recording confirmation appears: tap Start. Choose Record audio: none.
-4. A 3-second countdown begins. Then start the test.
-5. To stop, swipe down and tap the red stop button or the red timer.
-6. The video is saved in Gallery or Photos, or in Files > Movies > Screen recordings (Samsung: Files > DCIM > Screen recordings; Xiaomi: Files > DCIM > ScreenRecorder). If you cannot find it, open Gallery > Albums > Screen recordings.
-7. Video files are large. See Section 11 for sending them.
-8. Also record a short 10 to 20 second video of the phone case-off on the table with a timestamp visible if you saw shaking or heat, only if it is easy.
+## 7. Part B: the low-end phone
+Do this only when the low-end phone has arrived and section 14 details are recorded on the form. All of section 5 applies.
 
-## 10. Gesture tests and save-kill tests
-Exact steps depend on workstream E (`gestures.md`) and F (`platform.md`); these are the generic parts.
-1. Gesture test: follow the list in `gestures.md` (unverified until it exists). For each gesture (tap, drag, pinch, two-finger rotate, and so on) write Pass, Fail, or Not tried, and a note. Record a short screen video of any failure.
-2. Save-kill test: (a) start the app and make the change the lead names (for example move something or place an item); (b) trigger a save (or wait for auto save as directed); (c) kill the app: open recent apps and swipe the game away; (d) reopen the app; (e) check the change is still there. Record Pass or Fail. Repeat once with the kill done during an action if asked. Note the exact steps you took.
-3. Also test: press Home during play and return after 30 seconds (Pass if it resumes), lock and unlock the screen (Pass if it resumes), and rotate the phone if the lead asks (Pass if the layout stays valid).
-4. If the app crashes, write the time and what you did just before, and photograph any message.
+### B1. Quick tests (per renderer, per tier)
+1. Install the Compatibility build (3A with `compatibility`, 3B, 3C, 4).
+2. Tap `Low`, then `Quick 60s`. Do not touch the screen. Section 8. One form.
+3. Rest 15 minutes. Repeat with `Medium`, then `High`. If the phone crashes or restarts on a tier, stop, note the tier, and tell the lead before trying a higher tier.
+4. Uninstall, then install the Mobile build (3A with `mobile`). Repeat 2 and 3. If the Mobile build will not start on this phone, that is a recorded result, not a mistake: photograph any message and say so on the form (GATE0 item 2 allows this).
+5. Six forms in total (3 tiers x 2 renderers).
+
+### B2. The 20 minute soak
+1. The lead chooses which renderer and tier (the one that passed Quick with the best margin).
+2. Section 5, then section 6 step A4 exactly (same steps, same 5-minute touch notes).
+3. Run 1 plugged in. Run 2 on battery, another day or after a 30 minute cool-down.
+4. Pass, for Gate 0 (placeholders until measured, DEC-047): `avg_fps` 30 or more; `p95_ms` under 33; `min_fps` 10 or more (a frame slower than 100 ms shows as `min_fps` below 10, because min fps is 1000 divided by the slowest frame); `throttle_ratio` 0.85 or more (proposed in `forest.md`, not in GATE0); no crash, restart, freeze or shutdown.
+5. Fill the form and the pass section.
+
+### B3. Other Gate 0 items on this phone
+Items 4, 5 and 9 need extra scenes or menus that are not confirmed to exist yet. The lead will tell you which build and scene to use when they do. Do not guess.
+
+## 8. Reading and copying the results screen
+When a test ends, the screen turns black with large white text (from `mh_results_screen.gd`). It shows these lines, in this order if present:
+`verdict`, `tier`, `renderer_active`, `mode`, `duration_s`, `frames`, `avg_fps`, `p50_ms`, `p95_ms`, `p99_ms`, `min_fps`, `pct_over_33ms`, `draw_calls_avg`, `draw_calls_max`, `primitives_avg`, `static_mem_max_mb`, `video_mem_max_mb`, `render_scale`, `throttle_ratio`, `battery_start_pct`, `battery_pct`, `device`, `gpu`, `thermal`.
+Two buttons sit below: `Copy JSON` and `Close`.
+
+Plain-words meanings:
+- `avg_fps`: average frames per second. Higher is better.
+- `p95_ms`: 95 percent of frames took less than this many milliseconds. Lower is better. 33 ms is the 30 fps line.
+- `min_fps`: fps of the single slowest frame. Under 10 means a stall over 100 ms.
+- `pct_over_33ms`: percent of frames slower than 33 ms.
+- `throttle_ratio`: fps in the last 5 seconds divided by fps in the first 5 seconds. Under 0.85 suggests the phone slowed down as it heated.
+- `render_scale`: the game lowers its own picture resolution when frames are slow (adaptive scale, on by default). A low value means the phone was struggling. Write it on the form.
+- `renderer_active`: which renderer really ran. Write it down and check it matches the build you meant to test.
+- `verdict`: the code's own quick judgement. It uses average 30 fps and `p95_ms` of 34.0 or less. This is close to but not the same as the Gate 0 rule (33 ms, and no 100 ms stall). Use the numbers, not the word.
+- `battery_start_pct` and `battery_pct` will show `-1`. That means "not measured". Godot has no battery reading, so type the battery percent from the phone's own status bar or Settings into the form yourself, at start and at end.
+- `thermal` will say the value is not available. Use the "phone felt" notes instead.
+
+Steps:
+1. Screenshot immediately (Power and Volume Down together).
+2. Tap `Copy JSON`. This puts the full numbers (including the slowest frame time, `max_ms`, which is not shown on screen) on the clipboard. Open a notes app, long-press, tap Paste, and save the note; or paste into an email to yourself. Whether Copy JSON works on Android is NOT CONFIRMED. If nothing pastes, say so on the form.
+3. If the text is cut off at the bottom of the screen, that is a known risk (30 point text); rely on the Copy JSON note and tell the lead.
+4. Type the numbers into the form as well as attaching the photos.
+5. The app also saves the same numbers to a file named `bench.json` inside its private storage. You cannot normally reach it from the phone; a person with a computer and USB debugging can (the lead will say if needed). Nothing for you to do.
+6. Tap `Close` only after the screenshot and copy are done. If the results screen did not appear, do not repeat the test: photograph whatever is on screen and tell the lead.
+
+## 9. Screen recording (built in)
+Recording costs a little performance. Do one recorded and one un-recorded soak.
+1. Swipe down twice from the top to open Quick settings. Find Screen recorder (Samsung). If not there, tap the pencil or Edit icon and drag it in.
+2. Tap Screen recorder, choose Sound: No sound, tap Start recording. A 3 second countdown runs. Then start the test.
+3. To stop, swipe down and tap the stop button (or the red timer).
+4. The video is in Gallery > Albums > Screen recordings.
+5. Videos are big. Send them by cloud link (section 11).
+
+## 10. Save-kill test
+The kill-during-save test (Gate 0 item 10) is mostly run by a computer with USB debugging. The lead will give separate copy-paste commands when the scene and harness are confirmed. There is nothing for you to do from the phone yet.
+Generic checks you can do once a build with saving exists (NOT CONFIRMED that one does): make a change; wait for the save; swipe the app away in recent apps; reopen; check the change is there. Press Home, wait 30 seconds, return. Lock and unlock the screen. Write Pass or Fail for each.
 
 ## 11. Send the results back
-Name every file `YYYY-MM-DD_device_test.ext`. Use lowercase, no spaces. Suggested device name: the model with dashes, for example `2026-10-14_redmi-13c_test.md`. If you have several files on one day and device, add a number: `2026-10-14_redmi-13c_test-2.png`. Use `.md` for the form, `.png` or `.jpg` for pictures, `.mp4` for recordings.
+Name every file `YYYY-MM-DD_device_test.ext`, lowercase, no spaces. Suggested device names: `s22-ultra`, and the low-end model with dashes, for example `2026-10-14_s22-ultra_test.md`, `2026-10-14_galaxy-a15_test-2.png`. Use .md for forms, .png or .jpg for pictures, .mp4 for recordings, and .txt for the pasted JSON.
 
-Option A: upload through the GitHub website (best for the form and photos).
-1. On the phone (Desktop site helps) or a computer, open the repo and go to the folder `docs/phase0/results/`. If it does not exist, ask the lead to create it (a folder cannot be made empty in the browser).
-2. Tap Add file, then Upload files. (On a phone this may show as a plus button, or Upload files at the top of the folder. If missing, use Desktop site.)
-3. Tap choose your files, choose the photos and form (you may need to pick Browse or Files rather than Photos).
-4. Under Commit changes, type a message such as "Add results 2026-10-14 redmi-13c" and choose Create a new branch for this commit and start a pull request if you are asked, or Commit directly to the main branch if the lead told you. Tap Commit changes.
-5. Size limit: the browser upload limit is believed to be 25 MB per file and 100 files per upload (unverified: see https://docs.github.com/en/repositories/working-with-files/managing-files/adding-a-file-to-a-repository). A 20-minute screen recording is likely bigger than that.
+Option A: upload to GitHub (forms and photos)
+1. On the phone (Desktop site helps) open the repo and go to the folder `docs/phase0/results/`. If it does not exist, tell the lead.
+2. Tap Add file, then Upload files, choose files, type a message like "Add results 2026-10-14 s22-ultra", choose Create a new branch for this commit unless the lead said to commit to main, tap Commit changes.
+3. The browser upload limit is believed to be 25 MB per file (unverified: https://docs.github.com/en/repositories/working-with-files/managing-files/adding-a-file-to-a-repository). A 20 minute recording is probably bigger.
 
-Option B: email (simplest, best for video and big files).
-1. Email the form text (or a photo of it), the screenshots, and the recording to the address the lead gives you (Nathan: this is the lead's own inbox; unverified).
-2. Put the same name pattern in each filename. Subject line: "Mulligan Hills device test, YYYY-MM-DD, device".
-3. If a file is too large for email (mail services commonly limit to about 25 MB, unverified), upload it to a cloud drive folder (Google Drive, iCloud, or OneDrive) and share the link, with viewing permission for anyone with the link.
-4. Then the lead copies the files into `docs/phase0/results/`.
+Option B: email (best for video)
+1. Email the form, screenshots, pasted JSON and recording to the address the lead gives you.
+2. Subject: "Mulligan Hills device test, YYYY-MM-DD, phone name".
+3. If a file is too large, upload it to Google Drive and share a link with view access.
 
-Always send at least: the completed form, one photo of the results screen, and one photo of the phone's About page. A recording is desired for soak runs.
+Always send at least: the completed form, one screenshot of the results screen, the pasted JSON, and one photo of the About page.
 
-## 12. What to do if something goes wrong
-- The app will not install: see Section 4, item 6.
-- The phone got too hot to hold comfortably, or shows a temperature warning: stop, note the time, photograph the warning, let it cool. This counts as a result (see `soak_protocol.md`).
-- The phone restarts: this is a thermal or crash failure. Note the time. Do not keep retrying.
-- You are unsure: stop and ask. A partial honest result is better than a guessed one. Never edit numbers.
+## 12. If something goes wrong
+- App will not install: section 4, step 6.
+- The app opens to a blank or grey screen: you probably installed a build with no scene selected. Redo 3A with the scene box filled in.
+- The phone is too hot to hold, or shows a temperature warning: stop, note the time, photograph it, let it cool. That is a result.
+- The phone restarts: a thermal or crash failure. Note the time. Do not keep retrying.
+- Unsure: stop and ask. A partial honest result is better than a guess. Never edit numbers.
 
 ## 13. iPhone plan (TestFlight)
-Status: NOT YET RUN. iOS builds are workstream A/F work and depend on an Apple Developer account, code signing, and a macOS CI runner. Details unverified: check https://developer.apple.com/testflight/ and https://developer.apple.com/help/app-store-connect/test-a-beta-version/testflight-overview/.
-What Nathan will need to do once a build is uploaded (the lead confirms when):
-1. Get an Apple Developer Program membership for the account that will own the app (paid yearly; the price is not stated here because it is unverified; check Apple's site).
-2. Install the free TestFlight app from the App Store on the iPhone (and iPad, if used).
-3. In App Store Connect (a website), open the app, go to TestFlight, and add Nathan as an Internal Tester with his Apple ID email. (Internal testers are believed to be limited to members of the developer account, up to about 100 people; unverified.)
-4. Open the invitation email on the iPhone, tap View in TestFlight, then Install (or Accept, then Install).
-5. Open the app from the home screen. Each build in TestFlight has a build number; that is the Build id on the form.
-6. Screenshot: press the side button and Volume Up together. Screen recording: Settings > Control Center > add Screen Recording, then swipe down from the top right corner and tap the record button.
-7. iPhone battery and model: Settings > General > About (Model Name, Model Number, iOS Version). Settings > Battery for percentage. Low Power Mode OFF (Settings > Battery). Auto-Brightness OFF (Settings > Accessibility > Display & Text Size > Auto-Brightness). Airplane mode as per Section 5.
-8. TestFlight builds are believed to expire after 90 days (unverified).
-9. Send results back the same way as Section 11. iPhone test builds may have no equivalent of the APK zip; nothing needs to be downloaded from GitHub.
-If a TestFlight build is not available for Phase 0, iPhone results are deferred to a later phase; the lead decides in `GATE0.md`.
+Status: NOT YET RUN. Depends on an Apple Developer account, signing, and the `iOS TestFlight` workflow (`ci.md`, manual, dry run by default). What Nathan does once a build is uploaded:
+1. Apple Developer Program membership (paid yearly; check the price at Apple).
+2. Install TestFlight from the App Store on the iPhone.
+3. In App Store Connect open the app > TestFlight > Internal Testing > add yourself with your Apple ID email (`ci.md` section B has the full walkthrough).
+4. Open the invitation on the iPhone, tap View in TestFlight, then Install.
+5. Model and version: Settings > General > About. Low Power Mode OFF (Settings > Battery). Auto-Brightness OFF (Settings > Accessibility > Display & Text Size).
+6. Screenshot: side button and Volume Up together. Screen recording: add it in Settings > Control Center, then swipe down from the top right and tap record.
+7. Send results as in section 11.
+If TestFlight is not ready in Phase 0, iPhone results wait; the lead decides in `GATE0.md`.
 
-## 14. Tablet plan
-1. Use the same Android APK (Sections 3 and 4) on an Android tablet: same steps, same setup (Section 5), same results form. Write "tablet" in the Device field with the screen size (About tablet shows model; size is usually on the maker's spec page).
-2. Tablets have larger screens and therefore more pixels to render; expect worse performance at the same tier than a phone with the same chip (general reasoning, not measured).
-3. Run a Quick test at all tiers and one soak (Low or Medium tier first).
-4. Test gestures with more room: two-hand pinch, rotate, two-finger pan; also try landscape (rotate) if the lead asks.
-5. If the tablet is an iPad, use Section 13.
-6. Split-screen and multi-window: do not use in Phase 0 tests.
+## 14. Buying the low-end Android phone
+Purpose: a deliberately weak phone. If the game runs at 30 fps here it runs on most phones we care about. Target from Nathan: a Galaxy A14 / A15 class phone, about US$100-150 used (price is Nathan's estimate, not checked by us).
+Check before buying (all from the seller's listing or the maker's spec page; we could not verify specific models):
+- Class: entry-level chip. The exact chip in a given "A14" or "A15" varies by variant and region (there are several versions); check the variant you are buying.
+- RAM 3 to 4 GB is ideal. 2 GB is too small to be informative. 6 GB or more is not low end.
+- GPU must support Vulkan and OpenGL ES 3.0 (look on the maker's or chip maker's spec page). The Mobile renderer needs Vulkan; Compatibility needs OpenGL ES 3.0 (https://docs.godotengine.org/en/stable/tutorials/rendering/renderers.html).
+- Android 11 to 14. Screen 60 Hz. 32 to 64 GB storage. Battery at least 4000 mAh.
+- Unlocked, not carrier-locked, with a returns option. Avoid unsupported-region or gray-market variants.
+- Used phone: check battery health with the seller; a worn battery distorts a soak.
+- The phone does not need a SIM.
+- Record model, model number, chipset, GPU, RAM and Android version on the form.
+Also useful, not required: one mid-range phone as a control.
 
-## 15. Buying guide: low-end benchmark phone
-Purpose: a phone that is deliberately weak, so that if the game runs acceptably here it runs on most phones we care about. No prices or stock claims are given (unverified; check current retailers). Look for:
-- RAM: 3 to 4 GB is the low-end target; 2 GB is too small to be informative. A phone with 6 GB or more is not "low end" for this purpose.
-- Chipset class: an entry-level chip (for example MediaTek Helio G-series or Dimensity 6xxx-class, Qualcomm Snapdragon 4-series, or Unisoc, and the equivalents; examples only, unverified). Avoid flagship or upper mid-range chips (Snapdragon 8-series, 7-series, Dimensity 8xxx and above).
-- GPU: the GPU listed for the chipset should be an entry-level Mali or Adreno (for example Mali-G52 or Adreno 610-class; examples only, unverified). It must support Vulkan (the Godot Mobile renderer needs Vulkan; the Compatibility renderer uses OpenGL ES 3.0 and works on more devices; see `forest.md` and https://docs.godotengine.org/en/stable/tutorials/rendering/renderers.html, unverified).
-- Android version: Android 11 to 14 is a fair target (Godot 4 Android minimum should be verified in the docs: https://docs.godotengine.org/en/stable/tutorials/export/exporting_for_android.html, unverified). Avoid very old versions.
-- Screen: 60 Hz, HD+ or Full HD+ resolution, about 6 to 6.7 inches is typical. A 90 or 120 Hz panel is not needed.
-- Storage: 32 to 64 GB is fine; ensure a few GB free.
-- Battery: a removable case is not needed; a normal battery of 4000 mAh or more is fine. A replaceable-battery phone is not needed.
-- Buying condition: new or refurbished from a seller with a returns policy. Avoid phones with carrier locks, unknown bootloader state, or "gray market" variants with no warranty.
-- Do not buy a phone that appears in Play Console or vendor lists as unsupported for your region (unverified).
-- Because the model has not been chosen, the lead should give the list to Nathan and ask which model is available locally in Australia. Check that the phone supports Australian networks if it will ever be used with a SIM (not needed for testing).
-- Record model, chipset, GPU, RAM, and Android version on the form for every device.
-Second recommendation: if budget allows, also keep one mid-range phone as a control, so we can tell "the code is slow" from "this phone is slow".
+## 15. Tablet plan
+1. Same APK, same steps (sections 3 to 5), same form; write "tablet" and the screen size.
+2. More pixels means more work; expect worse results than a phone with the same chip (general reasoning, not measured).
+3. Run a Quick test at every tier and one soak. Test gestures (A2) with two hands, and landscape only if the lead asks.
+4. No split-screen in Phase 0.
 
 ## Unverified
-- Real workflow name, artifact name, repo URL, and release channels (see `ci.md`).
-- Benchmark UI names and buttons (see `forest.md`).
-- All Android menu names (vary per maker and Android version).
-- GitHub browser upload limits, artifact retention, TestFlight limits, and Apple costs (check the links above).
+- The `Run workflow` form layout on the phone browser (only the input names `game_path`, `scene`, `renderer` come from the workflow).
+- Whether a push-built APK shows anything without a start scene.
+- Whether Copy JSON works on Android, and whether the results text fits the screen.
+- Whether Android obeys the app's keep-screen-on request.
+- Any Samsung menu name (written from general knowledge, not from the device).
 - Whether the app asks for permissions and whether a debug APK triggers extra Play Protect prompts.
-- Screen recording overhead on low-end devices.
+- Screen recording overhead.
+- GitHub upload limits, artifact retention, TestFlight limits, Apple costs.
+- The mapping between Gate 0 item 6's 12 gesture cases and the 13 sandbox steps.
 
 ## Follow-ups for the lead
-- Create `docs/phase0/results/` with a `.gitkeep` and a short README (this workstream may not write outside its own paths).
-- Confirm artifact name from `ci.md`, benchmark UI text from `forest.md`, and gesture lists from `gestures.md`, then update the placeholders in this runbook.
-- Decide whether iPhone TestFlight is in Phase 0 scope.
+- Create `docs/phase0/results/` with a `.gitkeep` and short README (the folder is not confirmed to exist).
+- Decide how item 1 shows the commit id on screen (nothing in `game/` does), or accept run number plus commit id from the Actions page.
+- `MHBenchStats.verdict` uses p95 <= 34.0 ms; DEC-047 says under 33 ms plus no 100 ms stall. Either update the code or keep reading the numbers.
+- Battery percent and the slowest frame (`max_ms`) are not on the results screen; consider adding them.
+- Decide item 3's on-phone hash run (no launchable scene confirmed) and items 4, 5, 9 device scenes.

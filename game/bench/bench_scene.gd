@@ -4,6 +4,8 @@ extends Node3D
 ## User args (after `--` on the command line): --tier=low|medium|high  --mode=quick|soak
 ## --autostart (start the bench immediately)  --seconds=N (override duration)  --no-adaptive
 ## --no-orbit
+## --fps-cap=30|60|auto|off  (off = governor disabled, uncapped; default for quick/soak)
+## --mode=idle  (static scene: no orbit, golfers paused, governor on; 30 s; measures idle fps)
 
 var tier_name: String = "medium"
 var cfg: Dictionary = {}
@@ -13,6 +15,7 @@ var golfers: MHGolfers
 var rig: MHCameraRig
 var light: DirectionalLight3D
 var adaptive: MHAdaptiveScale = MHAdaptiveScale.new()
+var governor: MHFrameGovernor = MHFrameGovernor.new()
 var runner: MHBenchRunner
 var results: MHResultsScreen
 
@@ -25,6 +28,10 @@ var _brush_enabled: bool = true
 var _autostart_mode: String = ""
 var _seconds_override: float = -1.0
 var _meta: Dictionary = {}
+var _cap_button: Button
+var _prev_cam_pos: Vector3 = Vector3.ZERO
+var _orbit_default: bool = true
+var _governor_default: bool = false
 
 
 func _ready() -> void:
@@ -33,9 +40,18 @@ func _ready() -> void:
 	tier_name = MHQuality.normalize_name(str(args.get("tier", "medium")))
 	_seconds_override = float(args.get("seconds", -1.0))
 	adaptive.enabled = not args.has("no-adaptive")
+	var cap_arg: String = str(args.get("fps-cap", "off")).strip_edges().to_lower()
+	if cap_arg != "off":
+		governor.set_setting(cap_arg)
+		governor.enabled = true
+	else:
+		governor.set_setting(MHFrameCapSetting.load_value())
+		governor.enabled = false
+	_governor_default = governor.enabled
 
 	_build_world()
 	rig.orbit_enabled = not args.has("no-orbit")
+	_orbit_default = rig.orbit_enabled
 	_build_hud()
 	runner = MHBenchRunner.new()
 	runner.context_cb = Callable(self, "_bench_context")
@@ -46,6 +62,7 @@ func _ready() -> void:
 	_meta = MHBenchRunner.device_meta()
 	apply_tier(tier_name)
 	_last_us = Time.get_ticks_usec()
+	_prev_cam_pos = rig.camera.global_transform.origin
 	if args.has("autostart"):
 		var m: String = str(args.get("mode", "quick"))
 		_start_bench(m)
@@ -159,6 +176,14 @@ func _build_hud() -> void:
 	s.pressed.connect(_start_bench.bind("soak"))
 	bar.add_child(s)
 	_run_buttons.append(s)
+	var idle_b: Button = _make_button("Idle 30s")
+	idle_b.pressed.connect(_start_bench.bind("idle"))
+	bar.add_child(idle_b)
+	_run_buttons.append(idle_b)
+	_cap_button = _make_button("")
+	_cap_button.pressed.connect(_on_cap_pressed)
+	bar.add_child(_cap_button)
+	_refresh_cap_button()
 
 
 func _make_button(text: String) -> Button:
@@ -168,6 +193,34 @@ func _make_button(text: String) -> Button:
 	b.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	b.add_theme_font_size_override("font_size", 26)
 	return b
+
+
+func _refresh_cap_button() -> void:
+	var g: String = "on" if governor.enabled else "off"
+	_cap_button.text = "Cap %s (%s)" % [governor.cap_setting, g]
+
+
+## Cycles 30 -> 60 -> auto and turns the governor on. Ignored during a run.
+func _on_cap_pressed() -> void:
+	if runner != null and runner.running:
+		return
+	governor.set_setting(MHFrameCapSetting.next(governor.cap_setting))
+	governor.enabled = true
+	_governor_default = true
+	MHFrameCapSetting.save_value(governor.cap_setting)
+	_refresh_cap_button()
+
+
+func _input(_event: InputEvent) -> void:
+	if governor.enabled:
+		# Immediate wake-up: do not wait for the next _process to leave idle fps.
+		var now_ms: int = Time.get_ticks_msec()
+		governor.note_input(now_ms)
+		governor.apply(governor.update(now_ms, true, false, false, _ambient_animation()))
+
+
+func _ambient_animation() -> bool:
+	return bool(cfg.get("water_waves", false))
 
 
 func _on_tier_pressed(t: String) -> void:
@@ -188,6 +241,7 @@ func apply_tier(t: String) -> void:
 	golfers.apply_tier(cfg)
 	var vp: Viewport = get_viewport()
 	vp.msaa_3d = MHQuality.msaa_enum(int(cfg["msaa"])) as Viewport.MSAA
+	governor.set_tier(tier_name)
 	adaptive.configure(cfg)
 	adaptive.apply(vp)
 	_brush_enabled = bool(cfg["foliage_dither"])
@@ -198,6 +252,10 @@ func _start_bench(mode: String) -> void:
 	if runner.running:
 		return
 	results.visible = false
+	if mode == MHBenchRunner.MODE_IDLE:
+		rig.orbit_enabled = false
+		golfers.paused = true
+		governor.enabled = true
 	for b in _tier_buttons:
 		b.disabled = true
 	for b in _run_buttons:
@@ -210,6 +268,13 @@ func _on_bench_finished(summary: Dictionary) -> void:
 		b.disabled = false
 	for b in _run_buttons:
 		b.disabled = false
+	rig.orbit_enabled = _orbit_default
+	golfers.paused = false
+	if not _governor_default and governor.enabled:
+		governor.enabled = false
+		governor.release()
+	if _cap_button != null:
+		_refresh_cap_button()
 	results.show_summary(summary)
 	# Headless/CI style runs can pass --quit-after-bench to exit when done.
 	if OS.get_cmdline_user_args().has("--quit-after-bench"):
@@ -225,6 +290,12 @@ func _bench_context() -> Dictionary:
 		"gpu": str(_meta.get("gpu", "")),
 		"golfers_visible": golfers.visible_cap,
 		"trees": forest.placed_tree_count(),
+		"governor_mode": governor.mode if governor.enabled else MHFrameGovernor.MODE_DISABLED,
+		"fps_cap": governor.cap() if governor.enabled else 0,
+		"fps_cap_setting": governor.cap_setting,
+		"governor_idle_pct": governor.idle_pct(),
+		"governor_transitions": governor.transitions,
+		"scale_changes": adaptive.changes,
 	}
 
 
@@ -232,6 +303,15 @@ func _process(_delta: float) -> void:
 	var now: int = Time.get_ticks_usec()
 	var ms: float = float(now - _last_us) / 1000.0
 	_last_us = now
+	var cam_pos: Vector3 = rig.camera.global_transform.origin
+	var cam_moving: bool = cam_pos.distance_squared_to(_prev_cam_pos) > 0.000001
+	_prev_cam_pos = cam_pos
+	if governor.enabled:
+		var anim: bool = (not golfers.paused) and golfers.visible_cap > 0
+		var now_ms: int = Time.get_ticks_msec()
+		governor.apply(governor.update(now_ms, false, cam_moving, anim, _ambient_animation()))
+	# Idle frames are long on purpose; do not let the adaptive scale read them as slowness.
+	adaptive.paused = governor.enabled and governor.mode == MHFrameGovernor.MODE_IDLE
 	var before: float = adaptive.current
 	adaptive.step(ms)
 	if adaptive.current != before:

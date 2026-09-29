@@ -124,7 +124,7 @@
         "height_max_mm",
         "surface_layers"
       ],
-      "description": "Reference to the terrain blob owned by the terrain module. Height array is int16 millimetres, row-major, plus per-cell surface layer bytes. The blob layout is defined in docs/spec/interfaces/terrain.md and docs/phase0/terrain.md.",
+      "description": "Reference to the terrain blob owned by the terrain module. The blob is the MHTerrainSave file (magic MHTS, format_version 1): int16 millimetre heights on a (cells+1) x (cells+1) sample grid, row-major, plus an RGBA8 splat map with 4 layers (fairway, rough, sand, green). width_cells and height_cells are CELLS, not samples. cell_size_dm = cell_size_mm / 100 (the implemented default 1000 mm is 10). The layout is defined in docs/spec/interfaces/terrain.md section 7. NOTE: the surface_layers enum below lists 11 names but the implemented splat has 4 layers; not yet reconciled.",
       "properties": {
         "format_version": {
           "type": "integer",
@@ -187,7 +187,7 @@
         "content_hash": {
           "type": "string",
           "pattern": "^[0-9a-f]{8,64}$",
-          "description": "Hex hash of the height data as the terrain module defines it (workstream C currently uses FNV-1a over int16 heights; may become sha256)."
+          "description": "Hex hash of the height data as the terrain module defines it. Implemented: 32-bit FNV-1a over the heights (as unsigned h + 32768, low byte then high byte), 8 hex digits, splat not covered. May become sha256 later."
         }
       }
     },

@@ -46,10 +46,12 @@ static func summarize(frame_ms: PackedFloat32Array) -> Dictionary:
 
 
 ## Pass rule used by the harness (assumption; confirm against docs/phase0/GATE0.md):
-## average fps >= 30 and p95 frame time <= 34.0 ms.
+## average fps >= 30, p95 frame time <= 33.4 ms and no frame over 100 ms (DEC-047).
 static func verdict(summary: Dictionary) -> String:
 	if int(summary.get("frames", 0)) == 0:
 		return "NO_DATA"
-	if float(summary["avg_fps"]) >= 30.0 and float(summary["p95_ms"]) <= 34.0:
+	if str(summary.get("mode", "")) == "idle":
+		return "IDLE_MEASURED"
+	if float(summary["avg_fps"]) >= 30.0 and float(summary["p95_ms"]) <= 33.4 and float(summary.get("max_ms", 0.0)) <= 100.0:
 		return "PASS_30FPS"
 	return "FAIL_30FPS"

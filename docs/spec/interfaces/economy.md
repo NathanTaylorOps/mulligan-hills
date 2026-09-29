@@ -1,4 +1,7 @@
-# Interface: Economy (`game/economy/`, owner assigned in Phase 1)
+# Interface: Economy (`game/core/economy/`, owner assigned in Phase 1)
+
+## Implementation status (29 Sep 2026)
+No code exists (`MHEconomy`, `MHEconomyParams`, `MHClubState`, `MHDayLedger`, `MHDaySummary`, `MHCourseRating`, `MHResult` are drafts). Numbers live only in `docs/spec/data/buildings.json` (costs, upkeep, parcels) and `remote_config.example.json` (`start_cash` 40000, green fee 5..250); all are placeholders per `docs/CONTRACT.md` and `docs/DECISIONS.md` open item 4.
 
 Purpose: cash, fees, members, upkeep, land purchase, daily accounting, difficulty modes. Integer dollars. Deterministic given the day summary from the sim and the save RNG. No premium currency and no real-money path exists in this module (pillar).
 

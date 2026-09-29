@@ -52,7 +52,7 @@ Rules: a decision changes only by a new entry that names the one it supersedes. 
 | ID | Date | Decision | Reason | Supersedes |
 | --- | --- | --- | --- | --- |
 | DEC-033 | 2026-09-29 | Builds, tests and screenshots run on GitHub Actions because Godot cannot run in Claude's environment. Nathan creates the private repo `golf-tycoon`; Claude gets push access. Phase 0 proves the loop end to end. | Downloads are blocked in the agent sandbox. | none |
-| DEC-034 | 2026-09-29 | Nathan buys one named budget Android phone now. Targets: 30 fps, a 20 minute soak, thermal check. The device name is still to be recorded. | Two undecided device targets was a contradiction; everything depends on it. | Replaces "low-end" versus "mid-range" ambiguity. |
+| DEC-034 | 2026-09-29 | Nathan buys one named budget Android phone now. Targets: 30 fps, a 20 minute soak, thermal check. The device name is still to be recorded. | Two undecided device targets was a contradiction; everything depends on it. | Replaces "low-end" versus "mid-range" ambiguity. Superseded in part by DEC-046 (two phones) and DEC-047 (fps targets). |
 | DEC-035 | 2026-09-29 | Renderer: default to Compatibility, decide on the real phone, then freeze (one build has one renderer). Both renderers are tested in Phase 0. | Widest Android device reach; renderer change is expensive later. | none |
 | DEC-036 | 2026-09-29 | Server re-simulation: start with bounds and rate checks only. Re-simulate top entries later with a headless Godot worker if needed. | Supabase edge functions cannot run GDScript. | Reduces DEC-029's "server re-simulates sampled and top entries" to later work. |
 | DEC-037 | 2026-09-29 | Sim performance: typed GDScript, shot-level events, a worker thread. No C#. GDExtension only if profiling forces it. Simulation hash must match on Linux, Mac (CI) and Android. | C# on iOS is doubtful; determinism needs integer paths. | none |
@@ -82,9 +82,16 @@ These fill gaps the Master Plan leaves open. They are written into the data file
 | PROP-09 | Gate 0 performance numbers (see GATE0.md) are proposed budgets, to be confirmed against the named device. | `GATE0.md` |
 | PROP-10 | Land classes: heavy buildings (Driving range, Pool and spa, Lodging, Homes, Landmark) need one more parcel than light buildings at tiers 2 to 5, and tier 5 needs 7 to 8 parcels. | `buildings.json` |
 
+## F. Device and performance decisions (2026-09-29, after first CI green at commit c960230)
+
+| ID | Date | Decision | Reason | Supersedes |
+| --- | --- | --- | --- | --- |
+| DEC-046 | 2026-09-29 | Two Android test phones. (1) Nathan's Samsung Galaxy S22 Ultra (flagship; Snapdragon 8 Gen 1 in the US model) is used for the install check, gestures, the thermal soak learning run, the Android sim hash, save-kill and Play Billing checks. It cannot prove the low-end 30 fps floor. (2) A cheap low-end Android (Galaxy A14/A15 class, about US$100-150 used, price is Nathan's estimate) must be bought and is required for Gate 0 items 2, 4, 9 and the fps part of item 5. Exact model still to be recorded (open item 1). | A flagship is far faster than the phones the game must run on; passing on it proves nothing about the floor. Owning the flagship already lets the device work start now. | Extends DEC-034 (one named budget phone): the budget phone is still required. |
+| DEC-047 | 2026-09-29 | Frame rate targets: 30 fps floor on the low-end device (p95 frame time under 33 ms, no frame stall over 100 ms); 60 fps target on mid and high tier phones; the game gets a player-facing setting with 30, 60 and Auto. All numbers are placeholders until measured on the real low-end phone. Gate 0 row 2 (p95 at most 40 ms) is superseded by the 33 ms and 100 ms rules. The benchmark code's own verdict (`MHBenchStats.verdict`: average 30 fps and p95 at most 34.0 ms, no stall check) does not yet match and is to be aligned by workstream D. The 30/60/Auto setting is not implemented anywhere yet. | 30 fps is the floor that keeps the game playable on cheap phones; 60 fps is worth having on phones that can hold it; a setting lets players choose battery or smoothness. | Refines the 30 fps target in DEC-034 and GATE0 item 2. |
+
 ## E. Open items (no decision yet)
 
-1. Named low-end benchmark Android phone (DEC-034 has the rule, not the model).
+1. Named low-end benchmark Android phone (DEC-034 has the rule, DEC-046 says Galaxy A14/A15 class; the exact model is not yet bought or recorded).
 2. Demo wall placement details and the final conversion price (price is provisional until closed-test data).
 3. Whether expansions are paid or free (DEC-015).
 4. Real tier costs, score gates, member growth, start cash: to be set by the economy simulation (DEC-023).
