@@ -25,7 +25,7 @@ func after_test() -> void:
 
 
 func test_parse_counts_and_ignores_torn_lines() -> void:
-	var text: String = "B 1 10\nD 1 20\nB 2 30\nV OK 1 40\nD 2 5"
+	var text: String = "B 1 10\nD 1 20\nB 2 30\nV OK 1 40\nD 2"
 	text += "\nB 3 "  # torn final line
 	var p: Dictionary = MHGate0KillLog.parse(text)
 	assert_int(int(p["last_begun"])).is_equal(2)
