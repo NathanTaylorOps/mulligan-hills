@@ -1,0 +1,160 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.mulliganhills.example/achievements.schema.json",
+  "title": "Mulligan Hills achievements v1",
+  "description": "Achievement catalogue. Each achievement unlocks when ALL its conditions hold against the stats Dictionary the game keeps (monotone high-water marks, so nothing can be un-earned). Names and descriptions are string keys. Points feed club prestige. At least 40 entries.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "schema_version",
+    "status",
+    "achievements"
+  ],
+  "properties": {
+    "schema": {
+      "const": "mh.achievements"
+    },
+    "schema_version": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 1
+    },
+    "status": {
+      "type": "string"
+    },
+    "achievements": {
+      "type": "array",
+      "minItems": 40,
+      "maxItems": 200,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "category",
+          "tier",
+          "points",
+          "hidden",
+          "name_key",
+          "desc_key",
+          "all"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9_]{1,39}$"
+          },
+          "category": {
+            "enum": [
+              "design",
+              "buildings",
+              "growth",
+              "tournaments",
+              "commissions",
+              "daily",
+              "misc"
+            ]
+          },
+          "tier": {
+            "enum": [
+              "bronze",
+              "silver",
+              "gold",
+              "platinum"
+            ]
+          },
+          "points": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 1000
+          },
+          "hidden": {
+            "type": "boolean"
+          },
+          "name_key": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9_]*(\\.[a-z0-9_]+){1,4}$",
+            "maxLength": 80
+          },
+          "desc_key": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9_]*(\\.[a-z0-9_]+){1,4}$",
+            "maxLength": 80
+          },
+          "all": {
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 6,
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "stat",
+                "op",
+                "value"
+              ],
+              "properties": {
+                "stat": {
+                  "enum": [
+                    "holes_max",
+                    "holes_good_max",
+                    "best_hole_score",
+                    "best_course_score",
+                    "parcels_max",
+                    "members_max",
+                    "reputation_max",
+                    "lifetime_earned",
+                    "days_played",
+                    "buildings_built",
+                    "tier_sum",
+                    "tier5_count",
+                    "tournaments_hosted",
+                    "tournaments_attempted",
+                    "commissions_done",
+                    "commission_kinds",
+                    "challenges_completed",
+                    "challenges_attempted",
+                    "streak_best",
+                    "active_days",
+                    "cards_played",
+                    "tutorial_done",
+                    "golfers_finished",
+                    "level",
+                    "hosted_local",
+                    "hosted_regional",
+                    "hosted_national",
+                    "hosted_major",
+                    "best_axis",
+                    "tier_clubhouse",
+                    "tier_pro_shop",
+                    "tier_driving_range",
+                    "tier_restaurant",
+                    "tier_pool_spa",
+                    "tier_cart_barn",
+                    "tier_maintenance",
+                    "tier_lodging",
+                    "tier_homes",
+                    "tier_landmark"
+                  ]
+                },
+                "op": {
+                  "enum": [
+                    "gte",
+                    "lte",
+                    "eq"
+                  ]
+                },
+                "value": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 1000000000
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

@@ -18,7 +18,14 @@
       "pace": 200,
       "facilities": 200,
       "field_satisfaction": 150
-    }
+    },
+    "facility_buildings": [
+      "clubhouse",
+      "restaurant",
+      "pro_shop",
+      "cart_barn",
+      "maintenance"
+    ]
   },
   "levels": [
     {
@@ -66,6 +73,10 @@
           "bad_conditions",
           "low_snapshot_score"
         ]
+      },
+      "field": {
+        "skill_min": 450,
+        "skill_max": 800
       }
     },
     {
@@ -113,6 +124,10 @@
           "bad_conditions",
           "low_snapshot_score"
         ]
+      },
+      "field": {
+        "skill_min": 550,
+        "skill_max": 880
       }
     },
     {
@@ -164,6 +179,10 @@
           "bad_conditions",
           "low_snapshot_score"
         ]
+      },
+      "field": {
+        "skill_min": 700,
+        "skill_max": 950
       }
     },
     {
@@ -215,7 +234,92 @@
           "bad_conditions",
           "low_snapshot_score"
         ]
+      },
+      "field": {
+        "skill_min": 800,
+        "skill_max": 1000
       }
     }
+  ],
+  "conditions": [
+    {
+      "id": "calm",
+      "weight": 500,
+      "min_maintenance_tier": 1,
+      "strokes_x10": 0,
+      "satisfaction_penalty_pm": 0
+    },
+    {
+      "id": "breezy",
+      "weight": 250,
+      "min_maintenance_tier": 1,
+      "strokes_x10": 10,
+      "satisfaction_penalty_pm": 50
+    },
+    {
+      "id": "windy",
+      "weight": 150,
+      "min_maintenance_tier": 2,
+      "strokes_x10": 30,
+      "satisfaction_penalty_pm": 150
+    },
+    {
+      "id": "storm",
+      "weight": 100,
+      "min_maintenance_tier": 3,
+      "strokes_x10": 60,
+      "satisfaction_penalty_pm": 300
+    }
+  ],
+  "evaluation": {
+    "pace_fail_margin": 10,
+    "score_fail_margin": 3,
+    "unfair_fairness_below": 30,
+    "unfair_holes_to_fail": 2,
+    "unfair_satisfaction_penalty_pm": 100
+  },
+  "scoring": {
+    "mid_skill_pm": 700,
+    "slope_x100": 12,
+    "difficulty_divisor": 2400,
+    "hole_sd_x100": 60,
+    "min_over_hole": -2,
+    "max_over_hole": 4
+  },
+  "purse": {
+    "pct_of_host_cost": 40,
+    "places_permille": [
+      300,
+      180,
+      120,
+      90,
+      70,
+      60,
+      50,
+      50,
+      40,
+      40
+    ]
+  },
+  "cancel_refund_pct": 50,
+  "default_pars": [
+    4,
+    4,
+    3,
+    5,
+    4,
+    4,
+    3,
+    4,
+    5,
+    4,
+    3,
+    5,
+    4,
+    4,
+    4,
+    3,
+    5,
+    4
   ]
 }

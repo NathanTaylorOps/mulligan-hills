@@ -1,0 +1,984 @@
+{
+  "schema": "mh.commission_templates",
+  "schema_version": 1,
+  "templates": [
+    {
+      "id": "short_par3",
+      "weight": 100,
+      "min_avg_hole_score": 20,
+      "min_day": 5,
+      "expires_days": 10,
+      "client_kind": "member",
+      "brief": {
+        "par": [
+          3
+        ],
+        "min_length_yd": 110,
+        "max_length_yd": 170
+      },
+      "constraints": {
+        "require_hazards": [
+          "water"
+        ],
+        "max_trees": 40,
+        "min_hole_score": 55
+      },
+      "reward": {
+        "cash": 3000,
+        "reputation": 40
+      },
+      "text_keys": {
+        "title": "commission.short_par3.title",
+        "body": "commission.short_par3.body",
+        "success": "commission.short_par3.success",
+        "fail": "commission.short_par3.fail"
+      },
+      "variants": 3
+    },
+    {
+      "id": "simple_par3",
+      "weight": 100,
+      "min_avg_hole_score": 15,
+      "min_day": 3,
+      "expires_days": 12,
+      "client_kind": "member",
+      "brief": {
+        "par": [
+          3
+        ],
+        "min_length_yd": 90,
+        "max_length_yd": 160
+      },
+      "constraints": {
+        "min_hole_score": 40
+      },
+      "reward": {
+        "cash": 1800,
+        "reputation": 25
+      },
+      "text_keys": {
+        "title": "commission.simple_par3.title",
+        "body": "commission.simple_par3.body",
+        "success": "commission.simple_par3.success",
+        "fail": "commission.simple_par3.fail"
+      },
+      "variants": 2
+    },
+    {
+      "id": "bunker_par3",
+      "weight": 90,
+      "min_avg_hole_score": 20,
+      "min_day": 6,
+      "expires_days": 10,
+      "client_kind": "member",
+      "brief": {
+        "par": [
+          3
+        ],
+        "min_length_yd": 120,
+        "max_length_yd": 190
+      },
+      "constraints": {
+        "require_hazards": [
+          "bunker"
+        ],
+        "min_hole_score": 50
+      },
+      "reward": {
+        "cash": 2600,
+        "reputation": 35
+      },
+      "text_keys": {
+        "title": "commission.bunker_par3.title",
+        "body": "commission.bunker_par3.body",
+        "success": "commission.bunker_par3.success",
+        "fail": "commission.bunker_par3.fail"
+      },
+      "variants": 2
+    },
+    {
+      "id": "island_green_par3",
+      "weight": 40,
+      "min_avg_hole_score": 32,
+      "min_day": 20,
+      "expires_days": 14,
+      "client_kind": "celebrity",
+      "brief": {
+        "par": [
+          3
+        ],
+        "min_length_yd": 130,
+        "max_length_yd": 190
+      },
+      "constraints": {
+        "require_hazards": [
+          "water"
+        ],
+        "min_hole_score": 65,
+        "min_axis": {
+          "imagination": 60
+        }
+      },
+      "reward": {
+        "cash": 9000,
+        "reputation": 120,
+        "prestige": 10
+      },
+      "text_keys": {
+        "title": "commission.island_green_par3.title",
+        "body": "commission.island_green_par3.body",
+        "success": "commission.island_green_par3.success",
+        "fail": "commission.island_green_par3.fail"
+      },
+      "variants": 2
+    },
+    {
+      "id": "scenic_par3",
+      "weight": 80,
+      "min_avg_hole_score": 25,
+      "min_day": 10,
+      "expires_days": 12,
+      "client_kind": "local_business",
+      "brief": {
+        "par": [
+          3
+        ],
+        "min_length_yd": 110,
+        "max_length_yd": 180
+      },
+      "constraints": {
+        "min_axis": {
+          "beauty": 65
+        },
+        "min_hole_score": 55
+      },
+      "reward": {
+        "cash": 4200,
+        "reputation": 60
+      },
+      "text_keys": {
+        "title": "commission.scenic_par3.title",
+        "body": "commission.scenic_par3.body",
+        "success": "commission.scenic_par3.success",
+        "fail": "commission.scenic_par3.fail"
+      },
+      "variants": 2
+    },
+    {
+      "id": "charity_par3",
+      "weight": 60,
+      "min_avg_hole_score": 20,
+      "min_day": 8,
+      "expires_days": 15,
+      "client_kind": "charity",
+      "brief": {
+        "par": [
+          3
+        ],
+        "min_length_yd": 100,
+        "max_length_yd": 170
+      },
+      "constraints": {
+        "min_hole_score": 50,
+        "budget": 6000
+      },
+      "reward": {
+        "cash": 2200,
+        "reputation": 80,
+        "prestige": 5
+      },
+      "text_keys": {
+        "title": "commission.charity_par3.title",
+        "body": "commission.charity_par3.body",
+        "success": "commission.charity_par3.success",
+        "fail": "commission.charity_par3.fail"
+      },
+      "variants": 2
+    },
+    {
+      "id": "member_par4",
+      "weight": 120,
+      "min_avg_hole_score": 15,
+      "min_day": 3,
+      "expires_days": 12,
+      "client_kind": "member",
+      "brief": {
+        "par": [
+          4
+        ],
+        "min_length_yd": 320,
+        "max_length_yd": 420
+      },
+      "constraints": {
+        "min_hole_score": 45
+      },
+      "reward": {
+        "cash": 2400,
+        "reputation": 30
+      },
+      "text_keys": {
+        "title": "commission.member_par4.title",
+        "body": "commission.member_par4.body",
+        "success": "commission.member_par4.success",
+        "fail": "commission.member_par4.fail"
+      },
+      "variants": 3
+    },
+    {
+      "id": "straight_par4",
+      "weight": 100,
+      "min_avg_hole_score": 18,
+      "min_day": 6,
+      "expires_days": 12,
+      "client_kind": "member",
+      "brief": {
+        "par": [
+          4
+        ],
+        "min_length_yd": 340,
+        "max_length_yd": 440
+      },
+      "constraints": {
+        "min_axis": {
+          "fairness": 60
+        },
+        "min_hole_score": 50
+      },
+      "reward": {
+        "cash": 3200,
+        "reputation": 45
+      },
+      "text_keys": {
+        "title": "commission.straight_par4.title",
+        "body": "commission.straight_par4.body",
+        "success": "commission.straight_par4.success",
+        "fail": "commission.straight_par4.fail"
+      },
+      "variants": 2
+    },
+    {
+      "id": "dogleg_par4",
+      "weight": 100,
+      "min_avg_hole_score": 22,
+      "min_day": 10,
+      "expires_days": 12,
+      "client_kind": "member",
+      "brief": {
+        "par": [
+          4
+        ],
+        "min_length_yd": 340,
+        "max_length_yd": 450
+      },
+      "constraints": {
+        "min_axis": {
+          "imagination": 55
+        },
+        "min_hole_score": 55
+      },
+      "reward": {
+        "cash": 4000,
+        "reputation": 55
+      },
+      "text_keys": {
+        "title": "commission.dogleg_par4.title",
+        "body": "commission.dogleg_par4.body",
+        "success": "commission.dogleg_par4.success",
+        "fail": "commission.dogleg_par4.fail"
+      },
+      "variants": 2
+    },
+    {
+      "id": "water_par4",
+      "weight": 90,
+      "min_avg_hole_score": 25,
+      "min_day": 12,
+      "expires_days": 12,
+      "client_kind": "local_business",
+      "brief": {
+        "par": [
+          4
+        ],
+        "min_length_yd": 330,
+        "max_length_yd": 450
+      },
+      "constraints": {
+        "require_hazards": [
+          "water"
+        ],
+        "min_hole_score": 58
+      },
+      "reward": {
+        "cash": 4800,
+        "reputation": 65
+      },
+      "text_keys": {
+        "title": "commission.water_par4.title",
+        "body": "commission.water_par4.body",
+        "success": "commission.water_par4.success",
+        "fail": "commission.water_par4.fail"
+      },
+      "variants": 2
+    },
+    {
+      "id": "bunker_par4",
+      "weight": 90,
+      "min_avg_hole_score": 22,
+      "min_day": 8,
+      "expires_days": 12,
+      "client_kind": "member",
+      "brief": {
+        "par": [
+          4
+        ],
+        "min_length_yd": 330,
+        "max_length_yd": 440
+      },
+      "constraints": {
+        "require_hazards": [
+          "bunker"
+        ],
+        "min_axis": {
+          "accuracy": 55
+        }
+      },
+      "reward": {
+        "cash": 3600,
+        "reputation": 50
+      },
+      "text_keys": {
+        "title": "commission.bunker_par4.title",
+        "body": "commission.bunker_par4.body",
+        "success": "commission.bunker_par4.success",
+        "fail": "commission.bunker_par4.fail"
+      },
+      "variants": 2
+    },
+    {
+      "id": "drivable_par4",
+      "weight": 60,
+      "min_avg_hole_score": 30,
+      "min_day": 20,
+      "expires_days": 12,
+      "client_kind": "visiting_pro",
+      "brief": {
+        "par": [
+          4
+        ],
+        "min_length_yd": 250,
+        "max_length_yd": 320
+      },
+      "constraints": {
+        "min_axis": {
+          "imagination": 65
+        },
+        "min_hole_score": 60
+      },
+      "reward": {
+        "cash": 7500,
+        "reputation": 95,
+        "prestige": 5
+      },
+      "text_keys": {
+        "title": "commission.drivable_par4.title",
+        "body": "commission.drivable_par4.body",
+        "success": "commission.drivable_par4.success",
+        "fail": "commission.drivable_par4.fail"
+      },
+      "variants": 2
+    },
+    {
+      "id": "long_par4",
+      "weight": 70,
+      "min_avg_hole_score": 30,
+      "min_day": 18,
+      "expires_days": 14,
+      "client_kind": "visiting_pro",
+      "brief": {
+        "par": [
+          4
+        ],
+        "min_length_yd": 430,
+        "max_length_yd": 500
+      },
+      "constraints": {
+        "min_axis": {
+          "accuracy": 60
+        },
+        "min_hole_score": 60
+      },
+      "reward": {
+        "cash": 7000,
+        "reputation": 90,
+        "prestige": 5
+      },
+      "text_keys": {
+        "title": "commission.long_par4.title",
+        "body": "commission.long_par4.body",
+        "success": "commission.long_par4.success",
+        "fail": "commission.long_par4.fail"
+      },
+      "variants": 2
+    },
+    {
+      "id": "tree_lined_par4",
+      "weight": 70,
+      "min_avg_hole_score": 22,
+      "min_day": 10,
+      "expires_days": 12,
+      "client_kind": "local_business",
+      "brief": {
+        "par": [
+          4
+        ],
+        "min_length_yd": 330,
+        "max_length_yd": 440
+      },
+      "constraints": {
+        "min_hole_score": 52,
+        "max_trees": 400
+      },
+      "reward": {
+        "cash": 3800,
+        "reputation": 50
+      },
+      "text_keys": {
+        "title": "commission.tree_lined_par4.title",
+        "body": "commission.tree_lined_par4.body",
+        "success": "commission.tree_lined_par4.success",
+        "fail": "commission.tree_lined_par4.fail"
+      },
+      "variants": 2
+    },
+    {
+      "id": "waste_par4",
+      "weight": 50,
+      "min_avg_hole_score": 28,
+      "min_day": 16,
+      "expires_days": 12,
+      "client_kind": "local_business",
+      "brief": {
+        "par": [
+          4
+        ],
+        "min_length_yd": 350,
+        "max_length_yd": 460
+      },
+      "constraints": {
+        "require_hazards": [
+          "waste_area"
+        ],
+        "min_hole_score": 58
+      },
+      "reward": {
+        "cash": 5200,
+        "reputation": 70
+      },
+      "text_keys": {
+        "title": "commission.waste_par4.title",
+        "body": "commission.waste_par4.body",
+        "success": "commission.waste_par4.success",
+        "fail": "commission.waste_par4.fail"
+      },
+      "variants": 2
+    },
+    {
+      "id": "signature_par4",
+      "weight": 40,
+      "min_avg_hole_score": 36,
+      "min_day": 30,
+      "expires_days": 16,
+      "client_kind": "celebrity",
+      "brief": {
+        "par": [
+          4
+        ],
+        "min_length_yd": 380,
+        "max_length_yd": 480
+      },
+      "constraints": {
+        "min_hole_score": 72,
+        "min_axis": {
+          "beauty": 70,
+          "imagination": 65
+        }
+      },
+      "reward": {
+        "cash": 16000,
+        "reputation": 200,
+        "prestige": 20
+      },
+      "text_keys": {
+        "title": "commission.signature_par4.title",
+        "body": "commission.signature_par4.body",
+        "success": "commission.signature_par4.success",
+        "fail": "commission.signature_par4.fail"
+      },
+      "variants": 2
+    },
+    {
+      "id": "frugal_par4",
+      "weight": 70,
+      "min_avg_hole_score": 18,
+      "min_day": 6,
+      "expires_days": 14,
+      "client_kind": "charity",
+      "brief": {
+        "par": [
+          4
+        ],
+        "min_length_yd": 300,
+        "max_length_yd": 420
+      },
+      "constraints": {
+        "min_hole_score": 45,
+        "budget": 9000
+      },
+      "reward": {
+        "cash": 2600,
+        "reputation": 90,
+        "prestige": 5
+      },
+      "text_keys": {
+        "title": "commission.frugal_par4.title",
+        "body": "commission.frugal_par4.body",
+        "success": "commission.frugal_par4.success",
+        "fail": "commission.frugal_par4.fail"
+      },
+      "variants": 2
+    },
+    {
+      "id": "classic_par5",
+      "weight": 90,
+      "min_avg_hole_score": 25,
+      "min_day": 12,
+      "expires_days": 14,
+      "client_kind": "member",
+      "brief": {
+        "par": [
+          5
+        ],
+        "min_length_yd": 480,
+        "max_length_yd": 600
+      },
+      "constraints": {
+        "min_hole_score": 52
+      },
+      "reward": {
+        "cash": 4500,
+        "reputation": 55
+      },
+      "text_keys": {
+        "title": "commission.classic_par5.title",
+        "body": "commission.classic_par5.body",
+        "success": "commission.classic_par5.success",
+        "fail": "commission.classic_par5.fail"
+      },
+      "variants": 2
+    },
+    {
+      "id": "risk_reward_par5",
+      "weight": 70,
+      "min_avg_hole_score": 32,
+      "min_day": 20,
+      "expires_days": 14,
+      "client_kind": "visiting_pro",
+      "brief": {
+        "par": [
+          5
+        ],
+        "min_length_yd": 500,
+        "max_length_yd": 620
+      },
+      "constraints": {
+        "min_axis": {
+          "imagination": 68,
+          "fairness": 55
+        },
+        "min_hole_score": 62
+      },
+      "reward": {
+        "cash": 10000,
+        "reputation": 130,
+        "prestige": 10
+      },
+      "text_keys": {
+        "title": "commission.risk_reward_par5.title",
+        "body": "commission.risk_reward_par5.body",
+        "success": "commission.risk_reward_par5.success",
+        "fail": "commission.risk_reward_par5.fail"
+      },
+      "variants": 2
+    },
+    {
+      "id": "water_par5",
+      "weight": 60,
+      "min_avg_hole_score": 32,
+      "min_day": 18,
+      "expires_days": 14,
+      "client_kind": "local_business",
+      "brief": {
+        "par": [
+          5
+        ],
+        "min_length_yd": 500,
+        "max_length_yd": 620
+      },
+      "constraints": {
+        "require_hazards": [
+          "water"
+        ],
+        "min_hole_score": 60
+      },
+      "reward": {
+        "cash": 8000,
+        "reputation": 100,
+        "prestige": 5
+      },
+      "text_keys": {
+        "title": "commission.water_par5.title",
+        "body": "commission.water_par5.body",
+        "success": "commission.water_par5.success",
+        "fail": "commission.water_par5.fail"
+      },
+      "variants": 2
+    },
+    {
+      "id": "scenic_par5",
+      "weight": 60,
+      "min_avg_hole_score": 30,
+      "min_day": 18,
+      "expires_days": 14,
+      "client_kind": "local_business",
+      "brief": {
+        "par": [
+          5
+        ],
+        "min_length_yd": 480,
+        "max_length_yd": 620
+      },
+      "constraints": {
+        "min_axis": {
+          "beauty": 70
+        },
+        "min_hole_score": 60
+      },
+      "reward": {
+        "cash": 8500,
+        "reputation": 105,
+        "prestige": 5
+      },
+      "text_keys": {
+        "title": "commission.scenic_par5.title",
+        "body": "commission.scenic_par5.body",
+        "success": "commission.scenic_par5.success",
+        "fail": "commission.scenic_par5.fail"
+      },
+      "variants": 2
+    },
+    {
+      "id": "marathon_par5",
+      "weight": 40,
+      "min_avg_hole_score": 38,
+      "min_day": 30,
+      "expires_days": 16,
+      "client_kind": "visiting_pro",
+      "brief": {
+        "par": [
+          5
+        ],
+        "min_length_yd": 580,
+        "max_length_yd": 690
+      },
+      "constraints": {
+        "min_axis": {
+          "accuracy": 58
+        },
+        "min_hole_score": 65
+      },
+      "reward": {
+        "cash": 13000,
+        "reputation": 160,
+        "prestige": 15
+      },
+      "text_keys": {
+        "title": "commission.marathon_par5.title",
+        "body": "commission.marathon_par5.body",
+        "success": "commission.marathon_par5.success",
+        "fail": "commission.marathon_par5.fail"
+      },
+      "variants": 2
+    },
+    {
+      "id": "charity_par5",
+      "weight": 50,
+      "min_avg_hole_score": 26,
+      "min_day": 14,
+      "expires_days": 16,
+      "client_kind": "charity",
+      "brief": {
+        "par": [
+          5
+        ],
+        "min_length_yd": 470,
+        "max_length_yd": 600
+      },
+      "constraints": {
+        "min_hole_score": 52,
+        "budget": 14000
+      },
+      "reward": {
+        "cash": 4000,
+        "reputation": 140,
+        "prestige": 10
+      },
+      "text_keys": {
+        "title": "commission.charity_par5.title",
+        "body": "commission.charity_par5.body",
+        "success": "commission.charity_par5.success",
+        "fail": "commission.charity_par5.fail"
+      },
+      "variants": 2
+    },
+    {
+      "id": "tricky_any",
+      "weight": 70,
+      "min_avg_hole_score": 28,
+      "min_day": 15,
+      "expires_days": 12,
+      "client_kind": "member",
+      "brief": {
+        "par": [
+          3,
+          4
+        ],
+        "min_length_yd": 150,
+        "max_length_yd": 450
+      },
+      "constraints": {
+        "min_axis": {
+          "imagination": 60,
+          "fairness": 55
+        },
+        "min_hole_score": 60
+      },
+      "reward": {
+        "cash": 5000,
+        "reputation": 60
+      },
+      "text_keys": {
+        "title": "commission.tricky_any.title",
+        "body": "commission.tricky_any.body",
+        "success": "commission.tricky_any.success",
+        "fail": "commission.tricky_any.fail"
+      },
+      "variants": 2
+    },
+    {
+      "id": "hazard_mix_par4",
+      "weight": 60,
+      "min_avg_hole_score": 30,
+      "min_day": 18,
+      "expires_days": 14,
+      "client_kind": "visiting_pro",
+      "brief": {
+        "par": [
+          4
+        ],
+        "min_length_yd": 340,
+        "max_length_yd": 460
+      },
+      "constraints": {
+        "require_hazards": [
+          "water",
+          "bunker"
+        ],
+        "min_hole_score": 62
+      },
+      "reward": {
+        "cash": 7200,
+        "reputation": 85,
+        "prestige": 5
+      },
+      "text_keys": {
+        "title": "commission.hazard_mix_par4.title",
+        "body": "commission.hazard_mix_par4.body",
+        "success": "commission.hazard_mix_par4.success",
+        "fail": "commission.hazard_mix_par4.fail"
+      },
+      "variants": 2
+    },
+    {
+      "id": "fair_test",
+      "weight": 70,
+      "min_avg_hole_score": 26,
+      "min_day": 12,
+      "expires_days": 14,
+      "client_kind": "member",
+      "brief": {
+        "par": [
+          3,
+          4,
+          5
+        ],
+        "min_length_yd": 150,
+        "max_length_yd": 600
+      },
+      "constraints": {
+        "min_axis": {
+          "fairness": 70
+        },
+        "min_hole_score": 58
+      },
+      "reward": {
+        "cash": 4600,
+        "reputation": 60
+      },
+      "text_keys": {
+        "title": "commission.fair_test.title",
+        "body": "commission.fair_test.body",
+        "success": "commission.fair_test.success",
+        "fail": "commission.fair_test.fail"
+      },
+      "variants": 2
+    },
+    {
+      "id": "beauty_showcase",
+      "weight": 50,
+      "min_avg_hole_score": 34,
+      "min_day": 25,
+      "expires_days": 16,
+      "client_kind": "celebrity",
+      "brief": {
+        "par": [
+          3,
+          4,
+          5
+        ],
+        "min_length_yd": 150,
+        "max_length_yd": 600
+      },
+      "constraints": {
+        "min_axis": {
+          "beauty": 75
+        },
+        "min_hole_score": 68
+      },
+      "reward": {
+        "cash": 12000,
+        "reputation": 150,
+        "prestige": 15
+      },
+      "text_keys": {
+        "title": "commission.beauty_showcase.title",
+        "body": "commission.beauty_showcase.body",
+        "success": "commission.beauty_showcase.success",
+        "fail": "commission.beauty_showcase.fail"
+      },
+      "variants": 2
+    },
+    {
+      "id": "open_qualifier",
+      "weight": 40,
+      "min_avg_hole_score": 42,
+      "min_day": 45,
+      "expires_days": 16,
+      "client_kind": "visiting_pro",
+      "brief": {
+        "par": [
+          4,
+          5
+        ],
+        "min_length_yd": 380,
+        "max_length_yd": 600
+      },
+      "constraints": {
+        "min_hole_score": 70,
+        "min_axis": {
+          "accuracy": 62,
+          "fairness": 60
+        }
+      },
+      "reward": {
+        "cash": 18000,
+        "reputation": 210,
+        "prestige": 20
+      },
+      "text_keys": {
+        "title": "commission.open_qualifier.title",
+        "body": "commission.open_qualifier.body",
+        "success": "commission.open_qualifier.success",
+        "fail": "commission.open_qualifier.fail"
+      },
+      "variants": 2
+    },
+    {
+      "id": "junior_par3",
+      "weight": 60,
+      "min_avg_hole_score": 18,
+      "min_day": 6,
+      "expires_days": 14,
+      "client_kind": "charity",
+      "brief": {
+        "par": [
+          3
+        ],
+        "min_length_yd": 80,
+        "max_length_yd": 140
+      },
+      "constraints": {
+        "min_hole_score": 42,
+        "max_trees": 60
+      },
+      "reward": {
+        "cash": 1900,
+        "reputation": 70,
+        "prestige": 5
+      },
+      "text_keys": {
+        "title": "commission.junior_par3.title",
+        "body": "commission.junior_par3.body",
+        "success": "commission.junior_par3.success",
+        "fail": "commission.junior_par3.fail"
+      },
+      "variants": 2
+    },
+    {
+      "id": "legacy_hole",
+      "weight": 30,
+      "min_avg_hole_score": 46,
+      "min_day": 60,
+      "expires_days": 20,
+      "client_kind": "celebrity",
+      "brief": {
+        "par": [
+          3,
+          4,
+          5
+        ],
+        "min_length_yd": 150,
+        "max_length_yd": 650
+      },
+      "constraints": {
+        "min_hole_score": 78,
+        "min_axis": {
+          "imagination": 70,
+          "beauty": 70,
+          "fairness": 60
+        }
+      },
+      "reward": {
+        "cash": 30000,
+        "reputation": 300,
+        "prestige": 40
+      },
+      "text_keys": {
+        "title": "commission.legacy_hole.title",
+        "body": "commission.legacy_hole.body",
+        "success": "commission.legacy_hole.success",
+        "fail": "commission.legacy_hole.fail"
+      },
+      "variants": 2
+    }
+  ]
+}

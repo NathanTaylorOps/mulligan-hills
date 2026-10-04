@@ -10,9 +10,10 @@
     "schema_version",
     "status",
     "score_scale",
-    "land",
     "hole_cap",
-    "cost_multiplier_x100",
+    "hole_rules",
+    "demo",
+    "land",
     "rules",
     "buildings"
   ],
@@ -21,9 +22,7 @@
       "const": "mh.buildings"
     },
     "schema_version": {
-      "type": "integer",
-      "minimum": 1,
-      "maximum": 1
+      "const": 2
     },
     "status": {
       "type": "string"
@@ -53,43 +52,143 @@
       "additionalProperties": false,
       "required": [
         "unit",
-        "holes_per_parcel",
+        "max_parcels",
+        "golf_parcels",
+        "facility_parcels",
+        "homes_parcels",
         "start_parcels",
-        "max_parcels"
+        "holes_per_two_golf_parcels",
+        "home_slots_per_homes_parcel",
+        "heavy_extra_parcels",
+        "parcel_base_cost",
+        "parcel_growth_pct",
+        "grid",
+        "parcels"
       ],
+      "description": "DEC-056 working model: 16 parcels (12 golf, 2 facility, 2 homes) on a grid. Hole capacity = owned golf parcels * holes_per_two_golf_parcels / 2 (integer division).",
       "properties": {
         "unit": {
           "const": "parcel"
         },
-        "holes_per_parcel": {
+        "max_parcels": {
+          "const": 16
+        },
+        "golf_parcels": {
           "type": "integer",
           "minimum": 1,
-          "maximum": 9
+          "maximum": 16
+        },
+        "facility_parcels": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 16
+        },
+        "homes_parcels": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 16
         },
         "start_parcels": {
           "type": "integer",
           "minimum": 1,
-          "maximum": 9
+          "maximum": 16
         },
-        "max_parcels": {
+        "holes_per_two_golf_parcels": {
           "type": "integer",
           "minimum": 1,
-          "maximum": 16
+          "maximum": 9
+        },
+        "home_slots_per_homes_parcel": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 6
+        },
+        "heavy_extra_parcels": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 4
+        },
+        "parcel_base_cost": {
+          "type": "integer",
+          "minimum": 1000,
+          "maximum": 1000000
+        },
+        "parcel_growth_pct": {
+          "type": "integer",
+          "minimum": 100,
+          "maximum": 200
+        },
+        "grid": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "cols",
+            "rows",
+            "adjacency"
+          ],
+          "properties": {
+            "cols": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 16
+            },
+            "rows": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 16
+            },
+            "adjacency": {
+              "const": "orthogonal"
+            }
+          }
+        },
+        "parcels": {
+          "type": "array",
+          "minItems": 16,
+          "maxItems": 16,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "id",
+              "kind",
+              "col",
+              "row",
+              "start_owned"
+            ],
+            "properties": {
+              "id": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 15
+              },
+              "kind": {
+                "enum": [
+                  "golf",
+                  "facility",
+                  "homes"
+                ]
+              },
+              "col": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 15
+              },
+              "row": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 15
+              },
+              "start_owned": {
+                "type": "boolean"
+              }
+            }
+          }
         }
       }
     },
     "hole_cap": {
       "const": 18
-    },
-    "cost_multiplier_x100": {
-      "type": "array",
-      "minItems": 5,
-      "maxItems": 5,
-      "items": {
-        "type": "integer",
-        "minimum": 1,
-        "maximum": 100000
-      }
     },
     "rules": {
       "type": "object",
@@ -122,7 +221,6 @@
           "id",
           "name_key",
           "desc_key",
-          "base_cost",
           "land_class",
           "demo_max_tier",
           "tier3_specs",
@@ -152,11 +250,6 @@
             "type": "string",
             "pattern": "^[a-z][a-z0-9_]*(\\.[a-z0-9_]+){1,4}$",
             "maxLength": 80
-          },
-          "base_cost": {
-            "type": "integer",
-            "minimum": 1,
-            "maximum": 10000000
           },
           "land_class": {
             "enum": [
@@ -205,7 +298,7 @@
               "required": [
                 "tier",
                 "name_key",
-                "cost",
+                "target_payback_days",
                 "upkeep_per_day",
                 "requires"
               ],
@@ -220,10 +313,11 @@
                   "pattern": "^[a-z][a-z0-9_]*(\\.[a-z0-9_]+){1,4}$",
                   "maxLength": 80
                 },
-                "cost": {
+                "target_payback_days": {
                   "type": "integer",
-                  "minimum": 0,
-                  "maximum": 1000000000
+                  "minimum": 1,
+                  "maximum": 365,
+                  "description": "DEC-050: price = target_payback_days x added daily income (economy computes it). Placeholder curve 6/8/10/12/15."
                 },
                 "upkeep_per_day": {
                   "type": "integer",
@@ -256,7 +350,7 @@
                     "min_parcels_owned": {
                       "type": "integer",
                       "minimum": 0,
-                      "maximum": 9
+                      "maximum": 16
                     },
                     "min_members": {
                       "type": "integer",
@@ -352,7 +446,66 @@
                 }
               }
             }
+          },
+          "home_slots": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "max_slots",
+              "upgrade_mode"
+            ],
+            "description": "Homes only. Upgrading a tier replaces the standing homes with the newer bigger model; it never adds slots.",
+            "properties": {
+              "max_slots": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 12
+              },
+              "upgrade_mode": {
+                "const": "replace"
+              }
+            }
+          },
+          "needs_parcel_kind": {
+            "enum": [
+              "facility",
+              "homes"
+            ],
+            "description": "Optional. The building also needs at least one owned parcel of this kind (Homes need a homes parcel to hold their slots)."
           }
+        }
+      }
+    },
+    "hole_rules": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "dead_hole_score_below",
+        "dead_holes_count_toward_gates"
+      ],
+      "description": "DEC-048: a hole scoring below dead_hole_score_below does not count toward the hole-count gates.",
+      "properties": {
+        "dead_hole_score_below": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 100
+        },
+        "dead_holes_count_toward_gates": {
+          "const": false
+        }
+      }
+    },
+    "demo": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "max_holes"
+      ],
+      "properties": {
+        "max_holes": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 18
         }
       }
     }

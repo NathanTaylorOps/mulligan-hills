@@ -1,0 +1,189 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.mulliganhills.example/progression.schema.json",
+  "title": "Mulligan Hills progression data v1",
+  "description": "Club level table (prestige points needed, unlock ids), how prestige points are earned from monotone stats, and the daily-streak rules (grace, soft resume, milestones). No punishing mechanics: a broken streak resumes at a reduced value, never at zero.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "schema_version",
+    "status",
+    "levels",
+    "milestones",
+    "streak"
+  ],
+  "properties": {
+    "schema": {
+      "const": "mh.progression"
+    },
+    "schema_version": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 1
+    },
+    "status": {
+      "type": "string"
+    },
+    "levels": {
+      "type": "array",
+      "minItems": 2,
+      "maxItems": 50,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "level",
+          "prestige_needed",
+          "title_key",
+          "unlocks"
+        ],
+        "properties": {
+          "level": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 50
+          },
+          "prestige_needed": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 100000000
+          },
+          "title_key": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9_]*(\\.[a-z0-9_]+){1,4}$",
+            "maxLength": 80
+          },
+          "unlocks": {
+            "type": "array",
+            "uniqueItems": true,
+            "items": {
+              "type": "string",
+              "pattern": "^[a-z][a-z0-9_]{1,39}$"
+            }
+          }
+        }
+      }
+    },
+    "milestones": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "per_hole",
+        "per_building_tier_step",
+        "per_course_score_point",
+        "members_div",
+        "members_cap",
+        "challenge_completed",
+        "challenge_attempted",
+        "commission_done_base"
+      ],
+      "properties": {
+        "per_hole": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 100000
+        },
+        "per_building_tier_step": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 100000
+        },
+        "per_course_score_point": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 100000
+        },
+        "members_div": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 100000
+        },
+        "members_cap": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 100000
+        },
+        "challenge_completed": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 100000
+        },
+        "challenge_attempted": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 100000
+        },
+        "commission_done_base": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 100000
+        }
+      }
+    },
+    "streak": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "grace_start",
+        "grace_max",
+        "grace_regain_every_days",
+        "max_bridge_days",
+        "resume_percent",
+        "milestones"
+      ],
+      "properties": {
+        "grace_start": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 10
+        },
+        "grace_max": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 10
+        },
+        "grace_regain_every_days": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 365
+        },
+        "max_bridge_days": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 10
+        },
+        "resume_percent": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 100
+        },
+        "milestones": {
+          "type": "array",
+          "minItems": 0,
+          "maxItems": 20,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "days",
+              "points"
+            ],
+            "properties": {
+              "days": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 10000
+              },
+              "points": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 100000
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

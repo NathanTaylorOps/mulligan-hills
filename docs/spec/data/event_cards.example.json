@@ -38,6 +38,11 @@
             }
           ]
         }
+      ],
+      "seasons": [
+        "spring",
+        "summer",
+        "autumn"
       ]
     },
     {
@@ -75,7 +80,8 @@
           "outcome_key": "card.vip_visit.b_out",
           "effects": []
         }
-      ]
+      ],
+      "min_tier": 2
     }
   ]
 }

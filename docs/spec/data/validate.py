@@ -70,13 +70,54 @@ b = copy.deepcopy(loaded["buildings.json"]); b["buildings"][0]["tiers"][4]["requ
 # --- semantic: buildings
 B = loaded["buildings.json"]; by = {b["id"]: b for b in B["buildings"]}
 if len(by) != 10: bad("buildings: ids not unique")
-mult = B["cost_multiplier_x100"]
+GATE_SCORES = [0, 32, 42, 52, 62]; GATE_HOLES = [0, 6, 10, 14, 18]
+LIGHT_PARCELS = [5, 5, 8, 11, 14]
+DEMO_CAPS = {"clubhouse": 2, "pro_shop": 2, "driving_range": 2, "restaurant": 1}
 for b in B["buildings"]:
     for i, t in enumerate(b["tiers"]):
         if t["tier"] != i + 1: bad(f"{b['id']}: tier order")
-        if t["cost"] != b["base_cost"] * mult[i] // 100: bad(f"{b['id']} t{t['tier']}: cost != base*multiplier")
-    costs = [t["cost"] for t in b["tiers"]]
-    if costs != sorted(costs): bad(f"{b['id']}: costs not increasing")
+        if "cost" in t or "base_cost" in b: bad(f"{b['id']} t{t['tier']}: fixed cost present, DEC-050 uses target_payback_days")
+        r = t["requires"]
+        if r["min_avg_hole_score"] != GATE_SCORES[i]: bad(f"{b['id']} t{t['tier']}: score gate {r['min_avg_hole_score']} != {GATE_SCORES[i]} (DEC-048)")
+        if r["min_holes"] != GATE_HOLES[i]: bad(f"{b['id']} t{t['tier']}: hole gate {r['min_holes']} != {GATE_HOLES[i]}")
+        want_p = LIGHT_PARCELS[i] + (B["land"]["heavy_extra_parcels"] if b["land_class"] == "heavy" and t["tier"] >= 2 else 0)
+        if r["min_parcels_owned"] != want_p: bad(f"{b['id']} t{t['tier']}: min_parcels_owned {r['min_parcels_owned']} != {want_p} (DEC-056 heavy +1 at tiers 2-5)")
+    pays = [t["target_payback_days"] for t in b["tiers"]]
+    if pays != sorted(pays): bad(f"{b['id']}: target_payback_days must not decrease with tier")
+    if b["demo_max_tier"] != DEMO_CAPS.get(b["id"], 0): bad(f"{b['id']}: demo_max_tier {b['demo_max_tier']} != DEC-055 {DEMO_CAPS.get(b['id'], 0)}")
+    if b.get("needs_parcel_kind") != ("homes" if b["id"] == "homes" else None): bad(f"{b['id']}: needs_parcel_kind belongs on homes only")
+    if ("home_slots" in b) != (b["id"] == "homes"): bad(f"{b['id']}: home_slots belongs on homes only")
+if {b["id"] for b in B["buildings"] if b["land_class"] == "heavy"} != {"driving_range", "pool_spa", "lodging", "homes", "landmark"}: bad("heavy set must be driving_range, pool_spa, lodging, homes, landmark (DEC-056)")
+if B["demo"]["max_holes"] != 9: bad("demo max_holes must be 9 (DEC-055)")
+# land layout
+L = B["land"]; P = L["parcels"]
+if [p["id"] for p in P] != list(range(16)): bad("land: parcel ids must be 0..15 in order")
+for k, n in (("golf", L["golf_parcels"]), ("facility", L["facility_parcels"]), ("homes", L["homes_parcels"])):
+    if sum(1 for p in P if p["kind"] == k) != n: bad(f"land: {k} parcel count != {n}")
+if (L["golf_parcels"], L["facility_parcels"], L["homes_parcels"]) != (12, 2, 2): bad("land: must be 12 golf, 2 facility, 2 homes (DEC-056)")
+if L["golf_parcels"] * L["holes_per_two_golf_parcels"] // 2 != B["hole_cap"]: bad("land: all golf parcels must hold exactly hole_cap holes")
+if L["homes_parcels"] * L["home_slots_per_homes_parcel"] != B["buildings"][8]["home_slots"]["max_slots"]: bad("land: homes parcels x slots != homes max_slots")
+if any(p["col"] != p["id"] % L["grid"]["cols"] or p["row"] != p["id"] // L["grid"]["cols"] for p in P): bad("land: col/row must be id-derived (row-major)")
+own = {p["id"] for p in P if p["start_owned"]}
+if len(own) != L["start_parcels"]: bad("land: start_owned count != start_parcels")
+if sum(1 for p in P if p["start_owned"] and p["kind"] == "golf") * L["holes_per_two_golf_parcels"] // 2 != 6: bad("land: start plot must hold 6 holes (DEC-056)")
+def nbrs(i): 
+    c, r = i % L["grid"]["cols"], i // L["grid"]["cols"]
+    return [rr * L["grid"]["cols"] + cc for cc, rr in ((c+1, r), (c-1, r), (c, r+1), (c, r-1)) if 0 <= cc < L["grid"]["cols"] and 0 <= rr < L["grid"]["rows"]]
+seen = {min(own)}; fr = [min(own)]
+while fr:
+    x = fr.pop()
+    for y in nbrs(x):
+        if y in own and y not in seen: seen.add(y); fr.append(y)
+if seen != own: bad("land: start plot must be one connected block")
+ok("buildings: gates, payback, heavy parcels, demo caps and land layout match DEC-048/050/055/056")
+# runtime copy shipped in the game (docs/ and tests/ are not exported to Android)
+COPY = os.path.join(HERE, "..", "..", "..", "game", "data", "buildings.json")
+if not os.path.exists(COPY): bad("game/data/buildings.json (runtime copy) missing")
+else:
+    with open(COPY, encoding="utf-8") as f1, open(os.path.join(HERE, "buildings.json"), encoding="utf-8") as f2:
+        if json.load(f1) != json.load(f2): bad("game/data/buildings.json differs from docs/spec/data/buildings.json")
+        else: ok("game/data/buildings.json equals docs/spec/data/buildings.json")
     for t in b["tiers"]:
         r = t["requires"]
         if t["tier"] == 5 and not r["hosted_tournament"]: bad(f"{b['id']}: tier 5 needs a hosted tournament")

@@ -1,0 +1,281 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.mulliganhills.example/daily_challenges.schema.json",
+  "title": "Mulligan Hills daily challenge templates v1",
+  "description": "Templates for the deterministic daily challenge. A challenge is generated from the UTC day number: template, difficulty and thresholds come from the deterministic RNG. Range pairs are [easy_value, hard_value]: min-style thresholds rise with difficulty, max-style thresholds fall, so the pair order shows which end is easier.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "schema_version",
+    "status",
+    "attempts_per_day",
+    "history_days",
+    "local_board_cap",
+    "difficulty_weights",
+    "jitter_step",
+    "round_step",
+    "generation_salt",
+    "sim_seed_tag",
+    "templates"
+  ],
+  "properties": {
+    "schema": {
+      "const": "mh.daily_challenges"
+    },
+    "schema_version": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 1
+    },
+    "status": {
+      "type": "string"
+    },
+    "attempts_per_day": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 10
+    },
+    "history_days": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 90
+    },
+    "local_board_cap": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 500
+    },
+    "difficulty_weights": {
+      "type": "array",
+      "minItems": 3,
+      "maxItems": 3,
+      "items": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 1000
+      }
+    },
+    "jitter_step": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 25
+    },
+    "round_step": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 25
+    },
+    "generation_salt": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 4294967295
+    },
+    "sim_seed_tag": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 4294967295
+    },
+    "templates": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 100,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "weight",
+          "par",
+          "axis_min",
+          "axis_max",
+          "text_keys"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9_]{1,39}$"
+          },
+          "weight": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 1000
+          },
+          "par": {
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 3,
+            "uniqueItems": true,
+            "items": {
+              "type": "integer",
+              "minimum": 3,
+              "maximum": 5
+            }
+          },
+          "axis_min": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "accuracy": {
+                "type": "array",
+                "minItems": 2,
+                "maxItems": 2,
+                "items": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 100
+                }
+              },
+              "imagination": {
+                "type": "array",
+                "minItems": 2,
+                "maxItems": 2,
+                "items": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 100
+                }
+              },
+              "length": {
+                "type": "array",
+                "minItems": 2,
+                "maxItems": 2,
+                "items": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 100
+                }
+              },
+              "beauty": {
+                "type": "array",
+                "minItems": 2,
+                "maxItems": 2,
+                "items": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 100
+                }
+              },
+              "fairness": {
+                "type": "array",
+                "minItems": 2,
+                "maxItems": 2,
+                "items": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 100
+                }
+              }
+            }
+          },
+          "axis_max": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "accuracy": {
+                "type": "array",
+                "minItems": 2,
+                "maxItems": 2,
+                "items": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 100
+                }
+              },
+              "imagination": {
+                "type": "array",
+                "minItems": 2,
+                "maxItems": 2,
+                "items": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 100
+                }
+              },
+              "length": {
+                "type": "array",
+                "minItems": 2,
+                "maxItems": 2,
+                "items": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 100
+                }
+              },
+              "beauty": {
+                "type": "array",
+                "minItems": 2,
+                "maxItems": 2,
+                "items": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 100
+                }
+              },
+              "fairness": {
+                "type": "array",
+                "minItems": 2,
+                "maxItems": 2,
+                "items": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 100
+                }
+              }
+            }
+          },
+          "max_length_yd": {
+            "type": "array",
+            "minItems": 2,
+            "maxItems": 2,
+            "items": {
+              "type": "integer",
+              "minimum": 50,
+              "maximum": 700
+            }
+          },
+          "min_length_yd": {
+            "type": "array",
+            "minItems": 2,
+            "maxItems": 2,
+            "items": {
+              "type": "integer",
+              "minimum": 50,
+              "maximum": 700
+            }
+          },
+          "min_score": {
+            "type": "array",
+            "minItems": 2,
+            "maxItems": 2,
+            "items": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 100
+            }
+          },
+          "text_keys": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "title",
+              "desc"
+            ],
+            "properties": {
+              "title": {
+                "type": "string",
+                "pattern": "^[a-z][a-z0-9_]*(\\.[a-z0-9_]+){1,4}$",
+                "maxLength": 80
+              },
+              "desc": {
+                "type": "string",
+                "pattern": "^[a-z][a-z0-9_]*(\\.[a-z0-9_]+){1,4}$",
+                "maxLength": 80
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

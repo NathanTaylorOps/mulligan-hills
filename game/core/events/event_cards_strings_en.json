@@ -1,0 +1,1589 @@
+{
+  "note": "DRAFT English strings for event_cards.json. Owner of game/data/strings/en.json should merge these (status draft).",
+  "strings": {
+    "card.storm_warning.title": {
+      "text": "Storm on the Radar",
+      "status": "draft"
+    },
+    "card.storm_warning.body": {
+      "text": "The forecast shows a big storm rolling in tomorrow. The grounds crew asks what to do about the flags and tee markers.",
+      "status": "draft"
+    },
+    "card.storm_warning.a": {
+      "text": "Secure everything today",
+      "status": "draft"
+    },
+    "card.storm_warning.a_out": {
+      "text": "The crew tied down every marker and cover. The storm passes with little damage.",
+      "status": "draft"
+    },
+    "card.storm_warning.b": {
+      "text": "Take the risk",
+      "status": "draft"
+    },
+    "card.storm_warning.b_out": {
+      "text": "Some markers blew across the fairways and members grumbled about the mess.",
+      "status": "draft"
+    },
+    "card.rainbow_after_shower.title": {
+      "text": "Rainbow Over the Ninth",
+      "status": "draft"
+    },
+    "card.rainbow_after_shower.body": {
+      "text": "A double rainbow arcs over the ninth green after the shower. Golfers are stopping to take photos.",
+      "status": "draft"
+    },
+    "card.rainbow_after_shower.a": {
+      "text": "Post a photo of it",
+      "status": "draft"
+    },
+    "card.rainbow_after_shower.a_out": {
+      "text": "Your photo goes round the local groups. A few curious golfers come out to see it.",
+      "status": "draft"
+    },
+    "card.rainbow_after_shower.b": {
+      "text": "Keep play moving",
+      "status": "draft"
+    },
+    "card.rainbow_after_shower.b_out": {
+      "text": "Rounds run on time and nobody is delayed.",
+      "status": "draft"
+    },
+    "card.heatwave.title": {
+      "text": "Heatwave Weekend",
+      "status": "draft"
+    },
+    "card.heatwave.body": {
+      "text": "Temperatures are soaring. Golfers are wilting and the greens are drying out fast.",
+      "status": "draft"
+    },
+    "card.heatwave.a": {
+      "text": "Add water stations",
+      "status": "draft"
+    },
+    "card.heatwave.a_out": {
+      "text": "Cold water at every tee keeps golfers happy. It costs a bit.",
+      "status": "draft"
+    },
+    "card.heatwave.b": {
+      "text": "Water the greens extra",
+      "status": "draft"
+    },
+    "card.heatwave.b_out": {
+      "text": "The greens stay lush but the water bill climbs.",
+      "status": "draft"
+    },
+    "card.heatwave.c": {
+      "text": "Do nothing",
+      "status": "draft"
+    },
+    "card.heatwave.c_out": {
+      "text": "Tired golfers cut their rounds short.",
+      "status": "draft"
+    },
+    "card.cool_breeze.title": {
+      "text": "Perfect Golf Weather",
+      "status": "draft"
+    },
+    "card.cool_breeze.body": {
+      "text": "Blue skies, light breeze, and not a cloud in sight. Everyone wants to play today.",
+      "status": "draft"
+    },
+    "card.cool_breeze.a": {
+      "text": "Open extra tee times",
+      "status": "draft"
+    },
+    "card.cool_breeze.a_out": {
+      "text": "More tee times means more golfers on the course.",
+      "status": "draft"
+    },
+    "card.cool_breeze.b": {
+      "text": "Keep the pace relaxed",
+      "status": "draft"
+    },
+    "card.cool_breeze.b_out": {
+      "text": "Golfers enjoy an unhurried round and say so on the way out.",
+      "status": "draft"
+    },
+    "card.morning_fog.title": {
+      "text": "Thick Morning Fog",
+      "status": "draft"
+    },
+    "card.morning_fog.body": {
+      "text": "Fog is hanging over the fairways. Golfers cannot see the flags from the tee.",
+      "status": "draft"
+    },
+    "card.morning_fog.a": {
+      "text": "Delay the first tee times",
+      "status": "draft"
+    },
+    "card.morning_fog.a_out": {
+      "text": "The fog lifts by mid morning. A few golfers go home.",
+      "status": "draft"
+    },
+    "card.morning_fog.b": {
+      "text": "Send golfers out anyway",
+      "status": "draft"
+    },
+    "card.morning_fog.b_out": {
+      "text": "Some shots vanish into the mist. Golfers find it funny and mostly stay cheerful.",
+      "status": "draft"
+    },
+    "card.frost_delay.title": {
+      "text": "Frosty Fairways",
+      "status": "draft"
+    },
+    "card.frost_delay.body": {
+      "text": "A hard frost has turned the fairways white and crunchy.",
+      "status": "draft"
+    },
+    "card.frost_delay.a": {
+      "text": "Wait for the sun",
+      "status": "draft"
+    },
+    "card.frost_delay.a_out": {
+      "text": "The frost melts by noon. The first hours are quiet.",
+      "status": "draft"
+    },
+    "card.frost_delay.b": {
+      "text": "Hire a frost crew",
+      "status": "draft"
+    },
+    "card.frost_delay.b_out": {
+      "text": "A small crew clears the worst spots and play starts on time.",
+      "status": "draft"
+    },
+    "card.windy_day.title": {
+      "text": "Windy Day",
+      "status": "draft"
+    },
+    "card.windy_day.body": {
+      "text": "Gusts are blowing hats across the practice green. Scores are creeping up.",
+      "status": "draft"
+    },
+    "card.windy_day.a": {
+      "text": "Hand out free wind tips",
+      "status": "draft"
+    },
+    "card.windy_day.a_out": {
+      "text": "The pro shop gives out a tip card. Golfers love it.",
+      "status": "draft"
+    },
+    "card.windy_day.b": {
+      "text": "Let them figure it out",
+      "status": "draft"
+    },
+    "card.windy_day.b_out": {
+      "text": "Golfers blame the wind and take it in good humour.",
+      "status": "draft"
+    },
+    "card.surprise_snow.title": {
+      "text": "Surprise Snowfall",
+      "status": "draft"
+    },
+    "card.surprise_snow.body": {
+      "text": "A light snowfall has covered the course overnight. Kids in the neighbourhood are out with sledges.",
+      "status": "draft"
+    },
+    "card.surprise_snow.a": {
+      "text": "Host a snowman contest",
+      "status": "draft"
+    },
+    "card.surprise_snow.a_out": {
+      "text": "The community loves it. Nobody plays golf, but everyone talks about it.",
+      "status": "draft"
+    },
+    "card.surprise_snow.b": {
+      "text": "Close for the day",
+      "status": "draft"
+    },
+    "card.surprise_snow.b_out": {
+      "text": "The crew clears paths and the club stays tidy.",
+      "status": "draft"
+    },
+    "card.flooded_bunkers.title": {
+      "text": "Bunkers Turned Ponds",
+      "status": "draft"
+    },
+    "card.flooded_bunkers.body": {
+      "text": "The rain has filled the bunkers. A few ducks have moved in and are swimming happily.",
+      "status": "draft"
+    },
+    "card.flooded_bunkers.a": {
+      "text": "Pump them out",
+      "status": "draft"
+    },
+    "card.flooded_bunkers.a_out": {
+      "text": "The crew pumps the bunkers dry and the ducks move to the pond.",
+      "status": "draft"
+    },
+    "card.flooded_bunkers.b": {
+      "text": "Declare them water hazards for the day",
+      "status": "draft"
+    },
+    "card.flooded_bunkers.b_out": {
+      "text": "Golfers love the joke and the ducks have a splendid afternoon.",
+      "status": "draft"
+    },
+    "card.dry_spell_brown.title": {
+      "text": "Crispy Fairways",
+      "status": "draft"
+    },
+    "card.dry_spell_brown.body": {
+      "text": "It has not rained for weeks and the fairways are turning golden brown.",
+      "status": "draft"
+    },
+    "card.dry_spell_brown.a": {
+      "text": "Pay for a big watering",
+      "status": "draft"
+    },
+    "card.dry_spell_brown.a_out": {
+      "text": "The fairways green up again. It is not cheap.",
+      "status": "draft"
+    },
+    "card.dry_spell_brown.b": {
+      "text": "Call it links style",
+      "status": "draft"
+    },
+    "card.dry_spell_brown.b_out": {
+      "text": "Golfers get extra roll and enjoy the bounce. A few complain.",
+      "status": "draft"
+    },
+    "card.lightning_scare.title": {
+      "text": "Thunder Nearby",
+      "status": "draft"
+    },
+    "card.lightning_scare.body": {
+      "text": "Distant thunder is rumbling. The horn blew and everyone is sheltering in the clubhouse.",
+      "status": "draft"
+    },
+    "card.lightning_scare.a": {
+      "text": "Open the snack bar for the wait",
+      "status": "draft"
+    },
+    "card.lightning_scare.a_out": {
+      "text": "Golfers buy snacks while the storm passes.",
+      "status": "draft"
+    },
+    "card.lightning_scare.b": {
+      "text": "Give everyone a rain check",
+      "status": "draft"
+    },
+    "card.lightning_scare.b_out": {
+      "text": "Golfers are happy and come back another day.",
+      "status": "draft"
+    },
+    "card.vip_visit.title": {
+      "text": "A VIP is Coming",
+      "status": "draft"
+    },
+    "card.vip_visit.body": {
+      "text": "A well known local business owner wants to play a round at your course and is looking for a great experience.",
+      "status": "draft"
+    },
+    "card.vip_visit.a": {
+      "text": "Roll out the red carpet",
+      "status": "draft"
+    },
+    "card.vip_visit.a_out": {
+      "text": "The VIP loves the day and tells everyone about it.",
+      "status": "draft"
+    },
+    "card.vip_visit.b": {
+      "text": "Treat them like any golfer",
+      "status": "draft"
+    },
+    "card.vip_visit.b_out": {
+      "text": "Nothing special happens.",
+      "status": "draft"
+    },
+    "card.golf_writer.title": {
+      "text": "Golf Writer Drops In",
+      "status": "draft"
+    },
+    "card.golf_writer.body": {
+      "text": "A writer for the fictional Fairway Gazette is visiting to write a piece on hidden gem courses.",
+      "status": "draft"
+    },
+    "card.golf_writer.a": {
+      "text": "Give a guided tour",
+      "status": "draft"
+    },
+    "card.golf_writer.a_out": {
+      "text": "She loves the tour and the article is warm.",
+      "status": "draft"
+    },
+    "card.golf_writer.b": {
+      "text": "Let her play alone",
+      "status": "draft"
+    },
+    "card.golf_writer.b_out": {
+      "text": "She plays a quiet round and writes a short, fair note.",
+      "status": "draft"
+    },
+    "card.sponsor_scout.title": {
+      "text": "Sponsor Scout Visit",
+      "status": "draft"
+    },
+    "card.sponsor_scout.body": {
+      "text": "A scout for Birdie Bolt Sports Drink is checking out courses for a local sponsorship.",
+      "status": "draft"
+    },
+    "card.sponsor_scout.a": {
+      "text": "Pitch the club",
+      "status": "draft"
+    },
+    "card.sponsor_scout.a_out": {
+      "text": "The scout likes the pitch. A small sponsorship payment arrives.",
+      "status": "draft"
+    },
+    "card.sponsor_scout.b": {
+      "text": "Show off the practice area",
+      "status": "draft"
+    },
+    "card.sponsor_scout.b_out": {
+      "text": "The scout enjoys the range. Golfers see the banner and stop by.",
+      "status": "draft"
+    },
+    "card.junior_champion.title": {
+      "text": "Junior Champion Stops By",
+      "status": "draft"
+    },
+    "card.junior_champion.body": {
+      "text": "A local junior champion wants to play a round and sign a few autographs.",
+      "status": "draft"
+    },
+    "card.junior_champion.a": {
+      "text": "Organise a meet and greet",
+      "status": "draft"
+    },
+    "card.junior_champion.a_out": {
+      "text": "Kids and parents line up. Everyone goes home smiling.",
+      "status": "draft"
+    },
+    "card.junior_champion.b": {
+      "text": "Let them play in peace",
+      "status": "draft"
+    },
+    "card.junior_champion.b_out": {
+      "text": "The champion has a great round and leaves a nice comment.",
+      "status": "draft"
+    },
+    "card.mayor_round.title": {
+      "text": "The Mayor Tees Off",
+      "status": "draft"
+    },
+    "card.mayor_round.body": {
+      "text": "The mayor has booked a round with two guests and asks about the view from the clubhouse.",
+      "status": "draft"
+    },
+    "card.mayor_round.a": {
+      "text": "Offer the best table",
+      "status": "draft"
+    },
+    "card.mayor_round.a_out": {
+      "text": "Lunch goes very well. The mayor mentions your club in a speech.",
+      "status": "draft"
+    },
+    "card.mayor_round.b": {
+      "text": "Offer a standard round",
+      "status": "draft"
+    },
+    "card.mayor_round.b_out": {
+      "text": "A pleasant but forgettable round.",
+      "status": "draft"
+    },
+    "card.tourist_group.title": {
+      "text": "Tour Bus Arrives",
+      "status": "draft"
+    },
+    "card.tourist_group.body": {
+      "text": "A tour bus has pulled up with forty visitors who want a quick look around and a bite to eat.",
+      "status": "draft"
+    },
+    "card.tourist_group.a": {
+      "text": "Serve a group lunch",
+      "status": "draft"
+    },
+    "card.tourist_group.a_out": {
+      "text": "The bus empties into the restaurant. Cash registers ring.",
+      "status": "draft"
+    },
+    "card.tourist_group.b": {
+      "text": "Offer a putting contest",
+      "status": "draft"
+    },
+    "card.tourist_group.b_out": {
+      "text": "Visitors enjoy the fun contest and tell friends.",
+      "status": "draft"
+    },
+    "card.architect_visit.title": {
+      "text": "Famous Course Architect",
+      "status": "draft"
+    },
+    "card.architect_visit.body": {
+      "text": "A retired course designer is walking your holes with a notebook, and she has opinions.",
+      "status": "draft"
+    },
+    "card.architect_visit.a": {
+      "text": "Ask for her advice",
+      "status": "draft"
+    },
+    "card.architect_visit.a_out": {
+      "text": "She shares tips that improve how your course plays.",
+      "status": "draft"
+    },
+    "card.architect_visit.b": {
+      "text": "Show her the new holes",
+      "status": "draft"
+    },
+    "card.architect_visit.b_out": {
+      "text": "She is impressed with your ideas.",
+      "status": "draft"
+    },
+    "card.landmark_press.title": {
+      "text": "Landmark in the News",
+      "status": "draft"
+    },
+    "card.landmark_press.body": {
+      "text": "A travel show wants to film your landmark for a segment on wonders of the region.",
+      "status": "draft"
+    },
+    "card.landmark_press.a": {
+      "text": "Host the crew",
+      "status": "draft"
+    },
+    "card.landmark_press.a_out": {
+      "text": "The show airs and bookings jump.",
+      "status": "draft"
+    },
+    "card.landmark_press.b": {
+      "text": "Decline politely",
+      "status": "draft"
+    },
+    "card.landmark_press.b_out": {
+      "text": "The show visits a rival attraction instead.",
+      "status": "draft"
+    },
+    "card.comedian_round.title": {
+      "text": "A Comedian Wants to Play",
+      "status": "draft"
+    },
+    "card.comedian_round.body": {
+      "text": "A touring comedian is in town and has asked for a tee time. She tells jokes on every hole.",
+      "status": "draft"
+    },
+    "card.comedian_round.a": {
+      "text": "Give her a fun round",
+      "status": "draft"
+    },
+    "card.comedian_round.a_out": {
+      "text": "Her group laughs the whole way round. Other golfers gather to listen.",
+      "status": "draft"
+    },
+    "card.comedian_round.b": {
+      "text": "Ask for a photo at the clubhouse",
+      "status": "draft"
+    },
+    "card.comedian_round.b_out": {
+      "text": "She poses with staff and the photo hangs by the door.",
+      "status": "draft"
+    },
+    "card.cartoon_mascot.title": {
+      "text": "Mascot Tees Off",
+      "status": "draft"
+    },
+    "card.cartoon_mascot.body": {
+      "text": "The mascot of a fictional baseball team, Captain Hotdog, wants to try mini golf on your putting green.",
+      "status": "draft"
+    },
+    "card.cartoon_mascot.a": {
+      "text": "Invite the kids",
+      "status": "draft"
+    },
+    "card.cartoon_mascot.a_out": {
+      "text": "Kids cheer as the mascot misses every putt.",
+      "status": "draft"
+    },
+    "card.cartoon_mascot.b": {
+      "text": "Sell mascot putters",
+      "status": "draft"
+    },
+    "card.cartoon_mascot.b_out": {
+      "text": "Little souvenir putters sell out.",
+      "status": "draft"
+    },
+    "card.chef_demo.title": {
+      "text": "Guest Chef Night",
+      "status": "draft"
+    },
+    "card.chef_demo.body": {
+      "text": "A TV chef from a cooking show has offered to cook a special menu for one evening.",
+      "status": "draft"
+    },
+    "card.chef_demo.a": {
+      "text": "Sell tickets",
+      "status": "draft"
+    },
+    "card.chef_demo.a_out": {
+      "text": "The seats sell out and the evening is a hit.",
+      "status": "draft"
+    },
+    "card.chef_demo.b": {
+      "text": "Make it free for members",
+      "status": "draft"
+    },
+    "card.chef_demo.b_out": {
+      "text": "Members are thrilled and tell their friends.",
+      "status": "draft"
+    },
+    "card.pro_exhibition.title": {
+      "text": "Tour Pro Exhibition",
+      "status": "draft"
+    },
+    "card.pro_exhibition.body": {
+      "text": "A fictional touring pro, Dale Fairbanks, offers to play an exhibition round for charity.",
+      "status": "draft"
+    },
+    "card.pro_exhibition.a": {
+      "text": "Charge a small entry fee",
+      "status": "draft"
+    },
+    "card.pro_exhibition.a_out": {
+      "text": "The crowd is big and the day raises money for the club.",
+      "status": "draft"
+    },
+    "card.pro_exhibition.b": {
+      "text": "Make it free for everyone",
+      "status": "draft"
+    },
+    "card.pro_exhibition.b_out": {
+      "text": "The whole town shows up. Nobody forgets it.",
+      "status": "draft"
+    },
+    "card.influencer_trick.title": {
+      "text": "Trick Shot Star",
+      "status": "draft"
+    },
+    "card.influencer_trick.body": {
+      "text": "A video maker known for trick shots wants to film on your course. One of the shots involves the pond.",
+      "status": "draft"
+    },
+    "card.influencer_trick.a": {
+      "text": "Say yes",
+      "status": "draft"
+    },
+    "card.influencer_trick.a_out": {
+      "text": "The video is a hit and viewers plan a visit.",
+      "status": "draft"
+    },
+    "card.influencer_trick.b": {
+      "text": "Say yes but pick the tee",
+      "status": "draft"
+    },
+    "card.influencer_trick.b_out": {
+      "text": "You choose a safe spot. The video is fun and nothing gets lost in the water.",
+      "status": "draft"
+    },
+    "card.puppy_pro.title": {
+      "text": "A Very Good Dog",
+      "status": "draft"
+    },
+    "card.puppy_pro.body": {
+      "text": "A dog that fetches golf balls on its own has gone viral, and its owner has brought it to your course.",
+      "status": "draft"
+    },
+    "card.puppy_pro.a": {
+      "text": "Feature the dog",
+      "status": "draft"
+    },
+    "card.puppy_pro.a_out": {
+      "text": "The dog gets a treat bowl by the first tee. Everyone wants a photo.",
+      "status": "draft"
+    },
+    "card.puppy_pro.b": {
+      "text": "Keep the course dog free",
+      "status": "draft"
+    },
+    "card.puppy_pro.b_out": {
+      "text": "The dog and owner go elsewhere.",
+      "status": "draft"
+    },
+    "card.member_complaint_slow.title": {
+      "text": "Slow Play Complaint",
+      "status": "draft"
+    },
+    "card.member_complaint_slow.body": {
+      "text": "Members say rounds are taking too long. A group of four spent ten minutes on one putt.",
+      "status": "draft"
+    },
+    "card.member_complaint_slow.a": {
+      "text": "Add marshals",
+      "status": "draft"
+    },
+    "card.member_complaint_slow.a_out": {
+      "text": "Marshals keep the pace flowing. Members notice.",
+      "status": "draft"
+    },
+    "card.member_complaint_slow.b": {
+      "text": "Post a reminder",
+      "status": "draft"
+    },
+    "card.member_complaint_slow.b_out": {
+      "text": "A sign helps a little and members appreciate that you listened.",
+      "status": "draft"
+    },
+    "card.member_request_bench.title": {
+      "text": "More Benches Please",
+      "status": "draft"
+    },
+    "card.member_request_bench.body": {
+      "text": "A member suggests putting benches by the tees so players can rest between holes.",
+      "status": "draft"
+    },
+    "card.member_request_bench.a": {
+      "text": "Buy new benches",
+      "status": "draft"
+    },
+    "card.member_request_bench.a_out": {
+      "text": "Benches go in. Golfers sit and chat.",
+      "status": "draft"
+    },
+    "card.member_request_bench.b": {
+      "text": "Ask members to chip in",
+      "status": "draft"
+    },
+    "card.member_request_bench.b_out": {
+      "text": "A few members donate. The benches are simple but welcome.",
+      "status": "draft"
+    },
+    "card.member_birthday.title": {
+      "text": "A Member Turns 80",
+      "status": "draft"
+    },
+    "card.member_birthday.body": {
+      "text": "One of your longest standing members is turning eighty and plans a round with his grandchildren.",
+      "status": "draft"
+    },
+    "card.member_birthday.a": {
+      "text": "Give him a cake",
+      "status": "draft"
+    },
+    "card.member_birthday.a_out": {
+      "text": "He is delighted and the story spreads around the club.",
+      "status": "draft"
+    },
+    "card.member_birthday.b": {
+      "text": "Make him a free round",
+      "status": "draft"
+    },
+    "card.member_birthday.b_out": {
+      "text": "A nice gesture that costs little.",
+      "status": "draft"
+    },
+    "card.hole_in_one.title": {
+      "text": "Hole in One!",
+      "status": "draft"
+    },
+    "card.hole_in_one.body": {
+      "text": "A golfer has holed out from the tee on a par three. He wants everyone in the clubhouse to know.",
+      "status": "draft"
+    },
+    "card.hole_in_one.a": {
+      "text": "Ring the victory bell",
+      "status": "draft"
+    },
+    "card.hole_in_one.a_out": {
+      "text": "The clubhouse cheers. The story spreads around town.",
+      "status": "draft"
+    },
+    "card.hole_in_one.b": {
+      "text": "Put a plaque on the tee",
+      "status": "draft"
+    },
+    "card.hole_in_one.b_out": {
+      "text": "Fans of the golfer will see it for years.",
+      "status": "draft"
+    },
+    "card.lost_ball_bin.title": {
+      "text": "The Great Lost Ball Pile",
+      "status": "draft"
+    },
+    "card.lost_ball_bin.body": {
+      "text": "The maintenance crew has found hundreds of lost balls in the rough by the pond.",
+      "status": "draft"
+    },
+    "card.lost_ball_bin.a": {
+      "text": "Sell them at the pro shop",
+      "status": "draft"
+    },
+    "card.lost_ball_bin.a_out": {
+      "text": "Bargain hunters snap them up.",
+      "status": "draft"
+    },
+    "card.lost_ball_bin.b": {
+      "text": "Donate them to a junior clinic",
+      "status": "draft"
+    },
+    "card.lost_ball_bin.b_out": {
+      "text": "The kids are thrilled and parents smile.",
+      "status": "draft"
+    },
+    "card.club_champ_dispute.title": {
+      "text": "Club Championship Argument",
+      "status": "draft"
+    },
+    "card.club_champ_dispute.body": {
+      "text": "Two members are arguing over who won a tie at the club championship. Both are quite loud about it.",
+      "status": "draft"
+    },
+    "card.club_champ_dispute.a": {
+      "text": "Play a sudden death putt off",
+      "status": "draft"
+    },
+    "card.club_champ_dispute.a_out": {
+      "text": "The whole club turns up. The winner is crowned by one inch.",
+      "status": "draft"
+    },
+    "card.club_champ_dispute.b": {
+      "text": "Declare a shared title",
+      "status": "draft"
+    },
+    "card.club_champ_dispute.b_out": {
+      "text": "Both accept, and both grumble in equal measure.",
+      "status": "draft"
+    },
+    "card.ladies_day.title": {
+      "text": "Twilight League Night",
+      "status": "draft"
+    },
+    "card.ladies_day.body": {
+      "text": "A group of members wants to start a weekly evening league on your quiet holes.",
+      "status": "draft"
+    },
+    "card.ladies_day.a": {
+      "text": "Host a league",
+      "status": "draft"
+    },
+    "card.ladies_day.a_out": {
+      "text": "The league is a hit and members bring friends.",
+      "status": "draft"
+    },
+    "card.ladies_day.b": {
+      "text": "Say not now",
+      "status": "draft"
+    },
+    "card.ladies_day.b_out": {
+      "text": "The members find another club night.",
+      "status": "draft"
+    },
+    "card.old_regular_story.title": {
+      "text": "The Tale of the Old Regular",
+      "status": "draft"
+    },
+    "card.old_regular_story.body": {
+      "text": "A regular of thirty years wants to tell the whole club about the time he played with a bird on his shoulder.",
+      "status": "draft"
+    },
+    "card.old_regular_story.a": {
+      "text": "Host a story hour",
+      "status": "draft"
+    },
+    "card.old_regular_story.a_out": {
+      "text": "The story gets better every time it is told. Members love it.",
+      "status": "draft"
+    },
+    "card.old_regular_story.b": {
+      "text": "Thank him and move on",
+      "status": "draft"
+    },
+    "card.old_regular_story.b_out": {
+      "text": "He is happy anyway.",
+      "status": "draft"
+    },
+    "card.kids_clinic.title": {
+      "text": "Junior Clinic Request",
+      "status": "draft"
+    },
+    "card.kids_clinic.body": {
+      "text": "A parent group asks if your pro can run a Saturday clinic for children aged six to twelve.",
+      "status": "draft"
+    },
+    "card.kids_clinic.a": {
+      "text": "Run the clinic",
+      "status": "draft"
+    },
+    "card.kids_clinic.a_out": {
+      "text": "Twenty kids show up with plastic clubs and huge smiles.",
+      "status": "draft"
+    },
+    "card.kids_clinic.b": {
+      "text": "Offer a shorter afternoon",
+      "status": "draft"
+    },
+    "card.kids_clinic.b_out": {
+      "text": "Fewer kids join but it is still a hit.",
+      "status": "draft"
+    },
+    "card.locker_room_upgrade.title": {
+      "text": "Locker Room Makeover",
+      "status": "draft"
+    },
+    "card.locker_room_upgrade.body": {
+      "text": "Members are asking for new lockers, nicer benches, and a real mirror.",
+      "status": "draft"
+    },
+    "card.locker_room_upgrade.a": {
+      "text": "Renovate",
+      "status": "draft"
+    },
+    "card.locker_room_upgrade.a_out": {
+      "text": "Locker room looks brand new. Members are pleased.",
+      "status": "draft"
+    },
+    "card.locker_room_upgrade.b": {
+      "text": "Put it off",
+      "status": "draft"
+    },
+    "card.locker_room_upgrade.b_out": {
+      "text": "Members sigh and the mirror stays cracked.",
+      "status": "draft"
+    },
+    "card.locker_room_upgrade.c": {
+      "text": "Repaint only",
+      "status": "draft"
+    },
+    "card.locker_room_upgrade.c_out": {
+      "text": "A fresh coat of paint helps a little.",
+      "status": "draft"
+    },
+    "card.swing_lesson_rush.title": {
+      "text": "Lesson Rush",
+      "status": "draft"
+    },
+    "card.swing_lesson_rush.body": {
+      "text": "Word has spread that the pro shop teaches a great swing tip. Lessons are booked solid.",
+      "status": "draft"
+    },
+    "card.swing_lesson_rush.a": {
+      "text": "Add a second instructor",
+      "status": "draft"
+    },
+    "card.swing_lesson_rush.a_out": {
+      "text": "Two instructors handle the crowd easily.",
+      "status": "draft"
+    },
+    "card.swing_lesson_rush.b": {
+      "text": "Keep one instructor",
+      "status": "draft"
+    },
+    "card.swing_lesson_rush.b_out": {
+      "text": "Lessons are full and the pro is tired.",
+      "status": "draft"
+    },
+    "card.range_challenge.title": {
+      "text": "Range Target Challenge",
+      "status": "draft"
+    },
+    "card.range_challenge.body": {
+      "text": "Golfers are betting bragging rights on who can hit the target flag on the driving range.",
+      "status": "draft"
+    },
+    "card.range_challenge.a": {
+      "text": "Offer a prize",
+      "status": "draft"
+    },
+    "card.range_challenge.a_out": {
+      "text": "A free bucket of balls motivates everyone.",
+      "status": "draft"
+    },
+    "card.range_challenge.b": {
+      "text": "Let it stay friendly",
+      "status": "draft"
+    },
+    "card.range_challenge.b_out": {
+      "text": "No prize, just fun. The range is buzzing.",
+      "status": "draft"
+    },
+    "card.greenkeeper_idea.title": {
+      "text": "Greenkeeper's Big Idea",
+      "status": "draft"
+    },
+    "card.greenkeeper_idea.body": {
+      "text": "Your head greenkeeper has a plan to mow the fairways in a striped pattern, like a stadium.",
+      "status": "draft"
+    },
+    "card.greenkeeper_idea.a": {
+      "text": "Let her try it",
+      "status": "draft"
+    },
+    "card.greenkeeper_idea.a_out": {
+      "text": "The stripes look fantastic from the tee. Golfers take photos.",
+      "status": "draft"
+    },
+    "card.greenkeeper_idea.b": {
+      "text": "Buy her a better mower first",
+      "status": "draft"
+    },
+    "card.greenkeeper_idea.b_out": {
+      "text": "The new mower cuts cleaner and faster.",
+      "status": "draft"
+    },
+    "card.staff_bake_sale.title": {
+      "text": "Staff Bake Sale",
+      "status": "draft"
+    },
+    "card.staff_bake_sale.body": {
+      "text": "The staff want to hold a bake sale to buy a new coffee machine for the break room.",
+      "status": "draft"
+    },
+    "card.staff_bake_sale.a": {
+      "text": "Join in",
+      "status": "draft"
+    },
+    "card.staff_bake_sale.a_out": {
+      "text": "You bring a cake. Everyone eats too much and morale soars.",
+      "status": "draft"
+    },
+    "card.staff_bake_sale.b": {
+      "text": "Match what they raise",
+      "status": "draft"
+    },
+    "card.staff_bake_sale.b_out": {
+      "text": "The coffee machine is a legend. Staff are delighted.",
+      "status": "draft"
+    },
+    "card.caddie_award.title": {
+      "text": "Employee of the Month",
+      "status": "draft"
+    },
+    "card.caddie_award.body": {
+      "text": "A starter on the first tee has been praised by three golfers this week for remembering every name.",
+      "status": "draft"
+    },
+    "card.caddie_award.a": {
+      "text": "Give a bonus",
+      "status": "draft"
+    },
+    "card.caddie_award.a_out": {
+      "text": "The starter is thrilled. Golfers see the smile on the tee.",
+      "status": "draft"
+    },
+    "card.caddie_award.b": {
+      "text": "Give a certificate",
+      "status": "draft"
+    },
+    "card.caddie_award.b_out": {
+      "text": "A framed certificate goes up in the break room.",
+      "status": "draft"
+    },
+    "card.mower_breakdown.title": {
+      "text": "Mower Trouble",
+      "status": "draft"
+    },
+    "card.mower_breakdown.body": {
+      "text": "The main fairway mower has stopped with a puff of smoke and a sad noise.",
+      "status": "draft"
+    },
+    "card.mower_breakdown.a": {
+      "text": "Repair it",
+      "status": "draft"
+    },
+    "card.mower_breakdown.a_out": {
+      "text": "The mechanic has it working again by afternoon.",
+      "status": "draft"
+    },
+    "card.mower_breakdown.b": {
+      "text": "Rent one for the week",
+      "status": "draft"
+    },
+    "card.mower_breakdown.b_out": {
+      "text": "The rental works fine and the course stays tidy.",
+      "status": "draft"
+    },
+    "card.mower_breakdown.c": {
+      "text": "Wait for the parts",
+      "status": "draft"
+    },
+    "card.mower_breakdown.c_out": {
+      "text": "The fairways are shaggy for a few days.",
+      "status": "draft"
+    },
+    "card.staff_training_day.title": {
+      "text": "Training Day",
+      "status": "draft"
+    },
+    "card.staff_training_day.body": {
+      "text": "The team asks for a day off the course to learn first aid and customer service.",
+      "status": "draft"
+    },
+    "card.staff_training_day.a": {
+      "text": "Approve it",
+      "status": "draft"
+    },
+    "card.staff_training_day.a_out": {
+      "text": "The team returns sharper and more relaxed.",
+      "status": "draft"
+    },
+    "card.staff_training_day.b": {
+      "text": "Offer a short evening session",
+      "status": "draft"
+    },
+    "card.staff_training_day.b_out": {
+      "text": "A quick session helps a little.",
+      "status": "draft"
+    },
+    "card.crew_prank.title": {
+      "text": "Crew Puts Up a Scarecrow",
+      "status": "draft"
+    },
+    "card.crew_prank.body": {
+      "text": "The maintenance crew has put a scarecrow in a golf visor next to the sixth green, and it looks very serious.",
+      "status": "draft"
+    },
+    "card.crew_prank.a": {
+      "text": "Keep the scarecrow",
+      "status": "draft"
+    },
+    "card.crew_prank.a_out": {
+      "text": "Golfers love him and someone names him Gary.",
+      "status": "draft"
+    },
+    "card.crew_prank.b": {
+      "text": "Take it down",
+      "status": "draft"
+    },
+    "card.crew_prank.b_out": {
+      "text": "The crew is a little sad but the green looks tidy.",
+      "status": "draft"
+    },
+    "card.new_hire_star.title": {
+      "text": "A Promising New Hire",
+      "status": "draft"
+    },
+    "card.new_hire_star.body": {
+      "text": "A young applicant with a big smile and a driving range record wants a job in the pro shop.",
+      "status": "draft"
+    },
+    "card.new_hire_star.a": {
+      "text": "Hire her",
+      "status": "draft"
+    },
+    "card.new_hire_star.a_out": {
+      "text": "She starts Monday and customers adore her.",
+      "status": "draft"
+    },
+    "card.new_hire_star.b": {
+      "text": "Keep her on a waiting list",
+      "status": "draft"
+    },
+    "card.new_hire_star.b_out": {
+      "text": "She takes another job.",
+      "status": "draft"
+    },
+    "card.break_room_fix.title": {
+      "text": "The Break Room Sofa",
+      "status": "draft"
+    },
+    "card.break_room_fix.body": {
+      "text": "The staff sofa has finally given up and now lists to one side like a boat.",
+      "status": "draft"
+    },
+    "card.break_room_fix.a": {
+      "text": "Buy a new one",
+      "status": "draft"
+    },
+    "card.break_room_fix.a_out": {
+      "text": "Comfy sofa, happy team.",
+      "status": "draft"
+    },
+    "card.break_room_fix.b": {
+      "text": "Prop it up with a golf bag",
+      "status": "draft"
+    },
+    "card.break_room_fix.b_out": {
+      "text": "The team makes do.",
+      "status": "draft"
+    },
+    "card.insurance_bill.title": {
+      "text": "Insurance Renewal",
+      "status": "draft"
+    },
+    "card.insurance_bill.body": {
+      "text": "Your yearly insurance bill has arrived. The agent says there is a cheaper plan with a higher excess.",
+      "status": "draft"
+    },
+    "card.insurance_bill.a": {
+      "text": "Pay the regular plan",
+      "status": "draft"
+    },
+    "card.insurance_bill.a_out": {
+      "text": "Nothing changes and you sleep well.",
+      "status": "draft"
+    },
+    "card.insurance_bill.b": {
+      "text": "Take the cheaper plan",
+      "status": "draft"
+    },
+    "card.insurance_bill.b_out": {
+      "text": "You save a little now and hope for a calm year.",
+      "status": "draft"
+    },
+    "card.tax_refund.title": {
+      "text": "Small Surprise Refund",
+      "status": "draft"
+    },
+    "card.tax_refund.body": {
+      "text": "The tax office has found an overpayment. A small refund is on its way.",
+      "status": "draft"
+    },
+    "card.tax_refund.a": {
+      "text": "Put it into the club",
+      "status": "draft"
+    },
+    "card.tax_refund.a_out": {
+      "text": "Cash arrives and nothing else is needed.",
+      "status": "draft"
+    },
+    "card.tax_refund.b": {
+      "text": "Spend it on the staff party",
+      "status": "draft"
+    },
+    "card.tax_refund.b_out": {
+      "text": "A pizza night makes the staff very happy.",
+      "status": "draft"
+    },
+    "card.supplier_discount.title": {
+      "text": "Supplier Offers a Discount",
+      "status": "draft"
+    },
+    "card.supplier_discount.body": {
+      "text": "The seed and fertilizer supplier will give you a bulk discount if you order early.",
+      "status": "draft"
+    },
+    "card.supplier_discount.a": {
+      "text": "Order in bulk",
+      "status": "draft"
+    },
+    "card.supplier_discount.a_out": {
+      "text": "You save money all season.",
+      "status": "draft"
+    },
+    "card.supplier_discount.b": {
+      "text": "Order as needed",
+      "status": "draft"
+    },
+    "card.supplier_discount.b_out": {
+      "text": "Same old prices.",
+      "status": "draft"
+    },
+    "card.pipe_burst.title": {
+      "text": "Leaky Pipe",
+      "status": "draft"
+    },
+    "card.pipe_burst.body": {
+      "text": "A water pipe near the maintenance shed has burst and there is a small lake where the cart path was.",
+      "status": "draft"
+    },
+    "card.pipe_burst.a": {
+      "text": "Call a plumber now",
+      "status": "draft"
+    },
+    "card.pipe_burst.a_out": {
+      "text": "Fixed by evening.",
+      "status": "draft"
+    },
+    "card.pipe_burst.b": {
+      "text": "Patch it yourself",
+      "status": "draft"
+    },
+    "card.pipe_burst.b_out": {
+      "text": "It holds, mostly. A rumour spreads about the swimming cart.",
+      "status": "draft"
+    },
+    "card.bank_offer.title": {
+      "text": "Friendly Bank Offer",
+      "status": "draft"
+    },
+    "card.bank_offer.body": {
+      "text": "The local credit union suggests sponsoring your scoreboard for a year in exchange for a logo.",
+      "status": "draft"
+    },
+    "card.bank_offer.a": {
+      "text": "Accept",
+      "status": "draft"
+    },
+    "card.bank_offer.a_out": {
+      "text": "The logo goes up and a cheque arrives.",
+      "status": "draft"
+    },
+    "card.bank_offer.b": {
+      "text": "Negotiate for more",
+      "status": "draft"
+    },
+    "card.bank_offer.b_out": {
+      "text": "They agree to a smaller cheque and a free coffee cart on Saturdays.",
+      "status": "draft"
+    },
+    "card.crowdfund_bunker.title": {
+      "text": "Members Offer to Chip In",
+      "status": "draft"
+    },
+    "card.crowdfund_bunker.body": {
+      "text": "Members have started a jar labelled New Bunker Sand. It already has some coins and a button.",
+      "status": "draft"
+    },
+    "card.crowdfund_bunker.a": {
+      "text": "Accept the donations",
+      "status": "draft"
+    },
+    "card.crowdfund_bunker.a_out": {
+      "text": "The sand arrives and looks lovely.",
+      "status": "draft"
+    },
+    "card.crowdfund_bunker.b": {
+      "text": "Match their donations",
+      "status": "draft"
+    },
+    "card.crowdfund_bunker.b_out": {
+      "text": "Members are touched.",
+      "status": "draft"
+    },
+    "card.fair_trade_coffee.title": {
+      "text": "Coffee Supplier Choice",
+      "status": "draft"
+    },
+    "card.fair_trade_coffee.body": {
+      "text": "Two coffee suppliers want your business: cheap and bitter, or pricey and delicious.",
+      "status": "draft"
+    },
+    "card.fair_trade_coffee.a": {
+      "text": "Pick the pricey blend",
+      "status": "draft"
+    },
+    "card.fair_trade_coffee.a_out": {
+      "text": "Golfers rave about the coffee.",
+      "status": "draft"
+    },
+    "card.fair_trade_coffee.b": {
+      "text": "Pick the cheap blend",
+      "status": "draft"
+    },
+    "card.fair_trade_coffee.b_out": {
+      "text": "Costs stay low. Golfers make faces.",
+      "status": "draft"
+    },
+    "card.golf_cart_lease.title": {
+      "text": "Cart Lease Deal",
+      "status": "draft"
+    },
+    "card.golf_cart_lease.body": {
+      "text": "A cart company offers to swap your fleet for shiny new electric ones with a lease.",
+      "status": "draft"
+    },
+    "card.golf_cart_lease.a": {
+      "text": "Sign the lease",
+      "status": "draft"
+    },
+    "card.golf_cart_lease.a_out": {
+      "text": "The new carts hum quietly and golfers approve.",
+      "status": "draft"
+    },
+    "card.golf_cart_lease.b": {
+      "text": "Keep the old carts",
+      "status": "draft"
+    },
+    "card.golf_cart_lease.b_out": {
+      "text": "They rattle, but they still run.",
+      "status": "draft"
+    },
+    "card.school_field_trip.title": {
+      "text": "School Field Trip",
+      "status": "draft"
+    },
+    "card.school_field_trip.body": {
+      "text": "A class of ten year olds is visiting to learn how a golf course works, and the teacher hopes for a tour.",
+      "status": "draft"
+    },
+    "card.school_field_trip.a": {
+      "text": "Give a tour",
+      "status": "draft"
+    },
+    "card.school_field_trip.a_out": {
+      "text": "Kids ask a thousand questions, and a few say they want to be greenkeepers.",
+      "status": "draft"
+    },
+    "card.school_field_trip.b": {
+      "text": "Offer a putting game",
+      "status": "draft"
+    },
+    "card.school_field_trip.b_out": {
+      "text": "They love it. The winner gets a sticker.",
+      "status": "draft"
+    },
+    "card.charity_scramble.title": {
+      "text": "Charity Scramble",
+      "status": "draft"
+    },
+    "card.charity_scramble.body": {
+      "text": "The local animal shelter asks to hold a charity scramble on your course.",
+      "status": "draft"
+    },
+    "card.charity_scramble.a": {
+      "text": "Host it for free",
+      "status": "draft"
+    },
+    "card.charity_scramble.a_out": {
+      "text": "Volunteers and golfers fill the course. The shelter is thrilled.",
+      "status": "draft"
+    },
+    "card.charity_scramble.b": {
+      "text": "Charge a small fee",
+      "status": "draft"
+    },
+    "card.charity_scramble.b_out": {
+      "text": "The shelter still raises money and you cover your costs.",
+      "status": "draft"
+    },
+    "card.goose_invasion.title": {
+      "text": "Geese on the Fairway",
+      "status": "draft"
+    },
+    "card.goose_invasion.body": {
+      "text": "A flock of geese has decided the fifth fairway belongs to them. They hiss at anyone who comes near.",
+      "status": "draft"
+    },
+    "card.goose_invasion.a": {
+      "text": "Hire a bird dog",
+      "status": "draft"
+    },
+    "card.goose_invasion.a_out": {
+      "text": "A friendly border collie herds them away.",
+      "status": "draft"
+    },
+    "card.goose_invasion.b": {
+      "text": "Let them be",
+      "status": "draft"
+    },
+    "card.goose_invasion.b_out": {
+      "text": "Golfers give them the right of way and take photos.",
+      "status": "draft"
+    },
+    "card.gopher_dance.title": {
+      "text": "Gopher Holes",
+      "status": "draft"
+    },
+    "card.gopher_dance.body": {
+      "text": "Small mounds of dirt are appearing on the greens. You suspect a very clever gopher.",
+      "status": "draft"
+    },
+    "card.gopher_dance.a": {
+      "text": "Set humane traps",
+      "status": "draft"
+    },
+    "card.gopher_dance.a_out": {
+      "text": "The gopher is moved to a nearby meadow.",
+      "status": "draft"
+    },
+    "card.gopher_dance.b": {
+      "text": "Name him Chipper",
+      "status": "draft"
+    },
+    "card.gopher_dance.b_out": {
+      "text": "Golfers begin leaving him carrots. Putts are a bit bumpy.",
+      "status": "draft"
+    },
+    "card.fireworks_night.title": {
+      "text": "Summer Fireworks Night",
+      "status": "draft"
+    },
+    "card.fireworks_night.body": {
+      "text": "The town wants to launch a fireworks show from your ninth green. Kids and families would attend.",
+      "status": "draft"
+    },
+    "card.fireworks_night.a": {
+      "text": "Allow it",
+      "status": "draft"
+    },
+    "card.fireworks_night.a_out": {
+      "text": "The show is a hit. Some picnic blankets end up on the green.",
+      "status": "draft"
+    },
+    "card.fireworks_night.b": {
+      "text": "Suggest the town park",
+      "status": "draft"
+    },
+    "card.fireworks_night.b_out": {
+      "text": "They find a spot in the park.",
+      "status": "draft"
+    },
+    "card.volunteer_planting.title": {
+      "text": "Tree Planting Day",
+      "status": "draft"
+    },
+    "card.volunteer_planting.body": {
+      "text": "A local scout troop wants to plant young trees along the back nine.",
+      "status": "draft"
+    },
+    "card.volunteer_planting.a": {
+      "text": "Welcome them",
+      "status": "draft"
+    },
+    "card.volunteer_planting.a_out": {
+      "text": "A hundred saplings go into the ground and the troop gets a badge.",
+      "status": "draft"
+    },
+    "card.volunteer_planting.b": {
+      "text": "Suggest trees for the edges only",
+      "status": "draft"
+    },
+    "card.volunteer_planting.b_out": {
+      "text": "They plant a neat row and everyone is happy.",
+      "status": "draft"
+    },
+    "card.wildlife_deer.title": {
+      "text": "Deer at Dawn",
+      "status": "draft"
+    },
+    "card.wildlife_deer.body": {
+      "text": "A family of deer strolls across the first fairway at sunrise. Early golfers stop to watch.",
+      "status": "draft"
+    },
+    "card.wildlife_deer.a": {
+      "text": "Post a sign",
+      "status": "draft"
+    },
+    "card.wildlife_deer.a_out": {
+      "text": "A little wildlife sign brings smiles.",
+      "status": "draft"
+    },
+    "card.wildlife_deer.b": {
+      "text": "Let golfers enjoy it",
+      "status": "draft"
+    },
+    "card.wildlife_deer.b_out": {
+      "text": "Everyone goes home with a story.",
+      "status": "draft"
+    },
+    "card.art_show.title": {
+      "text": "Art in the Clubhouse",
+      "status": "draft"
+    },
+    "card.art_show.body": {
+      "text": "A local painters group asks to hang golf landscape paintings in the clubhouse hall for a month.",
+      "status": "draft"
+    },
+    "card.art_show.a": {
+      "text": "Host the show",
+      "status": "draft"
+    },
+    "card.art_show.a_out": {
+      "text": "Visitors wander in and enjoy the works. A few buy a lunch.",
+      "status": "draft"
+    },
+    "card.art_show.b": {
+      "text": "Decline for space",
+      "status": "draft"
+    },
+    "card.art_show.b_out": {
+      "text": "The hall stays as is.",
+      "status": "draft"
+    },
+    "card.town_parade.title": {
+      "text": "Town Parade Route",
+      "status": "draft"
+    },
+    "card.town_parade.body": {
+      "text": "The town parade would like to end at your parking lot this year with a marching band.",
+      "status": "draft"
+    },
+    "card.town_parade.a": {
+      "text": "Welcome the band",
+      "status": "draft"
+    },
+    "card.town_parade.a_out": {
+      "text": "Drums, trumpets and a very big tuba. Golfers cheer.",
+      "status": "draft"
+    },
+    "card.town_parade.b": {
+      "text": "Politely decline",
+      "status": "draft"
+    },
+    "card.town_parade.b_out": {
+      "text": "Peace and quiet reign.",
+      "status": "draft"
+    },
+    "card.night_owl_glow.title": {
+      "text": "Glow Ball Night Request",
+      "status": "draft"
+    },
+    "card.night_owl_glow.body": {
+      "text": "A group of youth golfers asks to run a glow ball night on your putting green after sunset.",
+      "status": "draft"
+    },
+    "card.night_owl_glow.a": {
+      "text": "Run the night",
+      "status": "draft"
+    },
+    "card.night_owl_glow.a_out": {
+      "text": "Glowing balls flying over the green look magical.",
+      "status": "draft"
+    },
+    "card.night_owl_glow.b": {
+      "text": "Suggest an afternoon event",
+      "status": "draft"
+    },
+    "card.night_owl_glow.b_out": {
+      "text": "They pick a sunny Saturday instead.",
+      "status": "draft"
+    },
+    "card.photo_contest.title": {
+      "text": "Course Photo Contest",
+      "status": "draft"
+    },
+    "card.photo_contest.body": {
+      "text": "Members are sharing their best course photos. The winner will get a bucket of range balls.",
+      "status": "draft"
+    },
+    "card.photo_contest.a": {
+      "text": "Hold a contest",
+      "status": "draft"
+    },
+    "card.photo_contest.a_out": {
+      "text": "Golfers wander the course looking for the perfect angle.",
+      "status": "draft"
+    },
+    "card.photo_contest.b": {
+      "text": "Do it informally",
+      "status": "draft"
+    },
+    "card.photo_contest.b_out": {
+      "text": "A few photos land on the notice board.",
+      "status": "draft"
+    },
+    "card.rival_challenge.title": {
+      "text": "Friendly Rivalry Match",
+      "status": "draft"
+    },
+    "card.rival_challenge.body": {
+      "text": "Golfers from Hollow Pines Golf Club, a fictional neighbour, have challenged your members to a friendly match.",
+      "status": "draft"
+    },
+    "card.rival_challenge.a": {
+      "text": "Accept the challenge",
+      "status": "draft"
+    },
+    "card.rival_challenge.a_out": {
+      "text": "Your members rally. The match ends in a draw and a shared lunch.",
+      "status": "draft"
+    },
+    "card.rival_challenge.b": {
+      "text": "Ask to postpone",
+      "status": "draft"
+    },
+    "card.rival_challenge.b_out": {
+      "text": "The neighbours grumble a little.",
+      "status": "draft"
+    }
+  }
+}

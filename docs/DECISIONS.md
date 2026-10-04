@@ -105,6 +105,10 @@ These fill gaps the Master Plan leaves open. They are written into the data file
 - DEC-059 Supabase: free tier for the closed test, paid tier before public launch (verify current pricing and pause rules). Daily challenge stays in v1 with a remote kill switch (DEC-016).
 - DEC-060 Terrain: extend the paint layers now toward the 11 surface types in the course schema (Nathan's choice; scheduled as Phase 0 follow-up). Terrain hash stays 32-bit FNV-1a until leaderboards need sha256 (lead default, Q21). Store product id is mh_full_unlock. App/bundle id stays a placeholder (com.mulliganhills.game) until the trademark check returns.
 
+- DEC-061 Phase 1 start: Nathan authorised device-independent Phase 1 work, including UI screens, before Gate 0 sign-off (amends DEC-045). Nothing that depends on measured phone performance is locked.
+- DEC-062 Art is fully procedural from code: no imported assets, no downloads.
+- DEC-063 Demo Clubhouse is capped at tier 2 (supersedes the Clubhouse tier 3 part of DEC-055). Dead holes (score under 25) are included in the average hole score but do not count toward hole-count gates.
+
 ## E. Open items (no decision yet)
 
 1. Named low-end benchmark Android phone (DEC-034 has the rule, DEC-046 says Galaxy A14/A15 class; the exact model is not yet bought or recorded).

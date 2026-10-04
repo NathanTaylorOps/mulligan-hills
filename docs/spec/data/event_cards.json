@@ -1,0 +1,2812 @@
+{
+  "schema": "mh.event_cards",
+  "schema_version": 1,
+  "cards": [
+    {
+      "id": "storm_warning",
+      "category": "weather",
+      "weight": 80,
+      "min_day": 8,
+      "cooldown_days": 30,
+      "once": false,
+      "title_key": "card.storm_warning.title",
+      "body_key": "card.storm_warning.body",
+      "choices": [
+        {
+          "id": "a",
+          "label_key": "card.storm_warning.a",
+          "outcome_key": "card.storm_warning.a_out",
+          "effects": [
+            {
+              "op": "add_cash",
+              "amount": -500
+            }
+          ]
+        },
+        {
+          "id": "b",
+          "label_key": "card.storm_warning.b",
+          "outcome_key": "card.storm_warning.b_out",
+          "effects": [
+            {
+              "op": "add_reputation",
+              "amount": -5
+            },
+            {
+              "op": "weather_next_day",
+              "amount": 1
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "rainbow_after_shower",
+      "category": "weather",
+      "weight": 70,
+      "min_day": 3,
+      "cooldown_days": 20,
+      "once": false,
+      "seasons": [
+        "spring",
+        "summer"
+      ],
+      "requires_tags": [
+        "recent_rain"
+      ],
+      "title_key": "card.rainbow_after_shower.title",
+      "body_key": "card.rainbow_after_shower.body",
+      "choices": [
+        {
+          "id": "a",
+          "label_key": "card.rainbow_after_shower.a",
+          "outcome_key": "card.rainbow_after_shower.a_out",
+          "effects": [
+            {
+              "op": "golfer_flow_pct",
+              "amount": 15,
+              "days": 2
+            },
+            {
+              "op": "add_reputation",
+              "amount": 2
+            }
+          ]
+        },
+        {
+          "id": "b",
+          "label_key": "card.rainbow_after_shower.b",
+          "outcome_key": "card.rainbow_after_shower.b_out",
+          "effects": [
+            {
+              "op": "add_reputation",
+              "amount": 1
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "heatwave",
+      "category": "weather",
+      "weight": 60,
+      "min_day": 10,
+      "cooldown_days": 40,
+      "once": false,
+      "seasons": [
+        "summer"
+      ],
+      "title_key": "card.heatwave.title",
+      "body_key": "card.heatwave.body",
+      "choices": [
+        {
+          "id": "a",
+          "label_key": "card.heatwave.a",
+          "outcome_key": "card.heatwave.a_out",
+          "effects": [
+            {
+              "op": "add_cash",
+              "amount": -400
+            },
+            {
+              "op": "add_reputation",
+              "amount": 5
+            }
+          ]
+        },
+        {
+          "id": "b",
+          "label_key": "card.heatwave.b",
+          "outcome_key": "card.heatwave.b_out",
+          "effects": [
+            {
+              "op": "add_cash",
+              "amount": -700
+            },
+            {
+              "op": "add_reputation",
+              "amount": 3
+            }
+          ]
+        },
+        {
+          "id": "c",
+          "label_key": "card.heatwave.c",
+          "outcome_key": "card.heatwave.c_out",
+          "effects": [
+            {
+              "op": "golfer_flow_pct",
+              "amount": -15,
+              "days": 2
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "cool_breeze",
+      "category": "weather",
+      "weight": 70,
+      "min_day": 3,
+      "cooldown_days": 25,
+      "once": false,
+      "seasons": [
+        "spring",
+        "autumn"
+      ],
+      "title_key": "card.cool_breeze.title",
+      "body_key": "card.cool_breeze.body",
+      "choices": [
+        {
+          "id": "a",
+          "label_key": "card.cool_breeze.a",
+          "outcome_key": "card.cool_breeze.a_out",
+          "effects": [
+            {
+              "op": "add_cash",
+              "amount": 150
+            },
+            {
+              "op": "golfer_flow_pct",
+              "amount": 25,
+              "days": 1
+            }
+          ]
+        },
+        {
+          "id": "b",
+          "label_key": "card.cool_breeze.b",
+          "outcome_key": "card.cool_breeze.b_out",
+          "effects": [
+            {
+              "op": "add_reputation",
+              "amount": 4
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "morning_fog",
+      "category": "weather",
+      "weight": 60,
+      "min_day": 3,
+      "cooldown_days": 20,
+      "once": false,
+      "seasons": [
+        "autumn",
+        "winter"
+      ],
+      "title_key": "card.morning_fog.title",
+      "body_key": "card.morning_fog.body",
+      "choices": [
+        {
+          "id": "a",
+          "label_key": "card.morning_fog.a",
+          "outcome_key": "card.morning_fog.a_out",
+          "effects": [
+            {
+              "op": "golfer_flow_pct",
+              "amount": -10,
+              "days": 1
+            }
+          ]
+        },
+        {
+          "id": "b",
+          "label_key": "card.morning_fog.b",
+          "outcome_key": "card.morning_fog.b_out",
+          "effects": [
+            {
+              "op": "add_reputation",
+              "amount": -2
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "frost_delay",
+      "category": "weather",
+      "weight": 50,
+      "min_day": 15,
+      "cooldown_days": 30,
+      "once": false,
+      "seasons": [
+        "winter"
+      ],
+      "title_key": "card.frost_delay.title",
+      "body_key": "card.frost_delay.body",
+      "choices": [
+        {
+          "id": "a",
+          "label_key": "card.frost_delay.a",
+          "outcome_key": "card.frost_delay.a_out",
+          "effects": [
+            {
+              "op": "golfer_flow_pct",
+              "amount": -20,
+              "days": 1
+            }
+          ]
+        },
+        {
+          "id": "b",
+          "label_key": "card.frost_delay.b",
+          "outcome_key": "card.frost_delay.b_out",
+          "effects": [
+            {
+              "op": "add_cash",
+              "amount": -300
+            },
+            {
+              "op": "add_reputation",
+              "amount": 2
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "windy_day",
+      "category": "weather",
+      "weight": 70,
+      "min_day": 5,
+      "cooldown_days": 20,
+      "once": false,
+      "seasons": [
+        "spring",
+        "autumn",
+        "winter"
+      ],
+      "title_key": "card.windy_day.title",
+      "body_key": "card.windy_day.body",
+      "choices": [
+        {
+          "id": "a",
+          "label_key": "card.windy_day.a",
+          "outcome_key": "card.windy_day.a_out",
+          "effects": [
+            {
+              "op": "add_cash",
+              "amount": -100
+            },
+            {
+              "op": "add_reputation",
+              "amount": 3
+            }
+          ]
+        },
+        {
+          "id": "b",
+          "label_key": "card.windy_day.b",
+          "outcome_key": "card.windy_day.b_out",
+          "effects": []
+        }
+      ]
+    },
+    {
+      "id": "surprise_snow",
+      "category": "weather",
+      "weight": 30,
+      "min_day": 20,
+      "cooldown_days": 90,
+      "once": false,
+      "seasons": [
+        "winter"
+      ],
+      "title_key": "card.surprise_snow.title",
+      "body_key": "card.surprise_snow.body",
+      "choices": [
+        {
+          "id": "a",
+          "label_key": "card.surprise_snow.a",
+          "outcome_key": "card.surprise_snow.a_out",
+          "effects": [
+            {
+              "op": "add_reputation",
+              "amount": 10
+            },
+            {
+              "op": "golfer_flow_pct",
+              "amount": -30,
+              "days": 1
+            }
+          ]
+        },
+        {
+          "id": "b",
+          "label_key": "card.surprise_snow.b",
+          "outcome_key": "card.surprise_snow.b_out",
+          "effects": [
+            {
+              "op": "add_cash",
+              "amount": -200
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "flooded_bunkers",
+      "category": "weather",
+      "weight": 55,
+      "min_day": 12,
+      "cooldown_days": 30,
+      "once": false,
+      "requires_tags": [
+        "recent_rain",
+        "has_bunkers"
+      ],
+      "title_key": "card.flooded_bunkers.title",
+      "body_key": "card.flooded_bunkers.body",
+      "choices": [
+        {
+          "id": "a",
+          "label_key": "card.flooded_bunkers.a",
+          "outcome_key": "card.flooded_bunkers.a_out",
+          "effects": [
+            {
+              "op": "add_cash",
+              "amount": -450
+            }
+          ]
+        },
+        {
+          "id": "b",
+          "label_key": "card.flooded_bunkers.b",
+          "outcome_key": "card.flooded_bunkers.b_out",
+          "effects": [
+            {
+              "op": "add_reputation",
+              "amount": 4
+            },
+            {
+              "op": "golfer_flow_pct",
+              "amount": -5,
+              "days": 1
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "dry_spell_brown",
+      "category": "weather",
+      "weight": 50,
+      "min_day": 15,
+      "cooldown_days": 45,
+      "once": false,
+      "requires_tags": [
+        "dry_spell"
+      ],
+      "title_key": "card.dry_spell_brown.title",
+      "body_key": "card.dry_spell_brown.body",
+      "choices": [
+        {
+          "id": "a",
+          "label_key": "card.dry_spell_brown.a",
+          "outcome_key": "card.dry_spell_brown.a_out",
+          "effects": [
+            {
+              "op": "add_cash",
+              "amount": -900
+            },
+            {
+              "op": "add_reputation",
+              "amount": 6
+            }
+          ]
+        },
+        {
+          "id": "b",
+          "label_key": "card.dry_spell_brown.b",
+          "outcome_key": "card.dry_spell_brown.b_out",
+          "effects": [
+            {
+              "op": "add_cash",
+              "amount": 100
+            },
+            {
+              "op": "add_reputation",
+              "amount": -2
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "lightning_scare",
+      "category": "weather",
+      "weight": 50,
+      "min_day": 8,
+      "cooldown_days": 35,
+      "once": false,
+      "seasons": [
+        "spring",
+        "summer"
+      ],
+      "title_key": "card.lightning_scare.title",
+      "body_key": "card.lightning_scare.body",
+      "choices": [
+        {
+          "id": "a",
+          "label_key": "card.lightning_scare.a",
+          "outcome_key": "card.lightning_scare.a_out",
+          "effects": [
+            {
+              "op": "add_cash",
+              "amount": 300
+            },
+            {
+              "op": "add_reputation",
+              "amount": 2
+            }
+          ]
+        },
+        {
+          "id": "b",
+          "label_key": "card.lightning_scare.b",
+          "outcome_key": "card.lightning_scare.b_out",
+          "effects": [
+            {
+              "op": "add_cash",
+              "amount": -250
+            },
+            {
+              "op": "add_reputation",
+              "amount": 5
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "vip_visit",
+      "category": "vip",
+      "weight": 40,
+      "min_day": 20,
+      "cooldown_days": 60,
+      "once": false,
+      "min_avg_hole_score": 30,
+      "title_key": "card.vip_visit.title",
+      "body_key": "card.vip_visit.body",
+      "choices": [
+        {
+          "id": "a",
+          "label_key": "card.vip_visit.a",
+          "outcome_key": "card.vip_visit.a_out",
+          "requires": {
+            "min_cash": 1000
+          },
+          "effects": [
+            {
+              "op": "add_cash",
+              "amount": -1000
+            },
+            {
+              "op": "add_reputation",
+              "amount": 25
+            }
+          ]
+        },
+        {
+          "id": "b",
+          "label_key": "card.vip_visit.b",
+          "outcome_key": "card.vip_visit.b_out",
+          "effects": []
+        }
+      ]
+    },
+    {
+      "id": "golf_writer",
+      "category": "vip",
+      "weight": 35,
+      "min_day": 25,
+      "cooldown_days": 70,
+      "once": false,
+      "min_avg_hole_score": 35,
+      "title_key": "card.golf_writer.title",
+      "body_key": "card.golf_writer.body",
+      "choices": [
+        {
+          "id": "a",
+          "label_key": "card.golf_writer.a",
+          "outcome_key": "card.golf_writer.a_out",
+          "requires": {
+            "min_cash": 600
+          },
+          "effects": [
+            {
+              "op": "add_cash",
+              "amount": -600
+            },
+            {
+              "op": "add_reputation",
+              "amount": 22
+            },
+            {
+              "op": "golfer_flow_pct",
+              "amount": 15,
+              "days": 5
+            }
+          ]
+        },
+        {
+          "id": "b",
+          "label_key": "card.golf_writer.b",
+          "outcome_key": "card.golf_writer.b_out",
+          "effects": [
+            {
+              "op": "add_reputation",
+              "amount": 6
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "sponsor_scout",
+      "category": "vip",
+      "weight": 30,
+      "min_day": 30,
+      "cooldown_days": 80,
+      "once": false,
+      "min_tier": 2,
+      "title_key": "card.sponsor_scout.title",
+      "body_key": "card.sponsor_scout.body",
+      "choices": [
+        {
+          "id": "a",
+          "label_key": "card.sponsor_scout.a",
+          "outcome_key": "card.sponsor_scout.a_out",
+          "effects": [
+            {
+              "op": "add_cash",
+              "amount": 1200
+            },
+            {
+              "op": "add_reputation",
+              "amount": 4
+            }
+          ]
+        },
+        {
+          "id": "b",
+          "label_key": "card.sponsor_scout.b",
+          "outcome_key": "card.sponsor_scout.b_out",
+          "requires": {
+            "min_cash": 300
+          },
+          "effects": [
+            {
+              "op": "add_cash",
+              "amount": -300
+            },
+            {
+              "op": "golfer_flow_pct",
+              "amount": 20,
+              "days": 4
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "junior_champion",
+      "category": "vip",
+      "weight": 30,
+      "min_day": 20,
+      "cooldown_days": 60,
+      "once": false,
+      "title_key": "card.junior_champion.title",
+      "body_key": "card.junior_champion.body",
+      "choices": [
+        {
+          "id": "a",
+          "label_key": "card.junior_champion.a",
+          "outcome_key": "card.junior_champion.a_out",
+          "requires": {
+            "min_cash": 200
+          },
+          "effects": [
+            {
+              "op": "add_cash",
+              "amount": -200
+            },
+            {
+              "op": "add_reputation",
+              "amount": 12
+            },
+            {
+              "op": "add_members",
+              "amount": 2
+            }
+          ]
+        },
+        {
+          "id": "b",
+          "label_key": "card.junior_champion.b",
+          "outcome_key": "card.junior_champion.b_out",
+          "effects": [
+            {
+              "op": "add_reputation",
+              "amount": 4
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "mayor_round",
+      "category": "vip",
+      "weight": 30,
+      "min_day": 30,
+      "cooldown_days": 90,
+      "once": false,
+      "min_tier": 2,
+      "title_key": "card.mayor_round.title",
+      "body_key": "card.mayor_round.body",
+      "choices": [
+        {
+          "id": "a",
+          "label_key": "card.mayor_round.a",
+          "outcome_key": "card.mayor_round.a_out",
+          "requires": {
+            "min_cash": 500
+          },
+          "effects": [
+            {
+              "op": "add_cash",
+              "amount": -500
+            },
+            {
+              "op": "add_reputation",
+              "amount": 18
+            },
+            {
+              "op": "add_prestige",
+              "amount": 1
+            }
+          ]
+        },
+        {
+          "id": "b",
+          "label_key": "card.mayor_round.b",
+          "outcome_key": "card.mayor_round.b_out",
+          "effects": [
+            {
+              "op": "add_reputation",
+              "amount": 2
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "tourist_group",
+      "category": "vip",
+      "weight": 50,
+      "min_day": 15,
+      "cooldown_days": 40,
+      "once": false,
+      "requires_tags": [
+        "has_restaurant"
+      ],
+      "title_key": "card.tourist_group.title",
+      "body_key": "card.tourist_group.body",
+      "choices": [
+        {
+          "id": "a",
+          "label_key": "card.tourist_group.a",
+          "outcome_key": "card.tourist_group.a_out",
+          "effects": [
+            {
+              "op": "add_cash",
+              "amount": 900
+            },
+            {
+              "op": "add_reputation",
+              "amount": 3
+            }
+          ]
+        },
+        {
+          "id": "b",
+          "label_key": "card.tourist_group.b",
+          "outcome_key": "card.tourist_group.b_out",
+          "effects": [
+            {
+              "op": "add_cash",
+              "amount": 300
+            },
+            {
+              "op": "add_reputation",
+              "amount": 6
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "architect_visit",
+      "category": "vip",
+      "weight": 25,
+      "min_day": 40,
+      "cooldown_days": 120,
+      "once": false,
+      "min_tier": 3,
+      "title_key": "card.architect_visit.title",
+      "body_key": "card.architect_visit.body",
+      "choices": [
+        {
+          "id": "a",
+          "label_key": "card.architect_visit.a",
+          "outcome_key": "card.architect_visit.a_out",
+          "effects": [
+            {
+              "op": "add_reputation",
+              "amount": 15
+            },
+            {
+              "op": "add_prestige",
+              "amount": 1
+            }
+          ]
+        },
+        {
+          "id": "b",
+          "label_key": "card.architect_visit.b",
+          "outcome_key": "card.architect_visit.b_out",
+          "effects": [
+            {
+              "op": "add_cash",
+              "amount": 200
+            },
+            {
+              "op": "add_reputation",
+              "amount": 10
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "landmark_press",
+      "category": "vip",
+      "weight": 20,
+      "min_day": 60,
+      "cooldown_days": 180,
+      "once": true,
+      "min_tier": 4,
+      "title_key": "card.landmark_press.title",
+      "body_key": "card.landmark_press.body",
+      "choices": [
+        {
+          "id": "a",
+          "label_key": "card.landmark_press.a",
+          "outcome_key": "card.landmark_press.a_out",
+          "requires": {
+            "min_cash": 1500
+          },
+          "effects": [
+            {
+              "op": "add_cash",
+              "amount": -1500
+            },
+            {
+              "op": "add_reputation",
+              "amount": 30
+            },
+            {
+              "op": "golfer_flow_pct",
+              "amount": 30,
+              "days": 7
+            }
+          ]
+        },
+        {
+          "id": "b",
+          "label_key": "card.landmark_press.b",
+          "outcome_key": "card.landmark_press.b_out",
+          "effects": []
+        }
+      ]
+    },
+    {
+      "id": "comedian_round",
+      "category": "celebrity",
+      "weight": 35,
+      "min_day": 25,
+      "cooldown_days": 60,
+      "once": false,
+      "min_tier": 2,
+      "title_key": "card.comedian_round.title",
+      "body_key": "card.comedian_round.body",
+      "choices": [
+        {
+          "id": "a",
+          "label_key": "card.comedian_round.a",
+          "outcome_key": "card.comedian_round.a_out",
+          "effects": [
+            {
+              "op": "add_reputation",
+              "amount": 12
+            },
+            {
+              "op": "golfer_flow_pct",
+              "amount": 15,
+              "days": 3
+            }
+          ]
+        },
+        {
+          "id": "b",
+          "label_key": "card.comedian_round.b",
+          "outcome_key": "card.comedian_round.b_out",
+          "effects": [
+            {
+              "op": "add_reputation",
+              "amount": 6
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "cartoon_mascot",
+      "category": "celebrity",
+      "weight": 25,
+      "min_day": 10,
+      "cooldown_days": 90,
+      "once": false,
+      "title_key": "card.cartoon_mascot.title",
+      "body_key": "card.cartoon_mascot.body",
+      "choices": [
+        {
+          "id": "a",
+          "label_key": "card.cartoon_mascot.a",
+          "outcome_key": "card.cartoon_mascot.a_out",
+          "effects": [
+            {
+              "op": "add_reputation",
+              "amount": 10
+            },
+            {
+              "op": "add_members",
+              "amount": 1
+            }
+          ]
+        },
+        {
+          "id": "b",
+          "label_key": "card.cartoon_mascot.b",
+          "outcome_key": "card.cartoon_mascot.b_out",
+          "requires": {
+            "min_cash": 250
+          },
+          "effects": [
+            {
+              "op": "add_cash",
+              "amount": 450
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "chef_demo",
+      "category": "celebrity",
+      "weight": 30,
+      "min_day": 20,
+      "cooldown_days": 90,
+      "once": false,
+      "requires_tags": [
+        "has_restaurant"
+      ],
+      "title_key": "card.chef_demo.title",
+      "body_key": "card.chef_demo.body",
+      "choices": [
+        {
+          "id": "a",
+          "label_key": "card.chef_demo.a",
+          "outcome_key": "card.chef_demo.a_out",
+          "effects": [
+            {
+              "op": "add_cash",
+              "amount": 1000
+            },
+            {
+              "op": "add_reputation",
+              "amount": 8
+            }
+          ]
+        },
+        {
+          "id": "b",
+          "label_key": "card.chef_demo.b",
+          "outcome_key": "card.chef_demo.b_out",
+          "requires": {
+            "min_cash": 400
+          },
+          "effects": [
+            {
+              "op": "add_cash",
+              "amount": -400
+            },
+            {
+              "op": "add_reputation",
+              "amount": 14
+            },
+            {
+              "op": "add_members",
+              "amount": 2
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "pro_exhibition",
+      "category": "celebrity",
+      "weight": 25,
+      "min_day": 40,
+      "cooldown_days": 90,
+      "once": false,
+      "min_tier": 3,
+      "title_key": "card.pro_exhibition.title",
+      "body_key": "card.pro_exhibition.body",
+      "choices": [
+        {
+          "id": "a",
+          "label_key": "card.pro_exhibition.a",
+          "outcome_key": "card.pro_exhibition.a_out",
+          "effects": [
+            {
+              "op": "add_cash",
+              "amount": 1500
+            },
+            {
+              "op": "add_reputation",
+              "amount": 10
+            }
+          ]
+        },
+        {
+          "id": "b",
+          "label_key": "card.pro_exhibition.b",
+          "outcome_key": "card.pro_exhibition.b_out",
+          "requires": {
+            "min_cash": 800
+          },
+          "effects": [
+            {
+              "op": "add_cash",
+              "amount": -800
+            },
+            {
+              "op": "add_reputation",
+              "amount": 25
+            },
+            {
+              "op": "golfer_flow_pct",
+              "amount": 25,
+              "days": 4
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "influencer_trick",
+      "category": "celebrity",
+      "weight": 30,
+      "min_day": 15,
+      "cooldown_days": 60,
+      "once": false,
+      "title_key": "card.influencer_trick.title",
+      "body_key": "card.influencer_trick.body",
+      "choices": [
+        {
+          "id": "a",
+          "label_key": "card.influencer_trick.a",
+          "outcome_key": "card.influencer_trick.a_out",
+          "effects": [
+            {
+              "op": "add_reputation",
+              "amount": 12
+            },
+            {
+              "op": "golfer_flow_pct",
+              "amount": 20,
+              "days": 5
+            }
+          ]
+        },
+        {
+          "id": "b",
+          "label_key": "card.influencer_trick.b",
+          "outcome_key": "card.influencer_trick.b_out",
+          "effects": [
+            {
+              "op": "add_reputation",
+              "amount": 6
+            },
+            {
+              "op": "golfer_flow_pct",
+              "amount": 10,
+              "days": 3
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "puppy_pro",
+      "category": "celebrity",
+      "weight": 20,
+      "min_day": 10,
+      "cooldown_days": 120,
+      "once": false,
+      "title_key": "card.puppy_pro.title",
+      "body_key": "card.puppy_pro.body",
+      "choices": [
+        {
+          "id": "a",
+          "label_key": "card.puppy_pro.a",
+          "outcome_key": "card.puppy_pro.a_out",
+          "effects": [
+            {
+              "op": "add_reputation",
+              "amount": 10
+            },
+            {
+              "op": "golfer_flow_pct",
+              "amount": 10,
+              "days": 3
+            }
+          ]
+        },
+        {
+          "id": "b",
+          "label_key": "card.puppy_pro.b",
+          "outcome_key": "card.puppy_pro.b_out",
+          "effects": []
+        }
+      ]
+    },
+    {
+      "id": "member_complaint_slow",
+      "category": "member",
+      "weight": 70,
+      "min_day": 10,
+      "cooldown_days": 30,
+      "once": false,
+      "requires_tags": [
+        "busy"
+      ],
+      "title_key": "card.member_complaint_slow.title",
+      "body_key": "card.member_complaint_slow.body",
+      "choices": [
+        {
+          "id": "a",
+          "label_key": "card.member_complaint_slow.a",
+          "outcome_key": "card.member_complaint_slow.a_out",
+          "requires": {
+            "min_cash": 250
+          },
+          "effects": [
+            {
+              "op": "add_cash",
+              "amount": -250
+            },
+            {
+              "op": "add_reputation",
+              "amount": 8
+            }
+          ]
+        },
+        {
+          "id": "b",
+          "label_key": "card.member_complaint_slow.b",
+          "outcome_key": "card.member_complaint_slow.b_out",
+          "effects": [
+            {
+              "op": "add_reputation",
+              "amount": 2
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "member_request_bench",
+      "category": "member",
+      "weight": 60,
+      "min_day": 5,
+      "cooldown_days": 45,
+      "once": false,
+      "title_key": "card.member_request_bench.title",
+      "body_key": "card.member_request_bench.body",
+      "choices": [
+        {
+          "id": "a",
+          "label_key": "card.member_request_bench.a",
+          "outcome_key": "card.member_request_bench.a_out",
+          "requires": {
+            "min_cash": 400
+          },
+          "effects": [
+            {
+              "op": "add_cash",
+              "amount": -400
+            },
+            {
+              "op": "add_reputation",
+              "amount": 8
+            }
+          ]
+        },
+        {
+          "id": "b",
+          "label_key": "card.member_request_bench.b",
+          "outcome_key": "card.member_request_bench.b_out",
+          "effects": [
+            {
+              "op": "add_cash",
+              "amount": 100
+            },
+            {
+              "op": "add_reputation",
+              "amount": 3
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "member_birthday",
+      "category": "member",
+      "weight": 70,
+      "min_day": 3,
+      "cooldown_days": 25,
+      "once": false,
+      "title_key": "card.member_birthday.title",
+      "body_key": "card.member_birthday.body",
+      "choices": [
+        {
+          "id": "a",
+          "label_key": "card.member_birthday.a",
+          "outcome_key": "card.member_birthday.a_out",
+          "requires": {
+            "min_cash": 100
+          },
+          "effects": [
+            {
+              "op": "add_cash",
+              "amount": -100
+            },
+            {
+              "op": "add_reputation",
+              "amount": 7
+            },
+            {
+              "op": "add_members",
+              "amount": 1
+            }
+          ]
+        },
+        {
+          "id": "b",
+          "label_key": "card.member_birthday.b",
+          "outcome_key": "card.member_birthday.b_out",
+          "effects": [
+            {
+              "op": "add_reputation",
+              "amount": 4
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "hole_in_one",
+      "category": "member",
+      "weight": 50,
+      "min_day": 5,
+      "cooldown_days": 25,
+      "once": false,
+      "title_key": "card.hole_in_one.title",
+      "body_key": "card.hole_in_one.body",
+      "choices": [
+        {
+          "id": "a",
+          "label_key": "card.hole_in_one.a",
+          "outcome_key": "card.hole_in_one.a_out",
+          "effects": [
+            {
+              "op": "add_reputation",
+              "amount": 10
+            },
+            {
+              "op": "golfer_flow_pct",
+              "amount": 10,
+              "days": 2
+            }
+          ]
+        },
+        {
+          "id": "b",
+          "label_key": "card.hole_in_one.b",
+          "outcome_key": "card.hole_in_one.b_out",
+          "requires": {
+            "min_cash": 200
+          },
+          "effects": [
+            {
+              "op": "add_cash",
+              "amount": -200
+            },
+            {
+              "op": "add_reputation",
+              "amount": 14
+            },
+            {
+              "op": "add_prestige",
+              "amount": 1
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "lost_ball_bin",
+      "category": "member",
+      "weight": 60,
+      "min_day": 3,
+      "cooldown_days": 30,
+      "once": false,
+      "title_key": "card.lost_ball_bin.title",
+      "body_key": "card.lost_ball_bin.body",
+      "choices": [
+        {
+          "id": "a",
+          "label_key": "card.lost_ball_bin.a",
+          "outcome_key": "card.lost_ball_bin.a_out",
+          "effects": [
+            {
+              "op": "add_cash",
+              "amount": 250
+            }
+          ]
+        },
+        {
+          "id": "b",
+          "label_key": "card.lost_ball_bin.b",
+          "outcome_key": "card.lost_ball_bin.b_out",
+          "effects": [
+            {
+              "op": "add_reputation",
+              "amount": 8
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "club_champ_dispute",
+      "category": "member",
+      "weight": 45,
+      "min_day": 15,
+      "cooldown_days": 60,
+      "once": false,
+      "min_members": 20,
+      "title_key": "card.club_champ_dispute.title",
+      "body_key": "card.club_champ_dispute.body",
+      "choices": [
+        {
+          "id": "a",
+          "label_key": "card.club_champ_dispute.a",
+          "outcome_key": "card.club_champ_dispute.a_out",
+          "effects": [
+            {
+              "op": "add_reputation",
+              "amount": 8
+            },
+            {
+              "op": "add_members",
+              "amount": 1
+            }
+          ]
+        },
+        {
+          "id": "b",
+          "label_key": "card.club_champ_dispute.b",
+          "outcome_key": "card.club_champ_dispute.b_out",
+          "effects": [
+            {
+              "op": "add_reputation",
+              "amount": 2
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "ladies_day",
+      "category": "member",
+      "weight": 50,
+      "min_day": 8,
+      "cooldown_days": 30,
+      "once": false,
+      "title_key": "card.ladies_day.title",
+      "body_key": "card.ladies_day.body",
+      "choices": [
+        {
+          "id": "a",
+          "label_key": "card.ladies_day.a",
+          "outcome_key": "card.ladies_day.a_out",
+          "requires": {
+            "min_cash": 200
+          },
+          "effects": [
+            {
+              "op": "add_cash",
+              "amount": -200
+            },
+            {
+              "op": "add_members",
+              "amount": 4
+            },
+            {
+              "op": "add_reputation",
+              "amount": 4
+            }
+          ]
+        },
+        {
+          "id": "b",
+          "label_key": "card.ladies_day.b",
+          "outcome_key": "card.ladies_day.b_out",
+          "effects": []
+        }
+      ]
+    },
+    {
+      "id": "old_regular_story",
+      "category": "member",
+      "weight": 50,
+      "min_day": 10,
+      "cooldown_days": 45,
+      "once": false,
+      "title_key": "card.old_regular_story.title",
+      "body_key": "card.old_regular_story.body",
+      "choices": [
+        {
+          "id": "a",
+          "label_key": "card.old_regular_story.a",
+          "outcome_key": "card.old_regular_story.a_out",
+          "effects": [
+            {
+              "op": "add_cash",
+              "amount": 100
+            },
+            {
+              "op": "add_reputation",
+              "amount": 6
+            }
+          ]
+        },
+        {
+          "id": "b",
+          "label_key": "card.old_regular_story.b",
+          "outcome_key": "card.old_regular_story.b_out",
+          "effects": [
+            {
+              "op": "add_reputation",
+              "amount": 1
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "kids_clinic",
+      "category": "member",
+      "weight": 55,
+      "min_day": 8,
+      "cooldown_days": 40,
+      "once": false,
+      "title_key": "card.kids_clinic.title",
+      "body_key": "card.kids_clinic.body",
+      "choices": [
+        {
+          "id": "a",
+          "label_key": "card.kids_clinic.a",
+          "outcome_key": "card.kids_clinic.a_out",
+          "requires": {
+            "min_cash": 300
+          },
+          "effects": [
+            {
+              "op": "add_cash",
+              "amount": -300
+            },
+            {
+              "op": "add_members",
+              "amount": 5
+            },
+            {
+              "op": "add_reputation",
+              "amount": 8
+            }
+          ]
+        },
+        {
+          "id": "b",
+          "label_key": "card.kids_clinic.b",
+          "outcome_key": "card.kids_clinic.b_out",
+          "effects": [
+            {
+              "op": "add_members",
+              "amount": 1
+            },
+            {
+              "op": "add_reputation",
+              "amount": 3
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "locker_room_upgrade",
+      "category": "member",
+      "weight": 40,
+      "min_day": 25,
+      "cooldown_days": 60,
+      "once": false,
+      "min_tier": 2,
+      "title_key": "card.locker_room_upgrade.title",
+      "body_key": "card.locker_room_upgrade.body",
+      "choices": [
+        {
+          "id": "a",
+          "label_key": "card.locker_room_upgrade.a",
+          "outcome_key": "card.locker_room_upgrade.a_out",
+          "requires": {
+            "min_cash": 1500
+          },
+          "effects": [
+            {
+              "op": "add_cash",
+              "amount": -1500
+            },
+            {
+              "op": "add_reputation",
+              "amount": 14
+            },
+            {
+              "op": "add_prestige",
+              "amount": 1
+            }
+          ]
+        },
+        {
+          "id": "b",
+          "label_key": "card.locker_room_upgrade.b",
+          "outcome_key": "card.locker_room_upgrade.b_out",
+          "effects": [
+            {
+              "op": "add_reputation",
+              "amount": -3
+            }
+          ]
+        },
+        {
+          "id": "c",
+          "label_key": "card.locker_room_upgrade.c",
+          "outcome_key": "card.locker_room_upgrade.c_out",
+          "requires": {
+            "min_cash": 200
+          },
+          "effects": [
+            {
+              "op": "add_cash",
+              "amount": -200
+            },
+            {
+              "op": "add_reputation",
+              "amount": 4
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "swing_lesson_rush",
+      "category": "member",
+      "weight": 50,
+      "min_day": 10,
+      "cooldown_days": 25,
+      "once": false,
+      "requires_tags": [
+        "has_pro_shop"
+      ],
+      "title_key": "card.swing_lesson_rush.title",
+      "body_key": "card.swing_lesson_rush.body",
+      "choices": [
+        {
+          "id": "a",
+          "label_key": "card.swing_lesson_rush.a",
+          "outcome_key": "card.swing_lesson_rush.a_out",
+          "requires": {
+            "min_cash": 400
+          },
+          "effects": [
+            {
+              "op": "add_cash",
+              "amount": 700
+            },
+            {
+              "op": "add_reputation",
+              "amount": 4
+            }
+          ]
+        },
+        {
+          "id": "b",
+          "label_key": "card.swing_lesson_rush.b",
+          "outcome_key": "card.swing_lesson_rush.b_out",
+          "effects": [
+            {
+              "op": "add_cash",
+              "amount": 500
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "range_challenge",
+      "category": "member",
+      "weight": 45,
+      "min_day": 10,
+      "cooldown_days": 30,
+      "once": false,
+      "requires_tags": [
+        "has_driving_range"
+      ],
+      "title_key": "card.range_challenge.title",
+      "body_key": "card.range_challenge.body",
+      "choices": [
+        {
+          "id": "a",
+          "label_key": "card.range_challenge.a",
+          "outcome_key": "card.range_challenge.a_out",
+          "requires": {
+            "min_cash": 150
+          },
+          "effects": [
+            {
+              "op": "add_cash",
+              "amount": -150
+            },
+            {
+              "op": "add_reputation",
+              "amount": 6
+            },
+            {
+              "op": "golfer_flow_pct",
+              "amount": 10,
+              "days": 2
+            }
+          ]
+        },
+        {
+          "id": "b",
+          "label_key": "card.range_challenge.b",
+          "outcome_key": "card.range_challenge.b_out",
+          "effects": [
+            {
+              "op": "golfer_flow_pct",
+              "amount": 5,
+              "days": 1
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "greenkeeper_idea",
+      "category": "staff",
+      "weight": 60,
+      "min_day": 6,
+      "cooldown_days": 40,
+      "once": false,
+      "title_key": "card.greenkeeper_idea.title",
+      "body_key": "card.greenkeeper_idea.body",
+      "choices": [
+        {
+          "id": "a",
+          "label_key": "card.greenkeeper_idea.a",
+          "outcome_key": "card.greenkeeper_idea.a_out",
+          "effects": [
+            {
+              "op": "add_reputation",
+              "amount": 7
+            }
+          ]
+        },
+        {
+          "id": "b",
+          "label_key": "card.greenkeeper_idea.b",
+          "outcome_key": "card.greenkeeper_idea.b_out",
+          "requires": {
+            "min_cash": 600
+          },
+          "effects": [
+            {
+              "op": "add_cash",
+              "amount": -600
+            },
+            {
+              "op": "add_reputation",
+              "amount": 10
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "staff_bake_sale",
+      "category": "staff",
+      "weight": 55,
+      "min_day": 4,
+      "cooldown_days": 45,
+      "once": false,
+      "title_key": "card.staff_bake_sale.title",
+      "body_key": "card.staff_bake_sale.body",
+      "choices": [
+        {
+          "id": "a",
+          "label_key": "card.staff_bake_sale.a",
+          "outcome_key": "card.staff_bake_sale.a_out",
+          "effects": [
+            {
+              "op": "add_cash",
+              "amount": -50
+            },
+            {
+              "op": "add_reputation",
+              "amount": 3
+            }
+          ]
+        },
+        {
+          "id": "b",
+          "label_key": "card.staff_bake_sale.b",
+          "outcome_key": "card.staff_bake_sale.b_out",
+          "requires": {
+            "min_cash": 200
+          },
+          "effects": [
+            {
+              "op": "add_cash",
+              "amount": -200
+            },
+            {
+              "op": "add_reputation",
+              "amount": 5
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "caddie_award",
+      "category": "staff",
+      "weight": 45,
+      "min_day": 15,
+      "cooldown_days": 60,
+      "once": false,
+      "title_key": "card.caddie_award.title",
+      "body_key": "card.caddie_award.body",
+      "choices": [
+        {
+          "id": "a",
+          "label_key": "card.caddie_award.a",
+          "outcome_key": "card.caddie_award.a_out",
+          "requires": {
+            "min_cash": 250
+          },
+          "effects": [
+            {
+              "op": "add_cash",
+              "amount": -250
+            },
+            {
+              "op": "add_reputation",
+              "amount": 8
+            }
+          ]
+        },
+        {
+          "id": "b",
+          "label_key": "card.caddie_award.b",
+          "outcome_key": "card.caddie_award.b_out",
+          "effects": [
+            {
+              "op": "add_reputation",
+              "amount": 2
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "mower_breakdown",
+      "category": "staff",
+      "weight": 70,
+      "min_day": 5,
+      "cooldown_days": 25,
+      "once": false,
+      "title_key": "card.mower_breakdown.title",
+      "body_key": "card.mower_breakdown.body",
+      "choices": [
+        {
+          "id": "a",
+          "label_key": "card.mower_breakdown.a",
+          "outcome_key": "card.mower_breakdown.a_out",
+          "requires": {
+            "min_cash": 350
+          },
+          "effects": [
+            {
+              "op": "add_cash",
+              "amount": -350
+            }
+          ]
+        },
+        {
+          "id": "b",
+          "label_key": "card.mower_breakdown.b",
+          "outcome_key": "card.mower_breakdown.b_out",
+          "requires": {
+            "min_cash": 500
+          },
+          "effects": [
+            {
+              "op": "add_cash",
+              "amount": -500
+            },
+            {
+              "op": "add_reputation",
+              "amount": 2
+            }
+          ]
+        },
+        {
+          "id": "c",
+          "label_key": "card.mower_breakdown.c",
+          "outcome_key": "card.mower_breakdown.c_out",
+          "effects": [
+            {
+              "op": "add_reputation",
+              "amount": -6
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "staff_training_day",
+      "category": "staff",
+      "weight": 45,
+      "min_day": 12,
+      "cooldown_days": 60,
+      "once": false,
+      "title_key": "card.staff_training_day.title",
+      "body_key": "card.staff_training_day.body",
+      "choices": [
+        {
+          "id": "a",
+          "label_key": "card.staff_training_day.a",
+          "outcome_key": "card.staff_training_day.a_out",
+          "requires": {
+            "min_cash": 400
+          },
+          "effects": [
+            {
+              "op": "add_cash",
+              "amount": -400
+            },
+            {
+              "op": "add_reputation",
+              "amount": 9
+            }
+          ]
+        },
+        {
+          "id": "b",
+          "label_key": "card.staff_training_day.b",
+          "outcome_key": "card.staff_training_day.b_out",
+          "effects": [
+            {
+              "op": "add_reputation",
+              "amount": 3
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "crew_prank",
+      "category": "staff",
+      "weight": 40,
+      "min_day": 6,
+      "cooldown_days": 60,
+      "once": false,
+      "title_key": "card.crew_prank.title",
+      "body_key": "card.crew_prank.body",
+      "choices": [
+        {
+          "id": "a",
+          "label_key": "card.crew_prank.a",
+          "outcome_key": "card.crew_prank.a_out",
+          "effects": [
+            {
+              "op": "add_reputation",
+              "amount": 5
+            }
+          ]
+        },
+        {
+          "id": "b",
+          "label_key": "card.crew_prank.b",
+          "outcome_key": "card.crew_prank.b_out",
+          "effects": []
+        }
+      ]
+    },
+    {
+      "id": "new_hire_star",
+      "category": "staff",
+      "weight": 40,
+      "min_day": 10,
+      "cooldown_days": 60,
+      "once": false,
+      "title_key": "card.new_hire_star.title",
+      "body_key": "card.new_hire_star.body",
+      "choices": [
+        {
+          "id": "a",
+          "label_key": "card.new_hire_star.a",
+          "outcome_key": "card.new_hire_star.a_out",
+          "requires": {
+            "min_cash": 300
+          },
+          "effects": [
+            {
+              "op": "add_cash",
+              "amount": -300
+            },
+            {
+              "op": "add_reputation",
+              "amount": 8
+            },
+            {
+              "op": "add_members",
+              "amount": 1
+            }
+          ]
+        },
+        {
+          "id": "b",
+          "label_key": "card.new_hire_star.b",
+          "outcome_key": "card.new_hire_star.b_out",
+          "effects": []
+        }
+      ]
+    },
+    {
+      "id": "break_room_fix",
+      "category": "staff",
+      "weight": 45,
+      "min_day": 8,
+      "cooldown_days": 50,
+      "once": false,
+      "title_key": "card.break_room_fix.title",
+      "body_key": "card.break_room_fix.body",
+      "choices": [
+        {
+          "id": "a",
+          "label_key": "card.break_room_fix.a",
+          "outcome_key": "card.break_room_fix.a_out",
+          "requires": {
+            "min_cash": 250
+          },
+          "effects": [
+            {
+              "op": "add_cash",
+              "amount": -250
+            },
+            {
+              "op": "add_reputation",
+              "amount": 4
+            }
+          ]
+        },
+        {
+          "id": "b",
+          "label_key": "card.break_room_fix.b",
+          "outcome_key": "card.break_room_fix.b_out",
+          "effects": [
+            {
+              "op": "add_reputation",
+              "amount": -2
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "insurance_bill",
+      "category": "finance",
+      "weight": 60,
+      "min_day": 10,
+      "cooldown_days": 40,
+      "once": false,
+      "title_key": "card.insurance_bill.title",
+      "body_key": "card.insurance_bill.body",
+      "choices": [
+        {
+          "id": "a",
+          "label_key": "card.insurance_bill.a",
+          "outcome_key": "card.insurance_bill.a_out",
+          "requires": {
+            "min_cash": 600
+          },
+          "effects": [
+            {
+              "op": "add_cash",
+              "amount": -600
+            }
+          ]
+        },
+        {
+          "id": "b",
+          "label_key": "card.insurance_bill.b",
+          "outcome_key": "card.insurance_bill.b_out",
+          "effects": [
+            {
+              "op": "add_cash",
+              "amount": -300
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "tax_refund",
+      "category": "finance",
+      "weight": 40,
+      "min_day": 15,
+      "cooldown_days": 90,
+      "once": false,
+      "title_key": "card.tax_refund.title",
+      "body_key": "card.tax_refund.body",
+      "choices": [
+        {
+          "id": "a",
+          "label_key": "card.tax_refund.a",
+          "outcome_key": "card.tax_refund.a_out",
+          "effects": [
+            {
+              "op": "add_cash",
+              "amount": 800
+            }
+          ]
+        },
+        {
+          "id": "b",
+          "label_key": "card.tax_refund.b",
+          "outcome_key": "card.tax_refund.b_out",
+          "effects": [
+            {
+              "op": "add_cash",
+              "amount": 300
+            },
+            {
+              "op": "add_reputation",
+              "amount": 5
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "supplier_discount",
+      "category": "finance",
+      "weight": 55,
+      "min_day": 8,
+      "cooldown_days": 45,
+      "once": false,
+      "title_key": "card.supplier_discount.title",
+      "body_key": "card.supplier_discount.body",
+      "choices": [
+        {
+          "id": "a",
+          "label_key": "card.supplier_discount.a",
+          "outcome_key": "card.supplier_discount.a_out",
+          "requires": {
+            "min_cash": 800
+          },
+          "effects": [
+            {
+              "op": "add_cash",
+              "amount": -800
+            },
+            {
+              "op": "add_reputation",
+              "amount": 5
+            }
+          ]
+        },
+        {
+          "id": "b",
+          "label_key": "card.supplier_discount.b",
+          "outcome_key": "card.supplier_discount.b_out",
+          "effects": []
+        }
+      ]
+    },
+    {
+      "id": "pipe_burst",
+      "category": "finance",
+      "weight": 50,
+      "min_day": 8,
+      "cooldown_days": 45,
+      "once": false,
+      "title_key": "card.pipe_burst.title",
+      "body_key": "card.pipe_burst.body",
+      "choices": [
+        {
+          "id": "a",
+          "label_key": "card.pipe_burst.a",
+          "outcome_key": "card.pipe_burst.a_out",
+          "requires": {
+            "min_cash": 500
+          },
+          "effects": [
+            {
+              "op": "add_cash",
+              "amount": -500
+            }
+          ]
+        },
+        {
+          "id": "b",
+          "label_key": "card.pipe_burst.b",
+          "outcome_key": "card.pipe_burst.b_out",
+          "effects": [
+            {
+              "op": "add_cash",
+              "amount": -150
+            },
+            {
+              "op": "add_reputation",
+              "amount": -4
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "bank_offer",
+      "category": "finance",
+      "weight": 30,
+      "min_day": 30,
+      "cooldown_days": 120,
+      "once": false,
+      "min_tier": 2,
+      "title_key": "card.bank_offer.title",
+      "body_key": "card.bank_offer.body",
+      "choices": [
+        {
+          "id": "a",
+          "label_key": "card.bank_offer.a",
+          "outcome_key": "card.bank_offer.a_out",
+          "effects": [
+            {
+              "op": "add_cash",
+              "amount": 1400
+            }
+          ]
+        },
+        {
+          "id": "b",
+          "label_key": "card.bank_offer.b",
+          "outcome_key": "card.bank_offer.b_out",
+          "effects": [
+            {
+              "op": "add_cash",
+              "amount": 900
+            },
+            {
+              "op": "add_reputation",
+              "amount": 4
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "crowdfund_bunker",
+      "category": "finance",
+      "weight": 30,
+      "min_day": 20,
+      "cooldown_days": 120,
+      "once": false,
+      "title_key": "card.crowdfund_bunker.title",
+      "body_key": "card.crowdfund_bunker.body",
+      "choices": [
+        {
+          "id": "a",
+          "label_key": "card.crowdfund_bunker.a",
+          "outcome_key": "card.crowdfund_bunker.a_out",
+          "effects": [
+            {
+              "op": "add_cash",
+              "amount": 350
+            },
+            {
+              "op": "add_reputation",
+              "amount": 5
+            }
+          ]
+        },
+        {
+          "id": "b",
+          "label_key": "card.crowdfund_bunker.b",
+          "outcome_key": "card.crowdfund_bunker.b_out",
+          "requires": {
+            "min_cash": 350
+          },
+          "effects": [
+            {
+              "op": "add_cash",
+              "amount": 600
+            },
+            {
+              "op": "add_reputation",
+              "amount": 8
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "fair_trade_coffee",
+      "category": "finance",
+      "weight": 45,
+      "min_day": 10,
+      "cooldown_days": 60,
+      "once": false,
+      "requires_tags": [
+        "has_restaurant"
+      ],
+      "title_key": "card.fair_trade_coffee.title",
+      "body_key": "card.fair_trade_coffee.body",
+      "choices": [
+        {
+          "id": "a",
+          "label_key": "card.fair_trade_coffee.a",
+          "outcome_key": "card.fair_trade_coffee.a_out",
+          "effects": [
+            {
+              "op": "add_cash",
+              "amount": -200
+            },
+            {
+              "op": "add_reputation",
+              "amount": 7
+            }
+          ]
+        },
+        {
+          "id": "b",
+          "label_key": "card.fair_trade_coffee.b",
+          "outcome_key": "card.fair_trade_coffee.b_out",
+          "effects": [
+            {
+              "op": "add_cash",
+              "amount": 150
+            },
+            {
+              "op": "add_reputation",
+              "amount": -3
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "golf_cart_lease",
+      "category": "finance",
+      "weight": 40,
+      "min_day": 15,
+      "cooldown_days": 60,
+      "once": false,
+      "requires_tags": [
+        "has_cart_barn"
+      ],
+      "title_key": "card.golf_cart_lease.title",
+      "body_key": "card.golf_cart_lease.body",
+      "choices": [
+        {
+          "id": "a",
+          "label_key": "card.golf_cart_lease.a",
+          "outcome_key": "card.golf_cart_lease.a_out",
+          "requires": {
+            "min_cash": 900
+          },
+          "effects": [
+            {
+              "op": "add_cash",
+              "amount": -900
+            },
+            {
+              "op": "add_reputation",
+              "amount": 12
+            }
+          ]
+        },
+        {
+          "id": "b",
+          "label_key": "card.golf_cart_lease.b",
+          "outcome_key": "card.golf_cart_lease.b_out",
+          "effects": []
+        }
+      ]
+    },
+    {
+      "id": "school_field_trip",
+      "category": "community",
+      "weight": 70,
+      "min_day": 5,
+      "cooldown_days": 30,
+      "once": false,
+      "title_key": "card.school_field_trip.title",
+      "body_key": "card.school_field_trip.body",
+      "choices": [
+        {
+          "id": "a",
+          "label_key": "card.school_field_trip.a",
+          "outcome_key": "card.school_field_trip.a_out",
+          "requires": {
+            "min_cash": 100
+          },
+          "effects": [
+            {
+              "op": "add_cash",
+              "amount": -100
+            },
+            {
+              "op": "add_reputation",
+              "amount": 9
+            },
+            {
+              "op": "add_members",
+              "amount": 1
+            }
+          ]
+        },
+        {
+          "id": "b",
+          "label_key": "card.school_field_trip.b",
+          "outcome_key": "card.school_field_trip.b_out",
+          "effects": [
+            {
+              "op": "add_reputation",
+              "amount": 4
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "charity_scramble",
+      "category": "community",
+      "weight": 55,
+      "min_day": 15,
+      "cooldown_days": 50,
+      "once": false,
+      "title_key": "card.charity_scramble.title",
+      "body_key": "card.charity_scramble.body",
+      "choices": [
+        {
+          "id": "a",
+          "label_key": "card.charity_scramble.a",
+          "outcome_key": "card.charity_scramble.a_out",
+          "requires": {
+            "min_cash": 400
+          },
+          "effects": [
+            {
+              "op": "add_cash",
+              "amount": -400
+            },
+            {
+              "op": "add_reputation",
+              "amount": 18
+            },
+            {
+              "op": "golfer_flow_pct",
+              "amount": 10,
+              "days": 2
+            }
+          ]
+        },
+        {
+          "id": "b",
+          "label_key": "card.charity_scramble.b",
+          "outcome_key": "card.charity_scramble.b_out",
+          "effects": [
+            {
+              "op": "add_cash",
+              "amount": 200
+            },
+            {
+              "op": "add_reputation",
+              "amount": 7
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "goose_invasion",
+      "category": "community",
+      "weight": 65,
+      "min_day": 5,
+      "cooldown_days": 30,
+      "once": false,
+      "seasons": [
+        "spring",
+        "autumn"
+      ],
+      "title_key": "card.goose_invasion.title",
+      "body_key": "card.goose_invasion.body",
+      "choices": [
+        {
+          "id": "a",
+          "label_key": "card.goose_invasion.a",
+          "outcome_key": "card.goose_invasion.a_out",
+          "requires": {
+            "min_cash": 300
+          },
+          "effects": [
+            {
+              "op": "add_cash",
+              "amount": -300
+            },
+            {
+              "op": "add_reputation",
+              "amount": 6
+            }
+          ]
+        },
+        {
+          "id": "b",
+          "label_key": "card.goose_invasion.b",
+          "outcome_key": "card.goose_invasion.b_out",
+          "effects": [
+            {
+              "op": "add_reputation",
+              "amount": -2
+            },
+            {
+              "op": "golfer_flow_pct",
+              "amount": -5,
+              "days": 1
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "gopher_dance",
+      "category": "community",
+      "weight": 55,
+      "min_day": 5,
+      "cooldown_days": 30,
+      "once": false,
+      "title_key": "card.gopher_dance.title",
+      "body_key": "card.gopher_dance.body",
+      "choices": [
+        {
+          "id": "a",
+          "label_key": "card.gopher_dance.a",
+          "outcome_key": "card.gopher_dance.a_out",
+          "requires": {
+            "min_cash": 200
+          },
+          "effects": [
+            {
+              "op": "add_cash",
+              "amount": -200
+            },
+            {
+              "op": "add_reputation",
+              "amount": 5
+            }
+          ]
+        },
+        {
+          "id": "b",
+          "label_key": "card.gopher_dance.b",
+          "outcome_key": "card.gopher_dance.b_out",
+          "effects": [
+            {
+              "op": "add_reputation",
+              "amount": -3
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "fireworks_night",
+      "category": "community",
+      "weight": 35,
+      "min_day": 20,
+      "cooldown_days": 90,
+      "once": false,
+      "seasons": [
+        "summer"
+      ],
+      "title_key": "card.fireworks_night.title",
+      "body_key": "card.fireworks_night.body",
+      "choices": [
+        {
+          "id": "a",
+          "label_key": "card.fireworks_night.a",
+          "outcome_key": "card.fireworks_night.a_out",
+          "requires": {
+            "min_cash": 600
+          },
+          "effects": [
+            {
+              "op": "add_cash",
+              "amount": -600
+            },
+            {
+              "op": "add_reputation",
+              "amount": 20
+            },
+            {
+              "op": "golfer_flow_pct",
+              "amount": 15,
+              "days": 3
+            }
+          ]
+        },
+        {
+          "id": "b",
+          "label_key": "card.fireworks_night.b",
+          "outcome_key": "card.fireworks_night.b_out",
+          "effects": []
+        }
+      ]
+    },
+    {
+      "id": "volunteer_planting",
+      "category": "community",
+      "weight": 50,
+      "min_day": 8,
+      "cooldown_days": 45,
+      "once": false,
+      "title_key": "card.volunteer_planting.title",
+      "body_key": "card.volunteer_planting.body",
+      "choices": [
+        {
+          "id": "a",
+          "label_key": "card.volunteer_planting.a",
+          "outcome_key": "card.volunteer_planting.a_out",
+          "requires": {
+            "min_cash": 150
+          },
+          "effects": [
+            {
+              "op": "add_cash",
+              "amount": -150
+            },
+            {
+              "op": "add_reputation",
+              "amount": 10
+            }
+          ]
+        },
+        {
+          "id": "b",
+          "label_key": "card.volunteer_planting.b",
+          "outcome_key": "card.volunteer_planting.b_out",
+          "effects": [
+            {
+              "op": "add_reputation",
+              "amount": 4
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "wildlife_deer",
+      "category": "community",
+      "weight": 45,
+      "min_day": 6,
+      "cooldown_days": 40,
+      "once": false,
+      "seasons": [
+        "spring",
+        "summer",
+        "autumn"
+      ],
+      "title_key": "card.wildlife_deer.title",
+      "body_key": "card.wildlife_deer.body",
+      "choices": [
+        {
+          "id": "a",
+          "label_key": "card.wildlife_deer.a",
+          "outcome_key": "card.wildlife_deer.a_out",
+          "requires": {
+            "min_cash": 50
+          },
+          "effects": [
+            {
+              "op": "add_cash",
+              "amount": -50
+            },
+            {
+              "op": "add_reputation",
+              "amount": 6
+            }
+          ]
+        },
+        {
+          "id": "b",
+          "label_key": "card.wildlife_deer.b",
+          "outcome_key": "card.wildlife_deer.b_out",
+          "effects": [
+            {
+              "op": "add_reputation",
+              "amount": 3
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "art_show",
+      "category": "community",
+      "weight": 35,
+      "min_day": 15,
+      "cooldown_days": 90,
+      "once": false,
+      "min_tier": 2,
+      "title_key": "card.art_show.title",
+      "body_key": "card.art_show.body",
+      "choices": [
+        {
+          "id": "a",
+          "label_key": "card.art_show.a",
+          "outcome_key": "card.art_show.a_out",
+          "effects": [
+            {
+              "op": "add_cash",
+              "amount": 300
+            },
+            {
+              "op": "add_reputation",
+              "amount": 8
+            }
+          ]
+        },
+        {
+          "id": "b",
+          "label_key": "card.art_show.b",
+          "outcome_key": "card.art_show.b_out",
+          "effects": []
+        }
+      ]
+    },
+    {
+      "id": "town_parade",
+      "category": "community",
+      "weight": 30,
+      "min_day": 20,
+      "cooldown_days": 120,
+      "once": false,
+      "title_key": "card.town_parade.title",
+      "body_key": "card.town_parade.body",
+      "choices": [
+        {
+          "id": "a",
+          "label_key": "card.town_parade.a",
+          "outcome_key": "card.town_parade.a_out",
+          "effects": [
+            {
+              "op": "add_reputation",
+              "amount": 12
+            },
+            {
+              "op": "golfer_flow_pct",
+              "amount": 10,
+              "days": 1
+            }
+          ]
+        },
+        {
+          "id": "b",
+          "label_key": "card.town_parade.b",
+          "outcome_key": "card.town_parade.b_out",
+          "effects": []
+        }
+      ]
+    },
+    {
+      "id": "night_owl_glow",
+      "category": "community",
+      "weight": 30,
+      "min_day": 25,
+      "cooldown_days": 90,
+      "once": false,
+      "seasons": [
+        "autumn",
+        "winter"
+      ],
+      "title_key": "card.night_owl_glow.title",
+      "body_key": "card.night_owl_glow.body",
+      "choices": [
+        {
+          "id": "a",
+          "label_key": "card.night_owl_glow.a",
+          "outcome_key": "card.night_owl_glow.a_out",
+          "requires": {
+            "min_cash": 300
+          },
+          "effects": [
+            {
+              "op": "add_cash",
+              "amount": -300
+            },
+            {
+              "op": "add_reputation",
+              "amount": 12
+            },
+            {
+              "op": "add_members",
+              "amount": 2
+            }
+          ]
+        },
+        {
+          "id": "b",
+          "label_key": "card.night_owl_glow.b",
+          "outcome_key": "card.night_owl_glow.b_out",
+          "effects": [
+            {
+              "op": "add_reputation",
+              "amount": 2
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "photo_contest",
+      "category": "community",
+      "weight": 50,
+      "min_day": 8,
+      "cooldown_days": 60,
+      "once": false,
+      "title_key": "card.photo_contest.title",
+      "body_key": "card.photo_contest.body",
+      "choices": [
+        {
+          "id": "a",
+          "label_key": "card.photo_contest.a",
+          "outcome_key": "card.photo_contest.a_out",
+          "requires": {
+            "min_cash": 100
+          },
+          "effects": [
+            {
+              "op": "add_cash",
+              "amount": -100
+            },
+            {
+              "op": "add_reputation",
+              "amount": 7
+            },
+            {
+              "op": "golfer_flow_pct",
+              "amount": 8,
+              "days": 3
+            }
+          ]
+        },
+        {
+          "id": "b",
+          "label_key": "card.photo_contest.b",
+          "outcome_key": "card.photo_contest.b_out",
+          "effects": [
+            {
+              "op": "add_reputation",
+              "amount": 2
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "rival_challenge",
+      "category": "community",
+      "weight": 40,
+      "min_day": 20,
+      "cooldown_days": 80,
+      "once": false,
+      "title_key": "card.rival_challenge.title",
+      "body_key": "card.rival_challenge.body",
+      "choices": [
+        {
+          "id": "a",
+          "label_key": "card.rival_challenge.a",
+          "outcome_key": "card.rival_challenge.a_out",
+          "effects": [
+            {
+              "op": "add_reputation",
+              "amount": 10
+            },
+            {
+              "op": "add_members",
+              "amount": 2
+            }
+          ]
+        },
+        {
+          "id": "b",
+          "label_key": "card.rival_challenge.b",
+          "outcome_key": "card.rival_challenge.b_out",
+          "effects": [
+            {
+              "op": "add_reputation",
+              "amount": -2
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

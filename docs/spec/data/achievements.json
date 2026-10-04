@@ -1,0 +1,1003 @@
+{
+  "schema": "mh.achievements",
+  "schema_version": 1,
+  "status": "PARAMETERS, NOT FINAL. Thresholds are placeholders. Every achievement is earnable at any time (no missable ones) and is never removed once earned.",
+  "achievements": [
+    {
+      "id": "first_hole",
+      "category": "design",
+      "tier": "bronze",
+      "points": 5,
+      "hidden": false,
+      "name_key": "achievement.first_hole.name",
+      "desc_key": "achievement.first_hole.desc",
+      "all": [
+        {
+          "stat": "holes_max",
+          "op": "gte",
+          "value": 1
+        }
+      ]
+    },
+    {
+      "id": "nine_holes",
+      "category": "design",
+      "tier": "bronze",
+      "points": 10,
+      "hidden": false,
+      "name_key": "achievement.nine_holes.name",
+      "desc_key": "achievement.nine_holes.desc",
+      "all": [
+        {
+          "stat": "holes_max",
+          "op": "gte",
+          "value": 9
+        }
+      ]
+    },
+    {
+      "id": "full_eighteen",
+      "category": "design",
+      "tier": "silver",
+      "points": 25,
+      "hidden": false,
+      "name_key": "achievement.full_eighteen.name",
+      "desc_key": "achievement.full_eighteen.desc",
+      "all": [
+        {
+          "stat": "holes_max",
+          "op": "gte",
+          "value": 18
+        }
+      ]
+    },
+    {
+      "id": "good_hole",
+      "category": "design",
+      "tier": "bronze",
+      "points": 5,
+      "hidden": false,
+      "name_key": "achievement.good_hole.name",
+      "desc_key": "achievement.good_hole.desc",
+      "all": [
+        {
+          "stat": "best_hole_score",
+          "op": "gte",
+          "value": 50
+        }
+      ]
+    },
+    {
+      "id": "great_hole",
+      "category": "design",
+      "tier": "bronze",
+      "points": 10,
+      "hidden": false,
+      "name_key": "achievement.great_hole.name",
+      "desc_key": "achievement.great_hole.desc",
+      "all": [
+        {
+          "stat": "best_hole_score",
+          "op": "gte",
+          "value": 70
+        }
+      ]
+    },
+    {
+      "id": "masterpiece_hole",
+      "category": "design",
+      "tier": "silver",
+      "points": 25,
+      "hidden": false,
+      "name_key": "achievement.masterpiece_hole.name",
+      "desc_key": "achievement.masterpiece_hole.desc",
+      "all": [
+        {
+          "stat": "best_hole_score",
+          "op": "gte",
+          "value": 85
+        }
+      ]
+    },
+    {
+      "id": "three_good_holes",
+      "category": "design",
+      "tier": "bronze",
+      "points": 10,
+      "hidden": false,
+      "name_key": "achievement.three_good_holes.name",
+      "desc_key": "achievement.three_good_holes.desc",
+      "all": [
+        {
+          "stat": "holes_good_max",
+          "op": "gte",
+          "value": 3
+        }
+      ]
+    },
+    {
+      "id": "nine_good_holes",
+      "category": "design",
+      "tier": "silver",
+      "points": 20,
+      "hidden": false,
+      "name_key": "achievement.nine_good_holes.name",
+      "desc_key": "achievement.nine_good_holes.desc",
+      "all": [
+        {
+          "stat": "holes_good_max",
+          "op": "gte",
+          "value": 9
+        }
+      ]
+    },
+    {
+      "id": "solid_course",
+      "category": "design",
+      "tier": "bronze",
+      "points": 10,
+      "hidden": false,
+      "name_key": "achievement.solid_course.name",
+      "desc_key": "achievement.solid_course.desc",
+      "all": [
+        {
+          "stat": "best_course_score",
+          "op": "gte",
+          "value": 40
+        }
+      ]
+    },
+    {
+      "id": "fine_course",
+      "category": "design",
+      "tier": "silver",
+      "points": 20,
+      "hidden": false,
+      "name_key": "achievement.fine_course.name",
+      "desc_key": "achievement.fine_course.desc",
+      "all": [
+        {
+          "stat": "best_course_score",
+          "op": "gte",
+          "value": 60
+        }
+      ]
+    },
+    {
+      "id": "championship_course",
+      "category": "design",
+      "tier": "gold",
+      "points": 40,
+      "hidden": false,
+      "name_key": "achievement.championship_course.name",
+      "desc_key": "achievement.championship_course.desc",
+      "all": [
+        {
+          "stat": "best_course_score",
+          "op": "gte",
+          "value": 75
+        }
+      ]
+    },
+    {
+      "id": "balanced_hole",
+      "category": "design",
+      "tier": "silver",
+      "points": 15,
+      "hidden": false,
+      "name_key": "achievement.balanced_hole.name",
+      "desc_key": "achievement.balanced_hole.desc",
+      "all": [
+        {
+          "stat": "best_axis",
+          "op": "gte",
+          "value": 70
+        }
+      ]
+    },
+    {
+      "id": "first_golfer",
+      "category": "design",
+      "tier": "bronze",
+      "points": 5,
+      "hidden": false,
+      "name_key": "achievement.first_golfer.name",
+      "desc_key": "achievement.first_golfer.desc",
+      "all": [
+        {
+          "stat": "golfers_finished",
+          "op": "gte",
+          "value": 1
+        }
+      ]
+    },
+    {
+      "id": "busy_day",
+      "category": "design",
+      "tier": "bronze",
+      "points": 10,
+      "hidden": false,
+      "name_key": "achievement.busy_day.name",
+      "desc_key": "achievement.busy_day.desc",
+      "all": [
+        {
+          "stat": "golfers_finished",
+          "op": "gte",
+          "value": 200
+        }
+      ]
+    },
+    {
+      "id": "first_building",
+      "category": "buildings",
+      "tier": "bronze",
+      "points": 5,
+      "hidden": false,
+      "name_key": "achievement.first_building.name",
+      "desc_key": "achievement.first_building.desc",
+      "all": [
+        {
+          "stat": "buildings_built",
+          "op": "gte",
+          "value": 1
+        }
+      ]
+    },
+    {
+      "id": "clubhouse_two",
+      "category": "buildings",
+      "tier": "bronze",
+      "points": 5,
+      "hidden": false,
+      "name_key": "achievement.clubhouse_two.name",
+      "desc_key": "achievement.clubhouse_two.desc",
+      "all": [
+        {
+          "stat": "tier_clubhouse",
+          "op": "gte",
+          "value": 2
+        }
+      ]
+    },
+    {
+      "id": "clubhouse_three",
+      "category": "buildings",
+      "tier": "bronze",
+      "points": 10,
+      "hidden": false,
+      "name_key": "achievement.clubhouse_three.name",
+      "desc_key": "achievement.clubhouse_three.desc",
+      "all": [
+        {
+          "stat": "tier_clubhouse",
+          "op": "gte",
+          "value": 3
+        }
+      ]
+    },
+    {
+      "id": "clubhouse_four",
+      "category": "buildings",
+      "tier": "silver",
+      "points": 20,
+      "hidden": false,
+      "name_key": "achievement.clubhouse_four.name",
+      "desc_key": "achievement.clubhouse_four.desc",
+      "all": [
+        {
+          "stat": "tier_clubhouse",
+          "op": "gte",
+          "value": 4
+        }
+      ]
+    },
+    {
+      "id": "five_buildings",
+      "category": "buildings",
+      "tier": "bronze",
+      "points": 10,
+      "hidden": false,
+      "name_key": "achievement.five_buildings.name",
+      "desc_key": "achievement.five_buildings.desc",
+      "all": [
+        {
+          "stat": "buildings_built",
+          "op": "gte",
+          "value": 5
+        }
+      ]
+    },
+    {
+      "id": "all_buildings",
+      "category": "buildings",
+      "tier": "gold",
+      "points": 30,
+      "hidden": false,
+      "name_key": "achievement.all_buildings.name",
+      "desc_key": "achievement.all_buildings.desc",
+      "all": [
+        {
+          "stat": "buildings_built",
+          "op": "gte",
+          "value": 10
+        }
+      ]
+    },
+    {
+      "id": "fine_dining",
+      "category": "buildings",
+      "tier": "bronze",
+      "points": 10,
+      "hidden": false,
+      "name_key": "achievement.fine_dining.name",
+      "desc_key": "achievement.fine_dining.desc",
+      "all": [
+        {
+          "stat": "tier_restaurant",
+          "op": "gte",
+          "value": 3
+        }
+      ]
+    },
+    {
+      "id": "guest_rooms",
+      "category": "buildings",
+      "tier": "bronze",
+      "points": 10,
+      "hidden": false,
+      "name_key": "achievement.guest_rooms.name",
+      "desc_key": "achievement.guest_rooms.desc",
+      "all": [
+        {
+          "stat": "tier_lodging",
+          "op": "gte",
+          "value": 2
+        }
+      ]
+    },
+    {
+      "id": "first_home",
+      "category": "buildings",
+      "tier": "bronze",
+      "points": 10,
+      "hidden": false,
+      "name_key": "achievement.first_home.name",
+      "desc_key": "achievement.first_home.desc",
+      "all": [
+        {
+          "stat": "tier_homes",
+          "op": "gte",
+          "value": 1
+        }
+      ]
+    },
+    {
+      "id": "tier_five_first",
+      "category": "buildings",
+      "tier": "gold",
+      "points": 30,
+      "hidden": false,
+      "name_key": "achievement.tier_five_first.name",
+      "desc_key": "achievement.tier_five_first.desc",
+      "all": [
+        {
+          "stat": "tier5_count",
+          "op": "gte",
+          "value": 1
+        }
+      ]
+    },
+    {
+      "id": "tier_sum_twenty",
+      "category": "buildings",
+      "tier": "silver",
+      "points": 20,
+      "hidden": false,
+      "name_key": "achievement.tier_sum_twenty.name",
+      "desc_key": "achievement.tier_sum_twenty.desc",
+      "all": [
+        {
+          "stat": "tier_sum",
+          "op": "gte",
+          "value": 20
+        }
+      ]
+    },
+    {
+      "id": "landmark_built",
+      "category": "buildings",
+      "tier": "gold",
+      "points": 40,
+      "hidden": false,
+      "name_key": "achievement.landmark_built.name",
+      "desc_key": "achievement.landmark_built.desc",
+      "all": [
+        {
+          "stat": "tier_landmark",
+          "op": "gte",
+          "value": 1
+        }
+      ]
+    },
+    {
+      "id": "more_land",
+      "category": "growth",
+      "tier": "bronze",
+      "points": 5,
+      "hidden": false,
+      "name_key": "achievement.more_land.name",
+      "desc_key": "achievement.more_land.desc",
+      "all": [
+        {
+          "stat": "parcels_max",
+          "op": "gte",
+          "value": 3
+        }
+      ]
+    },
+    {
+      "id": "big_estate",
+      "category": "growth",
+      "tier": "silver",
+      "points": 20,
+      "hidden": false,
+      "name_key": "achievement.big_estate.name",
+      "desc_key": "achievement.big_estate.desc",
+      "all": [
+        {
+          "stat": "parcels_max",
+          "op": "gte",
+          "value": 10
+        }
+      ]
+    },
+    {
+      "id": "fifty_members",
+      "category": "growth",
+      "tier": "silver",
+      "points": 15,
+      "hidden": false,
+      "name_key": "achievement.fifty_members.name",
+      "desc_key": "achievement.fifty_members.desc",
+      "all": [
+        {
+          "stat": "members_max",
+          "op": "gte",
+          "value": 50
+        }
+      ]
+    },
+    {
+      "id": "two_hundred_members",
+      "category": "growth",
+      "tier": "gold",
+      "points": 30,
+      "hidden": false,
+      "name_key": "achievement.two_hundred_members.name",
+      "desc_key": "achievement.two_hundred_members.desc",
+      "all": [
+        {
+          "stat": "members_max",
+          "op": "gte",
+          "value": 200
+        }
+      ]
+    },
+    {
+      "id": "good_name",
+      "category": "growth",
+      "tier": "bronze",
+      "points": 10,
+      "hidden": false,
+      "name_key": "achievement.good_name.name",
+      "desc_key": "achievement.good_name.desc",
+      "all": [
+        {
+          "stat": "reputation_max",
+          "op": "gte",
+          "value": 100
+        }
+      ]
+    },
+    {
+      "id": "great_name",
+      "category": "growth",
+      "tier": "silver",
+      "points": 25,
+      "hidden": false,
+      "name_key": "achievement.great_name.name",
+      "desc_key": "achievement.great_name.desc",
+      "all": [
+        {
+          "stat": "reputation_max",
+          "op": "gte",
+          "value": 500
+        }
+      ]
+    },
+    {
+      "id": "first_100k",
+      "category": "growth",
+      "tier": "bronze",
+      "points": 10,
+      "hidden": false,
+      "name_key": "achievement.first_100k.name",
+      "desc_key": "achievement.first_100k.desc",
+      "all": [
+        {
+          "stat": "lifetime_earned",
+          "op": "gte",
+          "value": 100000
+        }
+      ]
+    },
+    {
+      "id": "first_million",
+      "category": "growth",
+      "tier": "gold",
+      "points": 30,
+      "hidden": false,
+      "name_key": "achievement.first_million.name",
+      "desc_key": "achievement.first_million.desc",
+      "all": [
+        {
+          "stat": "lifetime_earned",
+          "op": "gte",
+          "value": 1000000
+        }
+      ]
+    },
+    {
+      "id": "thirty_days",
+      "category": "growth",
+      "tier": "bronze",
+      "points": 10,
+      "hidden": false,
+      "name_key": "achievement.thirty_days.name",
+      "desc_key": "achievement.thirty_days.desc",
+      "all": [
+        {
+          "stat": "days_played",
+          "op": "gte",
+          "value": 30
+        }
+      ]
+    },
+    {
+      "id": "one_hundred_days",
+      "category": "growth",
+      "tier": "silver",
+      "points": 25,
+      "hidden": false,
+      "name_key": "achievement.one_hundred_days.name",
+      "desc_key": "achievement.one_hundred_days.desc",
+      "all": [
+        {
+          "stat": "days_played",
+          "op": "gte",
+          "value": 100
+        }
+      ]
+    },
+    {
+      "id": "finished_tutorial",
+      "category": "growth",
+      "tier": "bronze",
+      "points": 5,
+      "hidden": false,
+      "name_key": "achievement.finished_tutorial.name",
+      "desc_key": "achievement.finished_tutorial.desc",
+      "all": [
+        {
+          "stat": "tutorial_done",
+          "op": "gte",
+          "value": 1
+        }
+      ]
+    },
+    {
+      "id": "first_tournament",
+      "category": "tournaments",
+      "tier": "silver",
+      "points": 20,
+      "hidden": false,
+      "name_key": "achievement.first_tournament.name",
+      "desc_key": "achievement.first_tournament.desc",
+      "all": [
+        {
+          "stat": "tournaments_hosted",
+          "op": "gte",
+          "value": 1
+        }
+      ]
+    },
+    {
+      "id": "local_host",
+      "category": "tournaments",
+      "tier": "silver",
+      "points": 15,
+      "hidden": false,
+      "name_key": "achievement.local_host.name",
+      "desc_key": "achievement.local_host.desc",
+      "all": [
+        {
+          "stat": "hosted_local",
+          "op": "gte",
+          "value": 1
+        }
+      ]
+    },
+    {
+      "id": "regional_host",
+      "category": "tournaments",
+      "tier": "silver",
+      "points": 25,
+      "hidden": false,
+      "name_key": "achievement.regional_host.name",
+      "desc_key": "achievement.regional_host.desc",
+      "all": [
+        {
+          "stat": "hosted_regional",
+          "op": "gte",
+          "value": 1
+        }
+      ]
+    },
+    {
+      "id": "national_host",
+      "category": "tournaments",
+      "tier": "gold",
+      "points": 40,
+      "hidden": false,
+      "name_key": "achievement.national_host.name",
+      "desc_key": "achievement.national_host.desc",
+      "all": [
+        {
+          "stat": "hosted_national",
+          "op": "gte",
+          "value": 1
+        }
+      ]
+    },
+    {
+      "id": "major_host",
+      "category": "tournaments",
+      "tier": "platinum",
+      "points": 60,
+      "hidden": false,
+      "name_key": "achievement.major_host.name",
+      "desc_key": "achievement.major_host.desc",
+      "all": [
+        {
+          "stat": "hosted_major",
+          "op": "gte",
+          "value": 1
+        }
+      ]
+    },
+    {
+      "id": "tournament_veteran",
+      "category": "tournaments",
+      "tier": "gold",
+      "points": 30,
+      "hidden": false,
+      "name_key": "achievement.tournament_veteran.name",
+      "desc_key": "achievement.tournament_veteran.desc",
+      "all": [
+        {
+          "stat": "tournaments_hosted",
+          "op": "gte",
+          "value": 5
+        }
+      ]
+    },
+    {
+      "id": "full_ladder",
+      "category": "tournaments",
+      "tier": "gold",
+      "points": 50,
+      "hidden": true,
+      "name_key": "achievement.full_ladder.name",
+      "desc_key": "achievement.full_ladder.desc",
+      "all": [
+        {
+          "stat": "hosted_local",
+          "op": "gte",
+          "value": 1
+        },
+        {
+          "stat": "hosted_regional",
+          "op": "gte",
+          "value": 1
+        },
+        {
+          "stat": "hosted_national",
+          "op": "gte",
+          "value": 1
+        },
+        {
+          "stat": "hosted_major",
+          "op": "gte",
+          "value": 1
+        }
+      ]
+    },
+    {
+      "id": "keep_trying",
+      "category": "tournaments",
+      "tier": "bronze",
+      "points": 10,
+      "hidden": false,
+      "name_key": "achievement.keep_trying.name",
+      "desc_key": "achievement.keep_trying.desc",
+      "all": [
+        {
+          "stat": "tournaments_attempted",
+          "op": "gte",
+          "value": 2
+        },
+        {
+          "stat": "tournaments_hosted",
+          "op": "gte",
+          "value": 1
+        }
+      ]
+    },
+    {
+      "id": "first_commission",
+      "category": "commissions",
+      "tier": "bronze",
+      "points": 10,
+      "hidden": false,
+      "name_key": "achievement.first_commission.name",
+      "desc_key": "achievement.first_commission.desc",
+      "all": [
+        {
+          "stat": "commissions_done",
+          "op": "gte",
+          "value": 1
+        }
+      ]
+    },
+    {
+      "id": "five_commissions",
+      "category": "commissions",
+      "tier": "silver",
+      "points": 20,
+      "hidden": false,
+      "name_key": "achievement.five_commissions.name",
+      "desc_key": "achievement.five_commissions.desc",
+      "all": [
+        {
+          "stat": "commissions_done",
+          "op": "gte",
+          "value": 5
+        }
+      ]
+    },
+    {
+      "id": "twenty_commissions",
+      "category": "commissions",
+      "tier": "gold",
+      "points": 40,
+      "hidden": false,
+      "name_key": "achievement.twenty_commissions.name",
+      "desc_key": "achievement.twenty_commissions.desc",
+      "all": [
+        {
+          "stat": "commissions_done",
+          "op": "gte",
+          "value": 20
+        }
+      ]
+    },
+    {
+      "id": "varied_clients",
+      "category": "commissions",
+      "tier": "silver",
+      "points": 25,
+      "hidden": false,
+      "name_key": "achievement.varied_clients.name",
+      "desc_key": "achievement.varied_clients.desc",
+      "all": [
+        {
+          "stat": "commission_kinds",
+          "op": "gte",
+          "value": 4
+        }
+      ]
+    },
+    {
+      "id": "first_challenge",
+      "category": "daily",
+      "tier": "bronze",
+      "points": 5,
+      "hidden": false,
+      "name_key": "achievement.first_challenge.name",
+      "desc_key": "achievement.first_challenge.desc",
+      "all": [
+        {
+          "stat": "challenges_attempted",
+          "op": "gte",
+          "value": 1
+        }
+      ]
+    },
+    {
+      "id": "challenge_met",
+      "category": "daily",
+      "tier": "bronze",
+      "points": 10,
+      "hidden": false,
+      "name_key": "achievement.challenge_met.name",
+      "desc_key": "achievement.challenge_met.desc",
+      "all": [
+        {
+          "stat": "challenges_completed",
+          "op": "gte",
+          "value": 1
+        }
+      ]
+    },
+    {
+      "id": "ten_challenges",
+      "category": "daily",
+      "tier": "silver",
+      "points": 20,
+      "hidden": false,
+      "name_key": "achievement.ten_challenges.name",
+      "desc_key": "achievement.ten_challenges.desc",
+      "all": [
+        {
+          "stat": "challenges_completed",
+          "op": "gte",
+          "value": 10
+        }
+      ]
+    },
+    {
+      "id": "fifty_challenges",
+      "category": "daily",
+      "tier": "gold",
+      "points": 40,
+      "hidden": false,
+      "name_key": "achievement.fifty_challenges.name",
+      "desc_key": "achievement.fifty_challenges.desc",
+      "all": [
+        {
+          "stat": "challenges_completed",
+          "op": "gte",
+          "value": 50
+        }
+      ]
+    },
+    {
+      "id": "streak_three",
+      "category": "daily",
+      "tier": "bronze",
+      "points": 5,
+      "hidden": false,
+      "name_key": "achievement.streak_three.name",
+      "desc_key": "achievement.streak_three.desc",
+      "all": [
+        {
+          "stat": "streak_best",
+          "op": "gte",
+          "value": 3
+        }
+      ]
+    },
+    {
+      "id": "streak_seven",
+      "category": "daily",
+      "tier": "bronze",
+      "points": 10,
+      "hidden": false,
+      "name_key": "achievement.streak_seven.name",
+      "desc_key": "achievement.streak_seven.desc",
+      "all": [
+        {
+          "stat": "streak_best",
+          "op": "gte",
+          "value": 7
+        }
+      ]
+    },
+    {
+      "id": "streak_thirty",
+      "category": "daily",
+      "tier": "gold",
+      "points": 30,
+      "hidden": false,
+      "name_key": "achievement.streak_thirty.name",
+      "desc_key": "achievement.streak_thirty.desc",
+      "all": [
+        {
+          "stat": "streak_best",
+          "op": "gte",
+          "value": 30
+        }
+      ]
+    },
+    {
+      "id": "regular_visitor",
+      "category": "daily",
+      "tier": "silver",
+      "points": 15,
+      "hidden": false,
+      "name_key": "achievement.regular_visitor.name",
+      "desc_key": "achievement.regular_visitor.desc",
+      "all": [
+        {
+          "stat": "active_days",
+          "op": "gte",
+          "value": 14
+        }
+      ]
+    },
+    {
+      "id": "card_player",
+      "category": "misc",
+      "tier": "bronze",
+      "points": 5,
+      "hidden": false,
+      "name_key": "achievement.card_player.name",
+      "desc_key": "achievement.card_player.desc",
+      "all": [
+        {
+          "stat": "cards_played",
+          "op": "gte",
+          "value": 1
+        }
+      ]
+    },
+    {
+      "id": "card_collector",
+      "category": "misc",
+      "tier": "silver",
+      "points": 15,
+      "hidden": false,
+      "name_key": "achievement.card_collector.name",
+      "desc_key": "achievement.card_collector.desc",
+      "all": [
+        {
+          "stat": "cards_played",
+          "op": "gte",
+          "value": 20
+        }
+      ]
+    },
+    {
+      "id": "club_level_five",
+      "category": "misc",
+      "tier": "silver",
+      "points": 15,
+      "hidden": false,
+      "name_key": "achievement.club_level_five.name",
+      "desc_key": "achievement.club_level_five.desc",
+      "all": [
+        {
+          "stat": "level",
+          "op": "gte",
+          "value": 5
+        }
+      ]
+    },
+    {
+      "id": "club_level_ten",
+      "category": "misc",
+      "tier": "gold",
+      "points": 30,
+      "hidden": false,
+      "name_key": "achievement.club_level_ten.name",
+      "desc_key": "achievement.club_level_ten.desc",
+      "all": [
+        {
+          "stat": "level",
+          "op": "gte",
+          "value": 10
+        }
+      ]
+    }
+  ]
+}

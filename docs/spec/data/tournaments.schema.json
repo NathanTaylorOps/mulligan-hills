@@ -11,7 +11,13 @@
     "status",
     "spectator_capacity_by_clubhouse_tier",
     "prestige",
-    "levels"
+    "levels",
+    "conditions",
+    "evaluation",
+    "scoring",
+    "purse",
+    "cancel_refund_pct",
+    "default_pars"
   ],
   "properties": {
     "schema": {
@@ -43,7 +49,8 @@
         "snapshot_window_days",
         "sustained_min_days",
         "weights_permille",
-        "facility_tier_cap"
+        "facility_tier_cap",
+        "facility_buildings"
       ],
       "properties": {
         "snapshot_window_days": {
@@ -91,6 +98,27 @@
               "maximum": 1000
             }
           }
+        },
+        "facility_buildings": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 5,
+          "uniqueItems": true,
+          "items": {
+            "enum": [
+              "clubhouse",
+              "pro_shop",
+              "driving_range",
+              "restaurant",
+              "pool_spa",
+              "cart_barn",
+              "maintenance",
+              "lodging",
+              "homes",
+              "landmark"
+            ]
+          },
+          "description": "Buildings counted by the facilities part of prestige (each capped at facility_tier_cap)."
         }
       }
     },
@@ -113,7 +141,8 @@
           "host_cost",
           "prestige_base",
           "reward",
-          "failure"
+          "failure",
+          "field"
         ],
         "properties": {
           "level": {
@@ -295,8 +324,195 @@
                 }
               }
             }
+          },
+          "field": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "skill_min",
+              "skill_max"
+            ],
+            "properties": {
+              "skill_min": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 1000
+              },
+              "skill_max": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 1000
+              }
+            }
           }
         }
+      }
+    },
+    "conditions": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 8,
+      "description": "Event conditions drawn from the event seed (weighted). A condition whose min_maintenance_tier exceeds the Maintenance tier triggers the bad_conditions failure.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "weight",
+          "min_maintenance_tier",
+          "strokes_x10",
+          "satisfaction_penalty_pm"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9_]{1,39}$"
+          },
+          "weight": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 1000
+          },
+          "min_maintenance_tier": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 4
+          },
+          "strokes_x10": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 200
+          },
+          "satisfaction_penalty_pm": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 1000
+          }
+        }
+      }
+    },
+    "evaluation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "pace_fail_margin",
+        "score_fail_margin",
+        "unfair_fairness_below",
+        "unfair_holes_to_fail",
+        "unfair_satisfaction_penalty_pm"
+      ],
+      "properties": {
+        "pace_fail_margin": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 100
+        },
+        "score_fail_margin": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 100
+        },
+        "unfair_fairness_below": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 100
+        },
+        "unfair_holes_to_fail": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 18
+        },
+        "unfair_satisfaction_penalty_pm": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 1000
+        }
+      }
+    },
+    "scoring": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "mid_skill_pm",
+        "slope_x100",
+        "difficulty_divisor",
+        "hole_sd_x100",
+        "min_over_hole",
+        "max_over_hole"
+      ],
+      "description": "Field scoring model. Expected round over par in tenths of a stroke = (mid_skill_pm - skill) * slope_x100 // 100 (+ difficulty and condition terms).",
+      "properties": {
+        "mid_skill_pm": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 1000
+        },
+        "slope_x100": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 1000
+        },
+        "difficulty_divisor": {
+          "type": "integer",
+          "minimum": 100,
+          "maximum": 100000
+        },
+        "hole_sd_x100": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 500
+        },
+        "min_over_hole": {
+          "type": "integer",
+          "minimum": -3,
+          "maximum": 0
+        },
+        "max_over_hole": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 10
+        }
+      }
+    },
+    "purse": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "pct_of_host_cost",
+        "places_permille"
+      ],
+      "properties": {
+        "pct_of_host_cost": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 100
+        },
+        "places_permille": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 20,
+          "items": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 1000
+          },
+          "description": "Share of the purse by finishing place, permille, must sum to 1000."
+        }
+      }
+    },
+    "cancel_refund_pct": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 100
+    },
+    "default_pars": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 18,
+      "items": {
+        "type": "integer",
+        "minimum": 3,
+        "maximum": 5
       }
     }
   }
