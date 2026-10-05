@@ -20,6 +20,8 @@ func test_hour_boundary_ticks_once_and_pause_does_not_tick() -> void:
 	var saved: Array = []
 	s.autosave_requested.connect(func() -> void: saved.append([s.clock.hour_of_day(), s.economy.hour]))
 	s.advance(2000000, 20000 * 86400)
+	assert_int(s.economy.hour).is_equal(0)
+	s.advance(1000000, 20000 * 86400)
 	assert_int(s.economy.hour).is_equal(1)
 	assert_int(saved.size()).is_equal(1)
 	assert_int(int(saved[0][0])).is_equal(int(saved[0][1]))
@@ -33,7 +35,7 @@ func test_hour_boundary_ticks_once_and_pause_does_not_tick() -> void:
 
 func test_day_roll_keeps_clock_and_economy_in_step() -> void:
 	var s: MHGameSession = MHGameSession.create()
-	for i: int in range(450):
+	for i: int in range(750):
 		s.advance(2000000, 20000 * 86400)
 	assert_int(s.clock.day()).is_equal(1)
 	assert_int(s.economy.day).is_equal(1)
@@ -106,11 +108,13 @@ func test_small_mandatory_loss_uses_existing_bankruptcy_policy() -> void:
 
 func test_official_course_submission_charges_once_and_keeps_slot() -> void:
 	var s: MHGameSession = MHGameSession.create()
+	s.clock.pause()
 	var hole: Dictionary = {"slot_id": 0, "tee": [0, 0], "green": [0, 350, 10],
 		"features": [{"t": "fairway", "rect": [-40, 0, 40, 350]}]}
 	var cash: int = s.economy.cash
 	var price: int = s.economy.hole_cost_cents()
 	assert_bool(s.submit_course([hole])["ok"]).is_true()
+	assert_bool(s.clock.is_paused()).is_true()
 	assert_int(s.economy.cash).is_equal(cash - price)
 	assert_int(s.economy.holes).is_equal(1)
 	var view: MHLiveGameStateView = MHLiveGameStateView.new(s)

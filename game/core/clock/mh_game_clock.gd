@@ -3,8 +3,8 @@ extends RefCounted
 ## Deterministic game clock (DEC-052, DEC-053). Pure logic: it never reads the system clock; the caller passes a
 ## real-time delta in integer microseconds.
 ##
-## Time model: one game day is 660 game minutes (11 hours, day only). At 1x a game day lasts 15 real minutes
-## (900,000,000 us), which is 44 game seconds per real second. Speeds 2x, 4x, 8x consume token time.
+## Time model: one game day is 660 game minutes (11 hours, day only). At 1x a game day lasts 25 real minutes
+## (1,500,000,000 us), which is 26.4 game seconds per real second (DEC-070). Speeds 2x, 4x, 8x consume token time.
 ## Fractions are kept exactly with an integer accumulator measured in (real us * game minutes), so stepping
 ## is exact and independent of how the real time is sliced into frames.
 ##
@@ -16,13 +16,13 @@ extends RefCounted
 ##
 ## Backgrounding: a single delta above SPIKE_US (2 s) is treated as "the app was suspended": it is clamped to
 ## CATCHUP_CAP_US (120 s) at 1x with no token drain, and the rest is discarded (see last_discarded_us).
-## So at most 88 game minutes (about 1.5 game hours) pass per suspension. There is no offline progress beyond it.
+## So at most 53 game-minute boundaries pass per suspension. There is no offline progress beyond it.
 ## Paused clocks ignore step() entirely.
 
 const MINUTES_PER_HOUR: int = 60
 const HOURS_PER_DAY: int = 11
 const MINUTES_PER_DAY: int = 660
-const REAL_US_PER_DAY_1X: int = 900000000
+const REAL_US_PER_DAY_1X: int = 1500000000
 const SPIKE_US: int = 2000000
 const CATCHUP_CAP_US: int = 120000000
 ## Token accounting unit: rate (tokens per real minute) * real microseconds. One token = 60,000,000 units per
@@ -196,6 +196,7 @@ func _advance(effective_us: int, events: PackedInt32Array) -> void:
 func to_dict() -> Dictionary:
 	return {
 		"v": SAVE_VERSION,
+		"real_us_per_day": REAL_US_PER_DAY_1X,
 		"total_minutes": _total_minutes,
 		"acc": _acc,
 		"speed": _speed,
@@ -210,12 +211,17 @@ func from_dict(d: Dictionary) -> bool:
 		return false
 	var tm: int = int(d["total_minutes"])
 	var acc: int = int(d.get("acc", 0))
+	# Earlier v1 clock snapshots omitted this field and used a 15-minute day. Preserve their fractional minute.
+	var source_period: int = int(d.get("real_us_per_day", 900000000))
 	var sp: int = int(d.get("speed", 1))
 	var cr: int = int(d.get("credit", 0))
-	if tm < 0 or acc < 0 or acc >= REAL_US_PER_DAY_1X or cr < 0 or not is_valid_speed(sp):
+	if source_period != 900000000 and source_period != REAL_US_PER_DAY_1X:
+		return false
+	if tm < 0 or acc < 0 or acc >= source_period or cr < 0 or not is_valid_speed(sp):
 		return false
 	_total_minutes = tm
-	_acc = acc
+	@warning_ignore("integer_division")
+	_acc = acc * REAL_US_PER_DAY_1X / source_period
 	_speed = sp
 	_credit = cr
 	_paused = bool(d.get("paused", false))

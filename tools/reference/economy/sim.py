@@ -34,9 +34,9 @@ IDX = {b: i for i, b in enumerate(BIDS)}
 TOURN = json.load(open(os.path.join(ROOT, "docs", "spec", "data", "tournaments.json")))
 TLEVELS = {L["level"]: L for L in TOURN["levels"]}
 TCAP = TOURN["spectator_capacity_by_clubhouse_tier"]
-# Real play time per game day under the assumed speed mix (DEC-066): 60% of days at 1x (15 min), 25% at 2x (7.5 min),
-# 15% at 4x (3.75 min) = 12.125 min per game day on average. This is a sensitivity, NOT a token-funded prediction.
-MIN_PER_DAY_X100 = 1213
+# DEC-070/071: report campaign hours at normal speed. The older speed mix is an unfunded sensitivity only.
+MIN_PER_DAY_X100 = E.REAL_MINUTES_PER_DAY * 100
+SPEED_MIX_FACTOR = 0.60 + 0.25 / 2 + 0.15 / 4
 
 
 def tournament_revenue_dollars(level, clubhouse_tier):
@@ -556,8 +556,8 @@ def q3(v):
 
 
 def report(P, n=60, days=400):
-    print("=== balance report: %d runs per profile, %d game days; real hours = days x %.1f min (assumed speed mix)" % (n, days, MIN_PER_DAY_X100 / 100.0))
-    print("Target (DEC-066): all ten buildings at tier 5 and 18 holes in 100 to 150 game days (about 20 to 30 hours).")
+    print("=== balance report: %d runs per profile, %d game days; real hours = days x %d min at NORMAL SPEED" % (n, days, E.REAL_MINUTES_PER_DAY))
+    print("Target (DEC-070/071): about 50 running hours to all ten buildings at tier 5 and 18 holes; 120 days at 1x.")
     out = {}
     fin = {}
     print("\n-- per skill profile, casual fee habits. Days are p10/p50/p90 of the runs that got there; 'inf' = same bot with unlimited cash (the rating/gate floor)")
@@ -623,13 +623,13 @@ def report(P, n=60, days=400):
         summary[label] = (share(ps, 0, 99), share(ps, 100, 150), share(ps, 0, 150), share(ps, 0, days))
         print("%-34s finished (T5 all + 18 holes) before day 100: %4.1f%% | day 100-150: %4.1f%% | by day 150: %4.1f%% | by day %d: %4.1f%%" % (
             label, summary[label][0], summary[label][1], summary[label][2], days, summary[label][3]))
-        print("%-34s finish day p10/p50/p90 of finishers %s = %s hours at the assumed speed mix, %s hours if every day ran at 1x" % (
+        print("%-34s pooled sample finish day p10/p50/p90 (unweighted) %s = %s hours at 1x; %s hours at unfunded speed mix" % (
             "", q3(fd), "/".join(str(round(real_hours(x), 1)) for x in (pct(fd, .1), pct(fd, .5), pct(fd, .9))),
-            "/".join(str(round(x * 0.25, 1)) for x in (pct(fd, .1), pct(fd, .5), pct(fd, .9)))))
-        print("%-34s finish in 20-30h: %.1f%% at 1x; %.1f%% at assumed speed mix (unfunded)" % (
-            "", share(ps, 80, 120), share(ps, 99, 148)))
+            "/".join(str(round(real_hours(x) * SPEED_MIX_FACTOR, 1)) for x in (pct(fd, .1), pct(fd, .5), pct(fd, .9)))))
+        print("%-34s finish in 40-60h diagnostic window around 50h: %.1f%% at 1x (not a new locked target)" % (
+            "", share(ps, 96, 144)))
     print("Hours exclude editor time and pauses. Population shares are assumed weights, not observed player data.")
-    print("Assumed speed mix needs 3 tokens/game day: 300-450 tokens over days 100-150. Bot token income does not fund clock speed.")
+    print("Unfunded speed mix needs 5 tokens/game day: 500-750 tokens over days 100-150. Bot token income does not fund clock speed.")
     summary["tier5_reach_by_profile"] = {p: sum(1 for arch in HABIT_W for r in cells[(p, arch)] if 5 in r["all"]) * 100.0 / sum(len(cells[(p, arch)]) for arch in HABIT_W) for p in PROFILES}
     print("T5 reached within %d days by profile: %s" % (days, ", ".join("%s %.0f%%" % (p, v) for p, v in summary["tier5_reach_by_profile"].items())))
     print("\n-- behaviour archetypes (casual profile): finish day and bankruptcies")
@@ -692,15 +692,15 @@ def sens_report(P, n=12):
 
 
 def token_report(P):
-    print("=== time-skip value (DEC-053): clock drains 1/2/4 tokens per real minute at 2x/4x/8x, so one game day sped up costs 7.5 tokens at any speed")
-    print("Time saved per accelerated day: 7.5 min at 2x, 11.25 min at 4x, 13.125 min at 8x. No instant day skip.")
+    print("=== time-skip value (DEC-053/070): rates 1/2/4 tokens per real minute at 2x/4x/8x; accelerated day costs 12.5 tokens")
+    print("Time saved per accelerated day: 12.5 min at 2x, 18.75 min at 4x, 21.875 min at 8x. No instant day skip.")
     for label, tiers, h, par, r, mem in (("start (6 holes, no buildings)", [0] * 10, 6, 5, 34, 0), ("T2 stage", [2] * 10, 8, 8, 40, 40),
                                          ("T3 stage", [3] * 10, 12, 10, 46, 100), ("T4 stage", [4] * 10, 16, 13, 56, 200),
                                          ("T5 stage", [5] * 10, 18, 15, 66, 350)):
         f = E.suggest_fee_cents(P, UPK, tiers, h, r)
         d = E.day_estimate(P, UPK, tiers, h, par, r, mem * 1000, f)
-        print("%-30s net/day $%s -> 7.5 tokens accelerate one day = $%s net per token" % (
-            label, format(d["net"] // 100, ","), format(d["net"] // 750, ",")))
+        print("%-30s net/day $%s -> 12.5 tokens accelerate one day = $%s net per token" % (
+            label, format(d["net"] // 100, ","), format(d["net"] // 1250, ",")))
 
 
 def write_final():

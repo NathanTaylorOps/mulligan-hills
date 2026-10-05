@@ -1,12 +1,18 @@
 """Self-checks for the Python economy reference. Run: python3 tools/reference/economy/selftest.py"""
 import mh_economy as E
 import sim
+import re
+import os
 
 P = sim.load()
 UP = sim.UPK
 
 
 def main():
+    with open(os.path.join(sim.ROOT, "game/core/clock/mh_game_clock.gd")) as clock:
+        runtime_period = int(re.search(r"const REAL_US_PER_DAY_1X: int = (\d+)", clock.read())[1])
+    assert runtime_period == E.REAL_MINUTES_PER_DAY * 60000000
+    assert E.speed_tokens_for_days(1) == 13 and E.speed_tokens_for_days(2) == 25
     # hourly split sums to the daily amount
     for d in (0, 1, 7, 10, 12345, 999999):
         assert sum(E.split_hour(d, h) for h in range(E.HOURS_PER_DAY)) == d

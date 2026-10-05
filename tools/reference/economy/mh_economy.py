@@ -10,6 +10,7 @@ import os
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 HOURS_PER_DAY = 11          # matches game/core/clock/mh_game_clock.gd (660 game minutes per day)
+REAL_MINUTES_PER_DAY = 25   # DEC-070; selftest checks this against the runtime clock.
 NB = 10                     # buildings
 NT = 5                      # tiers
 
@@ -255,11 +256,11 @@ def renovation_upkeep_cents(P, level):
 
 def speed_tokens_for_days(game_days):
     """Tokens a sped-up stretch costs under the clock's own rates (game/core/clock/mh_game_clock.gd): 2x, 4x and 8x
-    drain 1, 2 and 4 tokens per real minute while a game day lasts 7.5, 3.75 and 1.875 real minutes, so every sped-up
-    game day costs 7.5 tokens at any speed. Returns ceil(7.5 * days) = (15 * days + 1) // 2."""
+    drain 1, 2 and 4 tokens per real minute. A 25-minute day costs 12.5 tokens at any boosted speed.
+    Returns ceil(REAL_MINUTES_PER_DAY * days / 2)."""
     if game_days <= 0:
         return 0
-    return (15 * game_days + 1) // 2
+    return (REAL_MINUTES_PER_DAY * game_days + 1) // 2
 
 
 # ---------------------------------------------------------------- state machine

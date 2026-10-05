@@ -144,7 +144,7 @@ func test_golden_payback_and_speed_tokens() -> void:
 	var sp: Array = _g["speed_tokens"]
 	for d: int in range(sp.size()):
 		assert_int(MHEconomyModel.speed_tokens_for_days(d)).is_equal(int(sp[d]))
-	assert_int(MHEconomyModel.speed_tokens_for_days(2)).is_equal(15)
+	assert_int(MHEconomyModel.speed_tokens_for_days(2)).is_equal(25)
 
 
 func test_golden_course_upkeep() -> void:

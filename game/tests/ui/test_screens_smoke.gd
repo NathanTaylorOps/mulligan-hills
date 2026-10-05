@@ -37,6 +37,22 @@ func test_every_screen_builds_and_refreshes() -> void:
 		assert_str(node.screen_id()).is_equal(str(id))
 
 
+func test_editor_pause_routes_to_live_clock_and_can_resume() -> void:
+	var session: MHGameSession = MHGameSession.create()
+	var view: MHLiveGameStateView = MHLiveGameStateView.new(session)
+	var editor: MHEditorScreen = MHEditorScreen.new()
+	auto_free(editor)
+	editor.setup(view, _ctx(), {})
+	editor.intent.connect(func(id: StringName, args: Dictionary) -> void: session.handle_intent(id, args))
+	var pause: MHTapButton = editor.region_buttons()[&"editor_pause"] as MHTapButton
+	pause.pressed.emit()
+	assert_bool(session.clock.is_paused()).is_true()
+	editor.refresh()
+	assert_str(pause.text).is_equal(MHStrings.t("hud.resume"))
+	pause.pressed.emit()
+	assert_bool(session.clock.is_paused()).is_false()
+
+
 func test_screens_survive_empty_game_state() -> void:
 	var view: MHGameStateView = MHGameStateView.new()
 	var ctx: MHUIContext = _ctx()

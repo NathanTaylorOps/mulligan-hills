@@ -1,6 +1,6 @@
 # Phase 1: Economy (`game/core/economy/`)
 
-Status: Python re-run and self-check PASS; original ff0125b CI had stale expectation failures, repair/new changes await CI. See `docs/phase1/economy_audit.md` for the 5 October correction: normal-speed 20–30-hour completion fails for most competent modelled players; the speed-mix result is unfunded. Renovation now requires every building at tier 5 per DEC-069. Earlier tier-4/open-at-4 statements below are historical and superseded by that correction. Godot cannot run locally.
+Status: DEC-070/071 now use a 25-minute day and about 50 running hours. Full Python simulation median 49.6 hours; see `economy_audit.md` for assumptions and verification limits. Prices remain DEC-069. Earlier balance analysis below is historical: its old hours target and tier-4 renovation statements are superseded. Godot changes await CI.
 Owner paths: `game/core/economy/`, `game/tests/economy/`, `tools/reference/economy/`, `docs/phase1/economy.md`, plus the runtime copy `game/data/economy_params.json`.
 
 ## README block

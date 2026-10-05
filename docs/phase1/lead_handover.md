@@ -15,12 +15,12 @@ Repair pushed as c72ce1c. All three triggered jobs remained queued with no runne
 
 ## Current checkpoint
 
-Economy audit/renovation correction pushed as f029fcf. Full simulation re-run, Python self-check and schema validation pass. Goldens retain identical numerical content. `docs/phase1/economy_audit.md` records the failed earned-token hours assumption and proposed DEC-070 (12-minute day, pending Nathan approval). No locked decision was changed.
+Economy audit/renovation correction pushed as f029fcf. Full simulation re-run, Python self-check and schema validation pass. Goldens retain identical numerical content. `docs/phase1/economy_audit.md` records the historical failed earned-token hours assumption. The 12-minute proposal was withdrawn before implementation; Nathan subsequently approved DEC-070/071: 25-minute days and about 50 running hours.
 
 Live session and adapter foundation is in `docs/phase1/gameplay.md`. It coordinates clock hours, cash, purchases, official ratings, daily submissions and tournament settlement, but scene/editor and validated autosave wiring remain unfinished. Independent static review found two S1 bugs, corrected with tests; reputation achievement scale is explicitly deferred rather than using a guessed conversion. No end-to-end completion or device sign-off claimed.
 
 ## Next work and risks
-- Re-run the economy; the saved report's 12.1 minute/day timing assumes speed-ups without respecting an earned-token budget. Demo building progression is extremely short.
+- Economy re-run complete: median 49.6 normal-speed running hours; 92.6% of non-novice modelled players finish by day 150. Pauses/design time and real staffing gates remain outside the model. Demo building progression is extremely short.
 - Build the live adapter and loop, hourly income/autosave, purchases and daily tournament/progression updates.
 - Money boundary: economy cents; UI, tournament and save cash whole dollars. Preserve fractional cents in an optional validated economy save block.
 - No real staff source currently exists; do not manufacture staff to bypass tournament gates.
@@ -28,3 +28,7 @@ Live session and adapter foundation is in `docs/phase1/gameplay.md`. It coordina
 
 ## For Nathan
 Device checks remain unrun: install a green Android debug APK; run Sim hash first, then Benchmark Quick 60s. Low-end phone purchase, Supabase setup and official trademark search remain Nathan's tasks.
+
+## Approved pacing checkpoint
+
+DEC-070/071, clock compatibility, Python/Godot regressions and editor pause control are updated. Python checks pass; Godot CI remains pending. Research proposals in `activities_research.md` are not implemented or automatically added to frozen v1. `pacing_verification.md` records separate review with completion certification withheld.

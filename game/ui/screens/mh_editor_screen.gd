@@ -17,6 +17,7 @@ var _radius_label: Label
 var _undo: MHTapButton
 var _redo: MHTapButton
 var _done: MHTapButton
+var _pause: MHTapButton
 var _minus: MHTapButton
 var _plus: MHTapButton
 
@@ -53,6 +54,8 @@ func _build() -> void:
 	root.add_child(top)
 	_done = MHUIKit.button(ctx, MHStrings.t("editor.done"), &"GreenButton", 110.0)
 	_done.pressed.connect(request_back)
+	_pause = MHUIKit.button(ctx, MHStrings.t("hud.pause"), &"ChipButton", 110.0)
+	_pause.pressed.connect(send.bind(&"toggle_pause", {}))
 	_undo = MHUIKit.button(ctx, MHStrings.t("editor.undo"), &"ChipButton", 110.0)
 	_undo.pressed.connect(send.bind(&"editor_undo", {}))
 	_redo = MHUIKit.button(ctx, MHStrings.t("editor.redo"), &"ChipButton", 110.0)
@@ -64,7 +67,7 @@ func _build() -> void:
 	var rad_chip: PanelContainer = MHUIKit.panel(&"HudChip")
 	_radius_label = MHUIKit.label("", &"HudLabel", false)
 	rad_chip.add_child(_radius_label)
-	var items: Array = [_done, _undo, _redo, _minus, rad_chip, _plus]
+	var items: Array = [_done, _pause, _undo, _redo, _minus, rad_chip, _plus]
 	if ctx.left_handed():
 		items.reverse()
 	for it: Variant in items:
@@ -100,6 +103,7 @@ func refresh() -> void:
 	if _undo == null:
 		return
 	_radius_label.text = MHStrings.t("editor.radius", {"cells": _radius})
+	_pause.text = MHStrings.t("hud.resume" if view.is_paused() else "hud.pause")
 	_undo.disabled = not view.can_undo()
 	_redo.disabled = not view.can_redo()
 	_minus.disabled = _radius <= MHEditorTools.RADIUS_MIN
@@ -141,6 +145,7 @@ func region_buttons() -> Dictionary:
 	for k2: Variant in _surface_buttons.keys():
 		out[StringName("editor_surface_" + str(k2))] = _surface_buttons[k2]
 	out[&"editor_done"] = _done
+	out[&"editor_pause"] = _pause
 	out[&"editor_undo"] = _undo
 	out[&"editor_redo"] = _redo
 	out[&"editor_minus"] = _minus

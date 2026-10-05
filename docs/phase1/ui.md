@@ -90,3 +90,7 @@ NOT covered: anything visual (layout, wrapping, colours on a real screen), real 
 ## 7. For Nathan
 
 Nothing to run yet. When CI is green, the gallery is in the launcher as "UI gallery (every screen)": open it on the phone and tap through every screen. Tell the lead anything that is cut off, too small to tap, or unclear.
+
+## 5 October: design pause
+
+Editor toolbar now exposes pause/resume because editor mode hides the normal HUD. It uses the existing localized labels and session intent; a live-session smoke test covers both toggles. CI and phone layout verification remain pending. This does not complete the live scene/editor integration.

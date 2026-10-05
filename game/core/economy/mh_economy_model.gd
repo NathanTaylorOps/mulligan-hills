@@ -200,9 +200,9 @@ static func renovation_upkeep_cents(p: MHEconomyParams, level: int) -> int:
 	return clampi(level, 0, p.c("renov_max_levels")) * p.c("renov_upkeep_cents_per_level")
 
 
-## Tokens a sped-up stretch costs under the clock's own rates (MHGameClock): every sped-up game day costs 7.5 tokens at
-## any speed above 1x. Returns ceil(7.5 * days). Informational: MHGameClock does the real draining.
+## Tokens a sped-up stretch costs under MHGameClock: half the normal-speed real minutes per day.
+## DEC-070: 12.5 tokens/day at any boosted speed. Informational; the clock does the real draining.
 static func speed_tokens_for_days(game_days: int) -> int:
 	if game_days <= 0:
 		return 0
-	return idiv(15 * game_days + 1, 2)
+	return idiv(MHGameClock.REAL_US_PER_DAY_1X * game_days + 119999999, 120000000)

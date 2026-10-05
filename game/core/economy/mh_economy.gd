@@ -417,7 +417,7 @@ func apply_token_recovery() -> int:
 	return OK
 
 
-## Informational mirror of the clock's token rate (7.5 tokens per sped-up game day).
+## Informational mirror of the clock's token rate (12.5 tokens per sped-up game day, DEC-070).
 func speed_tokens_for_days(game_days: int) -> int:
 	return MHEconomyModel.speed_tokens_for_days(game_days)
 
