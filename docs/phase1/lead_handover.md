@@ -40,3 +40,7 @@ Nathan clarified the playable golfer career, training attributes, played tournam
 ## Required v1 RPG approval
 
 Nathan answered “must ship” to PROP-11–14. DEC-072–075 now lock personal golfer/control/training/competition, living-club systems and visible trophy/skin rewards at launch, plus the joint golfer/club campaign definition. No second approval is needed for launch inclusion. Final career milestone and numerical rules remain open. `rpg_scope.md` records the build order; schedule re-estimation follows measured one-hole prototype evidence. No new gameplay implementation or green CI claimed by this documentation change.
+
+## Live construction implementation checkpoint
+
+New live launcher scene connects ground editing, pause/history, real club menus and accounting to official isolated save slots. Optional reader-2 runtime retains exact money/clock state; content-addressed external ledger and full terrain-byte pairing protect recovery. Separate review found four defects (paint-only torn pairing, malformed capture indexing, official/runtime world mismatch, stale pointer routing); corrected with regressions. The integration remains zero-finalized-hole only. See `live_construction.md` and `live_construction_verification.md`. No player golf or overall completion claimed; Godot CI still pending.

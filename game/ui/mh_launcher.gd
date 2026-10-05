@@ -12,6 +12,7 @@ const LAUNCHER_PATH: String = "res://ui/mh_launcher.tscn"
 
 ## [label, path]. Order is display order. Missing scenes are hidden.
 const SCENES: Array = [
+	["Live construction (ground, club, saves)", "res://gameplay/mh_live_construction.tscn"],
 	["Bench (forest + terrain)", "res://bench/bench_scene.tscn"],
 	["Gesture sandbox", "res://input/mh_gesture_sandbox.tscn"],
 	["Terrain demo", "res://terrain/demo/terrain_demo.tscn"],
@@ -84,3 +85,4 @@ func _open(path: String) -> void:
 	var err: Error = get_tree().change_scene_to_file(path)
 	if err != OK:
 		push_error("launcher: cannot open %s (error %d)" % [path, err])
+

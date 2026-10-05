@@ -117,6 +117,12 @@ func save_slot(slot: int, doc: Dictionary, blob: PackedByteArray, now_unix: int 
 		(work["course"] as Dictionary)["terrain"] = terr
 	elif blob.size() > 0:
 		return MHSaveResult.failure(MHSaveResult.Code.INVALID_ARGUMENT, "terrain blob given but course.terrain is absent")
+	if work.has("runtime"):
+		if typeof(work["runtime"]) != TYPE_DICTIONARY:
+			return MHSaveResult.failure(MHSaveResult.Code.BAD_SCHEMA, "runtime must be an object")
+		var rt: Dictionary = work["runtime"]
+		rt["terrain_bytes_hash"] = blob_digest(blob)
+		work["runtime"] = rt
 	MHSaveGame.seal(work)
 	var errs: Array = MHSaveGame.validate(work)
 	if not errs.is_empty():
@@ -319,7 +325,7 @@ func _find_blob(slot: int, doc: Dictionary) -> Dictionary:
 		if dec.error != OK:
 			continue
 		saw_decodable = true
-		if MHHash.hex32(dec.grid.hash_fnv1a()) == want:
+		if MHHash.hex32(dec.grid.hash_fnv1a()) == want and _exact_blob_matches(doc, bytes):
 			return {"ok": true, "bytes": bytes, "source": String(_SUFFIX_NAMES[i])}
 	if not saw_file:
 		return {"ok": false, "code": MHSaveResult.Code.BLOB_MISSING, "message": "terrain blob file is missing"}
@@ -406,7 +412,7 @@ func import_slot(json_bytes: PackedByteArray, blob: PackedByteArray, slot: int, 
 		if dec.error != OK:
 			return MHSaveResult.failure(MHSaveResult.Code.BLOB_CORRUPT, "terrain blob does not decode: " + dec.message)
 		var terr: Dictionary = _terrain_of(doc)
-		if MHHash.hex32(dec.grid.hash_fnv1a()) != String(terr.get("content_hash", "")).to_lower():
+		if MHHash.hex32(dec.grid.hash_fnv1a()) != String(terr.get("content_hash", "")).to_lower() or not _exact_blob_matches(doc, blob):
 			return MHSaveResult.failure(MHSaveResult.Code.PAIR_MISMATCH, "terrain blob does not match the save")
 		terr["file"] = blob_name(slot)
 		(doc["course"] as Dictionary)["terrain"] = terr
@@ -445,3 +451,16 @@ func delete_slot(slot: int) -> MHSaveResult:
 	if failed > 0:
 		return MHSaveResult.failure(MHSaveResult.Code.IO_ERROR, "%d files could not be removed" % failed)
 	return MHSaveResult.success(removed)
+
+
+
+## Exact equality digest of the entire compressed terrain blob, including paint. SHA256 of lowercase hex text.
+## hex_encode is documented in Godot's PackedByteArray API; this is not raw-byte SHA256.
+static func blob_digest(bytes: PackedByteArray) -> String:
+	return bytes.hex_encode().sha256_text()
+
+
+static func _exact_blob_matches(doc: Dictionary, bytes: PackedByteArray) -> bool:
+	if not doc.has("runtime"):
+		return true # Legacy pairing remains unchanged.
+	return str(doc["runtime"].get("terrain_bytes_hash", "")) == blob_digest(bytes)

@@ -21,7 +21,7 @@ extends RefCounted
 const SCHEMA_ID: String = "mh.save"
 const SAVE_VERSION: int = 1
 ## Highest min_reader_version this build can read. Bump when a save change is not readable by older apps.
-const READER_VERSION: int = 1
+const READER_VERSION: int = 2
 const MAX_SLOTS: int = 5
 const MAX_INT: int = 9007199254740991
 const MAX_FILE_BYTES: int = 16777216
@@ -31,7 +31,7 @@ const MAX_DEPTH: int = 48
 const TOP_KEYS: Array = [
 	"schema", "save_version", "min_reader_version", "written_by", "slot", "slot_kind", "revision",
 	"saved_at_unix", "install_id", "mode", "ironman", "checksum", "world", "club", "buildings", "land",
-	"course", "sim", "ratings", "progress",
+	"course", "sim", "ratings", "progress", "runtime",
 ]
 ## Keys every save must carry (TOP_KEYS without the legacy "ironman").
 const REQUIRED_TOP_KEYS: Array = [
@@ -353,6 +353,7 @@ static func validate(d: Dictionary, strict: bool = true) -> Array:
 	_validate_sim(d, strict, errs)
 	_validate_ratings(d, errs)
 	_validate_progress(d, errs)
+	_validate_runtime(d, errs)
 	return errs
 
 
@@ -594,3 +595,65 @@ static func _opt_int(d: Dictionary, key: String) -> int:
 	if typeof(v) == TYPE_INT:
 		return int(v)
 	return 0
+
+
+
+## Optional exact live checkpoint. Reader 2 is required so an older app cannot silently lose accounting.
+static func _validate_runtime(d: Dictionary, errs: Array) -> void:
+	if not d.has("runtime"):
+		return
+	if typeof(d.get("min_reader_version", null)) != TYPE_INT or int(d["min_reader_version"]) < 2:
+		errs.append("runtime requires reader version 2")
+	var rt: Dictionary = _dict_at(d, "runtime", "$", errs)
+	_only_keys(rt, ["v", "clock", "economy", "save_secret", "recent_scores", "ledger_hash", "terrain_bytes_hash"], "$.runtime", errs)
+	if not _matches("^[0-9a-f]{64}$", rt.get("terrain_bytes_hash", null)):
+		errs.append("runtime terrain hash invalid")
+	if not _matches("^[0-9a-f]{64}$", rt.get("ledger_hash", null)):
+		errs.append("runtime ledger hash invalid")
+	_int_in(rt, "v", 1, 1, "$.runtime", errs)
+	_int_in(rt, "save_secret", 0, 4294967295, "$.runtime", errs)
+	var scores: Array = _array_at(rt, "recent_scores", 14, "$.runtime", errs)
+	for score: Variant in scores:
+		if typeof(score) != TYPE_INT or int(score) < 0 or int(score) > 100:
+			errs.append("runtime score invalid")
+	var cl: Dictionary = _dict_at(rt, "clock", "$.runtime", errs)
+	_only_keys(cl, ["v", "real_us_per_day", "total_minutes", "acc", "speed", "paused", "credit"], "$.runtime.clock", errs)
+	_int_in(cl, "v", 1, 1, "$.runtime.clock", errs)
+	_int_in(cl, "total_minutes", 0, 660000659, "$.runtime.clock", errs)
+	_int_in(cl, "acc", 0, 1499999999, "$.runtime.clock", errs)
+	_int_in(cl, "credit", 0, 59999999, "$.runtime.clock", errs)
+	_enum_in(cl, "real_us_per_day", [900000000, 1500000000], "$.runtime.clock", errs)
+	_enum_in(cl, "speed", [1, 2, 4, 8], "$.runtime.clock", errs)
+	if typeof(cl.get("paused", null)) != TYPE_BOOL:
+		errs.append("runtime clock pause invalid")
+	if typeof(cl.get("acc", null)) == TYPE_INT and typeof(cl.get("real_us_per_day", null)) == TYPE_INT and int(cl["acc"]) >= int(cl["real_us_per_day"]):
+		errs.append("runtime clock accumulator exceeds period")
+	var e: Dictionary = _dict_at(rt, "economy", "$.runtime", errs)
+	_only_keys(e, ["v", "tiers", "cash","fee","day","hour","arrears","loan_balance","loans_taken","reputation","holiday_hours","bankrupt","carry_milli","last_daily_upkeep","members_milli","holes","rating","parcels","ext_permille","renovation","total_revenue","total_upkeep_paid"], "$.runtime.economy", errs)
+	_int_in(e, "v", 1, 1, "$.runtime.economy", errs)
+	_int_in(e, "cash", -1000000000, MAX_INT, "$.runtime.economy", errs)
+	_int_in(e, "fee", 0, 25000, "$.runtime.economy", errs)
+	_int_in(e, "day", 0, 1000000, "$.runtime.economy", errs)
+	_int_in(e, "hour", 0, 10, "$.runtime.economy", errs)
+	_int_in(e, "arrears", 0, MAX_INT, "$.runtime.economy", errs)
+	_int_in(e, "loan_balance", 0, MAX_INT, "$.runtime.economy", errs)
+	_int_in(e, "loans_taken", 0, 1000000, "$.runtime.economy", errs)
+	_int_in(e, "reputation", 0, 1000, "$.runtime.economy", errs)
+	_int_in(e, "holiday_hours", 0, 1000000, "$.runtime.economy", errs)
+	_int_in(e, "bankrupt", 0, 1, "$.runtime.economy", errs)
+	_int_in(e, "carry_milli", 0, 999, "$.runtime.economy", errs)
+	_int_in(e, "last_daily_upkeep", 0, MAX_INT, "$.runtime.economy", errs)
+	_int_in(e, "members_milli", 0, 100000000, "$.runtime.economy", errs)
+	_int_in(e, "holes", 0, 18, "$.runtime.economy", errs)
+	_int_in(e, "rating", 0, 100, "$.runtime.economy", errs)
+	_int_in(e, "parcels", 0, 16, "$.runtime.economy", errs)
+	_int_in(e, "ext_permille", 0, 1000000, "$.runtime.economy", errs)
+	_int_in(e, "renovation", 0, 12, "$.runtime.economy", errs)
+	_int_in(e, "total_revenue", 0, MAX_INT, "$.runtime.economy", errs)
+	_int_in(e, "total_upkeep_paid", 0, MAX_INT, "$.runtime.economy", errs)
+	var tiers: Array = _array_at(e, "tiers", 10, "$.runtime.economy", errs)
+	if tiers.size() != 10:
+		errs.append("runtime requires ten tiers")
+	for tier: Variant in tiers:
+		if typeof(tier) != TYPE_INT or int(tier) < 0 or int(tier) > 5:
+			errs.append("runtime tier invalid")

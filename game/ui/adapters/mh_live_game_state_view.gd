@@ -3,6 +3,8 @@ extends MHGameStateView
 ## Read-only adapter over the running session. It never manufactures cash, ratings or progression.
 @warning_ignore_start("integer_division")
 
+var editor: MHTerrainEditor
+
 var _session: MHGameSession
 
 
@@ -145,3 +147,11 @@ func recovery_offer() -> Dictionary:
 		"loan_amount": e.loan_amount_cents() / 100,
 		"reputation_penalty": e.params.c("loan_rep_penalty_permille") / 10,
 		"token_cost": e.params.c("recovery_token_cost")}
+
+
+func can_undo() -> bool:
+	return editor != null and not editor.is_stroke_open() and editor.undo_stack.undo_count() > 0
+
+
+func can_redo() -> bool:
+	return editor != null and not editor.is_stroke_open() and editor.undo_stack.redo_count() > 0

@@ -136,3 +136,57 @@ func test_recognized_rejected_intent_does_not_fall_through() -> void:
 	assert_bool(rejected["ok"]).is_false()
 	assert_str(str(rejected["reason"])).is_equal("recovery")
 	assert_bool(s.handle_intent(&"not_a_game_intent", {})["handled"]).is_false()
+
+
+func test_bank_loan_reports_success_and_preserves_no_cash_token_rule() -> void:
+	var s: MHGameSession = MHGameSession.create()
+	s.economy.arrears = 1000000
+	s.economy.bankrupt = true
+	var before: int = s.economy.loan_balance
+	assert_bool(s.handle_intent(&"recovery_loan", {})["ok"]).is_true()
+	assert_int(s.economy.loan_balance).is_greater(before)
+	assert_bool(s.handle_intent(&"recovery_loan", {})["ok"]).is_false()
+
+
+func test_live_editor_history_works_while_clock_paused() -> void:
+	var s: MHGameSession = MHGameSession.create()
+	s.clock.pause()
+	var editor: MHTerrainEditor = MHTerrainEditor.new(MHHeightGrid.new(16, 16, 1000))
+	var v: MHLiveGameStateView = MHLiveGameStateView.new(s)
+	v.editor = editor
+	var sink: MHLiveTerrainSink = MHLiveTerrainSink.new(editor)
+	assert_bool(v.can_undo()).is_false()
+	sink.begin_stroke()
+	sink.apply_brush_at(8, 8)
+	sink.apply_brush_at(10, 8)
+	assert_bool(v.can_undo()).is_false()
+	sink.end_stroke()
+	assert_bool(v.can_undo()).is_true()
+	assert_bool(editor.undo()).is_true()
+	assert_bool(v.can_redo()).is_true()
+	assert_bool(editor.redo()).is_true()
+	assert_bool(s.clock.is_paused()).is_true()
+	assert_int(s.clock.total_minutes()).is_equal(0)
+
+
+func test_router_suppression_clears_latched_mouse_and_touch_state() -> void:
+	var router: MHInputRouter = auto_free(MHInputRouter.new())
+	router.machine = MHGestureStateMachine.new()
+	var press: InputEventMouseButton = InputEventMouseButton.new()
+	press.button_index = MOUSE_BUTTON_RIGHT
+	press.pressed = true
+	router._input(press)
+	assert_int(router._mouse_mode).is_equal(MHInputRouter.MouseMode.ROTATE)
+	router._ui_touches[0] = &"old"
+	router._ui_mouse_region = &"old"
+	router.accept_world_input = false
+	press.pressed = false
+	router._input(press)
+	assert_int(router._mouse_mode).is_equal(MHInputRouter.MouseMode.NONE)
+	assert_int(router._ui_touches.size()).is_equal(0)
+	assert_str(str(router._ui_mouse_region)).is_equal("")
+	router.accept_world_input = true
+	router.world_input_allowed = func() -> bool: return false
+	press.pressed = true
+	router._input(press)
+	assert_int(router._mouse_mode).is_equal(MHInputRouter.MouseMode.NONE)

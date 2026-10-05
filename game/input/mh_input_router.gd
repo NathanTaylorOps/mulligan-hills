@@ -13,6 +13,11 @@ signal ui_tapped(region: StringName)
 
 enum MouseMode { NONE, PAINT, ROTATE, PAN }
 
+## Scene may suppress world gestures while an opaque menu/modal is open.
+var accept_world_input: bool = true
+## Optional live predicate: rechecked per input so newly opened modals suppress painting immediately.
+var world_input_allowed: Callable = Callable()
+
 var machine: MHGestureStateMachine
 var controller: MHCameraController
 var bridge: MHStrokeBridge
@@ -60,6 +65,15 @@ func _notification(what: int) -> void:
 	if machine == null:
 		return
 	if what == NOTIFICATION_APPLICATION_PAUSED or what == NOTIFICATION_APPLICATION_FOCUS_OUT or what == NOTIFICATION_WM_WINDOW_FOCUS_OUT:
+		cancel_world_input()
+
+
+## Clear all transient pointer state when leaving the world or losing focus.
+func cancel_world_input() -> void:
+	_mouse_mode = MouseMode.NONE
+	_ui_mouse_region = &""
+	_ui_touches.clear()
+	if machine != null:
 		machine.cancel_all()
 
 
@@ -81,6 +95,12 @@ func _on_ui_tapped(region: StringName) -> void:
 
 func _input(event: InputEvent) -> void:
 	if machine == null:
+		return
+	if not accept_world_input:
+		cancel_world_input()
+		return
+	if world_input_allowed.is_valid() and not bool(world_input_allowed.call()):
+		cancel_world_input()
 		return
 	var now: int = Time.get_ticks_msec()
 	if event is InputEventScreenTouch:
@@ -115,6 +135,7 @@ func _on_mouse_button(mb: InputEventMouseButton) -> void:
 			var hit: StringName = _hit(mb.position)
 			if hit != &"":
 				_ui_mouse_region = hit
+				get_viewport().set_input_as_handled()
 				return
 			_mouse_mode = MouseMode.PAINT
 			machine.desktop_stroke_begin(mb.position)
@@ -124,6 +145,7 @@ func _on_mouse_button(mb: InputEventMouseButton) -> void:
 				_ui_mouse_region = &""
 				if _hit(mb.position) == region:
 					ui_tapped.emit(region)
+				get_viewport().set_input_as_handled()
 				return
 			if _mouse_mode == MouseMode.PAINT:
 				_mouse_mode = MouseMode.NONE
@@ -151,3 +173,4 @@ func _on_mouse_motion(mm: InputEventMouseMotion) -> void:
 		controller.desktop_rotate(mm.relative)
 	elif _mouse_mode == MouseMode.PAN:
 		controller.desktop_pan(mm.relative)
+

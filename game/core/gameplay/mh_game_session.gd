@@ -226,7 +226,7 @@ func handle_intent(id: StringName, args: Dictionary) -> Dictionary:
 			economy.set_green_fee(int(args.get("cents", economy.fee)))
 			out = _result(true)
 		&"recovery_loan":
-			out = _result(economy.take_bank_loan() == MHEconomy.OK, "recovery")
+			out = _result(economy.take_bank_loan() >= 0, "recovery")
 		&"recovery_tokens":
 			out = _result(economy.recover_with_tokens(ledger) == MHEconomy.OK, "recovery")
 		&"tournament_host":

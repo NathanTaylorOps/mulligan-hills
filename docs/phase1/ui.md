@@ -94,3 +94,7 @@ Nothing to run yet. When CI is green, the gallery is in the launcher as "UI gall
 ## 5 October: design pause
 
 Editor toolbar now exposes pause/resume because editor mode hides the normal HUD. It uses the existing localized labels and session intent; a live-session smoke test covers both toggles. CI and phone layout verification remain pending. This does not complete the live scene/editor integration.
+
+## Live construction connection (5 October)
+
+`MHLiveGameStateView` now reads real terrain undo/redo history. The live construction scene connects editor intents and ordinary club menus to the real session; world input is suppressed on opaque pages/modals, stale pointer modes reset on suppression, and hidden overlays no longer contribute live region rects. See `live_construction.md` for save/scope limits. Phone layout and Godot interaction remain pending, not gallery/device sign-off.

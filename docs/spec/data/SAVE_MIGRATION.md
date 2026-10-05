@@ -34,3 +34,10 @@ Schema: `save.schema.json`. Current `save_version`: 1. Code: `game/core/save/` (
 | From | To | Change | Fixtures |
 | --- | --- | --- | --- |
 | (none) | 1 | Initial schema. Optional fields added during v1, before any shipped build: `world.minute_of_day`, `progress.playtime_s`, `progress.stats`, `progress.streak`, `progress.daily`, tournament counters. `ironman` made optional (must be false), `slot_kind: "ironman"` removed. | `tests/save/test_save_progress.gd` builds a legacy v1 document and a full document in code |
+
+
+## Optional live runtime checkpoint (reader 2, 5 October 2026)
+
+`runtime` is optional in save v1; files without it remain readable. Files containing it set `min_reader_version=2`, so a reader-1 app refuses before checksum/schema handling rather than dropping precise accounting. Reader 2 retains old-file behavior. The block carries exact integer clock/economy state, saved seed/history, a separate-ledger equality hash and the full terrain-byte pairing hash (SHA256 of lowercase hex text of the compressed blob, not raw-byte SHA256). Token balances/claim keys remain outside slots.
+
+`MHSessionSave` verifies redundant fields agree and restores a new session atomically. This first live adapter accepts zero finalized holes only; legacy/finished-hole slots are not silently reinitialized. The development scene uses an isolated official slot directory and immutable separate ledger generations. Full course geometry conversion, production identities, generation cleanup and cloud ledger reconciliation remain open. `live_save.example.json` is a schema/checksum fixture; its terrain-byte hash is a placeholder because no paired binary fixture is shipped there. Godot regressions include actual encoded blobs and a paint-only torn-write recovery.

@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://schemas.mulliganhills.example/save.schema.json",
   "title": "Mulligan Hills save file v1",
-  "description": "One save slot. Rules: every integer is within +/-2^53 (Godot JSON parses numbers as float64; 64-bit values such as RNG state are stored as 16-char hex strings). No floats. NO entitlement, unlock flag or receipt is ever stored here (additionalProperties is false, so a stray 'unlocked' key fails validation); the paid unlock lives in the separate signed entitlement cache. In-flight golfers are not saved: the simulation resumes at world.minute_of_day of the saved day with a fresh golfer roster (DEC-052). Ironman was cut (DEC-058): the legacy 'ironman' key is optional and must be false. Fields added after the first v1 files (world.minute_of_day, progress.playtime_s, progress.stats, progress.streak, progress.daily, progress.tournaments counters) are all optional so older v1 saves stay valid; readers default them. See SAVE_MIGRATION.md.",
+  "description": "One save slot. Rules: every integer is within +/-2^53 (Godot JSON parses numbers as float64; 64-bit values such as RNG state are stored as 16-char hex strings). No floats. NO entitlement, unlock flag or receipt is ever stored here (additionalProperties is false, so a stray 'unlocked' key fails validation); the paid unlock lives in the separate signed entitlement cache. In-flight golfers are not saved: the simulation resumes at world.minute_of_day of the saved day with a fresh golfer roster (DEC-052). Ironman was cut (DEC-058): the legacy 'ironman' key is optional and must be false. Fields added after the first v1 files (world.minute_of_day, progress.playtime_s, progress.stats, progress.streak, progress.daily, progress.tournaments counters) are all optional so older v1 saves stay valid; readers default them. See SAVE_MIGRATION.md. Optional runtime stores exact live clock/economy accounting. Files containing it require min_reader_version 2; older saves remain readable. Cross-field clock/day/hour and club/land/building consistency are checked by MHSessionSave.",
   "type": "object",
   "additionalProperties": false,
   "required": [
@@ -1108,6 +1108,257 @@
           }
         }
       }
+    },
+    "runtime": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "v",
+        "clock",
+        "economy",
+        "save_secret",
+        "recent_scores",
+        "ledger_hash",
+        "terrain_bytes_hash"
+      ],
+      "properties": {
+        "v": {
+          "const": 1
+        },
+        "clock": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "v",
+            "real_us_per_day",
+            "total_minutes",
+            "acc",
+            "speed",
+            "paused",
+            "credit"
+          ],
+          "properties": {
+            "v": {
+              "const": 1
+            },
+            "real_us_per_day": {
+              "enum": [
+                900000000,
+                1500000000
+              ]
+            },
+            "total_minutes": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 660000659
+            },
+            "acc": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 1499999999
+            },
+            "speed": {
+              "enum": [
+                1,
+                2,
+                4,
+                8
+              ]
+            },
+            "paused": {
+              "type": "boolean"
+            },
+            "credit": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 59999999
+            }
+          }
+        },
+        "economy": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "v",
+            "cash",
+            "fee",
+            "day",
+            "hour",
+            "arrears",
+            "loan_balance",
+            "loans_taken",
+            "reputation",
+            "holiday_hours",
+            "bankrupt",
+            "carry_milli",
+            "last_daily_upkeep",
+            "members_milli",
+            "holes",
+            "rating",
+            "parcels",
+            "ext_permille",
+            "renovation",
+            "total_revenue",
+            "total_upkeep_paid",
+            "tiers"
+          ],
+          "properties": {
+            "v": {
+              "const": 1
+            },
+            "cash": {
+              "type": "integer",
+              "minimum": -1000000000,
+              "maximum": 9007199254740991
+            },
+            "fee": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 25000
+            },
+            "day": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 1000000
+            },
+            "hour": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 10
+            },
+            "arrears": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 9007199254740991
+            },
+            "loan_balance": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 9007199254740991
+            },
+            "loans_taken": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 1000000
+            },
+            "reputation": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 1000
+            },
+            "holiday_hours": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 1000000
+            },
+            "bankrupt": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 1
+            },
+            "carry_milli": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 999
+            },
+            "last_daily_upkeep": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 9007199254740991
+            },
+            "members_milli": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 100000000
+            },
+            "holes": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 18
+            },
+            "rating": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 100
+            },
+            "parcels": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 16
+            },
+            "ext_permille": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 1000000
+            },
+            "renovation": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 12
+            },
+            "total_revenue": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 9007199254740991
+            },
+            "total_upkeep_paid": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 9007199254740991
+            },
+            "tiers": {
+              "type": "array",
+              "minItems": 10,
+              "maxItems": 10,
+              "items": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 5
+              }
+            }
+          }
+        },
+        "save_secret": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 4294967295
+        },
+        "recent_scores": {
+          "type": "array",
+          "maxItems": 14,
+          "items": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 100
+          }
+        },
+        "ledger_hash": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$",
+          "description": "Equality hash of separate earned-only development ledger; no balance or claim keys stored in the slot."
+        },
+        "terrain_bytes_hash": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$",
+          "description": "SHA256 of lowercase hex text of the complete compressed terrain blob; pairs heights AND paint with the accounting checkpoint."
+        }
+      }
     }
-  }
+  },
+  "allOf": [
+    {
+      "if": {
+        "required": [
+          "runtime"
+        ]
+      },
+      "then": {
+        "properties": {
+          "min_reader_version": {
+            "minimum": 2
+          }
+        }
+      }
+    }
+  ]
 }

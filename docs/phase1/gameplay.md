@@ -29,3 +29,7 @@ No new engine APIs beyond repository-proven signals, RefCounted and collection o
 ## DEC-070/071 pacing update
 
 Normal-speed day: 25 real minutes; income still arrives on each game hour. Paused accounting remains stopped. The editor toolbar exposes the existing pause/resume intent, and regression tests cover toolbar toggling and successful course submission while paused. These tests await Godot CI; actual playable scene/editor/save wiring remains open. Target: about 50 running hours, excluding paused design work.
+
+## Live construction increment (5 October)
+
+See `live_construction.md`: new launcher scene connects real terrain/editor, live menus and accounting, paused history and guarded official slot checkpoints. This proves a construction/accounting connection only; it has no finalized holes and rejects unsupported course save conversion. Reader-2 optional runtime preserves fractional accounting and pairs separate ledger/full terrain generations. Personal golf and full course geometry/save integration remain open. Static/Python checks pass; Godot CI/device verification pending.

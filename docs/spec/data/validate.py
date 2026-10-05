@@ -42,7 +42,7 @@ def no_floats(o, label, path=""):
     elif isinstance(o, dict): [no_floats(v, label, path + "/" + k) for k, v in o.items()]
     elif isinstance(o, list): [no_floats(v, label, f"{path}[{i}]") for i, v in enumerate(o)]
 
-docs = {"course.example.json": "course", "save.example.json": "save", "buildings.json": "buildings", "tournaments.json": "tournaments",
+docs = {"live_save.example.json": "save", "course.example.json": "course", "save.example.json": "save", "buildings.json": "buildings", "tournaments.json": "tournaments",
         "commission_templates.example.json": "commission_templates", "event_cards.example.json": "event_cards",
         "remote_config.example.json": "remote_config", "analytics_catalog.json": "analytics_catalog",
         "analytics_event.example.json": "analytics_event", "strings.example.en.json": "strings",
@@ -69,6 +69,15 @@ e = copy.deepcopy(loaded["analytics_event.example.json"]); e["props"]["tier"] = 
 r = copy.deepcopy(loaded["remote_config.example.json"]); r["economy"]["start_cash"] = 99999999; must_reject("remote_config", r, "remote config over clamp")
 r = copy.deepcopy(loaded["remote_config.example.json"]); r["rating_weights"] = {"beauty": 5}; must_reject("remote_config", r, "rating parameter in remote config")
 b = copy.deepcopy(loaded["buildings.json"]); b["buildings"][0]["tiers"][4]["requires"]["specific"] = [{"building": "landmark", "min_tier": 6}]; must_reject("buildings", b, "min_tier 6")
+
+# Reader-2 exact accounting fixture; independent schema rejection checks.
+for path, value, label in [(('min_reader_version',),1,'runtime with old reader'), (('runtime','economy','loan_balance'),-1,'negative live loan'), (('runtime','clock','paused'),1,'numeric pause'), (('runtime','economy','cash'),1.5,'fractional live cents'), (('runtime','clock','speed'),3,'unsupported live speed')]:
+    sv = copy.deepcopy(loaded['live_save.example.json'])
+    target = sv
+    for key in path[:-1]: target = target[key]
+    target[path[-1]] = value
+    must_reject('save', sv, label)
+sv = copy.deepcopy(loaded['live_save.example.json']); del sv['runtime']['ledger_hash']; must_reject('save', sv, 'missing ledger generation hash')
 
 # --- semantic: buildings
 B = loaded["buildings.json"]; by = {b["id"]: b for b in B["buildings"]}

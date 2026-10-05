@@ -364,7 +364,7 @@ func region_rects() -> Dictionary:
 	var out: Dictionary = {}
 	for n: Variant in _nodes:
 		var s: MHScreen = n
-		if s.is_overlay:
+		if s.is_overlay and s.is_visible_in_tree():
 			out.merge(s.button_rect_getters(), true)
 	if _coach != null and is_instance_valid(_coach):
 		out.merge(_coach.button_rect_getters(), true)
@@ -470,3 +470,4 @@ func _recompute() -> void:
 	_host.add_theme_constant_override("margin_bottom", int(ins.w))
 	if old_kind != ctx.layout_kind and not _nodes.is_empty():
 		_rebuild_all()
+
