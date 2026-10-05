@@ -1,0 +1,22 @@
+# Supabase CLI settings for Mulligan Hills. Only the parts we need; everything else uses the CLI defaults.
+project_id = "mulligan-hills"
+
+# Every function has verify_jwt = false on purpose.
+#  * The "anon key" is public (it ships inside the game), so the gateway JWT check protects nothing extra.
+#  * Newer Supabase projects hand out keys that are not JWTs ("sb_publishable_..."), which the gateway check would reject.
+#  * Each function does its own checks: player functions call requireUser() (a real signed-in or anonymous player is needed),
+#    verify-purchase checks the purchase with Google, remote-config is read-only, ingest-analytics validates every event.
+[functions.verify-purchase]
+verify_jwt = false
+[functions.verify-integrity]
+verify_jwt = false
+[functions.remote-config]
+verify_jwt = false
+[functions.cloud-save]
+verify_jwt = false
+[functions.daily-challenge]
+verify_jwt = false
+[functions.account]
+verify_jwt = false
+[functions.ingest-analytics]
+verify_jwt = false

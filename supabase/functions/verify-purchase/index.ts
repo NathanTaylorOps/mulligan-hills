@@ -3,12 +3,14 @@
 // 200: { ok:true, entitlement:"mh1....", order_id, test_purchase, integrity:{mode,ok,reasons} }
 // 4xx: { ok:false, error:"..." }
 // No Supabase account is required or read: the entitlement belongs to the store receipt.
+// The `purchase_flow` kill switch deliberately does NOT block this function: Restore must keep working (DEC-030).
 import { corsHeaders, env, json } from "../_shared/http.ts";
 import { parseServiceAccount } from "../_shared/google_auth.ts";
 import { acknowledgePurchase, verifyProductPurchase } from "../_shared/play_purchases.ts";
 import { decodeIntegrityToken, evaluateIntegrity } from "../_shared/integrity.ts";
 import { signEntitlement } from "../_shared/entitlement.ts";
 import { sha256hex } from "../_shared/crypto.ts";
+import { makeBackend } from "../_shared/supabase_backend.ts";
 
 Deno.serve(async (req: Request): Promise<Response> => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
@@ -53,6 +55,21 @@ Deno.serve(async (req: Request): Promise<Response> => {
     // 2) Purchase with Google Play Developer API
     const p = await verifyProductPurchase(sa, pkg, product_id, purchase_token);
     if (!p.valid) return json({ ok: false, error: `purchase_invalid:${p.reason}` }, 403);
+
+    // 2b) Token reuse counter (added with migration 20261004000600). Stores only a hash. FAILS OPEN: if the database is
+    //     unreachable the purchase is still honoured. A normal player verifies a few times (install, reinstall, new phone).
+    try {
+      const maxUses = Number(env("PURCHASE_MAX_VERIFICATIONS_30D", "10"));
+      const rec = (await makeBackend().rpc("purchase_verification_record", {
+        p_hash: await sha256hex(purchase_token), p_product: product_id, p_order: p.orderId, p_test: p.isTestPurchase, p_window_days: 30,
+      })) as { count?: number };
+      if (typeof rec?.count === "number" && rec.count > maxUses) {
+        console.warn("purchase token reuse limit hit", rec.count);
+        return json({ ok: false, error: "token_reuse_limit" }, 429);
+      }
+    } catch (e) {
+      console.warn("purchase_verification_record failed (ignored)", e instanceof Error ? e.message : e);
+    }
 
     // 3) Acknowledge on the server so a client crash cannot lead to an auto-refund (idempotent enough).
     if (!p.acknowledged && env("ACKNOWLEDGE_ON_SERVER", "true") === "true") {

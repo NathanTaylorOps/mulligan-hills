@@ -1,5 +1,7 @@
 # supabase/functions : purchase and integrity verification
 
+> Updated 2026-10-04: the folder now also holds `remote-config`, `cloud-save`, `daily-challenge`, `account` and `ingest-analytics`. See `supabase/README.md` for the whole backend, the client contract and what was tested. This file keeps the purchase and Google setup notes.
+
 Status: SOURCE ONLY. Nothing here has been deployed or called against Google. The pure logic (integrity policy,
 purchase-response interpretation, token signing) was run under Node with `_shared/selftest.node.ts`; the TypeScript-signed
 token was verified by Python `cryptography`. Network calls to Google were NOT run.
@@ -10,7 +12,7 @@ token was verified by Python `cryptography`. Network calls to Google were NOT ru
 | `verify-purchase` | Decode Play Integrity token (optional/policy), verify the purchase token with the Google Play Developer API, acknowledge it, return a signed entitlement `mh1...`. No Supabase login needed. |
 | `verify-integrity` | Standalone integrity check (for leaderboard/cloud-save abuse). Returns verdict summary and a 10-minute signed `mhi1` attestation. |
 
-Shared code: `_shared/` (crypto, google_auth, play_purchases, integrity, entitlement). Token format is documented in
+Shared code: `_shared/` (crypto, google_auth, play_purchases, integrity, entitlement; plus the newer backend, remote_config, analytics, codes, attestation, versions). Token format is documented in
 `game/platform/mh_entitlement_token.gd` and `_shared/entitlement.ts`; they must stay byte compatible.
 
 ## Secrets (Supabase > Edge Functions > Secrets, or `supabase secrets set`)
@@ -47,11 +49,10 @@ If the private key leaks, rotate: new pair, update secret and app; old tokens st
 supabase functions deploy verify-purchase
 supabase functions deploy verify-integrity
 ```
-The client sends the project anon key as `apikey`/`Authorization` (see `game/platform/mh_verify_api.gd`); JWT verification can stay ON.
+The client sends the project anon key as `apikey`/`Authorization` (see `game/platform/mh_verify_api.gd`). `supabase/config.toml` now sets `verify_jwt = false` for every function (explained there); deploy all with `supabase functions deploy`.
 
 ## Known gaps
-- No rate limiting or purchase-token reuse detection (one purchase token can mint tokens for many devices). Add a table
-  of sha256(purchase_token) with a device counter in Phase 1 if abuse appears.
+- Purchase-token reuse is now counted (table `purchase_verifications`, migration 20261004000600; default limit 10 verifications per token per 30 days, secret `PURCHASE_MAX_VERIFICATIONS_30D`). It fails open and has not been run against a real project. There is still no per-IP rate limit.
 - No Real-time developer notifications (refund revocation). Refunds are noticed only at the next online re-verify after `ref`. The client
   currently keeps a cached token forever offline; a refunded user therefore keeps the unlock until they re-verify. Accepted for a $4.99 game; revisit.
 - Apple verification (`verify-apple`, App Store Server API) is not written.

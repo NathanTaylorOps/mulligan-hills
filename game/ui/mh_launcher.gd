@@ -15,6 +15,8 @@ const SCENES: Array = [
 	["Bench (forest + terrain)", "res://bench/bench_scene.tscn"],
 	["Gesture sandbox", "res://input/mh_gesture_sandbox.tscn"],
 	["Terrain demo", "res://terrain/demo/terrain_demo.tscn"],
+	["Building gallery", "res://art/mh_building_gallery.tscn"],
+	["Art gallery (nature, golfers, props)", "res://art/mh_nature_gallery.tscn"],
 	["Gate 0: sim hash", "res://gate0/sim_hash.tscn"],
 	["Gate 0: terrain paint", "res://gate0/terrain_paint.tscn"],
 	["Gate 0: save and kill", "res://gate0/save_kill.tscn"],

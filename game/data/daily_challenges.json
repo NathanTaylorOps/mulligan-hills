@@ -1,0 +1,330 @@
+{
+  "schema": "mh.daily_challenges",
+  "schema_version": 1,
+  "status": "PARAMETERS, NOT FINAL. Thresholds are placeholders until the rating engine's real score distribution is measured.",
+  "attempts_per_day": 3,
+  "history_days": 30,
+  "local_board_cap": 90,
+  "difficulty_weights": [
+    50,
+    35,
+    15
+  ],
+  "jitter_step": 5,
+  "round_step": 5,
+  "generation_salt": 55826,
+  "sim_seed_tag": 55825,
+  "templates": [
+    {
+      "id": "strategic_par4",
+      "weight": 120,
+      "par": [
+        4
+      ],
+      "axis_min": {
+        "accuracy": [
+          45,
+          65
+        ],
+        "imagination": [
+          50,
+          70
+        ]
+      },
+      "axis_max": {},
+      "text_keys": {
+        "title": "challenge.strategic_par4.title",
+        "desc": "challenge.strategic_par4.desc"
+      },
+      "max_length_yd": [
+        470,
+        380
+      ]
+    },
+    {
+      "id": "heroic_par5",
+      "weight": 80,
+      "par": [
+        5
+      ],
+      "axis_min": {
+        "imagination": [
+          55,
+          75
+        ]
+      },
+      "axis_max": {},
+      "text_keys": {
+        "title": "challenge.heroic_par5.title",
+        "desc": "challenge.heroic_par5.desc"
+      },
+      "max_length_yd": [
+        620,
+        540
+      ],
+      "min_length_yd": [
+        500,
+        540
+      ]
+    },
+    {
+      "id": "gem_par3",
+      "weight": 100,
+      "par": [
+        3
+      ],
+      "axis_min": {
+        "beauty": [
+          50,
+          70
+        ]
+      },
+      "axis_max": {},
+      "text_keys": {
+        "title": "challenge.gem_par3.title",
+        "desc": "challenge.gem_par3.desc"
+      },
+      "max_length_yd": [
+        190,
+        140
+      ]
+    },
+    {
+      "id": "straight_and_true_par4",
+      "weight": 80,
+      "par": [
+        4
+      ],
+      "axis_min": {
+        "accuracy": [
+          50,
+          70
+        ],
+        "fairness": [
+          55,
+          75
+        ]
+      },
+      "axis_max": {},
+      "text_keys": {
+        "title": "challenge.straight_and_true_par4.title",
+        "desc": "challenge.straight_and_true_par4.desc"
+      },
+      "max_length_yd": [
+        480,
+        400
+      ]
+    },
+    {
+      "id": "scenic_route",
+      "weight": 70,
+      "par": [
+        3,
+        4,
+        5
+      ],
+      "axis_min": {
+        "beauty": [
+          55,
+          75
+        ]
+      },
+      "axis_max": {},
+      "text_keys": {
+        "title": "challenge.scenic_route.title",
+        "desc": "challenge.scenic_route.desc"
+      },
+      "min_score": [
+        45,
+        60
+      ]
+    },
+    {
+      "id": "drivable_par4",
+      "weight": 60,
+      "par": [
+        4
+      ],
+      "axis_min": {
+        "imagination": [
+          50,
+          70
+        ]
+      },
+      "axis_max": {},
+      "text_keys": {
+        "title": "challenge.drivable_par4.title",
+        "desc": "challenge.drivable_par4.desc"
+      },
+      "max_length_yd": [
+        330,
+        270
+      ]
+    },
+    {
+      "id": "fair_play",
+      "weight": 70,
+      "par": [
+        3,
+        4,
+        5
+      ],
+      "axis_min": {
+        "fairness": [
+          60,
+          80
+        ]
+      },
+      "axis_max": {},
+      "text_keys": {
+        "title": "challenge.fair_play.title",
+        "desc": "challenge.fair_play.desc"
+      },
+      "min_score": [
+        45,
+        60
+      ]
+    },
+    {
+      "id": "long_haul_par5",
+      "weight": 50,
+      "par": [
+        5
+      ],
+      "axis_min": {
+        "accuracy": [
+          45,
+          60
+        ]
+      },
+      "axis_max": {},
+      "text_keys": {
+        "title": "challenge.long_haul_par5.title",
+        "desc": "challenge.long_haul_par5.desc"
+      },
+      "min_length_yd": [
+        560,
+        620
+      ],
+      "min_score": [
+        45,
+        60
+      ]
+    },
+    {
+      "id": "clever_par3",
+      "weight": 70,
+      "par": [
+        3
+      ],
+      "axis_min": {
+        "imagination": [
+          50,
+          70
+        ],
+        "accuracy": [
+          45,
+          60
+        ]
+      },
+      "axis_max": {},
+      "text_keys": {
+        "title": "challenge.clever_par3.title",
+        "desc": "challenge.clever_par3.desc"
+      },
+      "max_length_yd": [
+        200,
+        160
+      ]
+    },
+    {
+      "id": "length_axis_light",
+      "weight": 40,
+      "par": [
+        3,
+        4,
+        5
+      ],
+      "axis_min": {
+        "imagination": [
+          45,
+          65
+        ]
+      },
+      "axis_max": {
+        "length": [
+          70,
+          40
+        ]
+      },
+      "text_keys": {
+        "title": "challenge.length_axis_light.title",
+        "desc": "challenge.length_axis_light.desc"
+      },
+      "min_score": [
+        40,
+        55
+      ]
+    },
+    {
+      "id": "all_rounder",
+      "weight": 90,
+      "par": [
+        4
+      ],
+      "axis_min": {
+        "accuracy": [
+          40,
+          55
+        ],
+        "imagination": [
+          40,
+          55
+        ],
+        "beauty": [
+          40,
+          55
+        ],
+        "fairness": [
+          40,
+          55
+        ]
+      },
+      "axis_max": {},
+      "text_keys": {
+        "title": "challenge.all_rounder.title",
+        "desc": "challenge.all_rounder.desc"
+      },
+      "min_score": [
+        45,
+        60
+      ]
+    },
+    {
+      "id": "compact_par4",
+      "weight": 60,
+      "par": [
+        4
+      ],
+      "axis_min": {
+        "accuracy": [
+          50,
+          65
+        ],
+        "beauty": [
+          45,
+          60
+        ]
+      },
+      "axis_max": {},
+      "text_keys": {
+        "title": "challenge.compact_par4.title",
+        "desc": "challenge.compact_par4.desc"
+      },
+      "max_length_yd": [
+        400,
+        340
+      ]
+    }
+  ]
+}

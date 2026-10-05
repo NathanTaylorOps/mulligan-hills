@@ -1,0 +1,194 @@
+{
+  "schema": "mh.progression",
+  "schema_version": 1,
+  "status": "PARAMETERS, NOT FINAL. Tuned by the economy simulation later.",
+  "levels": [
+    {
+      "level": 1,
+      "prestige_needed": 0,
+      "title_key": "progression.level1.title",
+      "unlocks": []
+    },
+    {
+      "level": 2,
+      "prestige_needed": 100,
+      "title_key": "progression.level2.title",
+      "unlocks": [
+        "commissions"
+      ]
+    },
+    {
+      "level": 3,
+      "prestige_needed": 250,
+      "title_key": "progression.level3.title",
+      "unlocks": [
+        "plaque_bronze"
+      ]
+    },
+    {
+      "level": 4,
+      "prestige_needed": 450,
+      "title_key": "progression.level4.title",
+      "unlocks": [
+        "flag_style_2"
+      ]
+    },
+    {
+      "level": 5,
+      "prestige_needed": 700,
+      "title_key": "progression.level5.title",
+      "unlocks": [
+        "banner_1"
+      ]
+    },
+    {
+      "level": 6,
+      "prestige_needed": 1000,
+      "title_key": "progression.level6.title",
+      "unlocks": []
+    },
+    {
+      "level": 7,
+      "prestige_needed": 1400,
+      "title_key": "progression.level7.title",
+      "unlocks": [
+        "plaque_silver"
+      ]
+    },
+    {
+      "level": 8,
+      "prestige_needed": 1900,
+      "title_key": "progression.level8.title",
+      "unlocks": [
+        "cart_paint_1"
+      ]
+    },
+    {
+      "level": 9,
+      "prestige_needed": 2500,
+      "title_key": "progression.level9.title",
+      "unlocks": []
+    },
+    {
+      "level": 10,
+      "prestige_needed": 3200,
+      "title_key": "progression.level10.title",
+      "unlocks": [
+        "banner_2"
+      ]
+    },
+    {
+      "level": 11,
+      "prestige_needed": 4000,
+      "title_key": "progression.level11.title",
+      "unlocks": []
+    },
+    {
+      "level": 12,
+      "prestige_needed": 5000,
+      "title_key": "progression.level12.title",
+      "unlocks": [
+        "plaque_gold"
+      ]
+    },
+    {
+      "level": 13,
+      "prestige_needed": 6200,
+      "title_key": "progression.level13.title",
+      "unlocks": []
+    },
+    {
+      "level": 14,
+      "prestige_needed": 7600,
+      "title_key": "progression.level14.title",
+      "unlocks": [
+        "flag_style_3"
+      ]
+    },
+    {
+      "level": 15,
+      "prestige_needed": 9200,
+      "title_key": "progression.level15.title",
+      "unlocks": []
+    },
+    {
+      "level": 16,
+      "prestige_needed": 11000,
+      "title_key": "progression.level16.title",
+      "unlocks": [
+        "cart_paint_2"
+      ]
+    },
+    {
+      "level": 17,
+      "prestige_needed": 13000,
+      "title_key": "progression.level17.title",
+      "unlocks": []
+    },
+    {
+      "level": 18,
+      "prestige_needed": 15500,
+      "title_key": "progression.level18.title",
+      "unlocks": [
+        "banner_3"
+      ]
+    },
+    {
+      "level": 19,
+      "prestige_needed": 18500,
+      "title_key": "progression.level19.title",
+      "unlocks": []
+    },
+    {
+      "level": 20,
+      "prestige_needed": 22000,
+      "title_key": "progression.level20.title",
+      "unlocks": [
+        "plaque_platinum"
+      ]
+    }
+  ],
+  "milestones": {
+    "per_hole": 8,
+    "per_building_tier_step": 10,
+    "per_course_score_point": 5,
+    "members_div": 2,
+    "members_cap": 200,
+    "challenge_completed": 10,
+    "challenge_attempted": 2,
+    "commission_done_base": 15
+  },
+  "streak": {
+    "grace_start": 1,
+    "grace_max": 2,
+    "grace_regain_every_days": 7,
+    "max_bridge_days": 2,
+    "resume_percent": 50,
+    "milestones": [
+      {
+        "days": 3,
+        "points": 10
+      },
+      {
+        "days": 7,
+        "points": 25
+      },
+      {
+        "days": 14,
+        "points": 40
+      },
+      {
+        "days": 30,
+        "points": 75
+      },
+      {
+        "days": 60,
+        "points": 120
+      },
+      {
+        "days": 100,
+        "points": 200
+      }
+    ]
+  }
+}

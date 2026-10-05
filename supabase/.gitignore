@@ -1,0 +1,7 @@
+.temp/
+.branches/
+.env
+.env.*
+*.pem
+*.jks
+service-account*.json

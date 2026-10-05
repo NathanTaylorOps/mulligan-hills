@@ -82,9 +82,9 @@ func quad(a: Vector3, b: Vector3, c: Vector3, d: Vector3, col: Color, outward: V
 	tri(a, c, d, col, col, col, outward)
 
 
-## Quad visible from both sides (4 triangles).
+## Quad visible from both sides (4 triangles). `ca` colours the a/d edge and `cb` the b/c edge, so for a
+## gradient along a strip order the corners a = start-left, b = end-left, c = end-right, d = start-right.
 func quad_two_sided(a: Vector3, b: Vector3, c: Vector3, d: Vector3, ca: Color, cb: Color) -> void:
-	# ca colours the a/d edge, cb colours the b/c edge (a gradient along the strip).
 	tri_two_sided(a, b, c, ca, cb, cb)
 	tri_two_sided(a, c, d, ca, cb, ca)
 
@@ -232,22 +232,25 @@ func to_mesh() -> ArrayMesh:
 
 ## FNV-1a style hash of this builder's geometry. Positions are quantised to 1 mm and colours to 1/255
 ## so that harmless float noise does not change the value. Same code, same seed, same hash.
+## Compare builder hashes with builder hashes. `hash_mesh` reads colours back from a built mesh (stored
+## as 8-bit by the engine, rounding rule UNVERIFIED), so it only equals this for colours that are exact
+## multiples of 1/255 (such as pure white).
 func geometry_hash() -> int:
 	return MHMeshBuilder.hash_arrays(verts, colors, indices)
 
 
 static func hash_arrays(v: PackedVector3Array, c: PackedColorArray, idx: PackedInt32Array) -> int:
 	var h: int = 2166136261
-	for p in v:
+	for p: Vector3 in v:
 		h = _mix(h, int(roundf(p.x * 1000.0)))
 		h = _mix(h, int(roundf(p.y * 1000.0)))
 		h = _mix(h, int(roundf(p.z * 1000.0)))
-	for col in c:
+	for col: Color in c:
 		h = _mix(h, int(roundf(col.r * 255.0)))
 		h = _mix(h, int(roundf(col.g * 255.0)))
 		h = _mix(h, int(roundf(col.b * 255.0)))
 		h = _mix(h, int(roundf(col.a * 255.0)))
-	for i in idx:
+	for i: int in idx:
 		h = _mix(h, i)
 	return h
 

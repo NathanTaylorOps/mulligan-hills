@@ -5,7 +5,7 @@ extends RefCounted
 ## vertex colours (palette from MHPalette), one surface per mesh so a MultiMesh can draw it.
 ##
 ## LODs: 0 (near), 1 (mid), 2 (far, a handful of triangles). Triangle budgets are in BUDGETS and are
-## enforced by tests/art_nature/test_nature_meshes.gd. Every tree LOD0 is under 400 triangles.
+## enforced by tests/art/test_nature_meshes.gd. Every tree LOD0 is under 400 triangles.
 ## `variant` (0..VARIANTS-1, any int works) changes proportions, jitter and colour drift, but the
 ## same (kind, lod, variant) always gives the same vertices.
 ##
@@ -103,7 +103,7 @@ static func build_builder(kind: String, lod: int, variant: int) -> MHMeshBuilder
 
 # ---------------------------------------------------------------- helpers
 
-static func _rng(kind_id: int, lod: int, variant: int) -> MHArtRng:
+static func _rng(kind_id: int, _lod: int, variant: int) -> MHArtRng:
 	return MHArtRng.new(kind_id * 100003 + variant * 7919 + 17)
 
 
@@ -123,7 +123,7 @@ static func _bent_blade(b: MHMeshBuilder, base: Vector3, yaw: float, lean: float
 	var mid: Vector3 = base + fwd * (lean * 0.25) + Vector3(0.0, height * 0.6, 0.0)
 	var tip: Vector3 = base + fwd * lean + Vector3(0.0, height, 0.0)
 	var c_mid: Color = c_base.lerp(c_tip, 0.5)
-	b.quad_two_sided(base - side, base + side, mid + side * 0.6, mid - side * 0.6, c_base, c_mid)
+	b.quad_two_sided(base - side, mid - side * 0.6, mid + side * 0.6, base + side, c_base, c_mid)
 	b.tri_two_sided(mid - side * 0.6, mid + side * 0.6, tip, c_mid, c_mid, c_tip)
 
 
@@ -281,13 +281,13 @@ static func _palm(b: MHMeshBuilder, lod: int, variant: int) -> void:
 			var p1: Vector3 = crown + out * (len_f * 0.4) + Vector3(0.0, 0.55, 0.0)
 			var p2: Vector3 = crown + out * (len_f * 0.8) + Vector3(0.0, 0.35, 0.0)
 			var p3: Vector3 = crown + out * len_f + Vector3(0.0, -0.45, 0.0)
-			b.quad_two_sided(crown - side * 0.15, crown + side * 0.15, p1 + side * 0.8, p1 - side * 0.8, lo, lo.lerp(hi, 0.5))
-			b.quad_two_sided(p1 - side * 0.8, p1 + side * 0.8, p2 + side * 0.5, p2 - side * 0.5, lo.lerp(hi, 0.5), hi)
+			b.quad_two_sided(crown - side * 0.15, p1 - side * 0.8, p1 + side * 0.8, crown + side * 0.15, lo, lo.lerp(hi, 0.5))
+			b.quad_two_sided(p1 - side * 0.8, p2 - side * 0.5, p2 + side * 0.5, p1 + side * 0.8, lo.lerp(hi, 0.5), hi)
 			b.tri_two_sided(p2 - side * 0.5, p2 + side * 0.5, p3, hi, hi, lo)
 		elif lod == 1:
 			var q1: Vector3 = crown + out * (len_f * 0.55) + Vector3(0.0, 0.5, 0.0)
 			var q2: Vector3 = crown + out * len_f + Vector3(0.0, -0.4, 0.0)
-			b.quad_two_sided(crown - side * 0.15, crown + side * 0.15, q1 + side * 0.7, q1 - side * 0.7, lo, hi)
+			b.quad_two_sided(crown - side * 0.15, q1 - side * 0.7, q1 + side * 0.7, crown + side * 0.15, lo, hi)
 			b.tri_two_sided(q1 - side * 0.7, q1 + side * 0.7, q2, hi, hi, lo)
 		else:
 			var r2: Vector3 = crown + out * len_f + Vector3(0.0, -0.3, 0.0)

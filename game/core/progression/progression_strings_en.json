@@ -1,0 +1,573 @@
+{
+  "note": "DRAFT English strings for achievements.json and progression.json. Owner of game/data/strings/en.json should merge these (status draft). Names are generated from ids, descriptions from the unlock conditions: wording needs a human pass.",
+  "strings": {
+    "achievement.first_hole.name": {
+      "text": "First Hole",
+      "status": "draft"
+    },
+    "achievement.first_hole.desc": {
+      "text": "Build your first hole.",
+      "status": "draft"
+    },
+    "achievement.nine_holes.name": {
+      "text": "Nine Holes",
+      "status": "draft"
+    },
+    "achievement.nine_holes.desc": {
+      "text": "Build 9 holes.",
+      "status": "draft"
+    },
+    "achievement.full_eighteen.name": {
+      "text": "Full Eighteen",
+      "status": "draft"
+    },
+    "achievement.full_eighteen.desc": {
+      "text": "Build 18 holes.",
+      "status": "draft"
+    },
+    "achievement.good_hole.name": {
+      "text": "Good Hole",
+      "status": "draft"
+    },
+    "achievement.good_hole.desc": {
+      "text": "Build a hole that scores 50.",
+      "status": "draft"
+    },
+    "achievement.great_hole.name": {
+      "text": "Great Hole",
+      "status": "draft"
+    },
+    "achievement.great_hole.desc": {
+      "text": "Build a hole that scores 70.",
+      "status": "draft"
+    },
+    "achievement.masterpiece_hole.name": {
+      "text": "Masterpiece Hole",
+      "status": "draft"
+    },
+    "achievement.masterpiece_hole.desc": {
+      "text": "Build a hole that scores 85.",
+      "status": "draft"
+    },
+    "achievement.three_good_holes.name": {
+      "text": "Three Good Holes",
+      "status": "draft"
+    },
+    "achievement.three_good_holes.desc": {
+      "text": "Have 3 good holes.",
+      "status": "draft"
+    },
+    "achievement.nine_good_holes.name": {
+      "text": "Nine Good Holes",
+      "status": "draft"
+    },
+    "achievement.nine_good_holes.desc": {
+      "text": "Have 9 good holes.",
+      "status": "draft"
+    },
+    "achievement.solid_course.name": {
+      "text": "Solid Course",
+      "status": "draft"
+    },
+    "achievement.solid_course.desc": {
+      "text": "Reach a course score of 40.",
+      "status": "draft"
+    },
+    "achievement.fine_course.name": {
+      "text": "Fine Course",
+      "status": "draft"
+    },
+    "achievement.fine_course.desc": {
+      "text": "Reach a course score of 60.",
+      "status": "draft"
+    },
+    "achievement.championship_course.name": {
+      "text": "Championship Course",
+      "status": "draft"
+    },
+    "achievement.championship_course.desc": {
+      "text": "Reach a course score of 75.",
+      "status": "draft"
+    },
+    "achievement.balanced_hole.name": {
+      "text": "Balanced Hole",
+      "status": "draft"
+    },
+    "achievement.balanced_hole.desc": {
+      "text": "Build a hole with a rating axis of 70.",
+      "status": "draft"
+    },
+    "achievement.first_golfer.name": {
+      "text": "First Golfer",
+      "status": "draft"
+    },
+    "achievement.first_golfer.desc": {
+      "text": "Finish a round with your first golfer.",
+      "status": "draft"
+    },
+    "achievement.busy_day.name": {
+      "text": "Busy Day",
+      "status": "draft"
+    },
+    "achievement.busy_day.desc": {
+      "text": "Welcome 200 golfers through the course.",
+      "status": "draft"
+    },
+    "achievement.first_building.name": {
+      "text": "First Building",
+      "status": "draft"
+    },
+    "achievement.first_building.desc": {
+      "text": "Buy your first building.",
+      "status": "draft"
+    },
+    "achievement.clubhouse_two.name": {
+      "text": "Clubhouse Two",
+      "status": "draft"
+    },
+    "achievement.clubhouse_two.desc": {
+      "text": "Upgrade the Clubhouse to tier 2.",
+      "status": "draft"
+    },
+    "achievement.clubhouse_three.name": {
+      "text": "Clubhouse Three",
+      "status": "draft"
+    },
+    "achievement.clubhouse_three.desc": {
+      "text": "Upgrade the Clubhouse to tier 3.",
+      "status": "draft"
+    },
+    "achievement.clubhouse_four.name": {
+      "text": "Clubhouse Four",
+      "status": "draft"
+    },
+    "achievement.clubhouse_four.desc": {
+      "text": "Upgrade the Clubhouse to tier 4.",
+      "status": "draft"
+    },
+    "achievement.five_buildings.name": {
+      "text": "Five Buildings",
+      "status": "draft"
+    },
+    "achievement.five_buildings.desc": {
+      "text": "Own 5 buildings.",
+      "status": "draft"
+    },
+    "achievement.all_buildings.name": {
+      "text": "All Buildings",
+      "status": "draft"
+    },
+    "achievement.all_buildings.desc": {
+      "text": "Own 10 buildings.",
+      "status": "draft"
+    },
+    "achievement.fine_dining.name": {
+      "text": "Fine Dining",
+      "status": "draft"
+    },
+    "achievement.fine_dining.desc": {
+      "text": "Upgrade the Restaurant to tier 3.",
+      "status": "draft"
+    },
+    "achievement.guest_rooms.name": {
+      "text": "Guest Rooms",
+      "status": "draft"
+    },
+    "achievement.guest_rooms.desc": {
+      "text": "Upgrade the Lodging to tier 2.",
+      "status": "draft"
+    },
+    "achievement.first_home.name": {
+      "text": "First Home",
+      "status": "draft"
+    },
+    "achievement.first_home.desc": {
+      "text": "Upgrade the Homes to tier 1.",
+      "status": "draft"
+    },
+    "achievement.tier_five_first.name": {
+      "text": "Tier Five First",
+      "status": "draft"
+    },
+    "achievement.tier_five_first.desc": {
+      "text": "Upgrade 1 building to tier 5.",
+      "status": "draft"
+    },
+    "achievement.tier_sum_twenty.name": {
+      "text": "Tier Sum Twenty",
+      "status": "draft"
+    },
+    "achievement.tier_sum_twenty.desc": {
+      "text": "Reach a combined building tier of 20.",
+      "status": "draft"
+    },
+    "achievement.landmark_built.name": {
+      "text": "Landmark Built",
+      "status": "draft"
+    },
+    "achievement.landmark_built.desc": {
+      "text": "Upgrade the Landmark to tier 1.",
+      "status": "draft"
+    },
+    "achievement.more_land.name": {
+      "text": "More Land",
+      "status": "draft"
+    },
+    "achievement.more_land.desc": {
+      "text": "Own 3 parcels of land.",
+      "status": "draft"
+    },
+    "achievement.big_estate.name": {
+      "text": "Big Estate",
+      "status": "draft"
+    },
+    "achievement.big_estate.desc": {
+      "text": "Own 10 parcels of land.",
+      "status": "draft"
+    },
+    "achievement.fifty_members.name": {
+      "text": "Fifty Members",
+      "status": "draft"
+    },
+    "achievement.fifty_members.desc": {
+      "text": "Reach 50 members.",
+      "status": "draft"
+    },
+    "achievement.two_hundred_members.name": {
+      "text": "Two Hundred Members",
+      "status": "draft"
+    },
+    "achievement.two_hundred_members.desc": {
+      "text": "Reach 200 members.",
+      "status": "draft"
+    },
+    "achievement.good_name.name": {
+      "text": "Good Name",
+      "status": "draft"
+    },
+    "achievement.good_name.desc": {
+      "text": "Reach 100 reputation.",
+      "status": "draft"
+    },
+    "achievement.great_name.name": {
+      "text": "Great Name",
+      "status": "draft"
+    },
+    "achievement.great_name.desc": {
+      "text": "Reach 500 reputation.",
+      "status": "draft"
+    },
+    "achievement.first_100k.name": {
+      "text": "First 100k",
+      "status": "draft"
+    },
+    "achievement.first_100k.desc": {
+      "text": "Earn $100,000 in total.",
+      "status": "draft"
+    },
+    "achievement.first_million.name": {
+      "text": "First Million",
+      "status": "draft"
+    },
+    "achievement.first_million.desc": {
+      "text": "Earn $1,000,000 in total.",
+      "status": "draft"
+    },
+    "achievement.thirty_days.name": {
+      "text": "Thirty Days",
+      "status": "draft"
+    },
+    "achievement.thirty_days.desc": {
+      "text": "Play 30 days.",
+      "status": "draft"
+    },
+    "achievement.one_hundred_days.name": {
+      "text": "One Hundred Days",
+      "status": "draft"
+    },
+    "achievement.one_hundred_days.desc": {
+      "text": "Play 100 days.",
+      "status": "draft"
+    },
+    "achievement.finished_tutorial.name": {
+      "text": "Finished Tutorial",
+      "status": "draft"
+    },
+    "achievement.finished_tutorial.desc": {
+      "text": "Finish the tutorial.",
+      "status": "draft"
+    },
+    "achievement.first_tournament.name": {
+      "text": "First Tournament",
+      "status": "draft"
+    },
+    "achievement.first_tournament.desc": {
+      "text": "Host your first tournament.",
+      "status": "draft"
+    },
+    "achievement.local_host.name": {
+      "text": "Local Host",
+      "status": "draft"
+    },
+    "achievement.local_host.desc": {
+      "text": "Host a local tournament.",
+      "status": "draft"
+    },
+    "achievement.regional_host.name": {
+      "text": "Regional Host",
+      "status": "draft"
+    },
+    "achievement.regional_host.desc": {
+      "text": "Host a regional tournament.",
+      "status": "draft"
+    },
+    "achievement.national_host.name": {
+      "text": "National Host",
+      "status": "draft"
+    },
+    "achievement.national_host.desc": {
+      "text": "Host a national tournament.",
+      "status": "draft"
+    },
+    "achievement.major_host.name": {
+      "text": "Major Host",
+      "status": "draft"
+    },
+    "achievement.major_host.desc": {
+      "text": "Host a major tournament.",
+      "status": "draft"
+    },
+    "achievement.tournament_veteran.name": {
+      "text": "Tournament Veteran",
+      "status": "draft"
+    },
+    "achievement.tournament_veteran.desc": {
+      "text": "Host 5 tournaments.",
+      "status": "draft"
+    },
+    "achievement.full_ladder.name": {
+      "text": "Full Ladder",
+      "status": "draft"
+    },
+    "achievement.full_ladder.desc": {
+      "text": "Host a local tournament and Host a regional tournament and Host a national tournament and Host a major tournament.",
+      "status": "draft"
+    },
+    "achievement.keep_trying.name": {
+      "text": "Keep Trying",
+      "status": "draft"
+    },
+    "achievement.keep_trying.desc": {
+      "text": "Run 2 tournaments, whatever the result and Host your first tournament.",
+      "status": "draft"
+    },
+    "achievement.first_commission.name": {
+      "text": "First Commission",
+      "status": "draft"
+    },
+    "achievement.first_commission.desc": {
+      "text": "Finish your first commission.",
+      "status": "draft"
+    },
+    "achievement.five_commissions.name": {
+      "text": "Five Commissions",
+      "status": "draft"
+    },
+    "achievement.five_commissions.desc": {
+      "text": "Finish 5 commissions.",
+      "status": "draft"
+    },
+    "achievement.twenty_commissions.name": {
+      "text": "Twenty Commissions",
+      "status": "draft"
+    },
+    "achievement.twenty_commissions.desc": {
+      "text": "Finish 20 commissions.",
+      "status": "draft"
+    },
+    "achievement.varied_clients.name": {
+      "text": "Varied Clients",
+      "status": "draft"
+    },
+    "achievement.varied_clients.desc": {
+      "text": "Finish 4 different kinds of commission.",
+      "status": "draft"
+    },
+    "achievement.first_challenge.name": {
+      "text": "First Challenge",
+      "status": "draft"
+    },
+    "achievement.first_challenge.desc": {
+      "text": "Play the daily challenge.",
+      "status": "draft"
+    },
+    "achievement.challenge_met.name": {
+      "text": "Challenge Met",
+      "status": "draft"
+    },
+    "achievement.challenge_met.desc": {
+      "text": "Meet the daily challenge.",
+      "status": "draft"
+    },
+    "achievement.ten_challenges.name": {
+      "text": "Ten Challenges",
+      "status": "draft"
+    },
+    "achievement.ten_challenges.desc": {
+      "text": "Meet the daily challenge 10 times.",
+      "status": "draft"
+    },
+    "achievement.fifty_challenges.name": {
+      "text": "Fifty Challenges",
+      "status": "draft"
+    },
+    "achievement.fifty_challenges.desc": {
+      "text": "Meet the daily challenge 50 times.",
+      "status": "draft"
+    },
+    "achievement.streak_three.name": {
+      "text": "Streak Three",
+      "status": "draft"
+    },
+    "achievement.streak_three.desc": {
+      "text": "Play 3 days in a row.",
+      "status": "draft"
+    },
+    "achievement.streak_seven.name": {
+      "text": "Streak Seven",
+      "status": "draft"
+    },
+    "achievement.streak_seven.desc": {
+      "text": "Play 7 days in a row.",
+      "status": "draft"
+    },
+    "achievement.streak_thirty.name": {
+      "text": "Streak Thirty",
+      "status": "draft"
+    },
+    "achievement.streak_thirty.desc": {
+      "text": "Play 30 days in a row.",
+      "status": "draft"
+    },
+    "achievement.regular_visitor.name": {
+      "text": "Regular Visitor",
+      "status": "draft"
+    },
+    "achievement.regular_visitor.desc": {
+      "text": "Play on 14 different days.",
+      "status": "draft"
+    },
+    "achievement.card_player.name": {
+      "text": "Card Player",
+      "status": "draft"
+    },
+    "achievement.card_player.desc": {
+      "text": "Answer an event card.",
+      "status": "draft"
+    },
+    "achievement.card_collector.name": {
+      "text": "Card Collector",
+      "status": "draft"
+    },
+    "achievement.card_collector.desc": {
+      "text": "Answer 20 event cards.",
+      "status": "draft"
+    },
+    "achievement.club_level_five.name": {
+      "text": "Club Level Five",
+      "status": "draft"
+    },
+    "achievement.club_level_five.desc": {
+      "text": "Reach club level 5.",
+      "status": "draft"
+    },
+    "achievement.club_level_ten.name": {
+      "text": "Club Level Ten",
+      "status": "draft"
+    },
+    "achievement.club_level_ten.desc": {
+      "text": "Reach club level 10.",
+      "status": "draft"
+    },
+    "progression.level1.title": {
+      "text": "Newcomer",
+      "status": "draft"
+    },
+    "progression.level2.title": {
+      "text": "Weekend Owner",
+      "status": "draft"
+    },
+    "progression.level3.title": {
+      "text": "Local Favourite",
+      "status": "draft"
+    },
+    "progression.level4.title": {
+      "text": "Rising Club",
+      "status": "draft"
+    },
+    "progression.level5.title": {
+      "text": "Respected Course",
+      "status": "draft"
+    },
+    "progression.level6.title": {
+      "text": "Regional Name",
+      "status": "draft"
+    },
+    "progression.level7.title": {
+      "text": "Destination Course",
+      "status": "draft"
+    },
+    "progression.level8.title": {
+      "text": "Established Club",
+      "status": "draft"
+    },
+    "progression.level9.title": {
+      "text": "Course of Note",
+      "status": "draft"
+    },
+    "progression.level10.title": {
+      "text": "Famous Fairways",
+      "status": "draft"
+    },
+    "progression.level11.title": {
+      "text": "Members Pride",
+      "status": "draft"
+    },
+    "progression.level12.title": {
+      "text": "Championship Venue",
+      "status": "draft"
+    },
+    "progression.level13.title": {
+      "text": "Distinguished Club",
+      "status": "draft"
+    },
+    "progression.level14.title": {
+      "text": "National Landmark",
+      "status": "draft"
+    },
+    "progression.level15.title": {
+      "text": "Legendary Links",
+      "status": "draft"
+    },
+    "progression.level16.title": {
+      "text": "Hall of Fame Course",
+      "status": "draft"
+    },
+    "progression.level17.title": {
+      "text": "Icon of the Game",
+      "status": "draft"
+    },
+    "progression.level18.title": {
+      "text": "Timeless Club",
+      "status": "draft"
+    },
+    "progression.level19.title": {
+      "text": "Wonder of Golf",
+      "status": "draft"
+    },
+    "progression.level20.title": {
+      "text": "Mulligan Hills Legend",
+      "status": "draft"
+    }
+  }
+}

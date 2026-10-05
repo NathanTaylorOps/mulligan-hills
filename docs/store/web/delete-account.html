@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Delete your Mulligan Hills account</title>
+<!--
+  DRAFT 2026-10-04. NOT LEGAL ADVICE. Have the wording reviewed with the privacy policy before publishing.
+  Host this file at a public address (for example GitHub Pages) and give that address to Google Play as the
+  account deletion URL. Before publishing, replace the two placeholders:
+    SUPABASE_PROJECT_URL  ->  https://YOUR_REF.supabase.co   (the project URL, not secret)
+    SUPPORT_EMAIL         ->  your support address
+  The page calls the Edge Function "account" (action delete_with_code). Nothing is stored by this page.
+  Not run against a real project yet.
+-->
+<style>
+  :root { color-scheme: light dark; --bg:#f6f8f5; --fg:#16231a; --card:#ffffff; --line:#c9d6cc; --accent:#1f6b3a; --bad:#a1262d; }
+  @media (prefers-color-scheme: dark) { :root { --bg:#101a13; --fg:#e6efe8; --card:#18261c; --line:#2d4233; --accent:#6fd08c; --bad:#ff8d93; } }
+  body { margin:0; background:var(--bg); color:var(--fg); font:16px/1.5 system-ui, sans-serif; }
+  main { max-width:34rem; margin:0 auto; padding:24px 16px 48px; }
+  .card { background:var(--card); border:1px solid var(--line); border-radius:12px; padding:16px; margin:16px 0; }
+  label { display:block; font-weight:600; margin:12px 0 4px; }
+  input[type=text] { width:100%; box-sizing:border-box; font:inherit; padding:10px; border:1px solid var(--line); border-radius:8px; background:transparent; color:inherit; text-transform:uppercase; letter-spacing:.1em; }
+  button { font:inherit; font-weight:600; padding:10px 16px; border-radius:8px; border:0; background:var(--bad); color:#fff; cursor:pointer; margin-top:16px; }
+  button[disabled] { opacity:.5; cursor:not-allowed; }
+  #msg { margin-top:12px; font-weight:600; }
+  .ok { color:var(--accent); } .err { color:var(--bad); }
+  h1 { font-size:1.5rem; } h2 { font-size:1.1rem; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Delete your Mulligan Hills account</h1>
+  <p>Mulligan Hills uses a random anonymous account for cloud save and the daily challenge. It has no name or email address. Use this page to delete that account and its data.</p>
+
+  <div class="card">
+    <h2>What is deleted</h2>
+    <ul>
+      <li>Your cloud save files.</li>
+      <li>Your daily challenge scores.</li>
+      <li>Your anonymous account and any unused transfer code.</li>
+      <li>Optional usage statistics linked to your install ID, if you enter it below.</li>
+    </ul>
+    <h2>What is not deleted</h2>
+    <ul>
+      <li>Saves stored on your own phone (delete the app or its data to remove them).</li>
+      <li>Your purchase. It belongs to your Google Play or Apple account, and deleting the account does not refund or cancel it. You can restore it later.</li>
+    </ul>
+    <p>Deleting cannot be undone.</p>
+  </div>
+
+  <div class="card">
+    <h2>How to prove the account is yours</h2>
+    <p>Because accounts are anonymous, the only proof is a one-time code made inside the game: open the game, go to <strong>Settings &gt; Delete account &gt; Get a code</strong> [CONFIRM the final menu text], and enter the code here within 15 minutes.</p>
+    <p>If you cannot open the game any more, email <a href="mailto:SUPPORT_EMAIL">SUPPORT_EMAIL</a> and we will explain what we can do. [LAWYER: wording; we cannot identify an anonymous account without a code.]</p>
+
+    <form id="f" autocomplete="off">
+      <label for="code">Code from the game (looks like ABCD-EFGH-JKLM)</label>
+      <input id="code" type="text" maxlength="20" inputmode="text" autocapitalize="characters" required>
+      <label for="inst">Install ID (optional, to delete usage statistics; the game must show it in Settings &gt; Privacy [CONFIRM it will])</label>
+      <input id="inst" type="text" maxlength="40" style="text-transform:none; letter-spacing:0">
+      <label><input id="sure" type="checkbox"> I understand this permanently deletes my cloud data.</label>
+      <button id="go" type="submit" disabled>Delete my account</button>
+      <div id="msg" role="status" aria-live="polite"></div>
+    </form>
+  </div>
+</main>
+<script>
+(function () {
+  var URL_BASE = "SUPABASE_PROJECT_URL";
+  var f = document.getElementById("f"), code = document.getElementById("code"), sure = document.getElementById("sure");
+  var go = document.getElementById("go"), msg = document.getElementById("msg"), inst = document.getElementById("inst");
+  function sync() { go.disabled = !(sure.checked && code.value.trim().length >= 12); }
+  sure.addEventListener("change", sync); code.addEventListener("input", sync);
+  function say(t, cls) { msg.textContent = t; msg.className = cls; }
+  f.addEventListener("submit", function (ev) {
+    ev.preventDefault();
+    if (URL_BASE.indexOf("SUPABASE_PROJECT_URL") === 0) { say("This page is not configured yet.", "err"); return; }
+    go.disabled = true; say("Working...", "");
+    var body = { action: "delete_with_code", confirm: "DELETE", code: code.value.trim() };
+    var i = inst.value.trim(); if (i) body.install_id = i;
+    fetch(URL_BASE + "/functions/v1/account", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) })
+      .then(function (r) { return r.json().then(function (j) { return { s: r.status, j: j }; }); })
+      .then(function (r) {
+        if (r.j && r.j.ok) { say("Done. Your account and cloud data were deleted.", "ok"); f.reset(); }
+        else if (r.s === 403) { say("That code is not valid or has expired. Make a new one in the game.", "err"); sync(); }
+        else { say("Something went wrong. Please email SUPPORT_EMAIL.", "err"); sync(); }
+      })
+      .catch(function () { say("No connection. Please try again.", "err"); sync(); });
+  });
+})();
+</script>
+</body>
+</html>

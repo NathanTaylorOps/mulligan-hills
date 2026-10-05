@@ -1,0 +1,37 @@
+{
+  "note": "DRAFT English strings for tournaments.json level names and descriptions. mh_strings.gd already has short tournament.<level>.name values (Local, Regional, National, Major); the owner of game/data/strings/en.json decides which wording wins.",
+  "strings": {
+    "tournament.local.name": {
+      "text": "Local Open",
+      "status": "draft"
+    },
+    "tournament.local.desc": {
+      "text": "A friendly one day event for the area. A good first step up the ladder.",
+      "status": "draft"
+    },
+    "tournament.regional.name": {
+      "text": "Regional Cup",
+      "status": "draft"
+    },
+    "tournament.regional.desc": {
+      "text": "Two days of play with a bigger field from across the region.",
+      "status": "draft"
+    },
+    "tournament.national.name": {
+      "text": "National Championship",
+      "status": "draft"
+    },
+    "tournament.national.desc": {
+      "text": "Three days of play and real crowds. Your course is judged against the best in the country.",
+      "status": "draft"
+    },
+    "tournament.major.name": {
+      "text": "The Major",
+      "status": "draft"
+    },
+    "tournament.major.desc": {
+      "text": "Four days, the strongest field and the biggest stage in the game.",
+      "status": "draft"
+    }
+  }
+}

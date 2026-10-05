@@ -1,0 +1,101 @@
+{
+  "note": "DRAFT English strings for daily_challenges.json. Owner of game/data/strings/en.json should merge these (status draft).",
+  "strings": {
+    "challenge.strategic_par4.title": {
+      "text": "Strategic Par 4",
+      "status": "draft"
+    },
+    "challenge.strategic_par4.desc": {
+      "text": "Build a par 4 that rewards accuracy and offers a choice of line.",
+      "status": "draft"
+    },
+    "challenge.heroic_par5.title": {
+      "text": "Heroic Par 5",
+      "status": "draft"
+    },
+    "challenge.heroic_par5.desc": {
+      "text": "Build a par 5 with a heroic option that tempts a bold player.",
+      "status": "draft"
+    },
+    "challenge.gem_par3.title": {
+      "text": "Gem Par 3",
+      "status": "draft"
+    },
+    "challenge.gem_par3.desc": {
+      "text": "Build a short par 3 that is a joy to look at.",
+      "status": "draft"
+    },
+    "challenge.straight_and_true_par4.title": {
+      "text": "Straight And True Par 4",
+      "status": "draft"
+    },
+    "challenge.straight_and_true_par4.desc": {
+      "text": "Build an honest, fair par 4 that rewards straight hitting.",
+      "status": "draft"
+    },
+    "challenge.scenic_route.title": {
+      "text": "Scenic Route",
+      "status": "draft"
+    },
+    "challenge.scenic_route.desc": {
+      "text": "Build any hole with a beautiful setting that still plays well.",
+      "status": "draft"
+    },
+    "challenge.drivable_par4.title": {
+      "text": "Drivable Par 4",
+      "status": "draft"
+    },
+    "challenge.drivable_par4.desc": {
+      "text": "Build a short par 4 that tempts players to go for the green.",
+      "status": "draft"
+    },
+    "challenge.fair_play.title": {
+      "text": "Fair Play",
+      "status": "draft"
+    },
+    "challenge.fair_play.desc": {
+      "text": "Build a hole that treats every golfer fairly.",
+      "status": "draft"
+    },
+    "challenge.long_haul_par5.title": {
+      "text": "Long Haul Par 5",
+      "status": "draft"
+    },
+    "challenge.long_haul_par5.desc": {
+      "text": "Build a long par 5 that still rewards accuracy.",
+      "status": "draft"
+    },
+    "challenge.clever_par3.title": {
+      "text": "Clever Par 3",
+      "status": "draft"
+    },
+    "challenge.clever_par3.desc": {
+      "text": "Build a short par 3 that rewards a clever shot.",
+      "status": "draft"
+    },
+    "challenge.length_axis_light.title": {
+      "text": "Length Axis Light",
+      "status": "draft"
+    },
+    "challenge.length_axis_light.desc": {
+      "text": "Build a hole that wins on imagination, not on length.",
+      "status": "draft"
+    },
+    "challenge.all_rounder.title": {
+      "text": "All Rounder",
+      "status": "draft"
+    },
+    "challenge.all_rounder.desc": {
+      "text": "Build a par 4 with no weak side: accuracy, imagination, beauty and fairness together.",
+      "status": "draft"
+    },
+    "challenge.compact_par4.title": {
+      "text": "Compact Par 4",
+      "status": "draft"
+    },
+    "challenge.compact_par4.desc": {
+      "text": "Build a compact, pretty par 4 that rewards accuracy.",
+      "status": "draft"
+    }
+  }
+}
