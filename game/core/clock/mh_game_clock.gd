@@ -155,7 +155,7 @@ func step(delta_us: int, ledger: MHTokenLedger = null) -> PackedInt32Array:
 		else:
 			@warning_ignore("integer_division")
 			boosted_us = _credit / rate
-			_credit -= boosted_us * rate
+			_credit = 0 # the remainder is under one microsecond of boost: not worth a speed request
 			dropped_from = _speed
 			_speed = 1
 	var slow_us: int = delta - boosted_us

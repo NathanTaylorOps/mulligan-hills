@@ -48,7 +48,7 @@ static func sorted_reasons(reasons: Array) -> Array:
 	for r: Variant in reasons:
 		if typeof(r) == TYPE_DICTIONARY and (r as Dictionary).has("code"):
 			out.append(r)
-	out.sort_custom(_less)
+	out.sort_custom(MHAdvisor._less)
 	return out
 
 

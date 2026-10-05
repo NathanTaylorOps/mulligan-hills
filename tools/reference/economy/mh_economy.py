@@ -1,8 +1,17 @@
-"""Integer-only Python reference for game/core/economy/mh_economy.gd (MHEconomy).
-Money is integer CENTS. No floats anywhere in this file. GDScript mirrors every function 1:1.
-Division: all operands are non-negative wherever '//' is used, so floor == truncate (same as GDScript int /)."""
+"""Integer-only Python reference for game/core/economy/ (MHEconomyModel + MHEconomy).
 
-HOURS_PER_DAY = 12
+Money is integer CENTS. No floats anywhere in this file. The GDScript mirrors every function 1:1.
+Division: operands are non-negative wherever '//' is used, so floor == truncate (same as GDScript int /).
+The player-behaviour simulation (sim.py) drives THIS code, so the numbers it reports are the numbers the game
+core produces. Everything marked ASSUMPTION in economy_params.json must be re-tuned on closed-test data.
+"""
+import json
+import os
+
+HERE = os.path.dirname(os.path.abspath(__file__))
+HOURS_PER_DAY = 11          # matches game/core/clock/mh_game_clock.gd (660 game minutes per day)
+NB = 10                     # buildings
+NT = 5                      # tiers
 
 OK = 0
 ERR_INSUFFICIENT = 1
@@ -13,37 +22,6 @@ ERR_NOT_AVAILABLE = 4
 OPT_LOAN = 1
 OPT_TOKEN = 2
 
-# Core defaults (cents unless named otherwise). economy_params.json "core" section must equal this.
-CORE_DEFAULTS = {
-    "start_cash_cents": 4000000,
-    "fee_min_cents": 500,
-    "fee_max_cents": 25000,
-    "fee_start_cents": 1500,
-    "wtp_base_per_hole_cents": 40,
-    "wtp_per_rating_per_hole_cents": 12,
-    "upkeep_ppm_per_day": 2500,
-    "parcel_base_cents": 3000000,
-    "parcel_growth_permille": 1200,
-    "parcel_round_cents": 10000,
-    "bankrupt_arrears_days_x10": 20,
-    "bankrupt_min_arrears_cents": 100000,
-    "loan_upkeep_days": 10,
-    "loan_min_cents": 500000,
-    "loan_max_cents": 5000000,
-    "loan_fee_permille": 100,
-    "loan_repay_share_permille": 250,
-    "loan_max_taken": 3,
-    "loan_rep_penalty_permille": 150,
-    "rep_floor_permille": 500,
-    "rep_recover_per_day_permille": 3,
-    "tokens_earn_every_days": 6,
-    "speed_cost_2x_per_10_days": 1,
-    "speed_cost_4x_per_10_days": 3,
-    "speed_cost_8x_per_10_days": 8,
-    "recovery_token_cost": 3,
-    "recovery_holiday_days": 5,
-}
-
 
 def clamp(v, lo, hi):
     if v < lo:
@@ -53,15 +31,35 @@ def clamp(v, lo, hi):
     return v
 
 
-def wtp_cents(p, rating, holes):
-    """Willingness to pay for one round, cents. rating 0..100, holes counted up to 18."""
+def isqrt(n):
+    if n <= 0:
+        return 0
+    x = 1 << ((n.bit_length() + 1) >> 1)
+    while True:
+        y = (x + n // x) >> 1
+        if y >= x:
+            return x
+        x = y
+
+
+# ---------------------------------------------------------------- params
+def load_params(path=None):
+    path = path or os.path.join(HERE, "economy_params.json")
+    with open(path) as f:
+        return json.load(f)
+
+
+# ---------------------------------------------------------------- pure model
+def wtp_cents(P, rating, holes):
+    """Willingness to pay for one round. rating 0..100 (average hole score), holes counted up to 18."""
+    c = P["core"]
     h = clamp(holes, 0, 18)
     r = clamp(rating, 0, 100)
-    return h * (p["wtp_base_per_hole_cents"] + p["wtp_per_rating_per_hole_cents"] * r)
+    return h * (c["wtp_base_per_hole_cents"] + c["wtp_per_rating_per_hole_cents"] * r)
 
 
-def fee_acceptance_permille(fee_cents, wtp):
-    """1000 / (1 + (fee/wtp)^2), integer. 500 at fee == wtp. wtp <= 0 -> 0."""
+def acceptance_permille(fee_cents, wtp):
+    """1000 / (1 + (fee/wtp)^2). 500 at fee == wtp. wtp <= 0 gives 0."""
     if wtp <= 0:
         return 0
     if fee_cents < 0:
@@ -70,74 +68,207 @@ def fee_acceptance_permille(fee_cents, wtp):
     return (w2 * 1000) // (w2 + fee_cents * fee_cents)
 
 
-def payback_price_cents(target_days, added_daily_income_cents, upkeep_ppm):
-    """DEC-050. cost = target_days * (added_income - cost*upkeep_ppm/1e6) solved for cost:
-    cost = T*G*1e6 / (1e6 + T*u). With upkeep_ppm == 0 this is the plain rule T*G."""
-    if target_days <= 0 or added_daily_income_cents <= 0:
-        return 0
-    return (target_days * added_daily_income_cents * 1000000) // (1000000 + target_days * upkeep_ppm)
+def attract_permille(rating):
+    """1000 * (rating/50)^1.5, integer: isqrt(8 r^3). rating 50 -> 1000, 100 -> 2828."""
+    r = clamp(rating, 0, 100)
+    return isqrt(8 * r * r * r)
 
 
-def payback_days_x100(cost_cents, added_daily_income_cents, upkeep_ppm):
-    net = added_daily_income_cents - (cost_cents * upkeep_ppm) // 1000000
-    if net <= 0:
-        return -1
-    return (cost_cents * 100) // net
+def effect_sum(P, tiers, key):
+    """Sum of a per-tier effect over the ten buildings. tiers: list of 10 ints 0..5."""
+    total = 0
+    eff = P["effects"]
+    ids = P["building_ids"]
+    for i in range(NB):
+        t = tiers[i]
+        if t > 0:
+            arr = eff[ids[i]].get(key)
+            if arr:
+                total += arr[t - 1]
+    return total
 
 
-def upkeep_hour_cents(daily_cents, hour_index):
-    """Exact split of a daily amount over 12 hours: the 12 parts sum to daily_cents."""
-    if daily_cents <= 0:
+def arrivals_milli(P, holes, rating, dem_add_milli, rep_permille, ext_permille):
+    """Golfers who would like to play per day, times 1000, before the fee decision.
+    dem_add_milli: extra golfers/day (x1000) contributed by buildings (additive, not a multiplier)."""
+    c = P["core"]
+    h = clamp(holes, 0, 18)
+    att = attract_permille(rating)
+    base = c["arrivals_base_milli"] + (c["arrivals_per_hole_milli"] * h * att) // 1000 + dem_add_milli
+    base = (base * rep_permille) // 1000
+    return (base * ext_permille) // 1000
+
+
+def split_hour(daily, hour_index):
+    """Exact split of a daily amount over HOURS_PER_DAY hours: the parts sum to daily."""
+    if daily <= 0:
         return 0
     h = clamp(hour_index, 0, HOURS_PER_DAY - 1)
-    return (daily_cents * (h + 1)) // HOURS_PER_DAY - (daily_cents * h) // HOURS_PER_DAY
+    return (daily * (h + 1)) // HOURS_PER_DAY - (daily * h) // HOURS_PER_DAY
 
 
-def parcel_cost_cents(p, parcels_bought):
-    """Cost of the next parcel when parcels_bought have been bought so far (start plot not counted)."""
-    c = p["parcel_base_cents"]
-    k = 0
-    while k < parcels_bought:
-        c = (c * p["parcel_growth_permille"]) // 1000
-        k += 1
-    rnd = p["parcel_round_cents"]
-    if rnd > 1:
-        c = (c // rnd) * rnd
-    return c
+def profile_sum(P):
+    s = 0
+    for v in P["hour_profile"]:
+        s += v
+    return s
 
 
-def speed_token_cost(p, multiplier, game_days):
-    if multiplier <= 1 or game_days <= 0:
+def hour_cap_milli(P):
+    c = P["core"]
+    return c["tee_groups_per_hour"] * c["tee_group_size_x10"] * 100
+
+
+def golfers_day_milli(P, arr_milli, acc_permille):
+    """Expected accepted golfers per day x1000, honouring the per-hour tee cap."""
+    ps = profile_sum(P)
+    cap = hour_cap_milli(P)
+    tot = 0
+    for h in range(HOURS_PER_DAY):
+        a = (arr_milli * P["hour_profile"][h]) // ps
+        a = (a * acc_permille) // 1000
+        tot += a if a < cap else cap
+    return tot
+
+
+def members_target_milli(P, clubhouse_tier, rating, rep_permille):
+    if clubhouse_tier <= 0:
         return 0
-    if multiplier <= 2:
-        rate = p["speed_cost_2x_per_10_days"]
-    elif multiplier <= 4:
-        rate = p["speed_cost_4x_per_10_days"]
-    else:
-        rate = p["speed_cost_8x_per_10_days"]
-    return (game_days * rate + 9) // 10
+    cap = P["member_cap"][clubhouse_tier - 1]
+    num = rating - P["core"]["member_rating_floor"]
+    if num < 0:
+        num = 0
+    f = clamp((num * 1000) // P["core"]["member_rating_span"], 0, 1300)
+    return (cap * 1000 * f // 1000) * rep_permille // 1000
 
 
+def step_members_milli(P, members_milli, target_milli):
+    rate = P["core"]["member_join_rate_permille"]
+    d = target_milli - members_milli
+    if d >= 0:
+        return members_milli + (d * rate) // 1000
+    return members_milli - ((-d) * rate) // 1000
+
+
+def course_upkeep_cents(P, holes, parcels, maint_cut_permille):
+    c = P["core"]
+    u = holes * c["hole_upkeep_cents"] + parcels * c["parcel_upkeep_cents"]
+    cut = clamp(maint_cut_permille, 0, 900)
+    return (u * (1000 - cut)) // 1000
+
+
+def building_upkeep_cents(upkeep_dollars, tiers):
+    """upkeep_dollars[i][t-1] from buildings.json upkeep_per_day (whole dollars, total for the standing tier)."""
+    u = 0
+    for i in range(NB):
+        t = tiers[i]
+        if t > 0:
+            u += upkeep_dollars[i][t - 1] * 100
+    return u
+
+
+def day_estimate(P, upkeep_dollars, tiers, holes, parcels, rating, members_milli, fee, rep=1000, ext=1000):
+    """Expected one-day figures, integer cents. Used for pricing, fee suggestion and bot decisions."""
+    dem = effect_sum(P, tiers, "dem")
+    anc = effect_sum(P, tiers, "anc")
+    arr = arrivals_milli(P, holes, rating, dem, rep, ext)
+    acc = acceptance_permille(fee, wtp_cents(P, rating, holes))
+    g = golfers_day_milli(P, arr, acc)
+    flat = (effect_sum(P, tiers, "flat") * clamp(rating, 0, 100)) // 50
+    dues = (members_milli * P["core"]["member_dues_cents"]) // 1000
+    fees = (g * fee) // 1000
+    ancr = (g * anc) // 1000
+    cut = effect_sum(P, tiers, "cut")
+    up_course = course_upkeep_cents(P, holes, parcels, cut)
+    up_bld = building_upkeep_cents(upkeep_dollars, tiers)
+    return {"arrivals_milli": arr, "acc": acc, "golfers_milli": g, "fees": fees, "anc": ancr, "flat": flat,
+            "dues": dues, "revenue": fees + ancr + flat + dues, "upkeep_course": up_course,
+            "upkeep_buildings": up_bld, "upkeep": up_course + up_bld,
+            "net": fees + ancr + flat + dues - up_course - up_bld}
+
+
+def suggest_fee_cents(P, upkeep_dollars, tiers, holes, rating, rep=1000):
+    """Fee that maximises fees + ancillary per day (first maximum, so ties go to the lower fee)."""
+    c = P["core"]
+    dem = effect_sum(P, tiers, "dem")
+    anc = effect_sum(P, tiers, "anc")
+    arr = arrivals_milli(P, holes, rating, dem, rep, 1000)
+    w = wtp_cents(P, rating, holes)
+    best = -1
+    bf = c["fee_min_cents"]
+    f = c["fee_min_cents"]
+    while f <= c["fee_max_cents"]:
+        g = golfers_day_milli(P, arr, acceptance_permille(f, w))
+        v = g * (f + anc)
+        if v > best:
+            best = v
+            bf = f
+        f += 100
+    return bf
+
+
+def payback_price_cents(target_days, added_daily_cents):
+    """DEC-050: price = target payback days x added daily income."""
+    if target_days <= 0 or added_daily_cents <= 0:
+        return 0
+    return target_days * added_daily_cents
+
+
+def parcel_cost_cents(base_dollars, growth_pct, purchases_made):
+    """Mirrors MHLandModel.price_for_purchase_index (whole dollars, integer growth each step), then x100."""
+    p = base_dollars
+    for _ in range(max(purchases_made, 0)):
+        p = (p * growth_pct) // 100
+    return p * 100
+
+
+def hole_cost_cents(P, holes_built):
+    """Build cost of the next hole when holes_built holes exist (ASSUMPTION: geometric, whole dollars)."""
+    c = P["core"]
+    d = c["hole_cost_base_dollars"]
+    for _ in range(max(holes_built - c["start_holes"], 0)):
+        d = (d * c["hole_cost_growth_permille"]) // 1000
+    return d * 100
+
+
+def speed_tokens_for_days(game_days):
+    """Tokens a sped-up stretch costs under the clock's own rates (game/core/clock/mh_game_clock.gd): 2x, 4x and 8x
+    drain 1, 2 and 4 tokens per real minute while a game day lasts 7.5, 3.75 and 1.875 real minutes, so every sped-up
+    game day costs 7.5 tokens at any speed. Returns ceil(7.5 * days) = (15 * days + 1) // 2."""
+    if game_days <= 0:
+        return 0
+    return (15 * game_days + 1) // 2
+
+
+# ---------------------------------------------------------------- state machine
 class Economy:
-    def __init__(self, params=None, start_cash_cents=-1):
-        self.p = dict(CORE_DEFAULTS if params is None else params)
-        self.cash = self.p["start_cash_cents"] if start_cash_cents < 0 else start_cash_cents
-        self.fee = self.p["fee_start_cents"]
+    def __init__(self, P, upkeep_dollars, start_cash_cents=-1):
+        self.P = P
+        self.c = P["core"]
+        self.upk = upkeep_dollars
+        self.cash = self.c["start_cash_cents"] if start_cash_cents < 0 else start_cash_cents
+        self.fee = self.c["fee_start_cents"]
         self.day = 0
         self.hour = 0
         self.arrears = 0
         self.loan_balance = 0
         self.loans_taken = 0
         self.reputation = 1000
-        self.tokens = 0
         self.holiday_hours = 0
         self.bankrupt = False
-        self.accept_carry = 0
+        self.carry_milli = 0
         self.last_daily_upkeep = 0
+        self.members_milli = 0
+        self.holes = self.c["start_holes"]
+        self.rating = self.c["start_rating"]
+        self.parcels = self.c["start_parcels"]
+        self.tiers = [0] * NB
+        self.ext_permille = 1000
         self.total_revenue = 0
         self.total_upkeep_paid = 0
+        self.tokens_spent_on_recovery = 0
 
-    # ---- cash
+    # cash
     def can_afford(self, cost):
         return cost >= 0 and self.cash >= cost and not self.bankrupt
 
@@ -157,45 +288,52 @@ class Economy:
         self.cash += amount
         return OK
 
-    # ---- fee
     def set_green_fee(self, fee_cents):
-        self.fee = clamp(fee_cents, self.p["fee_min_cents"], self.p["fee_max_cents"])
+        self.fee = clamp(fee_cents, self.c["fee_min_cents"], self.c["fee_max_cents"])
         return self.fee
 
-    def demand_multiplier_permille(self):
-        return self.reputation
+    def members(self):
+        return self.members_milli // 1000
 
-    def accept_arrivals(self, arriving, wtp):
-        """Deterministic rounding with a carried remainder (no RNG)."""
-        if arriving <= 0:
-            return 0
-        acc = fee_acceptance_permille(self.fee, wtp)
-        total = arriving * acc + self.accept_carry
-        n = total // 1000
-        self.accept_carry = total - n * 1000
-        return n
+    def daily_upkeep(self):
+        cut = effect_sum(self.P, self.tiers, "cut")
+        return course_upkeep_cents(self.P, self.holes, self.parcels, cut) + building_upkeep_cents(self.upk, self.tiers)
 
-    # ---- hourly tick
-    def tick_hour(self, golfers_played, ancillary_cents, flat_income_daily_cents, upkeep_daily_cents):
-        """Returns dict: fees, ancillary, flat, revenue, repaid, upkeep_due, upkeep_paid, arrears, cash, bankrupt, day_rolled"""
+    # one game hour
+    def tick_hour(self):
+        P = self.P
         h = self.hour
-        fees = max(golfers_played, 0) * self.fee
-        anc = max(ancillary_cents, 0)
-        flat = upkeep_hour_cents(flat_income_daily_cents, h)
-        revenue = fees + anc + flat
+        dem = effect_sum(P, self.tiers, "dem")
+        anc = effect_sum(P, self.tiers, "anc")
+        arr = arrivals_milli(P, self.holes, self.rating, dem, self.reputation, self.ext_permille)
+        acc = acceptance_permille(self.fee, wtp_cents(P, self.rating, self.holes))
+        a = (arr * P["hour_profile"][h]) // profile_sum(P)
+        a = (a * acc) // 1000
+        cap = hour_cap_milli(P)
+        if a > cap:
+            a = cap
+        a += self.carry_milli
+        golfers = a // 1000
+        self.carry_milli = a - golfers * 1000
+        fees = golfers * self.fee
+        ancr = golfers * anc
+        flat_day = (effect_sum(P, self.tiers, "flat") * clamp(self.rating, 0, 100)) // 50
+        dues_day = (self.members_milli * self.c["member_dues_cents"]) // 1000
+        flat = split_hour(flat_day + dues_day, h)
+        revenue = fees + ancr + flat
         self.cash += revenue
         self.total_revenue += revenue
         repaid = 0
         if self.loan_balance > 0 and revenue > 0:
-            repaid = min(self.loan_balance, (revenue * self.p["loan_repay_share_permille"]) // 1000, self.cash)
+            repaid = min(self.loan_balance, (revenue * self.c["loan_repay_share_permille"]) // 1000, self.cash)
             self.loan_balance -= repaid
             self.cash -= repaid
-        self.last_daily_upkeep = max(upkeep_daily_cents, 0)
+        self.last_daily_upkeep = self.daily_upkeep()
         due_now = 0
         if self.holiday_hours > 0:
             self.holiday_hours -= 1
         else:
-            due_now = upkeep_hour_cents(self.last_daily_upkeep, h)
+            due_now = split_hour(self.last_daily_upkeep, h)
         owed = self.arrears + due_now
         paid = min(self.cash, owed)
         self.cash -= paid
@@ -208,13 +346,12 @@ class Economy:
             self.hour = 0
             self.day += 1
             rolled = True
-            self.reputation = min(1000, self.reputation + self.p["rep_recover_per_day_permille"])
-            every = self.p["tokens_earn_every_days"]
-            if every > 0 and self.day % every == 0:
-                self.tokens += 1
-        return {"fees": fees, "ancillary": anc, "flat": flat, "revenue": revenue, "repaid": repaid,
-                "upkeep_due": due_now, "upkeep_paid": paid, "arrears": self.arrears, "cash": self.cash,
-                "bankrupt": self.bankrupt, "day_rolled": rolled}
+            self.reputation = min(1000, self.reputation + self.c["rep_recover_per_day_permille"])
+            tgt = members_target_milli(P, self.tiers[0], self.rating, self.reputation)
+            self.members_milli = step_members_milli(P, self.members_milli, tgt)
+        return {"golfers": golfers, "fees": fees, "ancillary": ancr, "flat": flat, "revenue": revenue,
+                "repaid": repaid, "upkeep_due": due_now, "upkeep_paid": paid, "arrears": self.arrears,
+                "cash": self.cash, "bankrupt": self.bankrupt, "day_rolled": rolled}
 
     def _update_bankrupt(self):
         if self.arrears == 0:
@@ -222,73 +359,79 @@ class Economy:
             return
         if self.bankrupt:
             return
-        if self.arrears < self.p["bankrupt_min_arrears_cents"]:
+        if self.arrears < self.c["bankrupt_min_arrears_cents"]:
             return
         d = self.last_daily_upkeep
         if d <= 0:
             return
-        # arrears >= days * daily_upkeep, days given in tenths
-        if self.arrears * 10 >= self.p["bankrupt_arrears_days_x10"] * d:
+        if self.arrears * 10 >= self.c["bankrupt_arrears_days_x10"] * d:
             self.bankrupt = True
 
-    # ---- bankruptcy recovery
-    def recovery_options(self):
+    # recovery
+    def recovery_options(self, tokens_available):
         if not self.bankrupt:
             return 0
         o = 0
-        if self.loans_taken < self.p["loan_max_taken"]:
+        if self.loans_taken < self.c["loan_max_taken"]:
             o |= OPT_LOAN
-        if self.tokens >= self.p["recovery_token_cost"]:
+        if tokens_available >= self.c["recovery_token_cost"]:
             o |= OPT_TOKEN
         return o
 
     def loan_amount_cents(self):
-        a = self.p["loan_upkeep_days"] * self.last_daily_upkeep + self.arrears
-        return clamp(a, self.p["loan_min_cents"], self.p["loan_max_cents"])
+        a = self.c["loan_upkeep_days"] * self.last_daily_upkeep + self.arrears
+        return clamp(a, self.c["loan_min_cents"], self.c["loan_max_cents"])
 
     def take_bank_loan(self):
-        """Free loan (no interest, a flat fee repaid from income) plus a reputation penalty."""
-        if not (self.recovery_options() & OPT_LOAN):
+        """Free loan: no interest, no fee unless loan_fee_permille > 0. Repaid from a share of revenue.
+        Costs reputation. Returns the amount, or a negative error."""
+        if not self.bankrupt:
+            return -ERR_NOT_AVAILABLE
+        if self.loans_taken >= self.c["loan_max_taken"]:
             return -ERR_NOT_AVAILABLE
         amount = self.loan_amount_cents()
         self.cash += amount
-        self.loan_balance += amount + (amount * self.p["loan_fee_permille"]) // 1000
+        self.loan_balance += amount + (amount * self.c["loan_fee_permille"]) // 1000
         self.loans_taken += 1
-        self.reputation = max(self.p["rep_floor_permille"], self.reputation - self.p["loan_rep_penalty_permille"])
+        self.reputation = max(self.c["rep_floor_permille"], self.reputation - self.c["loan_rep_penalty_permille"])
         paid = min(self.cash, self.arrears)
         self.cash -= paid
         self.arrears -= paid
         self._update_bankrupt()
         return amount
 
-    def use_token_recovery(self):
-        """Token-gated recovery: clears arrears and suspends upkeep for a few days. Grants NO cash."""
-        if not (self.recovery_options() & OPT_TOKEN):
+    def apply_token_recovery(self):
+        """Call only after the caller has debited recovery_token_cost tokens from the ledger. Grants NO cash:
+        clears arrears and suspends upkeep for a few days."""
+        if not self.bankrupt:
             return ERR_NOT_AVAILABLE
-        self.tokens -= self.p["recovery_token_cost"]
         self.arrears = 0
-        self.holiday_hours = self.p["recovery_holiday_days"] * HOURS_PER_DAY
+        self.holiday_hours = self.c["recovery_holiday_days"] * HOURS_PER_DAY
+        self.tokens_spent_on_recovery += self.c["recovery_token_cost"]
         self._update_bankrupt()
         return OK
 
-    # ---- tokens (logic only, no purchase path)
-    def add_tokens(self, n):
-        if n <= 0:
-            return ERR_INVALID
-        self.tokens += n
-        return OK
+    def to_dict(self):
+        return {"cash": self.cash, "fee": self.fee, "day": self.day, "hour": self.hour, "arrears": self.arrears,
+                "loan_balance": self.loan_balance, "loans_taken": self.loans_taken, "reputation": self.reputation,
+                "holiday_hours": self.holiday_hours, "bankrupt": 1 if self.bankrupt else 0,
+                "carry_milli": self.carry_milli, "last_daily_upkeep": self.last_daily_upkeep,
+                "members_milli": self.members_milli, "holes": self.holes, "rating": self.rating,
+                "parcels": self.parcels, "ext_permille": self.ext_permille, "tiers": list(self.tiers),
+                "total_revenue": self.total_revenue, "total_upkeep_paid": self.total_upkeep_paid}
 
-    def can_use_speed(self, multiplier, game_days):
-        return self.tokens >= speed_token_cost(self.p, multiplier, game_days)
-
-    def use_speed(self, multiplier, game_days):
-        c = speed_token_cost(self.p, multiplier, game_days)
-        if self.tokens < c:
-            return ERR_INSUFFICIENT
-        self.tokens -= c
-        return OK
+    def from_dict(self, d):
+        for k in ("cash", "fee", "day", "hour", "arrears", "loan_balance", "loans_taken", "reputation",
+                  "holiday_hours", "carry_milli", "last_daily_upkeep", "members_milli", "holes", "rating",
+                  "parcels", "ext_permille", "total_revenue", "total_upkeep_paid"):
+            if k in d:
+                setattr(self, k, d[k])
+        if "bankrupt" in d:
+            self.bankrupt = d["bankrupt"] != 0
+        if "tiers" in d:
+            self.tiers = list(d["tiers"])
 
     def state_list(self):
         return [self.cash, self.fee, self.day, self.hour, self.arrears, self.loan_balance, self.loans_taken,
-                self.reputation, self.tokens, self.holiday_hours, 1 if self.bankrupt else 0,
-                self.accept_carry, self.last_daily_upkeep]
+                self.reputation, self.holiday_hours, 1 if self.bankrupt else 0, self.carry_milli,
+                self.last_daily_upkeep, self.members_milli]

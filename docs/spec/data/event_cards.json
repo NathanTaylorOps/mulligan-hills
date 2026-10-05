@@ -21,7 +21,10 @@
               "op": "add_cash",
               "amount": -500
             }
-          ]
+          ],
+          "requires": {
+            "min_cash": 500
+          }
         },
         {
           "id": "b",
@@ -112,7 +115,10 @@
               "op": "add_reputation",
               "amount": 5
             }
-          ]
+          ],
+          "requires": {
+            "min_cash": 400
+          }
         },
         {
           "id": "b",
@@ -127,7 +133,10 @@
               "op": "add_reputation",
               "amount": 3
             }
-          ]
+          ],
+          "requires": {
+            "min_cash": 700
+          }
         },
         {
           "id": "c",
@@ -263,7 +272,10 @@
               "op": "add_reputation",
               "amount": 2
             }
-          ]
+          ],
+          "requires": {
+            "min_cash": 300
+          }
         }
       ]
     },
@@ -295,7 +307,10 @@
               "op": "add_reputation",
               "amount": 3
             }
-          ]
+          ],
+          "requires": {
+            "min_cash": 100
+          }
         },
         {
           "id": "b",
@@ -343,7 +358,10 @@
               "op": "add_cash",
               "amount": -200
             }
-          ]
+          ],
+          "requires": {
+            "min_cash": 200
+          }
         }
       ]
     },
@@ -370,7 +388,10 @@
               "op": "add_cash",
               "amount": -450
             }
-          ]
+          ],
+          "requires": {
+            "min_cash": 450
+          }
         },
         {
           "id": "b",
@@ -416,7 +437,10 @@
               "op": "add_reputation",
               "amount": 6
             }
-          ]
+          ],
+          "requires": {
+            "min_cash": 900
+          }
         },
         {
           "id": "b",
@@ -477,7 +501,10 @@
               "op": "add_reputation",
               "amount": 5
             }
-          ]
+          ],
+          "requires": {
+            "min_cash": 250
+          }
         }
       ]
     },
@@ -2232,7 +2259,10 @@
               "op": "add_reputation",
               "amount": 7
             }
-          ]
+          ],
+          "requires": {
+            "min_cash": 200
+          }
         },
         {
           "id": "b",

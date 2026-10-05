@@ -19,6 +19,7 @@ const SCENES: Array = [
 	["Gate 0: terrain paint", "res://gate0/terrain_paint.tscn"],
 	["Gate 0: save and kill", "res://gate0/save_kill.tscn"],
 	["Gate 0: animation cost", "res://gate0/anim_cost.tscn"],
+	["UI gallery (every screen)", "res://ui/mh_ui_gallery.tscn"],
 ]
 
 
@@ -42,8 +43,9 @@ func _ready() -> void:
 	for side: String in ["left", "right", "top", "bottom"]:
 		margin.add_theme_constant_override("margin_" + side, 24)
 	add_child(margin)
-	var scroll: ScrollContainer = ScrollContainer.new()
-	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	# emulate_mouse_from_touch is OFF, so plain Buttons ignore fingers: MHTapButton + MHTouchBridge fix that.
+	add_child(MHTouchBridge.new())
+	var scroll: MHScrollBox = MHScrollBox.new()
 	margin.add_child(scroll)
 	var box: VBoxContainer = VBoxContainer.new()
 	box.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -67,7 +69,7 @@ func _ready() -> void:
 		box.add_child(none)
 	for e: Variant in scenes:
 		var entry: Array = e
-		var b: Button = Button.new()
+		var b: MHTapButton = MHTapButton.new()
 		b.text = str(entry[0])
 		b.custom_minimum_size = Vector2(0, 96)
 		b.size_flags_horizontal = Control.SIZE_EXPAND_FILL

@@ -1,0 +1,77 @@
+=== balance report: 30 runs per cell, 720 game days (= 180 real hours at 1x)
+
+-- time to tier, balanced bot, casual fee habits (median day, reached/runs). 'any' = first building at that tier, 'all' = all ten
+low     T1 any 0 all 31 (30/30) | T2 any 2 all 32 (30/30) | T3 any 159 all 161 (30/30) | T4 any - all - (0/30) | T5 any - all - (0/30)
+        day  60 median: cash $52,215  gross/day $3,078  net/day $1,733  holes 7  tiers 20  rating 38  members 18  parcels 7
+        day 180 median: cash $81,477  gross/day $6,115  net/day $3,602  holes 12  tiers 30  rating 42  members 52  parcels 10
+        day 360 median: cash $230,400  gross/day $7,832  net/day $5,209  holes 18  tiers 30  rating 44  members 74  parcels 14
+        day 720 median: cash $2,155,786  gross/day $7,975  net/day $5,352  holes 18  tiers 30  rating 45  members 79  parcels 14
+        purchases by day 30 / 100 (med): 19 / 23
+        cash-blocked days med 297, gate-blocked days med 403, pile days med 363, first cash stall day med 5, 18 holes day med 317, 50 members day med 184, bankrupt runs 0, quit 0
+mid     T1 any 0 all 31 (30/30) | T2 any 2 all 31 (30/30) | T3 any 97 all 101 (30/30) | T4 any 239 all 241 (30/30) | T5 any - all - (0/30)
+        day  60 median: cash $53,630  gross/day $3,301  net/day $1,957  holes 7  tiers 20  rating 41  members 24  parcels 7
+        day 180 median: cash $108,379  gross/day $7,252  net/day $4,719  holes 13  tiers 30  rating 50  members 89  parcels 11
+        day 360 median: cash $681,859  gross/day $12,176  net/day $7,333  holes 18  tiers 40  rating 54  members 183  parcels 14
+        day 720 median: cash $3,417,491  gross/day $12,523  net/day $7,680  holes 18  tiers 40  rating 55  members 197  parcels 14
+        purchases by day 30 / 100 (med): 19 / 32
+        cash-blocked days med 245, gate-blocked days med 450, pile days med 403, first cash stall day med 5, 18 holes day med 268, 50 members day med 112, bankrupt runs 0, quit 0
+high    T1 any 0 all 30 (30/30) | T2 any 2 all 30 (30/30) | T3 any 90 all 93 (30/30) | T4 any 167 all 169 (30/30) | T5 any 288 all 293 (30/30)
+        day  60 median: cash $11,179  gross/day $3,589  net/day $2,215  holes 8  tiers 20  rating 45  members 29  parcels 8
+        day 180 median: cash $54,692  gross/day $10,892  net/day $6,094  holes 15  tiers 40  rating 57  members 144  parcels 12
+        day 360 median: cash $894,824  gross/day $17,855  net/day $9,587  holes 18  tiers 50  rating 63  members 356  parcels 15
+        day 720 median: cash $4,463,276  gross/day $18,367  net/day $10,099  holes 18  tiers 50  rating 65  members 394  parcels 15
+        purchases by day 30 / 100 (med): 20 / 34
+        cash-blocked days med 217, gate-blocked days med 474, pile days med 411, first cash stall day med 5, 18 holes day med 236, 50 members day med 97, bankrupt runs 0, quit 0
+expert  T1 any 0 all 29 (30/30) | T2 any 2 all 29 (30/30) | T3 any 84 all 87 (30/30) | T4 any 151 all 153 (30/30) | T5 any 210 all 243 (30/30)
+        day  60 median: cash $14,026  gross/day $3,950  net/day $2,576  holes 9  tiers 20  rating 49  members 36  parcels 8
+        day 180 median: cash $108,411  gross/day $13,338  net/day $8,540  holes 15  tiers 40  rating 66  members 213  parcels 12
+        day 360 median: cash $1,442,878  gross/day $20,758  net/day $12,490  holes 18  tiers 50  rating 74  members 414  parcels 15
+        day 720 median: cash $6,128,854  gross/day $21,238  net/day $12,970  holes 18  tiers 50  rating 77  members 415  parcels 15
+        purchases by day 30 / 100 (med): 21 / 34
+        cash-blocked days med 214, gate-blocked days med 477, pile days med 428, first cash stall day med 5, 18 holes day med 210, 50 members day med 85, bankrupt runs 0, quit 0
+
+-- behaviour archetypes (mid skill): bankruptcies and income
+casual   bankrupt runs  0/30  events med 0  loans taken 0  token recoveries 0  quit 0 | day-360 gross/day med $12,176 | day-720 cash med $3,417,491 | T3 all med 101
+careful  bankrupt runs  0/30  events med 0  loans taken 0  token recoveries 0  quit 0 | day-360 gross/day med $12,527 | day-720 cash med $3,582,722 | T3 all med 103
+sticky   bankrupt runs  0/30  events med 0  loans taken 0  token recoveries 0  quit 0 | day-360 gross/day med $9,944 | day-720 cash med $2,230,092 | T3 all med 111
+greedy   bankrupt runs  0/30  events med 0  loans taken 0  token recoveries 0  quit 0 | day-360 gross/day med $12,177 | day-720 cash med $3,436,971 | T3 all med 97
+gouger   bankrupt runs  3/30  events med 0  loans taken 3  token recoveries 0  quit 0 | day-360 gross/day med $1,216 | day-720 cash med $23,793 | T3 all med 629
+cheap    bankrupt runs  0/30  events med 0  loans taken 0  token recoveries 0  quit 0 | day-360 gross/day med $8,383 | day-720 cash med $1,345,341 | T3 all med 102
+
+=== demo cut (DEC-055/063): 9 holes max, Clubhouse T2, Pro shop T2, Range T2, Restaurant T1 (7 building steps)
+low   last demo purchase day med 109 (p25 106, p75 112) = 27 real hours at 1x | holes 9 | day-360 cash med $203,166, net/day $848
+mid   last demo purchase day med 99 (p25 96, p75 102) = 24 real hours at 1x | holes 9 | day-360 cash med $278,996, net/day $1,175
+high  last demo purchase day med 90 (p25 89, p75 93) = 22 real hours at 1x | holes 9 | day-360 cash med $362,219, net/day $1,517
+
+=== stress: demand shocks (events agent hook ext_permille). Rows: shock = (start day, days, demand permille of normal)
+(40, 30, 250)    casual  bankrupt runs  0/20  events 0  loans 0  token recoveries 0  quit 0
+(40, 30, 250)    greedy  bankrupt runs  0/20  events 0  loans 0  token recoveries 0  quit 0
+(150, 30, 250)   casual  bankrupt runs  0/20  events 0  loans 0  token recoveries 0  quit 0
+(150, 30, 250)   greedy  bankrupt runs  0/20  events 0  loans 0  token recoveries 0  quit 0
+(300, 30, 250)   casual  bankrupt runs  0/20  events 0  loans 0  token recoveries 0  quit 0
+(300, 30, 250)   greedy  bankrupt runs  0/20  events 0  loans 0  token recoveries 0  quit 0
+(150, 30, 0)     casual  bankrupt runs  0/20  events 0  loans 0  token recoveries 0  quit 0
+(150, 30, 0)     greedy  bankrupt runs  1/20  events 1  loans 1  token recoveries 0  quit 0
+(300, 60, 0)     casual  bankrupt runs  0/20  events 0  loans 0  token recoveries 0  quit 0
+(300, 60, 0)     greedy  bankrupt runs  0/20  events 0  loans 0  token recoveries 0  quit 0
+
+=== sensitivities (mid and high skill, casual bot, median): T3-all day | T4-all day | T5-all day (high) | cash at day 720
+start cash $10,000                 mid: T3 121 T4 232 T5 - cash720 $3,366,102 || high: T3 111 T4 186 T5 295 cash720 $4,357,136
+start cash $20,000                 mid: T3 113 T4 232 T5 - cash720 $3,394,185 || high: T3 105 T4 180 T5 293 cash720 $4,414,284
+start cash $40,000                 mid: T3 101 T4 232 T5 - cash720 $3,461,657 || high: T3 93 T4 170 T5 293 cash720 $4,492,427
+start cash $80,000                 mid: T3 79 T4 232 T5 - cash720 $3,562,879 || high: T3 74 T4 153 T5 293 cash720 $4,609,124
+parcels $25,000 x 130%             mid: T3 101 T4 232 T5 - cash720 $3,461,657 || high: T3 93 T4 170 T5 293 cash720 $4,492,427
+parcels $25,000 x 115%             mid: T3 87 T4 232 T5 - cash720 $3,962,495 || high: T3 81 T4 132 T5 293 cash720 $5,182,813
+parcels $12,500 x 130%             mid: T3 70 T4 232 T5 - cash720 $4,045,842 || high: T3 59 T4 126 T5 293 cash720 $5,245,483
+parcels $12,500 x 115%             mid: T3 70 T4 232 T5 - cash720 $4,288,500 || high: T3 52 T4 126 T5 293 cash720 $5,585,807
+
+=== time-skip value (DEC-053): clock drains 1/2/4 tokens per real minute at 2x/4x/8x, so one game day sped up costs 7.5 tokens at any speed
+start (6 holes, no buildings)  net/day $33 -> 7.5 tokens skip one day = $4 per token (time saved 15 real minutes)
+T2 stage                       net/day $2,046 -> 7.5 tokens skip one day = $272 per token (time saved 15 real minutes)
+T3 stage                       net/day $4,220 -> 7.5 tokens skip one day = $562 per token (time saved 15 real minutes)
+T4 stage                       net/day $7,419 -> 7.5 tokens skip one day = $989 per token (time saved 15 real minutes)
+T5 stage                       net/day $10,805 -> 7.5 tokens skip one day = $1,440 per token (time saved 15 real minutes)
+
+real	1m5.705s
+user	1m5.653s
+sys	0m0.032s

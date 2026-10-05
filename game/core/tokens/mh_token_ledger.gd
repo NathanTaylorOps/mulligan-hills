@@ -14,6 +14,7 @@ const MAX_PACK_TOKENS: int = 10000
 const MAX_KEYS: int = 256
 const MAX_RECEIPTS: int = 500
 const SAVE_VERSION: int = 1
+const DEFAULT_PATH: String = "user://tokens.json"
 
 const PURCHASE_APPLIED: int = 0
 const PURCHASE_DUPLICATE: int = 1
@@ -224,3 +225,19 @@ func from_dict(d: Dictionary) -> bool:
 	last_spend_earned = 0
 	last_spend_paid = 0
 	return true
+
+
+## The ledger is NOT part of a save slot (saves never hold tokens, so a cloud or imported save cannot grant any).
+## It lives in its own crash-safe file. Returns OK or an error code.
+func save_to(path: String = DEFAULT_PATH) -> int:
+	return MHJsonFile.write_dict(path, to_dict())
+
+
+## Loads from its own file. A missing file is normal on first launch (ledger stays empty and the result is NOT_FOUND).
+## A damaged main file falls back to the .bak. Returns the MHSaveResult of the read.
+func load_from(path: String = DEFAULT_PATH) -> MHSaveResult:
+	var r: MHSaveResult = MHJsonFile.read_dict(path)
+	if r.is_ok():
+		if not from_dict(r.value as Dictionary):
+			return MHSaveResult.failure(MHSaveResult.Code.BAD_SCHEMA, "token ledger file is invalid")
+	return r

@@ -1,0 +1,540 @@
+{
+ "schema": "mh.economy_params",
+ "version": 1,
+ "hours_per_day": 11,
+ "core": {
+  "start_cash_cents": 4000000,
+  "fee_min_cents": 500,
+  "fee_max_cents": 25000,
+  "fee_start_cents": 1500,
+  "start_holes": 6,
+  "start_parcels": 5,
+  "start_rating": 34,
+  "wtp_base_per_hole_cents": 10,
+  "wtp_per_rating_per_hole_cents": 5,
+  "arrivals_base_milli": 44000,
+  "arrivals_per_hole_milli": 2000,
+  "tee_groups_per_hour": 5,
+  "tee_group_size_x10": 30,
+  "hole_upkeep_cents": 3000,
+  "parcel_upkeep_cents": 1200,
+  "hole_cost_base_dollars": 10000,
+  "hole_cost_growth_permille": 1080,
+  "member_dues_cents": 300,
+  "member_join_rate_permille": 30,
+  "member_rating_floor": 28,
+  "member_rating_span": 30,
+  "bankrupt_arrears_days_x10": 20,
+  "bankrupt_min_arrears_cents": 100000,
+  "loan_upkeep_days": 10,
+  "loan_min_cents": 500000,
+  "loan_max_cents": 5000000,
+  "loan_fee_permille": 0,
+  "loan_repay_share_permille": 250,
+  "loan_max_taken": 3,
+  "loan_rep_penalty_permille": 150,
+  "rep_floor_permille": 500,
+  "rep_recover_per_day_permille": 3,
+  "recovery_token_cost": 3,
+  "recovery_holiday_days": 5,
+  "tournament_cost_cents": 2500000,
+  "tournament_regional_cost_cents": 6000000
+ },
+ "hour_profile": [
+  6,
+  8,
+  9,
+  10,
+  10,
+  9,
+  9,
+  10,
+  10,
+  9,
+  6
+ ],
+ "member_cap": [
+  40,
+  80,
+  140,
+  220,
+  320
+ ],
+ "payback_targets_days": [
+  6,
+  8,
+  10,
+  12,
+  15
+ ],
+ "ref_holes": [
+  6,
+  8,
+  12,
+  16,
+  18
+ ],
+ "ref_rating": [
+  34,
+  36,
+  46,
+  56,
+  66
+ ],
+ "building_ids": [
+  "clubhouse",
+  "pro_shop",
+  "driving_range",
+  "restaurant",
+  "pool_spa",
+  "cart_barn",
+  "maintenance",
+  "lodging",
+  "homes",
+  "landmark"
+ ],
+ "calibration": {
+  "tier_total_net_dollars": [
+   450,
+   600,
+   900,
+   500,
+   400
+  ],
+  "weights": {
+   "clubhouse": 10,
+   "pro_shop": 8,
+   "driving_range": 7,
+   "restaurant": 9,
+   "pool_spa": 8,
+   "cart_barn": 3,
+   "maintenance": 3,
+   "lodging": 9,
+   "homes": 10,
+   "landmark": 12
+  },
+  "channels": {
+   "clubhouse": [
+    [
+     "dem",
+     100
+    ]
+   ],
+   "pro_shop": [
+    [
+     "anc",
+     100
+    ]
+   ],
+   "driving_range": [
+    [
+     "anc",
+     50
+    ],
+    [
+     "dem",
+     50
+    ]
+   ],
+   "restaurant": [
+    [
+     "anc",
+     100
+    ]
+   ],
+   "pool_spa": [
+    [
+     "flat",
+     70
+    ],
+    [
+     "dem",
+     30
+    ]
+   ],
+   "cart_barn": [
+    [
+     "anc",
+     60
+    ],
+    [
+     "dem",
+     40
+    ]
+   ],
+   "maintenance": [
+    [
+     "cut",
+     40
+    ],
+    [
+     "dem",
+     60
+    ]
+   ],
+   "lodging": [
+    [
+     "flat",
+     100
+    ]
+   ],
+   "homes": [
+    [
+     "flat",
+     100
+    ]
+   ],
+   "landmark": [
+    [
+     "dem",
+     100
+    ]
+   ]
+  },
+  "landmark_flat_from_tier": 3
+ },
+ "effects": {
+  "clubhouse": {
+   "dem": [
+    15386,
+    22981,
+    27968,
+    29163,
+    29163
+   ]
+  },
+  "pro_shop": {
+   "anc": [
+    220,
+    313,
+    430,
+    531,
+    643
+   ]
+  },
+  "driving_range": {
+   "anc": [
+    167,
+    280,
+    432,
+    617,
+    832
+   ],
+   "dem": [
+    3158,
+    3158,
+    3158,
+    3158,
+    3158
+   ]
+  },
+  "restaurant": {
+   "anc": [
+    274,
+    396,
+    554,
+    713,
+    901
+   ]
+  },
+  "pool_spa": {
+   "flat": [
+    13808,
+    32806,
+    59165,
+    92081,
+    128795
+   ],
+   "dem": [
+    2532,
+    2532,
+    2532,
+    2532,
+    2532
+   ]
+  },
+  "cart_barn": {
+   "anc": [
+    111,
+    167,
+    243,
+    343,
+    453
+   ],
+   "dem": [
+    1144,
+    1144,
+    1144,
+    1144,
+    1144
+   ]
+  },
+  "maintenance": {
+   "cut": [
+    133,
+    304,
+    515,
+    600,
+    600
+   ],
+   "dem": [
+    1888,
+    1888,
+    1888,
+    3830,
+    7663
+   ]
+  },
+  "lodging": {
+   "flat": [
+    18568,
+    38478,
+    65927,
+    97798,
+    135341
+   ]
+  },
+  "homes": {
+   "flat": [
+    23083,
+    47519,
+    81640,
+    123005,
+    172295
+   ]
+  },
+  "landmark": {
+   "flat": [
+    0,
+    0,
+    5939,
+    5939,
+    5939
+   ],
+   "dem": [
+    40509,
+    59998,
+    77955,
+    99608,
+    124211
+   ]
+  }
+ },
+ "added_floor_dollars": 20,
+ "added_daily_income_dollars": {
+  "clubhouse": [
+   56,
+   75,
+   114,
+   63,
+   79
+  ],
+  "pro_shop": [
+   45,
+   61,
+   91,
+   51,
+   41
+  ],
+  "driving_range": [
+   39,
+   68,
+   111,
+   131,
+   130
+  ],
+  "restaurant": [
+   52,
+   68,
+   103,
+   65,
+   46
+  ],
+  "pool_spa": [
+   45,
+   73,
+   117,
+   118,
+   109
+  ],
+  "cart_barn": [
+   20,
+   29,
+   45,
+   50,
+   39
+  ],
+  "maintenance": [
+   20,
+   32,
+   53,
+   20,
+   20
+  ],
+  "lodging": [
+   51,
+   68,
+   102,
+   56,
+   45
+  ],
+  "homes": [
+   56,
+   75,
+   113,
+   63,
+   50
+  ],
+  "landmark": [
+   68,
+   91,
+   136,
+   112,
+   144
+  ]
+ },
+ "price_dollars": {
+  "clubhouse": [
+   336,
+   600,
+   1140,
+   756,
+   1185
+  ],
+  "pro_shop": [
+   270,
+   488,
+   910,
+   612,
+   615
+  ],
+  "driving_range": [
+   234,
+   544,
+   1110,
+   1572,
+   1950
+  ],
+  "restaurant": [
+   312,
+   544,
+   1030,
+   780,
+   690
+  ],
+  "pool_spa": [
+   270,
+   584,
+   1170,
+   1416,
+   1635
+  ],
+  "cart_barn": [
+   120,
+   232,
+   450,
+   600,
+   585
+  ],
+  "maintenance": [
+   120,
+   256,
+   530,
+   240,
+   300
+  ],
+  "lodging": [
+   306,
+   544,
+   1020,
+   672,
+   675
+  ],
+  "homes": [
+   336,
+   600,
+   1130,
+   756,
+   750
+  ],
+  "landmark": [
+   408,
+   728,
+   1360,
+   1344,
+   2160
+  ]
+ },
+ "_added_raw_dollars": {
+  "clubhouse": [
+   56,
+   75,
+   114,
+   63,
+   79
+  ],
+  "pro_shop": [
+   45,
+   61,
+   91,
+   51,
+   41
+  ],
+  "driving_range": [
+   39,
+   68,
+   111,
+   131,
+   130
+  ],
+  "restaurant": [
+   52,
+   68,
+   103,
+   65,
+   46
+  ],
+  "pool_spa": [
+   45,
+   73,
+   117,
+   118,
+   109
+  ],
+  "cart_barn": [
+   17,
+   29,
+   45,
+   50,
+   39
+  ],
+  "maintenance": [
+   17,
+   32,
+   53,
+   19,
+   15
+  ],
+  "lodging": [
+   51,
+   68,
+   102,
+   56,
+   45
+  ],
+  "homes": [
+   56,
+   75,
+   113,
+   63,
+   50
+  ],
+  "landmark": [
+   68,
+   91,
+   136,
+   112,
+   144
+  ]
+ }
+}

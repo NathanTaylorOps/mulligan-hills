@@ -16,6 +16,10 @@ extends RefCounted
 
 const DEFAULT_PATH: String = "res://data/event_cards.json"
 const SAVE_VERSION: int = 1
+const EFFECT_OPS: Array = [
+	"add_cash", "add_reputation", "add_members", "add_prestige", "set_flag", "clear_flag", "weather_next_day",
+	"golfer_flow_pct",
+]
 
 var load_error: String = ""
 
@@ -103,6 +107,10 @@ func load_from_dict(d: Dictionary) -> bool:
 		if typeof(ch_v) != TYPE_ARRAY or (ch_v as Array).size() < 2 or (ch_v as Array).size() > 3:
 			load_error = "bad choices on " + cid
 			return false
+		var bad: String = _check_choices(cid, ch_v as Array)
+		if not bad.is_empty():
+			load_error = bad
+			return false
 		new_ids.append(cid)
 		new_cards.append(card)
 	_cards = new_cards
@@ -113,6 +121,34 @@ func load_from_dict(d: Dictionary) -> bool:
 		_last_day.append(-1)
 		_fired.append(0)
 	return true
+
+
+## Returns "" when every choice and effect of a card is well formed, otherwise a message.
+func _check_choices(cid: String, choices: Array) -> String:
+	var seen: PackedStringArray = PackedStringArray()
+	for c in choices:
+		if typeof(c) != TYPE_DICTIONARY:
+			return "choice is not an object on " + cid
+		var ch: Dictionary = c as Dictionary
+		var chid: String = str(ch.get("id", ""))
+		if chid.is_empty() or seen.has(chid):
+			return "missing or duplicate choice id on " + cid
+		seen.append(chid)
+		var ef_v: Variant = ch.get("effects", null)
+		if typeof(ef_v) != TYPE_ARRAY:
+			return "effects missing on " + cid + "/" + chid
+		for e in (ef_v as Array):
+			if typeof(e) != TYPE_DICTIONARY:
+				return "effect is not an object on " + cid + "/" + chid
+			var ed: Dictionary = e as Dictionary
+			if not EFFECT_OPS.has(str(ed.get("op", ""))) or not ed.has("amount"):
+				return "bad effect on " + cid + "/" + chid
+			var op: String = str(ed["op"])
+			if (op == "set_flag" or op == "clear_flag") and str(ed.get("flag", "")).is_empty():
+				return "flag missing on " + cid + "/" + chid
+			if op == "golfer_flow_pct" and int(ed.get("days", 0)) < 1:
+				return "days missing on " + cid + "/" + chid
+	return ""
 
 
 func _has_all(have: Variant, need: Variant) -> bool:
@@ -285,6 +321,32 @@ func to_dict() -> Dictionary:
 		if _fired[i] > 0:
 			fired.append({"id": _ids[i], "day": _last_day[i], "count": _fired[i]})
 	return {"v": SAVE_VERSION, "fired": fired}
+
+
+## Same fired state in the shape of save.schema.json progress.card_history: [{"card_id", "last_day"}], file order.
+## The fire count is not stored there; from_card_history restores a count of 1, which is all "once" cards need.
+func to_card_history() -> Array:
+	var out: Array = []
+	for i in range(_cards.size()):
+		if _fired[i] > 0:
+			out.append({"card_id": _ids[i], "last_day": _last_day[i]})
+	return out
+
+
+func from_card_history(history: Array) -> bool:
+	for i in range(_cards.size()):
+		_last_day[i] = -1
+		_fired[i] = 0
+	for e in history:
+		if typeof(e) != TYPE_DICTIONARY:
+			return false
+		var ed: Dictionary = e as Dictionary
+		var idx: int = index_of(str(ed.get("card_id", "")))
+		if idx < 0:
+			continue
+		_last_day[idx] = int(ed.get("last_day", 0))
+		_fired[idx] = 1
+	return true
 
 
 ## Restores fired state onto the currently loaded cards. Unknown ids are ignored. Returns false if malformed.
