@@ -324,6 +324,20 @@ func tick_hour() -> Dictionary:
 	}
 
 
+## Mandatory event loss: use available cash, carry unpaid debt, then apply normal bankruptcy thresholds.
+## Unlike discretionary spend(), an unavoidable tournament loss cannot be refused for insufficient cash.
+func incur_loss(amount: int) -> int:
+	if amount < 0:
+		return ERR_INVALID
+	var paid: int = mini(cash, amount)
+	cash -= paid
+	arrears += amount - paid
+	_update_bankrupt()
+	if paid > 0:
+		cash_changed.emit(cash, -paid, REASON_SPEND)
+	return OK
+
+
 func _update_bankrupt() -> void:
 	if arrears == 0:
 		bankrupt = false

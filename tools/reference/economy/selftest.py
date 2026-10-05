@@ -58,6 +58,8 @@ def main():
     e.tiers = [5] * 9 + [3]
     assert e.purchase_renovation() == E.ERR_NOT_AVAILABLE
     e.tiers = [4] * 10
+    assert e.purchase_renovation() == E.ERR_NOT_AVAILABLE and e.renovation == 0
+    e.tiers = [5] * 10
     assert e.purchase_renovation() == E.OK and e.renovation == 1 and e.cash == 10 ** 12 - costs[0]
     for _ in range(c["renov_max_levels"] + 3):
         e.purchase_renovation()
@@ -66,6 +68,11 @@ def main():
     base = E.day_estimate(P, UP, [5] * 10, 18, 15, 66, 300000, 4000)
     reno = E.day_estimate(P, UP, [5] * 10, 18, 15, 66, 300000, 4000, 1000, 1000, 3)
     assert reno["arrivals_milli"] > base["arrivals_milli"] and reno["upkeep"] == base["upkeep"] + 3 * c["renov_upkeep_cents_per_level"]
+    # Mandatory losses carry debt but use the same bankruptcy policy as upkeep.
+    e = E.Economy(P, UP)
+    e.cash = 50
+    assert e.incur_loss(100) == E.OK and e.cash == 0 and e.arrears == 50 and not e.bankrupt
+    assert e.incur_loss(-1) == E.ERR_INVALID and e.arrears == 50
     print("economy selftest OK")
 
 

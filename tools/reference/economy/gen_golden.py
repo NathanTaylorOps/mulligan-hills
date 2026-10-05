@@ -12,6 +12,7 @@ import sim
 
 ROOT = sim.ROOT
 OUT_PARAMS = os.path.join(ROOT, "game", "data", "economy_params.json")
+OUT_SPEC_PARAMS = os.path.join(ROOT, "docs", "spec", "data", "economy_params.json")
 OUT_GOLD = os.path.join(ROOT, "game", "tests", "economy", "golden", "economy_golden.json")
 
 
@@ -35,6 +36,7 @@ def main():
     P = sim.write_final()          # also rewrites tools/reference/economy/economy_params.json
     rt = {k: v for k, v in P.items() if not k.startswith("_")}
     dump(OUT_PARAMS, rt, indent=1)
+    dump(OUT_SPEC_PARAMS, rt, indent=1)
     UP = sim.UPK
     G = {"params_digest": [P["core"]["start_cash_cents"], P["core"]["fee_max_cents"], sum(P["hour_profile"])]}
 

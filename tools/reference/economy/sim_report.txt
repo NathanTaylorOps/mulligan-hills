@@ -9,8 +9,8 @@ novice    cap 58 | T3 31/32/33 (60/60) | T4 91/104/116 (60/60) | T5 - (0/60)
           day  60 med: cash $19,484 gross/day $6,870 net/day $3,732 holes 14 tiers 30 rating 49 members 79 parcels 12
           day 100 med: cash $37,094 gross/day $12,617 net/day $8,064 holes 18 tiers 38 rating 53 members 115 parcels 14
           day 150 med: cash $454,272 gross/day $15,150 net/day $9,759 holes 18 tiers 40 rating 55 members 193 parcels 14
-          day 400 med: cash $319,632 gross/day $16,825 net/day $10,066 holes 18 tiers 40 rating 57 members 212 parcels 14
-          purchases by day 10/30/100 (med): 21/31/50 | first cash stall day med 6 | cash-blocked days med 300, gate-blocked med 62, pile days (after T5) med 0 | reno levels at end med 7, sink spend med $2,637,424 | bankrupt 0
+          day 400 med: cash $2,950,152 gross/day $15,499 net/day $10,108 holes 18 tiers 40 rating 57 members 212 parcels 14
+          purchases by day 10/30/100 (med): 21/31/50 | first cash stall day med 6 | cash-blocked days med 66, gate-blocked med 302, pile days (after T5) med 0 | reno levels at end med 0, sink spend med $0 | bankrupt 0
 casual    cap 68 | T3 28/29/30 (60/60) | T4 74/78/82 (60/60) | T5 120/126/136 (60/60)
           18 holes day 83/86/90 | T5-all inf-cash day p50 103, T4-all inf-cash p50 39 | T5-all p50 hours 25.5 | full course AND T5 by day 150: 59/60
           day  10 med: cash $15,566 gross/day $3,040 net/day $1,492 holes 9 tiers 18 rating 39 members 9 parcels 7
@@ -42,8 +42,12 @@ expert    cap 84 | T3 22/23/24 (60/60) | T4 55/59/62 (60/60) | T5 91/94/100 (60/
 -- population = skill weights novice 15%, casual 45%, competent 30%, expert 10% x habit weights casual 35%, careful 20%, sticky 20%, greedy 20%, cheap 5%
 all players                        finished (T5 all + 18 holes) before day 100:  6.8% | day 100-150: 72.0% | by day 150: 78.7% | by day 400: 85.0%
                                    finish day p10/p50/p90 of finishers 94/119/153 = 19.0/24.1/30.9 hours at the assumed speed mix, 23.5/29.8/38.2 hours if every day ran at 1x
+                                   finish in 20-30h: 34.2% at 1x; 69.8% at assumed speed mix (unfunded)
 casual-but-competent (not novice)  finished (T5 all + 18 holes) before day 100:  7.9% | day 100-150: 84.7% | by day 150: 92.6% | by day 400: 100.0%
                                    finish day p10/p50/p90 of finishers 94/119/153 = 19.0/24.1/30.9 hours at the assumed speed mix, 23.5/29.8/38.2 hours if every day ran at 1x
+                                   finish in 20-30h: 40.2% at 1x; 82.1% at assumed speed mix (unfunded)
+Hours exclude editor time and pauses. Population shares are assumed weights, not observed player data.
+Assumed speed mix needs 3 tokens/game day: 300-450 tokens over days 100-150. Bot token income does not fund clock speed.
 T5 reached within 400 days by profile: novice 0%, casual 100%, competent 100%, expert 100%
 
 -- behaviour archetypes (casual profile): finish day and bankruptcies
@@ -85,11 +89,12 @@ start cash $80,000             casual: T3 16 T4 68 T5 118 pd 5 cash400 $865,947 
 parcels $8,000 x 115%          casual: T3 29 T4 78 T5 126 pd 10 cash400 $757,656 || competent: T3 26 T4 67 T5 109 pd 9 cash400 $438,600
 parcels $8,000 x 130%          casual: T3 33 T4 89 T5 147 pd 7 cash400 $379,100 || competent: T3 30 T4 76 T5 126 pd 8 cash400 $287,363
 parcels $12,000 x 115%         casual: T3 38 T4 89 T5 140 pd 3 cash400 $535,714 || competent: T3 34 T4 77 T5 120 pd 5 cash400 $198,355
-parcels $25,000 x 130%         casual: T3 75 T4 156 T5 285 pd 1 cash400 $496,288 || competent: T3 65 T4 134 T5 247 pd 1 cash400 $726,237
+parcels $25,000 x 130%         casual: T3 75 T4 156 T5 245 pd 1 cash400 $500,810 || competent: T3 65 T4 134 T5 213 pd 1 cash400 $703,027
 
 === time-skip value (DEC-053): clock drains 1/2/4 tokens per real minute at 2x/4x/8x, so one game day sped up costs 7.5 tokens at any speed
-start (6 holes, no buildings)  net/day $-212 -> 7.5 tokens skip one day = $-29 per token (time saved 15 real minutes)
-T2 stage                       net/day $1,703 -> 7.5 tokens skip one day = $227 per token (time saved 15 real minutes)
-T3 stage                       net/day $3,729 -> 7.5 tokens skip one day = $497 per token (time saved 15 real minutes)
-T4 stage                       net/day $9,479 -> 7.5 tokens skip one day = $1,263 per token (time saved 15 real minutes)
-T5 stage                       net/day $17,909 -> 7.5 tokens skip one day = $2,387 per token (time saved 15 real minutes)
+Time saved per accelerated day: 7.5 min at 2x, 11.25 min at 4x, 13.125 min at 8x. No instant day skip.
+start (6 holes, no buildings)  net/day $-212 -> 7.5 tokens accelerate one day = $-29 net per token
+T2 stage                       net/day $1,703 -> 7.5 tokens accelerate one day = $227 net per token
+T3 stage                       net/day $3,729 -> 7.5 tokens accelerate one day = $497 net per token
+T4 stage                       net/day $9,479 -> 7.5 tokens accelerate one day = $1,263 net per token
+T5 stage                       net/day $17,909 -> 7.5 tokens accelerate one day = $2,387 net per token

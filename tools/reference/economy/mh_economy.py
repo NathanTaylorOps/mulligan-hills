@@ -311,6 +311,15 @@ class Economy:
         self.cash += amount
         return OK
 
+    def incur_loss(self, amount):
+        if amount < 0:
+            return ERR_INVALID
+        paid = min(self.cash, amount)
+        self.cash -= paid
+        self.arrears += amount - paid
+        self._update_bankrupt()
+        return OK
+
     def set_green_fee(self, fee_cents):
         self.fee = clamp(fee_cents, self.c["fee_min_cents"], self.c["fee_max_cents"])
         return self.fee
@@ -323,7 +332,7 @@ class Economy:
         return (course_upkeep_cents(self.P, self.holes, self.parcels, cut) + building_upkeep_cents(self.upk, self.tiers)
                 + renovation_upkeep_cents(self.P, self.renovation))
 
-    # renovation (late-game sink): needs a full 18-hole course and every building at tier renov_min_tier (4) or higher,
+    # renovation (late-game sink): needs a full 18-hole course and every building at tier renov_min_tier (5) or higher,
     # so a player who is stuck below tier 5 on the rating gate still has something to spend cash on
     def renovation_available(self):
         if self.holes < 18:

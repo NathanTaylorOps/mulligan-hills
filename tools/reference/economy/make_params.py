@@ -50,7 +50,7 @@ BASE = {
         "renov_base_dollars": 150000,
         "renov_growth_permille": 1300,
         "renov_max_levels": 12,
-        "renov_min_tier": 4,
+        "renov_min_tier": 5,
         "renov_dem_milli_per_level": 8000,
         "renov_upkeep_cents_per_level": 20000
     },

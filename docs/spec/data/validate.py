@@ -273,7 +273,7 @@ ok(f"event_cards.json: {len(ids)} cards, unique ids, known effect ops, every tex
 
 # --- runtime copies shipped in the game (docs/ is not exported)
 GAME_DATA = os.path.join(HERE, "..", "..", "..", "game", "data")
-for fn in ("tournaments.json", "daily_challenges.json", "achievements.json", "progression.json", "event_cards.json"):
+for fn in ("tournaments.json", "daily_challenges.json", "achievements.json", "progression.json", "event_cards.json", "economy_params.json"):
     p = os.path.join(GAME_DATA, fn)
     if not os.path.exists(p): bad(f"game/data/{fn} (runtime copy) missing"); continue
     with open(p, encoding="utf-8") as f1, open(os.path.join(HERE, fn), encoding="utf-8") as f2:

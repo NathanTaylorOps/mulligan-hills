@@ -381,11 +381,14 @@ func test_renovation_stops_at_the_maximum_and_survives_save() -> void:
 	assert_bool(f.from_dict({"renovation": -1})).is_false()
 
 
-func test_renovation_opens_at_tier_four() -> void:
+func test_renovation_requires_every_building_at_tier_five() -> void:
 	var e: MHEconomy = _new_eco()
 	e.from_dict({"cash": 1000000000, "holes": 18, "tiers": [4, 4, 4, 4, 4, 4, 4, 4, 4, 4]})
-	assert_int(_p.c("renov_min_tier")).is_equal(4)
+	assert_int(_p.c("renov_min_tier")).is_equal(5)
+	assert_bool(e.renovation_available()).is_false()
+	assert_int(e.purchase_renovation()).is_equal(MHEconomy.ERR_NOT_AVAILABLE)
+	assert_int(e.renovation).is_equal(0)
+	e.from_dict({"tiers": [5, 5, 5, 5, 5, 5, 5, 5, 5, 5]})
 	assert_bool(e.renovation_available()).is_true()
 	assert_int(e.purchase_renovation()).is_equal(MHEconomy.OK)
 	assert_int(e.renovation).is_equal(1)
-
