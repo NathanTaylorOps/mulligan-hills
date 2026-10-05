@@ -66,7 +66,7 @@ static func normalize(v: Variant, path: String = "$", depth: int = 0) -> MHSaveR
 			return MHSaveResult.failure(MHSaveResult.Code.BAD_SCHEMA, "NaN or infinity at " + path)
 		if f != floor(f):
 			return MHSaveResult.failure(MHSaveResult.Code.BAD_SCHEMA, "non-integral number at " + path)
-		if absf(f) > 9007199254740991.0:
+		if absf(f) > float(MAX_INT):
 			return MHSaveResult.failure(MHSaveResult.Code.BAD_SCHEMA, "number beyond 2^53 at " + path)
 		return MHSaveResult.success(int(f))
 	if t == TYPE_ARRAY:
