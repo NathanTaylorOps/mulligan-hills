@@ -138,3 +138,7 @@ These fill gaps the Master Plan leaves open. They are written into the data file
 11. Pillar 3 wording ("earned, not bought") versus purchasable land: read as earned cash, wording fix suggested.
 12. Play fee terms as of 30 Jun 2026 (confirm in Play Console).
 13. Reconcile with workstream outputs written in parallel: (a) terrain class names and blob format (C uses `MHHeightGrid`, `MHTerrainEditor`, `MHTerrainSave`, 1 m cells, FNV-1a hash) versus the `MHTerrain` facade in `docs/spec/interfaces/terrain.md`; (b) engine version tags are `MHRATE-1.0.0` and `MHSIM-1.0.0` (B) and the data schemas accept that format; (c) `docs/spec/rating/params.json` exists (B) and the rating and sim interface docs should be re-read against B's `rating-engine.md` and `golfer-sim.md` once those are final.
+
+## J. Pending golfer/club RPG reconciliation (2026-10-05; NOT LOCKED)
+
+Nathan clarified personal golfer creation/control and attribute growth, played tournaments and NPC private matches, celebrity home/VIP progression, wildlife/pests, employees and personal/delegated maintenance, humour, and visible trophy/skin rewards. Concrete proposals PROP-11 through PROP-14 are in `docs/phase1/rpg_scope.md`. They identify the required amendments to DEC-014/039 and the campaign success definition in DEC-071. Existing decisions remain unchanged until a new locked entry explicitly supersedes them. Event cards, club levels and golfer art are foundations, not evidence those systems are playable.

@@ -32,3 +32,7 @@ Device checks remain unrun: install a green Android debug APK; run Sim hash firs
 ## Approved pacing checkpoint
 
 DEC-070/071, clock compatibility, Python/Godot regressions and editor pause control are updated. Python checks pass; Godot CI remains pending. Research proposals in `activities_research.md` are not implemented or automatically added to frozen v1. `pacing_verification.md` records separate review with completion certification withheld.
+
+## Clarified golfer/club RPG intent
+
+Nathan clarified the playable golfer career, training attributes, played tournaments/private NPC matches, celebrity residences/VIP membership, wildlife/pests, staff placement and personal/delegated grounds maintenance, funny interactions and trophy/building-skin rewards. `rpg_scope.md` distinguishes foundations from missing systems and contains PROP-11–14 for launch/campaign reconciliation. `activities_research.md` is corrected so personal golf is central to the intended product, not optional filler. Frozen-scope/cut decisions are not silently changed; no new mechanics are implemented by these documents. First proof: one built hole, controllable golfer, training, rival and visible reward, after live scene/save integration. CI remains queued; earlier cancelled workflows are not passes.

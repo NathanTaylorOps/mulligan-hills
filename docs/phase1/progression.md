@@ -49,3 +49,8 @@ All `.gd` here. Python mirror verified the formulas and the refresh result of th
 1. Streak: I read "grace 1, max 2, bridge 2 days" as one grace forgives one gap of up to 2 missed days. Alternative: each missed day costs one grace. Which do you want?
 2. Achievement wording is auto-generated from the conditions (draft, in the strings file): do you want to write names and descriptions yourself, or have me polish a set for review?
 3. Should any achievement or level grant tokens beyond the 1 earned token per achievement already in the token ledger?
+
+
+## 5 October: clarified RPG and visual rewards
+
+See `rpg_scope.md` for Nathan’s golfer/club RPG requirements and launch reconciliation proposals. Existing club progression is not personal golfer attributes. Existing plaque/flag/paint unlock IDs are reported but not yet applied to procedural art. Trophy ownership/selection and building skins need catalogues, validated save fields and scene consumers. No new XP or payout numbers have been implemented or implied by the economy-only campaign report.

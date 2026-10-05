@@ -1,8 +1,12 @@
 # Between-purchase activities: research and proposal
 
-5 October 2026. Nathan requested mechanics/minigames that fit Mulligan Hills, after approving 25-minute days and an approximately 50-hour campaign. Research complete; proposals NOT IMPLEMENTED. DEC-014 freezes v1 scope: new systems need an explicit scope decision. Durations/effort below are design estimates, not measured playtests. Existing module capability does not mean the playable scene is connected.
+5 October 2026. Nathan requested mechanics/minigames that fit Mulligan Hills, after approving 25-minute days and an approximately 50-hour campaign. Research complete; proposals NOT IMPLEMENTED. Nathan clarified the intended golfer RPG, playable competition, celebrity residency, wildlife, staffing/maintenance and visual rewards after this first research pass; see `rpg_scope.md`. DEC-014 freezes v1 scope: new systems need an explicit scope decision. Durations/effort below are design estimates, not measured playtests. Existing module capability does not mean the playable scene is connected.
 
-## Recommendation
+## Updated recommendation after Nathan’s clarification
+
+Golfer training and personally playing the course are central to the intended product, alongside building it. The earlier recommendation below prioritized the narrower frozen implementation and must not be read as making the golfer RPG an optional side activity. Prioritize a controllable hole, meaningful attribute training and career/club reward feedback before expanding the volume of management activities. Their launch classification must be reconciled with DEC-014/039 through the proposals in `rpg_scope.md`.
+
+## Original course-management research
 
 Make improving the player's actual course the main activity. Provide fast feedback, a useful next objective and visible finances. Prototype course diagnosis, constrained design briefs and tournament readiness before adding an unrelated activity. Fifty hours must come from decisions and creative work, not fifty hours waiting for money. Free pause remains available; saving/quitting must not depend on finishing a 25-minute day.
 
@@ -32,7 +36,7 @@ Recommendations below are our inference from those mechanics and the existing re
 
 Course doctor should show the reason for a bad result immediately. Design lab should show a fair comparison, not encourage repeatedly rerolling a score. Rewards must reuse approved once-only/capped rules; no repeatable cash faucet. Keep visitors' feedback concise and tied to a location/action rather than a stream of identical complaints.
 
-## Optional golf minigames: future scope
+## Golf minigames: intended RPG scope, pending launch reconciliation
 
 | Idea | Why it fits | Estimate | Main cost/limit |
 |---|---|---|---|
@@ -42,13 +46,13 @@ Course doctor should show the reason for a bad result immediately. Design lab sh
 | Putting trail | Three short greens with a precision challenge | 2–3 min | Requires a putting/control model beyond the existing rating geometry; higher effort |
 | Daily pin setup | Trade fairness/difficulty against wear and event requirements | 1–2 min | Requires independent pin placement, green geometry and rating changes; defer |
 
-Prototype predict-the-shot first if the main course loop still has idle gaps. A nearest-pin mode is the stronger hands-on golf candidate but is a separate development commitment. Defer mandatory mowing, trash pickup, cooking meters, energy bars and repeated random-reward runs: they could fill minutes without improving the course or the management decisions.
+The clarified vision prioritizes hands-on nearest-pin/accuracy, putting and recovery practice with attribute growth. Predict-the-shot can supplement learning but cannot replace controlling the golfer. Personal grounds maintenance is part of Nathan’s clarified intent. Make it optional and offer employee delegation; avoid mandatory repeated chores, cooking meters, energy bars and random-reward grinding.
 
 ## Interface and playtest proposal
 
 One easily reached club panel: pinned objective, hourly income/net costs, next purchase and estimated affordability, tournament readiness, staff and prioritized notifications. Staff remains visibly unavailable until a real model exists; do not display invented values. Editor should keep the objective, cash and pause control within reach. Urgent alerts should offer a direct route to their cause.
 
-Test whether a player can find worthwhile optional work every 2–4 active minutes, whether results are understandable immediately, and whether they can stop mid-day without losing work. These are prototype criteria, not new locked balance targets. Observe actual unprompted play; do not infer fun from bots or elapsed timers. Start with course doctor, design briefs/lab and readiness, then decide whether a minigame is justified. No feature above is silently added to v1.
+Test whether a player can find worthwhile optional work every 2–4 active minutes, whether results are understandable immediately, and whether they can stop mid-day without losing work. These are prototype criteria, not new locked balance targets. Observe actual unprompted play; do not infer fun from bots or elapsed timers. After Nathan’s clarification, start with a controllable player-built hole, an attribute-training challenge, a rival match and a visible reward; build course diagnosis, briefs and readiness alongside the core loop. No feature above is silently added to v1.
 
 ## Verification and open questions
 
