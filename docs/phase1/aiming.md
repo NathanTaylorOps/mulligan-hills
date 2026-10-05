@@ -31,3 +31,5 @@ Latest predecessor CI (7564c95): all four workflows queued/pending at the start 
 ## Nathan's device check after a green APK
 
 Run Sim hash and Benchmark Quick 60s first. Then Live construction -> Build / play one hole -> finalize. Tap different course positions: target/path should move, cash/strokes must not change. Tap Play shot once: one shot only. Try a drag, two-finger touch, and a touch starting on a UI button: none should aim accidentally. Save/reopen after a shot and confirm position/strokes. Report whether the course is visible enough to choose targets and whether the warnings help.
+
+5 October follow-up: practice camera follow/overview/back are implemented in `golfer_camera.md`, pending Godot/device checks. `docs/spec/golfer_controls.md` records the detailed attribute/style proposal; numerical mechanics remain unimplemented/unlocked.

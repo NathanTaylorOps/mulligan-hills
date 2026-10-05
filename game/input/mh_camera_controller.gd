@@ -77,3 +77,10 @@ func _apply_transform() -> void:
 func _apply_and_emit() -> void:
 	_apply_transform()
 	camera_changed.emit()
+
+
+
+## Recenter without altering golf/simulation state. Yaw is preserved; pitch follows the existing zoom policy.
+func focus_target(point: Vector3, new_distance: float = -1.0) -> void:
+	rig.focus_target(point, new_distance)
+	_apply_and_emit()

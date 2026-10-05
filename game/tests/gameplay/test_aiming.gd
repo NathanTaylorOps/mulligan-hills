@@ -66,3 +66,29 @@ func test_unreachable_and_water_target_feedback() -> void:
 	preview = r.aim_preview(1200, 2500)
 	assert_int(int(preview["landing_lie"])).is_equal(MHRHole.LIE_WATER)
 	assert_bool(r.aim_preview(120001, 0)["ok"]).is_false()
+
+func test_recenter_clears_camera_inertia_and_snap_but_preserves_orientation() -> void:
+	var cfg: MHCameraConfig = MHCameraConfig.new()
+	cfg.inertia_enabled = true
+	var rig: MHOrbitRig = MHOrbitRig.new(cfg)
+	rig.apply_pan_pixels(Vector2(60, 40), 0.1)
+	rig.apply_twist(0.4, 0.1)
+	var yaw: float = rig.yaw
+	rig.snap_north()
+	rig.focus_target(Vector3(12, -20, 30), 90.0)
+	assert_bool(rig.target == Vector3(12, -20, 30)).is_true()
+	assert_float(rig.distance).is_equal(90.0)
+	assert_float(rig.yaw).is_equal(yaw)
+	assert_bool(rig.is_snapping()).is_false()
+	assert_bool(rig.update(0.5)).is_false()
+	assert_bool(rig.target == Vector3(12, -20, 30)).is_true()
+
+func test_recenter_respects_camera_distance_and_target_bounds() -> void:
+	var cfg: MHCameraConfig = MHCameraConfig.new()
+	cfg.use_pan_bounds = true
+	cfg.pan_bounds = Rect2(0, 0, 128, 128)
+	var rig: MHOrbitRig = MHOrbitRig.new(cfg)
+	rig.focus_target(Vector3(-50, -20, 200), 1000.0)
+	assert_float(rig.distance).is_equal(cfg.max_distance)
+	assert_float(rig.target.x).is_equal(0.0)
+	assert_float(rig.target.z).is_equal(128.0)

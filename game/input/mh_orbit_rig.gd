@@ -143,3 +143,17 @@ func _clamp_target() -> void:
 	var b: Rect2 = config.pan_bounds
 	target.x = clampf(target.x, b.position.x, b.end.x)
 	target.z = clampf(target.z, b.position.y, b.end.y)
+
+
+
+## Presentation focus cancels residual pan/spin/snap so the next frame cannot undo recentering.
+func focus_target(point: Vector3, new_distance: float = -1.0) -> void:
+	target = point
+	_clamp_target()
+	_pan_velocity = Vector3.ZERO
+	_yaw_velocity = 0.0
+	_gesture_active = false
+	_snapping = false
+	if new_distance > 0.0:
+		distance = clampf(new_distance, config.min_distance, config.max_distance)
+		_update_pitch_from_zoom()

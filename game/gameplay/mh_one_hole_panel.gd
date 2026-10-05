@@ -6,6 +6,7 @@ var length_yd: int = 60
 var half_width_yd: int = 8
 var water: bool = false
 var _preview_draft: bool = false
+var follow_ball: bool = true
 var aim_x: int = 0
 var aim_y: int = 6000
 var _info: Label
@@ -38,6 +39,8 @@ func setup(scene: MHLiveConstruction) -> void:
 	var shots: HFlowContainer = MHUIKit.flow(6)
 	add_child(shots)
 	_button(shots, "Aim at cup", _aim_cup)
+	_button(shots, "Back to golfer", _back_to_golfer)
+	_button(shots, "Course overview", _overview)
 	_button(shots, "Play shot", _shoot)
 	_button(shots, "New practice round", _restart)
 	_button(shots, "Close", func() -> void: hide(); _world.hide(); live.chunks.show())
@@ -61,6 +64,7 @@ func open() -> void:
 	live.chunks.hide() # Flat exact-layout view; arbitrary brush terrain is not claimed as rated geometry.
 	show()
 	_world.show()
+	_follow_camera()
 	_draw()
 	_describe()
 
@@ -118,6 +122,7 @@ func _restart() -> void:
 		MHRatingEngine.seed_for(0, {"save_secret": live.session.save_secret, "rating_epoch": live.session.rating_epoch}))
 	live._request_save()
 	_aim_cup()
+	_follow_camera()
 	_draw()
 	_describe()
 
@@ -141,6 +146,7 @@ func _shoot() -> void:
 		_info.text = "Round finished or aim is at the ball. Start another round or change aim."
 		return
 	live._request_save()
+	_follow_camera()
 	_draw()
 	_describe()
 	if int(result["penalty"]) > 0:
@@ -330,3 +336,28 @@ func _path_line(a: Vector3, b: Vector3, color: Color) -> void:
 	line.position = (a + b) / 2.0
 	line.rotation.y = atan2(b.x - a.x, b.z - a.z)
 	_path.add_child(line)
+
+
+func _back_to_golfer() -> void:
+	if live.shell.modal_id() != "":
+		return
+	follow_ball = true
+	if live.aim_input != null:
+		live.aim_input.taps.clear()
+	_follow_camera()
+
+func _overview() -> void:
+	if live.shell.modal_id() != "":
+		return
+	follow_ball = false
+	if live.aim_input != null:
+		live.aim_input.taps.clear()
+	live.controller.focus_target(Vector3(64, -20, 64), 150.0)
+
+func _follow_camera() -> void:
+	if not follow_ball:
+		return
+	var r: MHPracticeRound = live.session.practice
+	var point: Vector3 = _position(r.x if r != null else 0, r.y if r != null else 0, -20.0)
+	# Downward framing bias keeps the ball above the prototype's lower controls; device tuning pending.
+	live.controller.focus_target(point, 100.0)

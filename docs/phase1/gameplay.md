@@ -36,3 +36,5 @@ Normal-speed day: 25 real minutes; income still arrives on each game hour. Pause
 ## Live construction increment (5 October)
 
 See `live_construction.md`: new launcher scene connects real terrain/editor, live menus and accounting, paused history and guarded official slot checkpoints. This proves a construction/accounting connection only; it has no finalized holes and rejects unsupported course save conversion. Reader-2 optional runtime preserves fractional accounting and pairs separate ledger/full terrain generations. Personal golf and full course geometry/save integration remain open. Static/Python checks pass; Godot CI/device verification pending.
+
+5 October follow-up: practice camera follow/overview/back are implemented in `golfer_camera.md`, pending Godot/device checks. `docs/spec/golfer_controls.md` records the detailed attribute/style proposal; numerical mechanics remain unimplemented/unlocked.

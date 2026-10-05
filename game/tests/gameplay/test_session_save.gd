@@ -237,3 +237,30 @@ func test_screen_aim_projection_sets_target_without_playing_or_charging() -> voi
 	scene.aim_input._notification(Node.NOTIFICATION_APPLICATION_FOCUS_OUT)
 	assert_bool(scene.aim_input.taps.up(0, Vector2.ZERO, false)["aim"]).is_false()
 	scene._active = false
+
+func test_camera_follow_and_overview_preserve_gameplay_state() -> void:
+	var scene: MHLiveConstruction = auto_free(MHLiveConstruction.new())
+	scene.store = MHSaveStore.new(DIR)
+	scene.ledger_dir = LEDGERS
+	add_child(scene)
+	scene.one_hole.open()
+	scene.one_hole._finalize()
+	var before: Dictionary = scene.session.practice.to_dict()
+	var cash: int = scene.session.economy.cash
+	scene.one_hole._overview()
+	assert_bool(scene.one_hole.follow_ball).is_false()
+	assert_float(scene.controller.rig.distance).is_equal(150.0)
+	scene.one_hole._back_to_golfer()
+	assert_bool(scene.one_hole.follow_ball).is_true()
+	assert_float(scene.controller.rig.distance).is_equal(100.0)
+	assert_dict(scene.session.practice.to_dict()).is_equal(before)
+	assert_int(scene.session.economy.cash).is_equal(cash)
+	scene.one_hole._shoot()
+	var r: MHPracticeRound = scene.session.practice
+	var expected: Vector3 = scene.one_hole._position(r.x, r.y, -20.0)
+	assert_bool(scene.controller.rig.target == expected).is_true()
+	scene.one_hole._overview()
+	var overview: Vector3 = scene.controller.rig.target
+	scene.one_hole._shoot()
+	assert_bool(scene.controller.rig.target == overview).is_true()
+	scene._active = false
