@@ -1,0 +1,778 @@
+{
+  "model": "MHPERSONAL-SHOT-0.1",
+  "cases": [
+    {
+      "name": "straight",
+      "inputs": {
+        "raw_hole": {
+          "slot_id": 1,
+          "tee": [
+            0,
+            0
+          ],
+          "green": [
+            0,
+            100,
+            5
+          ],
+          "features": [
+            {
+              "t": "fairway",
+              "rect": [
+                -20,
+                0,
+                20,
+                95
+              ]
+            }
+          ]
+        },
+        "raw_profile": {
+          "v": 1,
+          "power": 500,
+          "accuracy": 500,
+          "touch": 500,
+          "recovery": 500,
+          "shaping": 500,
+          "composure": 500,
+          "luck": 500
+        },
+        "ball": [
+          0,
+          0
+        ],
+        "lie": "tee",
+        "aim": [
+          0,
+          6000
+        ],
+        "seed": 1234,
+        "shot_index": 1
+      },
+      "expected": {
+        "model": "MHPERSONAL-SHOT-0.1",
+        "x": -192,
+        "y": 6044,
+        "lie": "fairway",
+        "club": 10,
+        "penalty": 0,
+        "penalty_kind": 0,
+        "tree": false,
+        "holed": false,
+        "shot_index": 1
+      }
+    },
+    {
+      "name": "next_shot",
+      "inputs": {
+        "raw_hole": {
+          "slot_id": 1,
+          "tee": [
+            0,
+            0
+          ],
+          "green": [
+            0,
+            100,
+            5
+          ],
+          "features": [
+            {
+              "t": "fairway",
+              "rect": [
+                -20,
+                0,
+                20,
+                95
+              ]
+            }
+          ]
+        },
+        "raw_profile": {
+          "v": 1,
+          "power": 500,
+          "accuracy": 500,
+          "touch": 500,
+          "recovery": 500,
+          "shaping": 500,
+          "composure": 500,
+          "luck": 500
+        },
+        "ball": [
+          0,
+          0
+        ],
+        "lie": "tee",
+        "aim": [
+          0,
+          6000
+        ],
+        "seed": 1234,
+        "shot_index": 2
+      },
+      "expected": {
+        "model": "MHPERSONAL-SHOT-0.1",
+        "x": -447,
+        "y": 5930,
+        "lie": "fairway",
+        "club": 10,
+        "penalty": 0,
+        "penalty_kind": 0,
+        "tree": false,
+        "holed": false,
+        "shot_index": 2
+      }
+    },
+    {
+      "name": "water",
+      "inputs": {
+        "raw_hole": {
+          "slot_id": 1,
+          "tee": [
+            0,
+            0
+          ],
+          "green": [
+            0,
+            100,
+            5
+          ],
+          "features": [
+            {
+              "t": "fairway",
+              "rect": [
+                -20,
+                0,
+                20,
+                95
+              ]
+            },
+            {
+              "t": "water",
+              "rect": [
+                -10,
+                55,
+                10,
+                65
+              ]
+            }
+          ]
+        },
+        "raw_profile": {
+          "v": 1,
+          "power": 500,
+          "accuracy": 500,
+          "touch": 500,
+          "recovery": 500,
+          "shaping": 500,
+          "composure": 500,
+          "luck": 500
+        },
+        "ball": [
+          0,
+          0
+        ],
+        "lie": "tee",
+        "aim": [
+          0,
+          6000
+        ],
+        "seed": 1234,
+        "shot_index": 1
+      },
+      "expected": {
+        "model": "MHPERSONAL-SHOT-0.1",
+        "x": 0,
+        "y": 0,
+        "lie": "tee",
+        "club": 10,
+        "penalty": 1,
+        "penalty_kind": 1,
+        "tree": false,
+        "holed": false,
+        "shot_index": 1
+      }
+    },
+    {
+      "name": "ob",
+      "inputs": {
+        "raw_hole": {
+          "slot_id": 1,
+          "tee": [
+            0,
+            0
+          ],
+          "green": [
+            0,
+            100,
+            5
+          ],
+          "features": [
+            {
+              "t": "fairway",
+              "rect": [
+                -20,
+                0,
+                20,
+                95
+              ]
+            },
+            {
+              "t": "ob",
+              "rect": [
+                -10,
+                55,
+                10,
+                65
+              ]
+            }
+          ]
+        },
+        "raw_profile": {
+          "v": 1,
+          "power": 500,
+          "accuracy": 500,
+          "touch": 500,
+          "recovery": 500,
+          "shaping": 500,
+          "composure": 500,
+          "luck": 500
+        },
+        "ball": [
+          0,
+          0
+        ],
+        "lie": "tee",
+        "aim": [
+          0,
+          6000
+        ],
+        "seed": 1234,
+        "shot_index": 1
+      },
+      "expected": {
+        "model": "MHPERSONAL-SHOT-0.1",
+        "x": 0,
+        "y": 0,
+        "lie": "tee",
+        "club": 10,
+        "penalty": 1,
+        "penalty_kind": 2,
+        "tree": false,
+        "holed": false,
+        "shot_index": 1
+      }
+    },
+    {
+      "name": "tree",
+      "inputs": {
+        "raw_hole": {
+          "slot_id": 1,
+          "tee": [
+            0,
+            0
+          ],
+          "green": [
+            0,
+            100,
+            5
+          ],
+          "features": [
+            {
+              "t": "fairway",
+              "rect": [
+                -20,
+                0,
+                20,
+                95
+              ]
+            },
+            {
+              "t": "tree",
+              "at": [
+                [
+                  0,
+                  10
+                ]
+              ]
+            }
+          ]
+        },
+        "raw_profile": {
+          "v": 1,
+          "power": 500,
+          "accuracy": 500,
+          "touch": 500,
+          "recovery": 500,
+          "shaping": 500,
+          "composure": 500,
+          "luck": 500
+        },
+        "ball": [
+          0,
+          0
+        ],
+        "lie": "tee",
+        "aim": [
+          0,
+          6000
+        ],
+        "seed": 1234,
+        "shot_index": 1
+      },
+      "expected": {
+        "model": "MHPERSONAL-SHOT-0.1",
+        "x": -28,
+        "y": 897,
+        "lie": "deep",
+        "club": 10,
+        "penalty": 0,
+        "penalty_kind": 0,
+        "tree": true,
+        "holed": false,
+        "shot_index": 1
+      }
+    },
+    {
+      "name": "putt",
+      "inputs": {
+        "raw_hole": {
+          "slot_id": 1,
+          "tee": [
+            0,
+            0
+          ],
+          "green": [
+            0,
+            100,
+            5
+          ],
+          "features": [
+            {
+              "t": "fairway",
+              "rect": [
+                -20,
+                0,
+                20,
+                95
+              ]
+            }
+          ]
+        },
+        "raw_profile": {
+          "v": 1,
+          "power": 500,
+          "accuracy": 500,
+          "touch": 500,
+          "recovery": 500,
+          "shaping": 500,
+          "composure": 500,
+          "luck": 500
+        },
+        "ball": [
+          0,
+          9500
+        ],
+        "lie": "green",
+        "aim": [
+          0,
+          10000
+        ],
+        "seed": 1234,
+        "shot_index": 1,
+        "style": "putt"
+      },
+      "expected": {
+        "model": "MHPERSONAL-SHOT-0.1",
+        "x": 0,
+        "y": 10000,
+        "lie": "green",
+        "club": -1,
+        "penalty": 0,
+        "penalty_kind": 0,
+        "tree": false,
+        "holed": true,
+        "shot_index": 1
+      }
+    },
+    {
+      "name": "fast_putt",
+      "inputs": {
+        "raw_hole": {
+          "slot_id": 1,
+          "tee": [
+            0,
+            0
+          ],
+          "green": [
+            0,
+            100,
+            5
+          ],
+          "features": [
+            {
+              "t": "fairway",
+              "rect": [
+                -20,
+                0,
+                20,
+                95
+              ]
+            }
+          ]
+        },
+        "raw_profile": {
+          "v": 1,
+          "power": 500,
+          "accuracy": 500,
+          "touch": 1000,
+          "recovery": 500,
+          "shaping": 500,
+          "composure": 500,
+          "luck": 500
+        },
+        "ball": [
+          0,
+          9500
+        ],
+        "lie": "green",
+        "aim": [
+          0,
+          11000
+        ],
+        "seed": 1234,
+        "shot_index": 1,
+        "style": "putt"
+      },
+      "expected": {
+        "model": "MHPERSONAL-SHOT-0.1",
+        "x": -5,
+        "y": 11005,
+        "lie": "rough",
+        "club": -1,
+        "penalty": 0,
+        "penalty_kind": 0,
+        "tree": false,
+        "holed": false,
+        "shot_index": 1
+      }
+    },
+    {
+      "name": "recovery",
+      "inputs": {
+        "raw_hole": {
+          "slot_id": 1,
+          "tee": [
+            0,
+            0
+          ],
+          "green": [
+            0,
+            100,
+            5
+          ],
+          "features": [
+            {
+              "t": "fairway",
+              "rect": [
+                -20,
+                0,
+                20,
+                95
+              ]
+            }
+          ]
+        },
+        "raw_profile": {
+          "v": 1,
+          "power": 500,
+          "accuracy": 500,
+          "touch": 500,
+          "recovery": 500,
+          "shaping": 500,
+          "composure": 500,
+          "luck": 500
+        },
+        "ball": [
+          3000,
+          5000
+        ],
+        "lie": "rough",
+        "aim": [
+          0,
+          9000
+        ],
+        "seed": 1234,
+        "shot_index": 1,
+        "style": "safe_recovery"
+      },
+      "expected": {
+        "model": "MHPERSONAL-SHOT-0.1",
+        "x": -142,
+        "y": 8935,
+        "lie": "fairway",
+        "club": 10,
+        "penalty": 0,
+        "penalty_kind": 0,
+        "tree": false,
+        "holed": false,
+        "shot_index": 1
+      }
+    },
+    {
+      "name": "pressure",
+      "inputs": {
+        "raw_hole": {
+          "slot_id": 1,
+          "tee": [
+            0,
+            0
+          ],
+          "green": [
+            0,
+            100,
+            5
+          ],
+          "features": [
+            {
+              "t": "fairway",
+              "rect": [
+                -20,
+                0,
+                20,
+                95
+              ]
+            }
+          ]
+        },
+        "raw_profile": {
+          "v": 1,
+          "power": 500,
+          "accuracy": 500,
+          "touch": 500,
+          "recovery": 500,
+          "shaping": 500,
+          "composure": 500,
+          "luck": 500
+        },
+        "ball": [
+          0,
+          0
+        ],
+        "lie": "tee",
+        "aim": [
+          0,
+          6000
+        ],
+        "seed": 1234,
+        "shot_index": 1,
+        "pressure_pm": 150
+      },
+      "expected": {
+        "model": "MHPERSONAL-SHOT-0.1",
+        "x": -207,
+        "y": 6048,
+        "lie": "fairway",
+        "club": 10,
+        "penalty": 0,
+        "penalty_kind": 0,
+        "tree": false,
+        "holed": false,
+        "shot_index": 1
+      }
+    },
+    {
+      "name": "overreach",
+      "inputs": {
+        "raw_hole": {
+          "slot_id": 1,
+          "tee": [
+            0,
+            0
+          ],
+          "green": [
+            0,
+            100,
+            5
+          ],
+          "features": [
+            {
+              "t": "fairway",
+              "rect": [
+                -20,
+                0,
+                20,
+                95
+              ]
+            }
+          ]
+        },
+        "raw_profile": {
+          "v": 1,
+          "power": 500,
+          "accuracy": 500,
+          "touch": 500,
+          "recovery": 500,
+          "shaping": 500,
+          "composure": 500,
+          "luck": 500
+        },
+        "ball": [
+          0,
+          0
+        ],
+        "lie": "tee",
+        "aim": [
+          0,
+          50000
+        ],
+        "seed": 1234,
+        "shot_index": 1
+      },
+      "expected": {
+        "model": "MHPERSONAL-SHOT-0.1",
+        "x": 0,
+        "y": 0,
+        "lie": "tee",
+        "club": 0,
+        "penalty": 1,
+        "penalty_kind": 2,
+        "tree": false,
+        "holed": false,
+        "shot_index": 1
+      }
+    },
+    {
+      "name": "diagonal",
+      "inputs": {
+        "raw_hole": {
+          "slot_id": 1,
+          "tee": [
+            0,
+            0
+          ],
+          "green": [
+            0,
+            100,
+            5
+          ],
+          "features": [
+            {
+              "t": "fairway",
+              "rect": [
+                -20,
+                0,
+                20,
+                95
+              ]
+            }
+          ]
+        },
+        "raw_profile": {
+          "v": 1,
+          "power": 500,
+          "accuracy": 500,
+          "touch": 500,
+          "recovery": 500,
+          "shaping": 500,
+          "composure": 500,
+          "luck": 500
+        },
+        "ball": [
+          0,
+          0
+        ],
+        "lie": "tee",
+        "aim": [
+          1000,
+          6000
+        ],
+        "seed": 1234,
+        "shot_index": 1
+      },
+      "expected": {
+        "model": "MHPERSONAL-SHOT-0.1",
+        "x": 813,
+        "y": 6075,
+        "lie": "fairway",
+        "club": 10,
+        "penalty": 0,
+        "penalty_kind": 0,
+        "tree": false,
+        "holed": false,
+        "shot_index": 1
+      }
+    },
+    {
+      "name": "putt_water_path",
+      "inputs": {
+        "raw_hole": {
+          "slot_id": 1,
+          "tee": [
+            0,
+            0
+          ],
+          "green": [
+            0,
+            100,
+            5
+          ],
+          "features": [
+            {
+              "t": "fairway",
+              "rect": [
+                -20,
+                0,
+                20,
+                95
+              ]
+            },
+            {
+              "t": "water",
+              "rect": [
+                -5,
+                96,
+                5,
+                97
+              ]
+            }
+          ]
+        },
+        "raw_profile": {
+          "v": 1,
+          "power": 500,
+          "accuracy": 500,
+          "touch": 500,
+          "recovery": 500,
+          "shaping": 500,
+          "composure": 500,
+          "luck": 500
+        },
+        "ball": [
+          0,
+          9500
+        ],
+        "lie": "green",
+        "aim": [
+          0,
+          10000
+        ],
+        "seed": 1234,
+        "shot_index": 1,
+        "style": "putt"
+      },
+      "expected": {
+        "model": "MHPERSONAL-SHOT-0.1",
+        "x": 0,
+        "y": 9500,
+        "lie": "green",
+        "club": -1,
+        "penalty": 1,
+        "penalty_kind": 1,
+        "tree": false,
+        "holed": false,
+        "shot_index": 1
+      }
+    }
+  ]
+}

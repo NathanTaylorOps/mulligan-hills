@@ -35,7 +35,9 @@ jobs:
           lfs: true
 
       - name: Check personal golfer Python reference
-        run: python3 tools/reference/personal_golf/selftest.py
+        run: |
+          python3 tools/reference/personal_golf/selftest.py
+          python3 tools/reference/personal_golf/test_shot.py
 
       - name: Cache Godot binaries
         uses: actions/cache@v4
