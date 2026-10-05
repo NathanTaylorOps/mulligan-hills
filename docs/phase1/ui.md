@@ -55,6 +55,10 @@ NOT covered: anything visual (layout, wrapping, colours on a real screen), real 
 - `mh_advisor.gd`: `sort_custom(_less)` changed to `sort_custom(MHAdvisor._less)` (a bare static function name inside a static function is the riskiest form).
 - Reviewed with no change: theme, layout, safe area, screen stack, tokens, settings, first-launch flow, editor tools.
 
+## Live adapter update (5 October 2026)
+
+`MHLiveGameStateView` and `MHGameSession` now provide a live foundation; see `docs/phase1/gameplay.md`. The gallery remains sample-driven. Connecting the 3D scene, editor and validated autosave is still open. New GDScript tests await CI; no playable-game completion claimed.
+
 ## 4. Wiring (for the lead, when the real game scene exists)
 
 1. Add the shell AFTER the game's `MHInputRouter` in the tree, so the shell's `_input` runs first and a tap on a button never paints. If that order is not possible, use the router: `for k in shell.region_rects(): router.register_ui_region(k, shell.region_rects()[k])` after every screen change, and connect `router.ui_tapped` to `shell.trigger_region`.

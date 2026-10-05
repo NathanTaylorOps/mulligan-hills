@@ -11,6 +11,14 @@ Updated stale start-cash and tournament-money assertions to DEC-065/069. Updated
 
 No shipping rules or rating goldens changed in this repair. Python economy selftest passes. GDScript repair NOT YET RUN until the next CI run.
 
+Repair pushed as c72ce1c. All three triggered jobs remained queued with no runner assigned; determinism was not triggered by test-only paths. The next economy/core change triggers all four workflows. Do not infer green from queued jobs.
+
+## Current checkpoint
+
+Economy audit/renovation correction pushed as f029fcf. Full simulation re-run, Python self-check and schema validation pass. Goldens retain identical numerical content. `docs/phase1/economy_audit.md` records the failed earned-token hours assumption and proposed DEC-070 (12-minute day, pending Nathan approval). No locked decision was changed.
+
+Live session and adapter foundation is in `docs/phase1/gameplay.md`. It coordinates clock hours, cash, purchases, official ratings, daily submissions and tournament settlement, but scene/editor and validated autosave wiring remain unfinished. Independent static review found two S1 bugs, corrected with tests; reputation achievement scale is explicitly deferred rather than using a guessed conversion. No end-to-end completion or device sign-off claimed.
+
 ## Next work and risks
 - Re-run the economy; the saved report's 12.1 minute/day timing assumes speed-ups without respecting an earned-token budget. Demo building progression is extremely short.
 - Build the live adapter and loop, hourly income/autosave, purchases and daily tournament/progression updates.

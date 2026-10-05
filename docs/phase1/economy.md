@@ -1,6 +1,6 @@
 # Phase 1: Economy (`game/core/economy/`)
 
-Status: code and simulation written, Python simulation RUN, GDScript and gdUnit4 tests **NOT YET RUN** (Godot cannot run in the sandbox; CI validates). Rebalanced by DEC-069 (target: 18 holes and all tier 5 in about 100 to 150 game days).
+Status: Python re-run and self-check PASS; original ff0125b CI had stale expectation failures, repair/new changes await CI. See `docs/phase1/economy_audit.md` for the 5 October correction: normal-speed 20–30-hour completion fails for most competent modelled players; the speed-mix result is unfunded. Renovation now requires every building at tier 5 per DEC-069. Earlier tier-4/open-at-4 statements below are historical and superseded by that correction. Godot cannot run locally.
 Owner paths: `game/core/economy/`, `game/tests/economy/`, `tools/reference/economy/`, `docs/phase1/economy.md`, plus the runtime copy `game/data/economy_params.json`.
 
 ## README block
