@@ -1,6 +1,6 @@
 # Golfer and club RPG: scope reconciliation
 
-Status: 5 October 2026. Nathan’s intended product recorded; implementation inventory and proposed decision entries prepared. New mechanics NOT IMPLEMENTED. This document does not override locked decisions. `continue` authorizes this reconciliation work; it is not interpreted as silently removing DEC-014’s scope freeze or DEC-039’s cut classification.
+Status: 5 October 2026. Nathan approved “must ship” after reviewing PROP-11–14. Requirements are now locked as DEC-072–075. New mechanics NOT IMPLEMENTED. Those entries explicitly amend the scope/cut/campaign decisions; numerical mechanics and the final career milestone remain proposed/open.
 
 ## Product intent
 
@@ -29,7 +29,9 @@ Inventory checked against the full phase1 GitHub tree at `999ac8a746ee620dfb0c23
 
 `MHShotSim` is a prototype using Q16.16 metres and skill 0..100; rating `MHSIM-1.0.0` uses centiyards and skill 0..1000. Neither can be silently substituted for the other. Rating putting is probabilistic, not interactive putting physics. `MHTournamentSim.run_field` simulates the whole field; it does not accept a personally played round. Current live-session staff/pace gates remain blocked rather than invented.
 
-## Concrete decision proposals: NOT LOCKED
+## Approved proposals: locked by DEC-072–075
+
+The following original proposal text is retained for rationale. Launch classification is now decided: all listed requirement groups must ship. Read DEC-072–075 for the authoritative outcome; no further launch permission is needed.
 
 ### PROP-11: launch golfer career and control
 
@@ -39,7 +41,7 @@ Tradeoff: this materially increases implementation, mobile controls, saves and t
 
 ### PROP-12: living club and delegated work
 
-Record celebrity satisfaction → home purchase → VIP membership, finite home occupancy, beneficial/nuisance wildlife, employee hiring/zone placement for grounds maintenance and pest control, optional personally controlled maintenance, and contextual funny golfer interactions as product requirements. Define launch inclusion with PROP-11 rather than relying on narrative cards as a substitute. Preserve DEC-027: a VIP donor is not a mandatory tier-5 gate. Home capacity stays within DEC-056’s working 5–6 slots until that decision is revised; do not create unlimited celebrity homes.
+Record celebrity satisfaction → home purchase → VIP membership, finite home occupancy, beneficial/nuisance wildlife, employee hiring/zone placement for grounds maintenance and pest control, optional personally controlled maintenance, and contextual funny golfer interactions as product requirements. Launch inclusion is now locked by DEC-072/073; narrative cards remain a foundation, not a substitute. Preserve DEC-027: a VIP donor is not a mandatory tier-5 gate. Home capacity stays within DEC-056’s working 5–6 slots until that decision is revised; do not create unlimited celebrity homes.
 
 ### PROP-13: visible earned rewards
 
@@ -89,4 +91,14 @@ Keep a reachable golfer card (attributes, training, next rival), club panel (obj
 
 ## Status and verification
 
-Static inventory complete. No new Godot API introduced by this document. No new mechanic or data schema implemented. Current CI is queued, so no runtime verification claim. A joint campaign model, input prototype, save compatibility, end-to-end scene and on-device proof remain required. Separate verifier review is required before completion/merge certification under DEC-041.
+Static inventory complete. No new Godot API introduced by this document. No new mechanic or data schema implemented. CI results must be checked at each push; queued runs provide no runtime verification. A joint campaign model, input prototype, save compatibility, end-to-end scene and on-device proof remain required. Separate verifier review is required before completion/merge certification under DEC-041.
+
+## Implementation order after launch approval
+
+1. Complete the existing live course/editor/session and validated hourly save integration; resolve geometry/units explicitly and preserve determinism goldens.
+2. Specify and prove one controllable saved hole, golfer identity and resume-safe round state on Android. Do not create a second unrelated golf engine to bypass the existing geometry issue.
+3. Add attribute training and actual-round progress, then one NPC private match with atomic stake/reward settlement and one personally played tournament integration.
+4. Connect trophy ownership/selection to procedural course art and building skins; add celebrity/home/VIP and wildlife behavior with deterministic state.
+5. Implement staffing/area coverage and shared personal/delegated maintenance conditions; jointly rebalance wages/prizes/visitors/XP and test the full career/club loop.
+
+This sequence does not downgrade any must-ship requirement. Schedule estimate remains pending measured implementation/prototype evidence. Do not promise the previous DEC-040 delivery range. A proposed career endpoint is winning a major on the built course plus defeating the final named rival; it remains a recommendation, not an additional locked gate.

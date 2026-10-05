@@ -36,3 +36,7 @@ DEC-070/071, clock compatibility, Python/Godot regressions and editor pause cont
 ## Clarified golfer/club RPG intent
 
 Nathan clarified the playable golfer career, training attributes, played tournaments/private NPC matches, celebrity residences/VIP membership, wildlife/pests, staff placement and personal/delegated grounds maintenance, funny interactions and trophy/building-skin rewards. `rpg_scope.md` distinguishes foundations from missing systems and contains PROP-11–14 for launch/campaign reconciliation. `activities_research.md` is corrected so personal golf is central to the intended product, not optional filler. Frozen-scope/cut decisions are not silently changed; no new mechanics are implemented by these documents. First proof: one built hole, controllable golfer, training, rival and visible reward, after live scene/save integration. CI remains queued; earlier cancelled workflows are not passes.
+
+## Required v1 RPG approval
+
+Nathan answered “must ship” to PROP-11–14. DEC-072–075 now lock personal golfer/control/training/competition, living-club systems and visible trophy/skin rewards at launch, plus the joint golfer/club campaign definition. No second approval is needed for launch inclusion. Final career milestone and numerical rules remain open. `rpg_scope.md` records the build order; schedule re-estimation follows measured one-hole prototype evidence. No new gameplay implementation or green CI claimed by this documentation change.

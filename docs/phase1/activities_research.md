@@ -1,10 +1,10 @@
 # Between-purchase activities: research and proposal
 
-5 October 2026. Nathan requested mechanics/minigames that fit Mulligan Hills, after approving 25-minute days and an approximately 50-hour campaign. Research complete; proposals NOT IMPLEMENTED. Nathan clarified the intended golfer RPG, playable competition, celebrity residency, wildlife, staffing/maintenance and visual rewards after this first research pass; see `rpg_scope.md`. DEC-014 freezes v1 scope: new systems need an explicit scope decision. Durations/effort below are design estimates, not measured playtests. Existing module capability does not mean the playable scene is connected.
+5 October 2026. Nathan requested mechanics/minigames that fit Mulligan Hills, after approving 25-minute days and an approximately 50-hour campaign. Research complete; proposals NOT IMPLEMENTED. Nathan clarified the intended golfer RPG, playable competition, celebrity residency, wildlife, staffing/maintenance and visual rewards after this first research pass; see `rpg_scope.md`. Nathan subsequently required the clarified RPG systems at launch; DEC-072–075 explicitly amend the frozen scope. Other new ideas still require scope decisions. Durations/effort below are design estimates, not measured playtests. Existing module capability does not mean the playable scene is connected.
 
 ## Updated recommendation after Nathan’s clarification
 
-Golfer training and personally playing the course are central to the intended product, alongside building it. The earlier recommendation below prioritized the narrower frozen implementation and must not be read as making the golfer RPG an optional side activity. Prioritize a controllable hole, meaningful attribute training and career/club reward feedback before expanding the volume of management activities. Their launch classification must be reconciled with DEC-014/039 through the proposals in `rpg_scope.md`.
+Golfer training and personally playing the course are central to the intended product, alongside building it. The earlier recommendation below prioritized the narrower frozen implementation and must not be read as making the golfer RPG an optional side activity. Prioritize a controllable hole, meaningful attribute training and career/club reward feedback before expanding the volume of management activities. Their launch classification is now locked by DEC-072–075; `rpg_scope.md` records the approved proposal and build order.
 
 ## Original course-management research
 
@@ -52,7 +52,7 @@ The clarified vision prioritizes hands-on nearest-pin/accuracy, putting and reco
 
 One easily reached club panel: pinned objective, hourly income/net costs, next purchase and estimated affordability, tournament readiness, staff and prioritized notifications. Staff remains visibly unavailable until a real model exists; do not display invented values. Editor should keep the objective, cash and pause control within reach. Urgent alerts should offer a direct route to their cause.
 
-Test whether a player can find worthwhile optional work every 2–4 active minutes, whether results are understandable immediately, and whether they can stop mid-day without losing work. These are prototype criteria, not new locked balance targets. Observe actual unprompted play; do not infer fun from bots or elapsed timers. After Nathan’s clarification, start with a controllable player-built hole, an attribute-training challenge, a rival match and a visible reward; build course diagnosis, briefs and readiness alongside the core loop. No feature above is silently added to v1.
+Test whether a player can find worthwhile optional work every 2–4 active minutes, whether results are understandable immediately, and whether they can stop mid-day without losing work. These are prototype criteria, not new locked balance targets. Observe actual unprompted play; do not infer fun from bots or elapsed timers. After Nathan’s clarification, start with a controllable player-built hole, an attribute-training challenge, a rival match and a visible reward; build course diagnosis, briefs and readiness alongside the core loop. The clarified RPG requirements are explicitly included by DEC-072–075; other illustrative ideas are not automatically requirements.
 
 ## Verification and open questions
 

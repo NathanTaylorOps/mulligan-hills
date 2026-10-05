@@ -54,3 +54,5 @@ All `.gd` here. Python mirror verified the formulas and the refresh result of th
 ## 5 October: clarified RPG and visual rewards
 
 See `rpg_scope.md` for Nathan’s golfer/club RPG requirements and launch reconciliation proposals. Existing club progression is not personal golfer attributes. Existing plaque/flag/paint unlock IDs are reported but not yet applied to procedural art. Trophy ownership/selection and building skins need catalogues, validated save fields and scene consumers. No new XP or payout numbers have been implemented or implied by the economy-only campaign report.
+
+Launch classification resolved: DEC-072–075 require the golfer career and visible reward systems in v1. Attribute/XP numbers and cosmetic save/schema/scene implementation are still pending; existing club levels are not a substitute for golfer progress.
