@@ -104,7 +104,7 @@ func test_finish_attempt_completes_and_registers_streak_once() -> void:
 	var d: Dictionary = b.daily_row()
 	assert_bool(bool(d["completed_today"])).is_true()
 	assert_bool(int(d["best_score"]) > 0).is_true()
-	assert_int((d["board"] as Array).size()).is_equal(1)
+	assert_int((d["board"] as Array).size()).is_equal(2)
 	assert_str(str((d["board"] as Array)[0]["name"])).is_equal("Test Club")
 
 
@@ -185,8 +185,11 @@ func test_resolve_tournament() -> void:
 	var r: Dictionary = b.resolve_tournament(MHTournamentFixture.golden_ctx(1))
 	assert_bool(bool(r["ok"])).override_failure_message(str(r["reason"])).is_true()
 	assert_bool(not (r["result"] as Dictionary).is_empty()).is_true()
-	assert_bool(not b.tournaments.is_active()).is_true()
+	assert_bool(b.tournaments.is_active()).is_true()
 	assert_bool(b.tournaments.hosted_count >= 1).is_true()
+	assert_str(str(b.tournament_event()["status"])).is_equal("done")
+	# The result remains visible until the player acknowledges it.
+	b.tournaments.acknowledge()
 	assert_bool(b.tournament_event().is_empty()).is_true()
 
 
@@ -249,3 +252,4 @@ func test_new_strings_exist() -> void:
 		"daily.completed", "gallery.tournament_ready",
 	]:
 		assert_bool(MHStrings.has_key(key)).override_failure_message("missing string " + key).is_true()
+

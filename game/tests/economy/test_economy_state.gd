@@ -263,7 +263,7 @@ func test_speed_hook_is_pure_token_arithmetic() -> void:
 	assert_bool(e.can_afford_speed(ledger, 3)).is_false()
 	# checking never spends
 	assert_int(ledger.total()).is_equal(15)
-	assert_int(e.cash).is_equal(4000000)
+	assert_int(e.cash).is_equal(e.params.c("start_cash_cents"))
 
 
 func test_purchase_tier_charges_the_payback_price() -> void:
@@ -272,7 +272,7 @@ func test_purchase_tier_charges_the_payback_price() -> void:
 	assert_bool(price > 0).is_true()
 	assert_int(e.purchase_tier(1, 2)).is_equal(MHEconomy.ERR_INVALID)
 	assert_int(e.purchase_tier(1, 1)).is_equal(MHEconomy.OK)
-	assert_int(e.cash).is_equal(4000000 - price)
+	assert_int(e.cash).is_equal(e.params.c("start_cash_cents") - price)
 	assert_int(e.tier_of(1)).is_equal(1)
 	assert_int(e.purchase_tier(1, 1)).is_equal(MHEconomy.ERR_INVALID)
 	assert_int(e.purchase_tier(99, 1)).is_equal(MHEconomy.ERR_INVALID)
@@ -388,3 +388,4 @@ func test_renovation_opens_at_tier_four() -> void:
 	assert_bool(e.renovation_available()).is_true()
 	assert_int(e.purchase_renovation()).is_equal(MHEconomy.OK)
 	assert_int(e.renovation).is_equal(1)
+

@@ -125,10 +125,16 @@ func test_gallery_is_in_the_launcher() -> void:
 
 
 func test_achievement_filter() -> void:
-	var view: MHFakeGameStateView = MHFakeGameStateView.new()
-	var all: Array = MHAchievementsScreen.filtered(view.achievements(), "all")
-	assert_int(all.size()).is_equal(view.achievements().size())
-	var daily: Array = MHAchievementsScreen.filtered(view.achievements(), "daily")
+	# Test filtering independently of the full catalogue's changing category counts.
+	var rows: Array = [
+		{"id": "daily_locked", "category": "daily", "earned": false},
+		{"id": "design_earned", "category": "design", "earned": true},
+		{"id": "daily_earned", "category": "daily", "earned": true},
+	]
+	var all: Array = MHAchievementsScreen.filtered(rows, "all")
+	assert_int(all.size()).is_equal(3)
+	var daily: Array = MHAchievementsScreen.filtered(rows, "daily")
 	assert_int(daily.size()).is_equal(2)
-	assert_bool(bool((daily[0] as Dictionary)["earned"])).is_true()
-	assert_int(MHAchievementsScreen.filtered(view.achievements(), "nothing").size()).is_equal(0)
+	assert_str(str((daily[0] as Dictionary)["id"])).is_equal("daily_earned")
+	assert_str(str((daily[1] as Dictionary)["id"])).is_equal("daily_locked")
+	assert_int(MHAchievementsScreen.filtered(rows, "nothing").size()).is_equal(0)

@@ -128,7 +128,7 @@ func test_cancel_only_while_preparing_and_refunds_half() -> void:
 	_start_local(st, 100)
 	var r: Dictionary = st.cancel(d, 102)
 	assert_bool(bool(r["ok"])).is_true()
-	assert_int(int(r["refund"])).is_equal(5000)
+	assert_int(int(r["refund"])).is_equal(12500)
 	assert_bool(st.is_active()).is_false()
 	assert_int(st.attempted_count).is_equal(0)
 	assert_int(st.cooldown_until_day).is_equal(0)
@@ -285,3 +285,4 @@ func test_old_block_without_counters_keeps_current_counters_and_bad_counters_are
 	assert_bool(other.from_save_block({"hosted_levels": ["local", "regional"], "cooldown_until_day": 0, "hosted_count": 0, "attempted_count": 0})).is_true()
 	assert_int(other.hosted_count).is_equal(2)
 	assert_int(other.attempted_count).is_equal(2)
+

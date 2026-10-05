@@ -34,7 +34,7 @@ func test_cost_is_payback_days_times_income() -> void:
 
 func test_statuses_in_demo() -> void:
 	var v: MHFakeGameStateView = MHFakeGameStateView.new()
-	assert_str(MHBuildMenuModel.status(MHBuildMenuModel.row(v, "clubhouse"))).is_equal("ready")
+	assert_str(MHBuildMenuModel.status(MHBuildMenuModel.row(v, "clubhouse"))).is_equal("poor")
 	assert_str(MHBuildMenuModel.status(MHBuildMenuModel.row(v, "pro_shop"))).is_equal("ready")
 	assert_str(MHBuildMenuModel.status(MHBuildMenuModel.row(v, "restaurant"))).is_equal("ready")
 	assert_str(MHBuildMenuModel.status(MHBuildMenuModel.row(v, "landmark"))).is_equal("demo")
@@ -129,3 +129,4 @@ func test_unloaded_catalogue_gives_empty() -> void:
 	var v: MHGameStateView = MHGameStateView.new()
 	assert_bool(MHBuildMenuModel.row(v, "clubhouse").is_empty()).is_true()
 	assert_str(MHBuildMenuModel.status({})).is_equal("locked")
+

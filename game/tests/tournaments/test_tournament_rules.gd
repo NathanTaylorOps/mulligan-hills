@@ -153,24 +153,25 @@ func test_purse_table_sums_exactly() -> void:
 	var d: MHTournamentDefs = MHTournamentFixture.defs()
 	var t: Array = MHTournamentRules.purse_table(d, "local")
 	assert_int(t.size()).is_equal(10)
-	assert_int(int(t[0])).is_equal(1200)
-	assert_int(int(t[1])).is_equal(720)
-	assert_int(int(t[9])).is_equal(160)
+	assert_int(int(t[0])).is_equal(3000)
+	assert_int(int(t[1])).is_equal(1800)
+	assert_int(int(t[9])).is_equal(400)
 	var sum: int = 0
 	for v: Variant in t:
 		sum += int(v)
-	assert_int(sum).is_equal(4000)
+	assert_int(sum).is_equal(10000)
 	for lid: Variant in d.level_ids():
 		var tbl: Array = MHTournamentRules.purse_table(d, str(lid))
 		var s2: int = 0
 		for v2: Variant in tbl:
 			s2 += int(v2)
 		assert_int(s2).is_equal(d.level_int(str(lid), "host_cost") * 40 / 100)
-	assert_int(int(MHTournamentRules.purse_table(d, "major")[0])).is_equal(18000)
+	assert_int(int(MHTournamentRules.purse_table(d, "major")[0])).is_equal(48000)
 
 
 func test_cancel_refund() -> void:
 	var d: MHTournamentDefs = MHTournamentFixture.defs()
-	assert_int(MHTournamentRules.cancel_refund(d, "local")).is_equal(5000)
-	assert_int(MHTournamentRules.cancel_refund(d, "major")).is_equal(75000)
+	assert_int(MHTournamentRules.cancel_refund(d, "local")).is_equal(12500)
+	assert_int(MHTournamentRules.cancel_refund(d, "major")).is_equal(200000)
 	assert_int(MHTournamentRules.cancel_refund(d, "nope")).is_equal(0)
+
