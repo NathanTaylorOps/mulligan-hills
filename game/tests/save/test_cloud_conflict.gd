@@ -126,10 +126,12 @@ func test_autosave_policy_matches_clock_hour_events() -> void:
 	var clock: MHGameClock = MHGameClock.new()
 	var last_hour: int = -1
 	var saves: int = 0
-	for i in range(900):
+	assert_int(MHGameClock.REAL_US_PER_DAY_1X).is_equal(1500000000)
+	for i in range(1500):
 		clock.step(1000000)
 		if MHAutosavePolicy.should_autosave(clock.total_minutes(), last_hour):
 			saves += 1
 			last_hour = MHAutosavePolicy.hour_of(clock.total_minutes())
 	# hour 0 at the first minute, then hours 1 to 11 (minute 660 is hour 11)
 	assert_int(saves).is_equal(12)
+

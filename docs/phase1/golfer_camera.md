@@ -1,6 +1,6 @@
 # Phase 1: personal-practice camera follow
 
-Status: 5 October 2026. Implemented; syntax/schema checks PASS. Godot tests, rendered framing and device evidence NOT YET RUN. Independent review in `golfer_camera_verification.md`.
+Status: 5 October 2026. Implemented; syntax/schema checks PASS. Camera/aiming Godot regressions PASS at a1d0037; whole CI failed two unrelated stale economy/save expectations. Rendered framing and device evidence NOT YET VERIFIED. Independent review in `golfer_camera_verification.md`.
 
 ## Built
 
@@ -14,7 +14,7 @@ Follow distance100, overview distance150 and a downward framing bias20m are prov
 
 - gdparse on changed scripts/tests: PASS, syntax only.
 - `python3 docs/spec/data/validate.py`: ALL PASS.
-- Pending Godot regressions: focus stops inertia/snap without changing yaw, configured bounds/distances hold, overview/back leave practice/cash unchanged, shots recenter only while follow is enabled.
+- Godot regressions PASS at a1d0037: focus stops inertia/snap without changing yaw, configured bounds/distances hold, overview/back leave practice/cash unchanged, shots recenter only while follow is enabled.
 - Official sim/rating/economy data unchanged; no golden regeneration required.
 
 ## Golfer model proposal

@@ -259,8 +259,11 @@ func test_speed_hook_is_pure_token_arithmetic() -> void:
 	ledger.grant_earned("challenge_complete", "c1")
 	ledger.grant_earned("tournament_result", "t1", 1)
 	assert_int(ledger.total()).is_equal(15)
-	assert_bool(e.can_afford_speed(ledger, 2)).is_true()
-	assert_bool(e.can_afford_speed(ledger, 3)).is_false()
+	# DEC-070: 12.5 tokens per accelerated day, whole-token quote rounds up.
+	assert_int(MHEconomyModel.speed_tokens_for_days(1)).is_equal(13)
+	assert_int(MHEconomyModel.speed_tokens_for_days(2)).is_equal(25)
+	assert_bool(e.can_afford_speed(ledger, 1)).is_true()
+	assert_bool(e.can_afford_speed(ledger, 2)).is_false()
 	# checking never spends
 	assert_int(ledger.total()).is_equal(15)
 	assert_int(e.cash).is_equal(e.params.c("start_cash_cents"))

@@ -5,7 +5,8 @@ on:
     branches-ignore: [ci-results]
     paths:
       - "game/core/**"
-      - "game/tests/core/**"
+      - "game/tests/**"
+      - "tools/reference/**"
       - "tools/ci/**"
       - ".github/workflows/determinism.yml"
   workflow_dispatch:
@@ -97,3 +98,4 @@ jobs:
 
       - name: Compare hashes across platforms
         run: tools/ci/compare_hashes.sh hashes
+
