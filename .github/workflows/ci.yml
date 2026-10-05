@@ -34,6 +34,9 @@ jobs:
         with:
           lfs: true
 
+      - name: Check personal golfer Python reference
+        run: python3 tools/reference/personal_golf/selftest.py
+
       - name: Cache Godot binaries
         uses: actions/cache@v4
         with:
@@ -68,3 +71,4 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: tools/ci/publish_results.sh ci ci-out
+

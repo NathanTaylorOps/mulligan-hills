@@ -12,7 +12,7 @@ All outfits, equipment and carts must be generated procedurally under DEC-062. U
 
 | # | Internal inspiration | Fictional character | Outfit | Equipment skin | Cart and visual gag | Encounter / challenge |
 | --- | --- | --- | --- | --- | --- | --- |
-| 1 | Tiger Woods | Lion Woods | Crimson polo, black trousers | Mane-pattern bag; paw-print ball | Black luxury SUV cart; cushion-assisted parking flop | Precision comeback challenge; rare modern-era legend guest |
+| 1 | Tiger Woods | Lion Woods | Crimson polo, black trousers | Mane-pattern bag; paw-print ball | Black luxury SUV cart; occasionally parked upside down beside him | Precision comeback challenge; rare modern-era legend guest |
 | 2 | Scottie Scheffler | Scotty Shuffle | Cream polo, oversized soft shoes | Footprint clubs and ball | Cream cart with shuffling wheel covers | Fairway accuracy duel |
 | 3 | Rory McIlroy | Roary McFairway | Emerald polo, windswept hair | Roaring driver; emerald ball | Green roadster with tiny lion grille | Long-drive landing-zone challenge |
 | 4 | Xander Schauffele | Xandy Shuffle | Navy stripes, compact visor | Crosshair irons; checked ball | Navy compact with rotating seat | All-round three-hole match |
@@ -125,7 +125,7 @@ All outfits, equipment and carts must be generated procedurally under DEC-062. U
 - Luck affects eligible encounter frequency, pro offers and positive breaks as described in `../golfer_controls.md`. Course/reputation/unlock conditions, independent outcome rules, cooldowns and outstanding-offer caps still apply. A famous visitor is a story opportunity, not a guaranteed reward.
 - Distinct characters are content definitions over shared procedural rig/outfit/bag/cart systems. Do not build 100 independent animation rigs or run 100 visitors simultaneously. Start with a representative test batch; stage additional definitions without cutting required golfer/club systems.
 - Cosmetic ownership and appearance selection remain separate. NPC equipment skins do not automatically become player rewards; reward eligibility needs explicit definitions. Cosmetic models do not change sim colliders, golf attributes, cash or rating. Original visual victory rewards must follow DEC-074.
-- Gags are occasional and nonblocking; repeated every stop would become irritating. Lion Woods' suggested black luxury SUV cart is an original unbranded design. The proposed fictional cushion-flop resets the cart without injury, collision physics, progress loss or score changes. Do not re-enact real injuries. This alternative gag is a proposal, not a locked decision.
+- Gags are occasional and nonblocking; repeated every stop would become irritating. Lion Woods' suggested black luxury SUV cart is an original unbranded design. Nathan approved the visual gag: occasionally show the cart upside down near Lion Woods and his ball. No explosion or injury, and no real crash reconstruction. Use a scripted presentation pose without collision physics, progress loss or score changes. The next departure restores the upright pose. Frequency remains to be tuned; do not repeat at every stop.
 - Keep real inspiration references out of player-facing UI and runtime identifiers. Stable fictional IDs, deterministic visitor/event seeds and saved settlement IDs are required before wiring the roster into gameplay. Content schema, stats, unlocks, encounter rates and name clearance remain open.
 
 ## Research basis and limits
