@@ -295,7 +295,7 @@ $$;
 create or replace function public.mh_validate_remote_config(c jsonb) returns text
 language plpgsql immutable set search_path = '' as $$
 declare
-  ks jsonb; eco jsonb; ev jsonb; k text; m jsonb; i int;
+  ks jsonb; eco jsonb; ev jsonb; k text;
 begin
   if jsonb_typeof(c) is distinct from 'object' then return 'config must be an object'; end if;
   if not public.mh__keys_ok(c, array['schema','schema_version','config_version','issued_unix','min_app_version',
@@ -323,17 +323,10 @@ begin
   end loop;
 
   eco := c -> 'economy';
-  if not public.mh__keys_ok(eco, array['cost_multiplier_x100','building_cost_scale_pct','parcel_base_cost','parcel_growth_pct',
+  if not public.mh__keys_ok(eco, array['parcel_base_cost','parcel_growth_pct',
                                        'hole_cost','start_cash','green_fee_min','green_fee_max'], array[]::text[]) then
     return 'economy keys are wrong';
   end if;
-  m := eco -> 'cost_multiplier_x100';
-  if jsonb_typeof(m) is distinct from 'array' or jsonb_array_length(m) <> 5 then return 'cost_multiplier_x100 needs 5 numbers'; end if;
-  for i in 0..4 loop
-    if jsonb_typeof(m -> i) is distinct from 'number' or (m ->> i) !~ '^[0-9]{1,6}$'
-       or (m ->> i)::int not between 50 and 5000 then return 'cost_multiplier_x100 values must be 50 to 5000'; end if;
-  end loop;
-  if not public.mh__int_in(eco, 'building_cost_scale_pct', 25, 400) then return 'building_cost_scale_pct must be 25 to 400'; end if;
   if not public.mh__int_in(eco, 'parcel_base_cost', 1000, 1000000) then return 'parcel_base_cost must be 1000 to 1000000'; end if;
   if not public.mh__int_in(eco, 'parcel_growth_pct', 100, 200) then return 'parcel_growth_pct must be 100 to 200'; end if;
   if not public.mh__int_in(eco, 'hole_cost', 500, 100000) then return 'hole_cost must be 500 to 100000'; end if;
@@ -443,8 +436,7 @@ select public.mh_publish_remote_config(jsonb_build_object(
     'cloud_sync', true, 'daily_challenge', true, 'analytics', true,
     'purchase_flow', true, 'tournaments', true, 'notifications', true),
   'economy', jsonb_build_object(
-    'cost_multiplier_x100', jsonb_build_array(100, 200, 400, 800, 1400),
-    'building_cost_scale_pct', 100, 'parcel_base_cost', 25000, 'parcel_growth_pct', 130,
+    'parcel_base_cost', 25000, 'parcel_growth_pct', 130,
     'hole_cost', 8000, 'start_cash', 40000, 'green_fee_min', 5, 'green_fee_max', 250),
   'events', jsonb_build_object(
     'random_event_per_day_permille', 60, 'commission_offer_per_day_permille', 40, 'event_cash_scale_pct', 100)

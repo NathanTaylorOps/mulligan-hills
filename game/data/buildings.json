@@ -1,7 +1,7 @@
 {
   "schema": "mh.buildings",
   "schema_version": 2,
-  "status": "PARAMETERS, NOT FINAL. Score gates 32/42/52/62 and hole gates 6/10/14/18 follow DEC-048. Prices are payback-targeted (DEC-050): price = target_payback_days x added daily income, computed by the economy; the 6/8/10/12/15 day targets are placeholders for the economy simulation. Land layout, parcel prices, upkeep and home slots are placeholders. Structure and prerequisite links are fixed by the Master Plan review results.",
+  "status": "PARAMETERS, NOT FINAL. Score gates 32/42/52/62 and hole gates 6/10/14/18 follow DEC-048. Prices are payback-targeted (DEC-050): price = target_payback_days x added daily income, computed by the economy; the 10/12/16/50/80 day targets come from the DEC-066 economy rebalance (tools/reference/economy/sim.py). Land layout, upkeep and home slots are placeholders; parcel prices (8,000 growing 15 percent) come from the rebalance. Structure and prerequisite links are fixed by the Master Plan review results.",
   "score_scale": {
     "min": 0,
     "max": 100,
@@ -25,8 +25,8 @@
     "holes_per_two_golf_parcels": 3,
     "home_slots_per_homes_parcel": 3,
     "heavy_extra_parcels": 1,
-    "parcel_base_cost": 25000,
-    "parcel_growth_pct": 130,
+    "parcel_base_cost": 8000,
+    "parcel_growth_pct": 115,
     "grid": {
       "cols": 4,
       "rows": 4,
@@ -173,7 +173,7 @@
         {
           "tier": 1,
           "name_key": "building.clubhouse.tier1.name",
-          "target_payback_days": 6,
+          "target_payback_days": 10,
           "upkeep_per_day": 50,
           "requires": {
             "min_holes": 0,
@@ -188,7 +188,7 @@
         {
           "tier": 2,
           "name_key": "building.clubhouse.tier2.name",
-          "target_payback_days": 8,
+          "target_payback_days": 12,
           "upkeep_per_day": 100,
           "requires": {
             "min_holes": 6,
@@ -203,7 +203,7 @@
         {
           "tier": 3,
           "name_key": "building.clubhouse.tier3.name",
-          "target_payback_days": 10,
+          "target_payback_days": 16,
           "upkeep_per_day": 200,
           "requires": {
             "min_holes": 10,
@@ -221,7 +221,7 @@
         {
           "tier": 4,
           "name_key": "building.clubhouse.tier4.name",
-          "target_payback_days": 12,
+          "target_payback_days": 50,
           "upkeep_per_day": 400,
           "requires": {
             "min_holes": 14,
@@ -239,7 +239,7 @@
         {
           "tier": 5,
           "name_key": "building.clubhouse.tier5.name",
-          "target_payback_days": 15,
+          "target_payback_days": 80,
           "upkeep_per_day": 700,
           "requires": {
             "min_holes": 18,
@@ -275,7 +275,7 @@
         {
           "tier": 1,
           "name_key": "building.pro_shop.tier1.name",
-          "target_payback_days": 6,
+          "target_payback_days": 10,
           "upkeep_per_day": 20,
           "requires": {
             "min_holes": 0,
@@ -290,7 +290,7 @@
         {
           "tier": 2,
           "name_key": "building.pro_shop.tier2.name",
-          "target_payback_days": 8,
+          "target_payback_days": 12,
           "upkeep_per_day": 40,
           "requires": {
             "min_holes": 6,
@@ -305,7 +305,7 @@
         {
           "tier": 3,
           "name_key": "building.pro_shop.tier3.name",
-          "target_payback_days": 10,
+          "target_payback_days": 16,
           "upkeep_per_day": 80,
           "requires": {
             "min_holes": 10,
@@ -323,7 +323,7 @@
         {
           "tier": 4,
           "name_key": "building.pro_shop.tier4.name",
-          "target_payback_days": 12,
+          "target_payback_days": 50,
           "upkeep_per_day": 160,
           "requires": {
             "min_holes": 14,
@@ -346,7 +346,7 @@
         {
           "tier": 5,
           "name_key": "building.pro_shop.tier5.name",
-          "target_payback_days": 15,
+          "target_payback_days": 80,
           "upkeep_per_day": 280,
           "requires": {
             "min_holes": 18,
@@ -382,7 +382,7 @@
         {
           "tier": 1,
           "name_key": "building.driving_range.tier1.name",
-          "target_payback_days": 6,
+          "target_payback_days": 10,
           "upkeep_per_day": 30,
           "requires": {
             "min_holes": 0,
@@ -397,7 +397,7 @@
         {
           "tier": 2,
           "name_key": "building.driving_range.tier2.name",
-          "target_payback_days": 8,
+          "target_payback_days": 12,
           "upkeep_per_day": 60,
           "requires": {
             "min_holes": 6,
@@ -412,7 +412,7 @@
         {
           "tier": 3,
           "name_key": "building.driving_range.tier3.name",
-          "target_payback_days": 10,
+          "target_payback_days": 16,
           "upkeep_per_day": 120,
           "requires": {
             "min_holes": 10,
@@ -430,7 +430,7 @@
         {
           "tier": 4,
           "name_key": "building.driving_range.tier4.name",
-          "target_payback_days": 12,
+          "target_payback_days": 50,
           "upkeep_per_day": 240,
           "requires": {
             "min_holes": 14,
@@ -448,7 +448,7 @@
         {
           "tier": 5,
           "name_key": "building.driving_range.tier5.name",
-          "target_payback_days": 15,
+          "target_payback_days": 80,
           "upkeep_per_day": 420,
           "requires": {
             "min_holes": 18,
@@ -484,7 +484,7 @@
         {
           "tier": 1,
           "name_key": "building.restaurant.tier1.name",
-          "target_payback_days": 6,
+          "target_payback_days": 10,
           "upkeep_per_day": 37,
           "requires": {
             "min_holes": 0,
@@ -499,7 +499,7 @@
         {
           "tier": 2,
           "name_key": "building.restaurant.tier2.name",
-          "target_payback_days": 8,
+          "target_payback_days": 12,
           "upkeep_per_day": 75,
           "requires": {
             "min_holes": 6,
@@ -514,7 +514,7 @@
         {
           "tier": 3,
           "name_key": "building.restaurant.tier3.name",
-          "target_payback_days": 10,
+          "target_payback_days": 16,
           "upkeep_per_day": 150,
           "requires": {
             "min_holes": 10,
@@ -537,7 +537,7 @@
         {
           "tier": 4,
           "name_key": "building.restaurant.tier4.name",
-          "target_payback_days": 12,
+          "target_payback_days": 50,
           "upkeep_per_day": 300,
           "requires": {
             "min_holes": 14,
@@ -555,7 +555,7 @@
         {
           "tier": 5,
           "name_key": "building.restaurant.tier5.name",
-          "target_payback_days": 15,
+          "target_payback_days": 80,
           "upkeep_per_day": 525,
           "requires": {
             "min_holes": 18,
@@ -591,7 +591,7 @@
         {
           "tier": 1,
           "name_key": "building.pool_spa.tier1.name",
-          "target_payback_days": 6,
+          "target_payback_days": 10,
           "upkeep_per_day": 62,
           "requires": {
             "min_holes": 0,
@@ -606,7 +606,7 @@
         {
           "tier": 2,
           "name_key": "building.pool_spa.tier2.name",
-          "target_payback_days": 8,
+          "target_payback_days": 12,
           "upkeep_per_day": 125,
           "requires": {
             "min_holes": 6,
@@ -621,7 +621,7 @@
         {
           "tier": 3,
           "name_key": "building.pool_spa.tier3.name",
-          "target_payback_days": 10,
+          "target_payback_days": 16,
           "upkeep_per_day": 250,
           "requires": {
             "min_holes": 10,
@@ -639,7 +639,7 @@
         {
           "tier": 4,
           "name_key": "building.pool_spa.tier4.name",
-          "target_payback_days": 12,
+          "target_payback_days": 50,
           "upkeep_per_day": 500,
           "requires": {
             "min_holes": 14,
@@ -657,7 +657,7 @@
         {
           "tier": 5,
           "name_key": "building.pool_spa.tier5.name",
-          "target_payback_days": 15,
+          "target_payback_days": 80,
           "upkeep_per_day": 875,
           "requires": {
             "min_holes": 18,
@@ -693,7 +693,7 @@
         {
           "tier": 1,
           "name_key": "building.cart_barn.tier1.name",
-          "target_payback_days": 6,
+          "target_payback_days": 10,
           "upkeep_per_day": 20,
           "requires": {
             "min_holes": 0,
@@ -708,7 +708,7 @@
         {
           "tier": 2,
           "name_key": "building.cart_barn.tier2.name",
-          "target_payback_days": 8,
+          "target_payback_days": 12,
           "upkeep_per_day": 40,
           "requires": {
             "min_holes": 6,
@@ -723,7 +723,7 @@
         {
           "tier": 3,
           "name_key": "building.cart_barn.tier3.name",
-          "target_payback_days": 10,
+          "target_payback_days": 16,
           "upkeep_per_day": 80,
           "requires": {
             "min_holes": 10,
@@ -741,7 +741,7 @@
         {
           "tier": 4,
           "name_key": "building.cart_barn.tier4.name",
-          "target_payback_days": 12,
+          "target_payback_days": 50,
           "upkeep_per_day": 160,
           "requires": {
             "min_holes": 14,
@@ -759,7 +759,7 @@
         {
           "tier": 5,
           "name_key": "building.cart_barn.tier5.name",
-          "target_payback_days": 15,
+          "target_payback_days": 80,
           "upkeep_per_day": 280,
           "requires": {
             "min_holes": 18,
@@ -795,7 +795,7 @@
         {
           "tier": 1,
           "name_key": "building.maintenance.tier1.name",
-          "target_payback_days": 6,
+          "target_payback_days": 10,
           "upkeep_per_day": 25,
           "requires": {
             "min_holes": 0,
@@ -810,7 +810,7 @@
         {
           "tier": 2,
           "name_key": "building.maintenance.tier2.name",
-          "target_payback_days": 8,
+          "target_payback_days": 12,
           "upkeep_per_day": 50,
           "requires": {
             "min_holes": 6,
@@ -825,7 +825,7 @@
         {
           "tier": 3,
           "name_key": "building.maintenance.tier3.name",
-          "target_payback_days": 10,
+          "target_payback_days": 16,
           "upkeep_per_day": 100,
           "requires": {
             "min_holes": 10,
@@ -843,7 +843,7 @@
         {
           "tier": 4,
           "name_key": "building.maintenance.tier4.name",
-          "target_payback_days": 12,
+          "target_payback_days": 50,
           "upkeep_per_day": 200,
           "requires": {
             "min_holes": 14,
@@ -861,7 +861,7 @@
         {
           "tier": 5,
           "name_key": "building.maintenance.tier5.name",
-          "target_payback_days": 15,
+          "target_payback_days": 80,
           "upkeep_per_day": 350,
           "requires": {
             "min_holes": 18,
@@ -897,7 +897,7 @@
         {
           "tier": 1,
           "name_key": "building.lodging.tier1.name",
-          "target_payback_days": 6,
+          "target_payback_days": 10,
           "upkeep_per_day": 75,
           "requires": {
             "min_holes": 0,
@@ -912,7 +912,7 @@
         {
           "tier": 2,
           "name_key": "building.lodging.tier2.name",
-          "target_payback_days": 8,
+          "target_payback_days": 12,
           "upkeep_per_day": 150,
           "requires": {
             "min_holes": 6,
@@ -927,7 +927,7 @@
         {
           "tier": 3,
           "name_key": "building.lodging.tier3.name",
-          "target_payback_days": 10,
+          "target_payback_days": 16,
           "upkeep_per_day": 300,
           "requires": {
             "min_holes": 10,
@@ -950,7 +950,7 @@
         {
           "tier": 4,
           "name_key": "building.lodging.tier4.name",
-          "target_payback_days": 12,
+          "target_payback_days": 50,
           "upkeep_per_day": 600,
           "requires": {
             "min_holes": 14,
@@ -968,7 +968,7 @@
         {
           "tier": 5,
           "name_key": "building.lodging.tier5.name",
-          "target_payback_days": 15,
+          "target_payback_days": 80,
           "upkeep_per_day": 1050,
           "requires": {
             "min_holes": 18,
@@ -1005,7 +1005,7 @@
         {
           "tier": 1,
           "name_key": "building.homes.tier1.name",
-          "target_payback_days": 6,
+          "target_payback_days": 10,
           "upkeep_per_day": 100,
           "requires": {
             "min_holes": 0,
@@ -1020,7 +1020,7 @@
         {
           "tier": 2,
           "name_key": "building.homes.tier2.name",
-          "target_payback_days": 8,
+          "target_payback_days": 12,
           "upkeep_per_day": 200,
           "requires": {
             "min_holes": 6,
@@ -1035,7 +1035,7 @@
         {
           "tier": 3,
           "name_key": "building.homes.tier3.name",
-          "target_payback_days": 10,
+          "target_payback_days": 16,
           "upkeep_per_day": 400,
           "requires": {
             "min_holes": 10,
@@ -1053,7 +1053,7 @@
         {
           "tier": 4,
           "name_key": "building.homes.tier4.name",
-          "target_payback_days": 12,
+          "target_payback_days": 50,
           "upkeep_per_day": 800,
           "requires": {
             "min_holes": 14,
@@ -1076,7 +1076,7 @@
         {
           "tier": 5,
           "name_key": "building.homes.tier5.name",
-          "target_payback_days": 15,
+          "target_payback_days": 80,
           "upkeep_per_day": 1400,
           "requires": {
             "min_holes": 18,
@@ -1116,7 +1116,7 @@
         {
           "tier": 1,
           "name_key": "building.landmark.tier1.name",
-          "target_payback_days": 6,
+          "target_payback_days": 10,
           "upkeep_per_day": 150,
           "requires": {
             "min_holes": 0,
@@ -1131,7 +1131,7 @@
         {
           "tier": 2,
           "name_key": "building.landmark.tier2.name",
-          "target_payback_days": 8,
+          "target_payback_days": 12,
           "upkeep_per_day": 300,
           "requires": {
             "min_holes": 6,
@@ -1146,7 +1146,7 @@
         {
           "tier": 3,
           "name_key": "building.landmark.tier3.name",
-          "target_payback_days": 10,
+          "target_payback_days": 16,
           "upkeep_per_day": 600,
           "requires": {
             "min_holes": 10,
@@ -1164,7 +1164,7 @@
         {
           "tier": 4,
           "name_key": "building.landmark.tier4.name",
-          "target_payback_days": 12,
+          "target_payback_days": 50,
           "upkeep_per_day": 1200,
           "requires": {
             "min_holes": 14,
@@ -1182,7 +1182,7 @@
         {
           "tier": 5,
           "name_key": "building.landmark.tier5.name",
-          "target_payback_days": 15,
+          "target_payback_days": 80,
           "upkeep_per_day": 2100,
           "requires": {
             "min_holes": 18,

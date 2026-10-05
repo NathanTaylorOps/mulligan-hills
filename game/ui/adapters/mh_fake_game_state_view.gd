@@ -3,6 +3,10 @@ extends MHGameStateView
 ## Sample data for the UI gallery and the adapter contract tests. Numbers are PLACEHOLDERS shaped like a
 ## player about 12 days in: 7 holes, 3 buildings at tier 1, the 6-hole start plot, a few tokens.
 ## The `sample_*` methods change the sample for demos and tests; they are not part of the adapter contract.
+## Daily challenge, tournaments, achievements, club level and the tournament event come from the REAL modules
+## through MHProgressBridge (progression.json, achievements.json, tournaments.json, daily_challenges.json) fed with
+## sample inputs, so the gallery shows the same rows the live game will. sample_handle_intent runs the two
+## intents (tournament_host, daily_play) against that bridge.
 
 const SAMPLE_INCOME_BASE: Dictionary = {
 	"clubhouse": 900, "pro_shop": 500, "driving_range": 600, "restaurant": 700, "pool_spa": 650,
@@ -10,6 +14,12 @@ const SAMPLE_INCOME_BASE: Dictionary = {
 }
 ## Added daily income multiplier per tier (percent of the tier 1 base), placeholder.
 const SAMPLE_TIER_PCT: Array = [100, 200, 320, 500, 800]
+## Sample UTC day number and a time of day (10:00 UTC) for the daily challenge.
+const SAMPLE_UTC_DAY: int = 20730
+const SAMPLE_UNIX: int = SAMPLE_UTC_DAY * 86400 + 36000
+const SAMPLE_PACE: int = 55
+const SAMPLE_STAFF: int = 2
+const SAMPLE_DAILY_SCORES: Array = [40, 41, 43, 44, 44, 45, 46, 46, 47, 46, 46, 47, 46, 46]
 
 var _defs: MHBuildingDefs
 var _land: MHLandModel
@@ -27,6 +37,8 @@ var _scores: Array = [58, 47, 52, 39, 61, 44, 22]
 var _recovery_active: bool = false
 var _undo: bool = true
 var _redo: bool = false
+var _bridge: MHProgressBridge
+var _tournament_ready: bool = false
 
 
 func _init() -> void:
@@ -36,6 +48,9 @@ func _init() -> void:
 	_gate.tiers = {"clubhouse": 1, "pro_shop": 1, "cart_barn": 1}
 	_gate.demo = _demo
 	_rebuild_gate()
+	_bridge = MHProgressBridge.create()
+	_seed_progress()
+	_sync_bridge()
 
 
 func _rebuild_gate() -> void:
@@ -49,10 +64,102 @@ func _rebuild_gate() -> void:
 		_land.fill_view(_gate)
 
 
+## Club numbers the tournament entry checklist reads (see MHTournamentRules).
+func _club_view() -> Dictionary:
+	if _tournament_ready:
+		return {
+			"holes": 18, "avg_hole_score": 60, "pace_score": 80, "staff": 20,
+			"tiers": {"clubhouse": 4, "cart_barn": 4, "maintenance": 4, "restaurant": 4, "pro_shop": 2},
+		}
+	return {
+		"holes": _gate.holes, "avg_hole_score": _gate.avg_hole_score, "pace_score": SAMPLE_PACE,
+		"staff": SAMPLE_STAFF, "tiers": _gate.tiers.duplicate(),
+	}
+
+
+func _sync_bridge() -> void:
+	_bridge.update_inputs(_day, SAMPLE_UNIX, _cash, _club_view(), SAMPLE_DAILY_SCORES, {}, club_name())
+
+
+## A little history: a three day streak ending yesterday, yesterday's challenge done, one attempt today, and stats
+## from the sample course.
+@warning_ignore("integer_division")
+func _seed_progress() -> void:
+	if not _bridge.is_ready():
+		return
+	for d: int in range(SAMPLE_UTC_DAY - 3, SAMPLE_UTC_DAY):
+		_bridge.progression.record_active_day(d)
+	_bridge.daily.record_attempt(SAMPLE_UTC_DAY - 1, true, 700, 800)
+	_bridge.daily.record_attempt(SAMPLE_UTC_DAY, false, 480, 640)
+	_bridge.progression.record_active_day(SAMPLE_UTC_DAY)
+	var best: int = 0
+	for s: Variant in _scores:
+		best = maxi(best, int(s))
+	var snapshot: Dictionary = {
+		"holes_max": _scores.size(), "best_hole_score": best, "best_course_score": course_score_x10() / 10,
+		"members_max": _members, "reputation_max": 140, "lifetime_earned": 64200, "days_played": _day,
+		"tutorial_done": true,
+	}
+	if _land != null:
+		snapshot["parcels_max"] = _land.owned_count()
+	_bridge.observe_club(snapshot, _gate.tiers)
+
+
+## An attempt that exactly meets today's thresholds (sample only, so the gallery can show a completed challenge).
+func _sample_entry(ch: Dictionary) -> Dictionary:
+	var axes: Dictionary = {"accuracy": 50, "imagination": 50, "length": 50, "beauty": 50, "fairness": 50}
+	var amin: Dictionary = ch.get("axis_min", {}) as Dictionary
+	for k: Variant in amin.keys():
+		axes[str(k)] = int(amin[k])
+	var amax: Dictionary = ch.get("axis_max", {}) as Dictionary
+	for k2: Variant in amax.keys():
+		axes[str(k2)] = int(amax[k2])
+	var length_yd: int = 350
+	if ch.has("max_length_yd"):
+		length_yd = int(ch["max_length_yd"])
+	if ch.has("min_length_yd"):
+		length_yd = int(ch["min_length_yd"])
+	return {
+		"valid": true, "par": int(ch.get("par", 4)), "length_yd": length_yd,
+		"score": maxi(int(ch.get("min_score", 0)), int(ch.get("target_score", 0))), "axes": axes,
+	}
+
+
 # ------------------------------------------------------------------ sample controls (not the contract)
+
+func sample_bridge() -> MHProgressBridge:
+	return _bridge
+
+
+## Makes the club meet every tournament entry rule (holes, score, pace, staff, buildings) so Host can be pressed.
+func sample_set_tournament_ready(v: bool) -> void:
+	_tournament_ready = v
+	_sync_bridge()
+	changed.emit()
+
+
+## Runs one UI intent against the real modules. tournament_host takes the host cost from the sample cash;
+## daily_play plays one sample attempt that meets the target. Returns the bridge result (handled false for any
+## other intent). Emits changed when it handled something.
+func sample_handle_intent(id: StringName, args: Dictionary) -> Dictionary:
+	var r: Dictionary = _bridge.handle_intent(id, args)
+	if not bool(r.get("handled", false)):
+		return r
+	if id == &"tournament_host" and bool(r["ok"]):
+		_cash = maxi(0, _cash - int(r["cost"]))
+	elif id == &"daily_play" and bool(r["ok"]):
+		var done: Dictionary = _bridge.finish_daily_attempt(_sample_entry(r["challenge"] as Dictionary))
+		r["message_key"] = done["message_key"]
+		r["message_params"] = done["message_params"]
+		r["completed"] = done["completed"]
+	_sync_bridge()
+	changed.emit()
+	return r
+
 
 func sample_set_cash(v: int) -> void:
 	_cash = maxi(0, v)
+	_sync_bridge()
 	changed.emit()
 
 
@@ -80,6 +187,7 @@ func sample_set_recovery(v: bool) -> void:
 
 func sample_set_tier(building_id: String, tier: int) -> void:
 	_gate.tiers[building_id] = clampi(tier, 0, 5)
+	_sync_bridge()
 	changed.emit()
 
 
@@ -87,6 +195,7 @@ func sample_set_scores(scores: Array, members: int) -> void:
 	_scores = scores.duplicate()
 	_members = members
 	_rebuild_gate()
+	_sync_bridge()
 	changed.emit()
 
 
@@ -221,59 +330,35 @@ func land() -> MHLandModel:
 
 
 func daily_challenge() -> Dictionary:
-	return {
-		"enabled": true,
-		"title_key": "challenge.strategic_par4.title",
-		"desc_key": "challenge.strategic_par4.desc",
-		"attempts_left": 2, "attempts_total": 3,
-		"target_score": 55, "best_score": 48, "streak_days": 3, "ends_in_minutes": 380,
-		"board": [
-			{"name": "Marlow Pines", "score": 71},
-			{"name": "Quillon Ridge", "score": 66},
-			{"name": "Larkspur Hollow", "score": 48},
-			{"name": "Tern Point", "score": 44},
-		],
-	}
+	return _bridge.daily_row()
 
 
 func tournaments() -> Array:
-	var out: Array = []
-	var levels: Array = ["local", "regional", "national", "major"]
-	var costs: Array = [10000, 40000, 150000, 600000]
-	var rewards: Array = [15000, 60000, 220000, 900000]
-	var holes_need: Array = [10, 14, 18, 18]
-	var score_need: Array = [30, 42, 52, 62]
-	for i: int in range(levels.size()):
-		var rows: Array = []
-		rows.append(["holes", _gate.holes >= int(holes_need[i]), _gate.holes, int(holes_need[i])])
-		rows.append(["avg_hole_score", _gate.avg_hole_score >= int(score_need[i]), _gate.avg_hole_score, int(score_need[i])])
-		if i == 0:
-			rows.append(["building:clubhouse", _gate.tier_of("clubhouse") >= 3, _gate.tier_of("clubhouse"), 3])
-			rows.append(["building:cart_barn", _gate.tier_of("cart_barn") >= 2, _gate.tier_of("cart_barn"), 2])
-			rows.append(["building:maintenance", _gate.tier_of("maintenance") >= 2, _gate.tier_of("maintenance"), 2])
-		out.append({
-			"level": str(levels[i]), "status": "locked",
-			"host_cost": int(costs[i]), "reward_cash": int(rewards[i]), "reward_reputation": 50 * (i + 1),
-			"cooldown_days": 0, "rows": rows,
-		})
-	return out
+	return _bridge.tournament_rows()
+
+
+func tournament_event() -> Dictionary:
+	return _bridge.tournament_event()
 
 
 func achievements() -> Array:
-	var out: Array = []
-	out.append({"id": "first_hole", "category": "design", "tier": "bronze", "points": 5, "hidden": false, "earned": true, "progress": 1, "target": 1})
-	out.append({"id": "nine_holes", "category": "design", "tier": "bronze", "points": 10, "hidden": false, "earned": false, "progress": 7, "target": 9})
-	out.append({"id": "good_hole", "category": "design", "tier": "bronze", "points": 5, "hidden": false, "earned": true, "progress": 61, "target": 50})
-	out.append({"id": "great_hole", "category": "design", "tier": "bronze", "points": 10, "hidden": false, "earned": false, "progress": 61, "target": 70})
-	out.append({"id": "first_building", "category": "buildings", "tier": "bronze", "points": 5, "hidden": false, "earned": true, "progress": 1, "target": 1})
-	out.append({"id": "five_buildings", "category": "buildings", "tier": "bronze", "points": 10, "hidden": false, "earned": false, "progress": 3, "target": 5})
-	out.append({"id": "more_land", "category": "growth", "tier": "bronze", "points": 5, "hidden": false, "earned": false, "progress": 5, "target": 6})
-	out.append({"id": "fifty_members", "category": "growth", "tier": "silver", "points": 25, "hidden": false, "earned": false, "progress": 22, "target": 50})
-	out.append({"id": "first_tournament", "category": "tournaments", "tier": "silver", "points": 25, "hidden": false, "earned": false, "progress": 0, "target": 1})
-	out.append({"id": "first_challenge", "category": "daily", "tier": "bronze", "points": 5, "hidden": false, "earned": true, "progress": 1, "target": 1})
-	out.append({"id": "streak_seven", "category": "daily", "tier": "bronze", "points": 10, "hidden": false, "earned": false, "progress": 3, "target": 7})
-	out.append({"id": "card_player", "category": "misc", "tier": "bronze", "points": 5, "hidden": true, "earned": false, "progress": 0, "target": 1})
-	return out
+	return _bridge.achievement_rows()
+
+
+func club_level() -> int:
+	return _bridge.club_level()
+
+
+func club_points() -> int:
+	return _bridge.club_points()
+
+
+func points_for_next_level() -> int:
+	return _bridge.points_for_next_level()
+
+
+func level_title_key() -> String:
+	return _bridge.level_title_key()
 
 
 func recovery_offer() -> Dictionary:

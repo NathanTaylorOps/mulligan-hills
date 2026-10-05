@@ -8,7 +8,7 @@ All screens are built in code (no scene files except the gallery), use the syste
 
 Foundation (`game/ui/`)
 - `mh_theme.gd`, `mh_layout.gd`, `mh_safe_area.gd`, `mh_format.gd`, `mh_screen_stack.gd`, `mh_tokens.gd`, `mh_ui_settings.gd`, `mh_first_launch_flow.gd`, `mh_editor_tools.gd`, `mh_advisor.gd`: written earlier, reviewed and fixed, see section 3.
-- `mh_strings.gd` `MHStrings`: English string table (315 keys, DRAFT text for Nathan to edit), `t(key, params)`, `tr_key`, `has_key`; a missing key returns `[key]` and logs once. A param named `x_key` is translated and offered as `{x}`.
+- `mh_strings.gd` `MHStrings`: English string table (about 600 keys incl. the merged tournament, challenge and progression drafts, DRAFT text for Nathan to edit), `t(key, params)`, `tr_key`, `has_key`; a missing key returns `[key]` and logs once. A param named `x_key` is translated and offered as `{x}`.
 - `mh_ui_context.gd` `MHUIContext`: settings, dp conversion, layout class, safe insets (pure `recompute`).
 - `mh_screen_ids.gd` `MHScreenIds` (id constants), `mh_screen_factory.gd` `MHScreenFactory` (id to screen; separate files to avoid a cyclic class reference).
 - `mh_ui_shell.gd` `MHUIShell`: screen stack, modal, toasts, theme, safe area, first-launch flow, router glue (`region_rects`, `trigger_region`). Implements `push_screen`, `pop_screen`, `show_modal`, `toast`, `set_mode`, `layout_class`, `text_scale_pct`, `left_handed`, `colorblind_palette` from `docs/spec/interfaces/ui_shell.md`. `load_language` and `MHResult` are not built (neither exists).
@@ -18,6 +18,7 @@ Foundation (`game/ui/`)
 Adapter (`game/ui/adapters/`)
 - `mh_game_state_view.gd` `MHGameStateView`: READ-ONLY view the screens read. No setters, no buy, no spend. Row shapes are documented at the top of the file (hole rating, daily, tournament, achievement, recovery, product). Emits `changed`.
 - `mh_fake_game_state_view.gd` `MHFakeGameStateView`: sample data about 12 days in (7 holes, one dead; clubhouse, pro shop and cart barn at tier 1; the 6-hole start plot; $18,450; 7 earned tokens; 22 members). Uses the real `MHBuildingDefs`, `MHGateView`, `MHLandModel`. `sample_*` methods change the sample for the gallery and tests; they are not contract. Income per tier and token pack prices are PLACEHOLDERS.
+- `mh_progress_bridge.gd` `MHProgressBridge`: owns MHProgression, MHTournamentState and MHDailyState; read rows (`daily_row`, `tournament_rows` with `can_host`/`block_reason`, `tournament_event`, `achievement_rows`, level getters), intents `tournament_host {level}` and `daily_play`, save blocks. The fake view runs on it. `MHGameStateView` gained `tournament_event`, `club_level`, `club_points`, `points_for_next_level`, `level_title_key`. Tests: `test_progress_bridge.gd`.
 - The real adapter (wrapping the clock, economy, buildings, land, ledger, rating engine) is the next task. Screens never call those modules directly.
 
 Widgets (`game/ui/widgets/`)

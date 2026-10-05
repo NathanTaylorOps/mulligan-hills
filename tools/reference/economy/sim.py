@@ -31,6 +31,36 @@ DEMO_TIER = [b["demo_max_tier"] for b in BUILD["buildings"]]
 LAND = BUILD["land"]
 LEVEL_RANK = {"local": 1, "regional": 2, "national": 3, "major": 4}
 IDX = {b: i for i, b in enumerate(BIDS)}
+TOURN = json.load(open(os.path.join(ROOT, "docs", "spec", "data", "tournaments.json")))
+TLEVELS = {L["level"]: L for L in TOURN["levels"]}
+TCAP = TOURN["spectator_capacity_by_clubhouse_tier"]
+# Real play time per game day under the assumed speed mix (DEC-066): 60% of days at 1x (15 min), 25% at 2x (7.5 min),
+# 15% at 4x (3.75 min) = 12.1 min per game day on average. Used only to convert days to hours in the report.
+MIN_PER_DAY_X100 = 1213
+
+
+def tournament_revenue_dollars(level, clubhouse_tier):
+    """Mirror of MHTournamentSim.evaluate revenue on success (whole dollars): sponsor reward + entry fees + tickets."""
+    L = TLEVELS[level]
+    rv = L["revenue"]
+    cap = TCAP[max(0, min(clubhouse_tier, 5) - 1)] if clubhouse_tier > 0 else 0
+    entry = rv["entry_fee"] * L["field_size"]
+    tickets = (rv["ticket_price"] * cap * rv["attendance_pct"] // 100) * L["duration_days"]
+    return L["reward"]["cash"] + entry + tickets
+
+
+def tournament_eligible(level, e):
+    """Entry checklist from tournaments.json (holes, average score, building tiers, spectators). Pace and staff are not
+    modelled by the economy (no source yet), so the bot assumes they are met."""
+    en = TLEVELS[level]["entry"]
+    if e.holes < en["min_holes"] or e.rating < en["min_avg_hole_score"]:
+        return False
+    for b in en["buildings"]:
+        if e.tiers[IDX[b["building"]]] < b["min_tier"]:
+            return False
+    ch = e.tiers[0]
+    cap = TCAP[ch - 1] if ch > 0 else 0
+    return cap >= en["min_spectator_capacity"]
 
 
 def load():
@@ -157,8 +187,23 @@ ARCH = {
     "gouger":   (3, "roi", "max"),
     "cheap":    (3, "roi", "min"),
 }
-SKILL = {"low": 46, "mid": 56, "high": 66, "expert": 78}
-SKILL_W = {"low": 0.25, "mid": 0.40, "high": 0.25, "expert": 0.10}
+# Skill profiles. ASSUMPTION (invented, no player data): rating (average hole score) moves from the start rating toward a
+# personal ceiling, closing half the gap every `half-life` game days (uniform in the range given). Ceilings carry +-3 noise.
+# T5 needs rating 62 (DEC-048), so a profile whose ceiling is under about 62 can never finish; "casual-but-competent" =
+# every profile except novice.
+PROFILES = {
+    #            ceiling, half-life range (game days), population weight
+    "novice":    (58, (30, 50), 0.15),
+    "casual":    (68, (24, 42), 0.45),
+    "competent": (76, (18, 32), 0.30),
+    "expert":    (84, (12, 24), 0.10),
+}
+SKILL = {k: v[0] for k, v in PROFILES.items()}
+SKILL_W = {k: v[2] for k, v in PROFILES.items()}
+
+
+HABIT_W = {"casual": 0.35, "careful": 0.20, "sticky": 0.20, "greedy": 0.20, "cheap": 0.05}
+SNAP_DAYS = (10, 30, 60, 100, 150, 240, 400, 720)
 
 
 class Run:
@@ -168,7 +213,8 @@ class Run:
         self.rnd = random.Random(seed)
         self.arch = arch
         self.skill_cap = SKILL[skill_name] + self.rnd.uniform(-3, 3)
-        self.half_life = self.rnd.uniform(60, 130)   # game days to close half of the gap to the skill cap
+        lo, hi = PROFILES[skill_name][1]
+        self.half_life = self.rnd.uniform(lo, hi)   # game days to close half of the gap to the skill cap
         self.days = days
         self.demo = demo
         self.eco = E.Economy(P, UPK, -1 if start_cash is None else start_cash)
@@ -176,8 +222,11 @@ class Run:
         self.fee_reset = False
         self.nbuys = 0
         self.gp, self.fp, self.hp = 4, 1, 0
-        self.tourn_rank = 0
-        self.tourn_pending = (0, -1)
+        self.tourn_rank = 0                     # highest level hosted (1 local .. 4 major)
+        self.tourn_active = None                # (level, resolve_day, revenue_cents)
+        self.tourn_cd = 0                       # first day a new event may start
+        self.sink_spend = 0                     # cents spent on renovations and net cost of optional tournaments
+        self.tourn_count = 0
         self.tokens = tokens
         self.price = P["price_dollars"]
         self.res = {"first_any": {}, "all": {}, "first_stall": None, "bankrupt_events": 0, "loans": 0,
@@ -235,7 +284,7 @@ class Run:
         return buy
 
     # -- gates
-    def can_upgrade(self, b, tier):
+    def can_upgrade(self, b, tier, ignore_tourn=False):
         e = self.eco
         if e.tiers[b] != tier - 1:
             return False
@@ -253,7 +302,7 @@ class Run:
             if n < ao["count"]:
                 return False
         ht = q["hosted_tournament"]
-        if ht and self.tourn_rank < LEVEL_RANK[ht["min_level"]]:
+        if ht and not ignore_tourn and self.tourn_rank < LEVEL_RANK[ht["min_level"]]:
             return False
         return True
 
@@ -288,8 +337,20 @@ class Run:
             e.set_green_fee(self.c["fee_min_cents"])
 
     # -- candidate list
+    def tier5_waits_for(self, rank):
+        """True when some tier 5 upgrade needs a hosted tournament of at least `rank` and nothing else is missing."""
+        e = self.eco
+        for b in range(NB):
+            if e.tiers[b] != 4:
+                continue
+            ht = REQ[b][4]["hosted_tournament"]
+            if ht and LEVEL_RANK[ht["min_level"]] == rank and self.can_upgrade(b, 5, ignore_tourn=True):
+                return True
+        return False
+
     def candidates(self):
         e = self.eco
+        day_now = e.day
         cands = []
         hb = self.next_hole_bundle()
         if hb:
@@ -299,7 +360,7 @@ class Run:
                 pc = self.parcel_cost()
             par = e.parcels + len(buy)
             d = self.net_now(e.tiers, e.holes + 1, par, e.fee) - self.net_now(e.tiers, e.holes, e.parcels, e.fee)
-            cands.append(("hole", None, cost + pc, d, buy))
+            cands.append(("hole", None, cost + pc, d, buy, 1))
         for b in range(NB):
             tier = e.tiers[b] + 1
             if tier > 5 or not self.can_upgrade(b, tier):
@@ -315,29 +376,51 @@ class Run:
             t2 = list(e.tiers)
             t2[b] = tier
             d = self.net_now(t2, e.holes, e.parcels + len(buy), e.fee) - self.net_now(e.tiers, e.holes, e.parcels, e.fee)
-            cands.append(("tier", (b, tier), cost, d, buy))
-        # tournaments (ASSUMPTION: local needs 14 holes, rating 52, clubhouse 3; regional needs 18 holes, rating 62)
-        if self.tourn_pending[1] < 0:
-            if self.tourn_rank == 0 and e.holes >= 14 and e.rating >= 52 and e.tiers[0] >= 3:
-                cands.append(("tourn", 1, self.c["tournament_cost_cents"], 1, []))
-            elif self.tourn_rank == 1 and e.holes >= 18 and e.rating >= 62 and e.tiers[0] >= 4:
-                cands.append(("tourn", 2, self.c["tournament_regional_cost_cents"], 1, []))
+            cands.append(("tier", (b, tier), cost, d, buy, 1))
+        # tournaments: real entry checklist from tournaments.json. The bot hosts local (and regional) as soon as a tier 5
+        # upgrade is waiting only for it. National and major are optional late-game sinks, hosted after tier 5 is complete.
+        if self.tourn_active is None and day_now >= self.tourn_cd:
+            need_local = self.tourn_rank < 1 and self.tier5_waits_for(1)
+            need_regional = self.tourn_rank < 2 and self.tier5_waits_for(2)
+            for lvl, need in (("local", need_local), ("regional", need_regional)):
+                if need and tournament_eligible(lvl, e):
+                    cands.append(("tourn", lvl, TLEVELS[lvl]["host_cost"] * 100, 0, [], 0))
+                    break
+            if len(self.res["all"]) == 5 and self.tourn_rank >= 2:
+                for lvl in ("major", "national"):
+                    if tournament_eligible(lvl, e):
+                        cands.append(("tourn", lvl, TLEVELS[lvl]["host_cost"] * 100, 0, [], 2))
+                        break
+        # the bot renovates once everything is built, or from day 160 when it is evidently stuck below tier 5
+        if e.renovation_available() and (len(self.res["all"]) == 5 or day_now >= 160):
+            d = (E.day_estimate(self.P, UPK, e.tiers, e.holes, e.parcels, e.rating, e.members_milli, e.fee, e.reputation, 1000, e.renovation + 1)["net"]
+                 - E.day_estimate(self.P, UPK, e.tiers, e.holes, e.parcels, e.rating, e.members_milli, e.fee, e.reputation, 1000, e.renovation)["net"])
+            cands.append(("reno", None, e.renovation_cost(), d, [], 2))
         return cands
 
     def buy(self, cand, day):
-        kind, arg, cost, d, buy = cand
+        kind, arg, cost, d, buy, _prio = cand
         e = self.eco
         if e.spend(cost) != E.OK:
             return False
         self.nbuys += 1
         self.res["last_buy_day"] = day
+        self.res.setdefault("buy_days", []).append(day)
         self.apply_land(buy)
         if kind == "hole":
             e.holes += 1
             if e.holes >= 18 and self.res["h18"] is None:
                 self.res["h18"] = day
         elif kind == "tourn":
-            self.tourn_pending = (arg, day + 5)
+            L = TLEVELS[arg]
+            rev = tournament_revenue_dollars(arg, e.tiers[0]) * 100
+            self.tourn_active = (arg, day + L["prep_days"] + L["duration_days"], rev)
+            if LEVEL_RANK[arg] > 2:
+                self.sink_spend += cost - rev
+        elif kind == "reno":
+            e.renovation += 1
+            self.sink_spend += cost
+            self.res["reno_first"] = self.res.get("reno_first", day)
         else:
             b, tier = arg
             e.tiers[b] = tier
@@ -362,9 +445,9 @@ class Run:
                 break
             affordable_seen = True
             if style == "big":
-                afford.sort(key=lambda c: -c[2])
+                afford.sort(key=lambda c: (c[5] == 2, -c[2]))
             else:
-                afford.sort(key=lambda c: (c[0] != "tourn", -(c[3] * 1.0 / max(c[2], 1))))
+                afford.sort(key=lambda c: (c[5], c[2] if c[5] == 2 else -(c[3] * 1.0 / max(c[2], 1))))
             if not self.buy(afford[0], day):
                 break
             bought_any = True
@@ -377,15 +460,20 @@ class Run:
     def run(self):
         e = self.eco
         eco_days = self.days
+        e.day = 0
         e.set_green_fee(self.c["fee_start_cents"])
         gross = 1
         upkeep = 1
         for day in range(eco_days):
             gap = self.skill_cap - self.c["start_rating"]
             e.rating = int(self.c["start_rating"] + gap * (1.0 - 0.5 ** (day / self.half_life)))
-            if self.tourn_pending[1] >= 0 and day >= self.tourn_pending[1]:
-                self.tourn_rank = self.tourn_pending[0]
-                self.tourn_pending = (0, -1)
+            if self.tourn_active is not None and day >= self.tourn_active[1]:
+                lvl, _, rev = self.tourn_active
+                e.earn(rev)
+                self.tourn_rank = max(self.tourn_rank, LEVEL_RANK[lvl])
+                self.tourn_cd = day + TLEVELS[lvl]["cooldown_days"]
+                self.tourn_active = None
+                self.tourn_count += 1
             self.choose_fee(day)
             if self.shock:
                 e.ext_permille = self.shock[2] if self.shock[0] <= day < self.shock[0] + self.shock[1] else 1000
@@ -397,12 +485,16 @@ class Run:
                     self.res["first_stall"] = day
             elif status == "gate":
                 self.res["gate_blocked"] += 1
-            if e.cash > 30 * gross and status != "bought":
+            if e.cash > 30 * gross and status != "bought" and len(self.res["all"]) == 5:
                 self.res["pile_days"] += 1
             rev0 = e.total_revenue
             for h in range(E.HOURS_PER_DAY):
                 e.tick_hour()
             gross = max(e.total_revenue - rev0, 1)
+            if e.cash < self.c["start_cash_cents"] // 5:
+                self.res["low_first"] = self.res.get("low_first", day)
+                if day < 30:
+                    self.res["low_days30"] = self.res.get("low_days30", 0) + 1
             if self.res["m50"] is None and e.members() >= 50:
                 self.res["m50"] = day
             if e.bankrupt:
@@ -421,15 +513,17 @@ class Run:
                     break
             if (day + 1) % 7 == 0:
                 self.tokens += 2
-            if day + 1 in (30, 100):
+            if day + 1 in (10, 30, 100):
                 self.res.setdefault("buys", {})[day + 1] = self.nbuys
-            if day + 1 in (60, 180, 360, 540, 720, 1080, 1440):
+            if day + 1 in SNAP_DAYS:
                 self.res["snap"][day + 1] = {"cash": e.cash, "gross": gross, "net": gross - e.daily_upkeep(),
                                              "holes": e.holes, "tsum": sum(e.tiers), "rating": e.rating,
                                              "members": e.members(), "parcels": e.parcels}
             if len(self.res["all"]) == 5 and self.res["t5_full"] is None:
                 self.res["t5_full"] = day
         self.res["final_cash"] = e.cash
+        self.res["reno"] = e.renovation
+        self.res["sink_spend"] = self.sink_spend
         self.res["tiers"] = list(e.tiers)
         self.res["holes"] = e.holes
         self.res["skill_cap"] = self.skill_cap
@@ -451,89 +545,146 @@ def fmt(v):
     return "-" if v is None else str(v)
 
 
-def report(P, n=30, days=720):
-    print("=== balance report: %d runs per cell, %d game days (= %d real hours at 1x)" % (n, days, days * 15 // 60))
+def real_hours(day):
+    return day * MIN_PER_DAY_X100 / 100.0 / 60.0
+
+
+def q3(v):
+    if not v:
+        return "-"
+    return "%s/%s/%s" % (pct(v, .1), pct(v, .5), pct(v, .9))
+
+
+def report(P, n=60, days=400):
+    print("=== balance report: %d runs per profile, %d game days; real hours = days x %.1f min (assumed speed mix)" % (n, days, MIN_PER_DAY_X100 / 100.0))
+    print("Target (DEC-066): all ten buildings at tier 5 and 18 holes in 100 to 150 game days (about 20 to 30 hours).")
     out = {}
-    print("\n-- time to tier, balanced bot, casual fee habits (median day, reached/runs). 'any' = first building at that tier, 'all' = all ten")
-    for sk in SKILL:
+    fin = {}
+    print("\n-- per skill profile, casual fee habits. Days are p10/p50/p90 of the runs that got there; 'inf' = same bot with unlimited cash (the rating/gate floor)")
+    for sk in PROFILES:
         rs = cohort_runs(P, sk, "casual", n, days)
-        line = []
-        for k in range(1, 6):
-            a = [r["first_any"][k] for r in rs if k in r["first_any"]]
-            al = [r["all"][k] for r in rs if k in r["all"]]
-            line.append("T%d any %s all %s (%d/%d)" % (k, fmt(pct(a, .5)), fmt(pct(al, .5)), len(al), n))
-        print("%-7s %s" % (sk, " | ".join(line)))
-        sn = {d: [r["snap"][d] for r in rs if d in r["snap"]] for d in (60, 180, 360, 720)}
-        for d in (60, 180, 360, 720):
-            if sn[d]:
-                print("        day %3d median: cash $%s  gross/day $%s  net/day $%s  holes %s  tiers %s  rating %s  members %s  parcels %s" % (
-                    d, *[format(pct([x[k] for x in sn[d]], .5) // (100 if k in ("cash", "gross", "net") else 1), ",") for k in ("cash", "gross", "net")],
-                    *[pct([x[k] for x in sn[d]], .5) for k in ("holes", "tsum", "rating", "members", "parcels")]))
-        print("        purchases by day 30 / 100 (med): %s / %s" % (pct([r["buys"][30] for r in rs if "buys" in r and 30 in r["buys"]], .5), pct([r["buys"][100] for r in rs if "buys" in r and 100 in r["buys"]], .5)))
-        print("        cash-blocked days med %s, gate-blocked days med %s, pile days med %s, first cash stall day med %s, 18 holes day med %s, 50 members day med %s, bankrupt runs %d, quit %d" % (
-            pct([r["cash_blocked"] for r in rs], .5), pct([r["gate_blocked"] for r in rs], .5),
-            pct([r["pile_days"] for r in rs], .5), fmt(pct([r["first_stall"] for r in rs if r["first_stall"] is not None], .5)),
-            fmt(pct([r["h18"] for r in rs if r["h18"] is not None], .5)), fmt(pct([r["m50"] for r in rs if r["m50"] is not None], .5)),
-            sum(1 for r in rs if r["bankrupt_events"]), sum(1 for r in rs if r["quit"])))
+        inf = cohort_runs(P, sk, "casual", max(n // 3, 10), days, start_cash=10 ** 12)
         out[sk] = rs
-    print("\n-- behaviour archetypes (mid skill): bankruptcies and income")
+        line = []
+        for k in (3, 4, 5):
+            al = [r["all"][k] for r in rs if k in r["all"]]
+            line.append("T%d %s (%d/%d)" % (k, q3(al), len(al), n))
+        print("%-9s cap %d | %s" % (sk, PROFILES[sk][0], " | ".join(line)))
+        t5 = [r["all"][5] for r in rs if 5 in r["all"]]
+        i5 = [r["all"][5] for r in inf if 5 in r["all"]]
+        i4 = [r["all"][4] for r in inf if 4 in r["all"]]
+        h18 = [r["h18"] for r in rs if r["h18"] is not None]
+        print("          18 holes day %s | T5-all inf-cash day p50 %s, T4-all inf-cash p50 %s | T5-all p50 hours %s | full course AND T5 by day 150: %d/%d" % (
+            q3(h18), fmt(pct(i5, .5)), fmt(pct(i4, .5)), fmt(None if not t5 else round(real_hours(pct(t5, .5)), 1)),
+            sum(1 for r in rs if 5 in r["all"] and r["all"][5] <= 150 and r["h18"] is not None), n))
+        sn = {d: [r["snap"][d] for r in rs if d in r["snap"]] for d in SNAP_DAYS}
+        for d in (10, 30, 60, 100, 150, 400):
+            if sn.get(d):
+                print("          day %3d med: cash $%s gross/day $%s net/day $%s holes %s tiers %s rating %s members %s parcels %s" % (
+                    d, *[format(pct([x[k] for x in sn[d]], .5) // 100, ",") for k in ("cash", "gross", "net")],
+                    *[pct([x[k] for x in sn[d]], .5) for k in ("holes", "tsum", "rating", "members", "parcels")]))
+        print("          purchases by day 10/30/100 (med): %s/%s/%s | first cash stall day med %s | cash-blocked days med %s, gate-blocked med %s, pile days (after T5) med %s | reno levels at end med %s, sink spend med $%s | bankrupt %d" % (
+            pct([r["buys"][10] for r in rs if "buys" in r], .5), pct([r["buys"][30] for r in rs if "buys" in r], .5),
+            pct([r["buys"][100] for r in rs if "buys" in r], .5), fmt(pct([r["first_stall"] for r in rs if r["first_stall"] is not None], .5)),
+            pct([r["cash_blocked"] for r in rs], .5), pct([r["gate_blocked"] for r in rs], .5), pct([r["pile_days"] for r in rs], .5),
+            pct([r["reno"] for r in rs], .5), format((pct([r["sink_spend"] for r in rs], .5) or 0) // 100, ","),
+            sum(1 for r in rs if r["bankrupt_events"])))
+    # population: skill profile x habit mix (gouger is a stress case, not part of the mix)
+    print("\n-- population = skill weights %s x habit weights %s" % (
+        ", ".join("%s %d%%" % (k, round(SKILL_W[k] * 100)) for k in PROFILES),
+        ", ".join("%s %d%%" % (k, round(v * 100)) for k, v in HABIT_W.items())))
+    ncell = max(n // 3, 12)
+    cells = {}
+    for sk in PROFILES:
+        for arch in HABIT_W:
+            cells[(sk, arch)] = out[sk] if arch == "casual" else cohort_runs(P, sk, arch, ncell, days)
+
+    def share(profiles, lo, hi):
+        tot = 0.0
+        got = 0.0
+        for p in profiles:
+            for arch, hw in HABIT_W.items():
+                rs = cells[(p, arch)]
+                ok = sum(1 for r in rs if 5 in r["all"] and r["h18"] is not None and lo <= max(r["all"][5], r["h18"]) <= hi)
+                tot += SKILL_W[p] * hw
+                got += SKILL_W[p] * hw * ok / len(rs)
+        return 100.0 * got / tot
+
+    def fin_days(profiles):
+        v = []
+        for p in profiles:
+            for arch in HABIT_W:
+                v += [max(r["all"][5], r["h18"]) for r in cells[(p, arch)] if 5 in r["all"] and r["h18"] is not None]
+        return v
+    cbc = [p for p in PROFILES if p != "novice"]
+    summary = {}
+    for label, ps in (("all players", list(PROFILES)), ("casual-but-competent (not novice)", cbc)):
+        fd = fin_days(ps)
+        summary[label] = (share(ps, 0, 99), share(ps, 100, 150), share(ps, 0, 150), share(ps, 0, days))
+        print("%-34s finished (T5 all + 18 holes) before day 100: %4.1f%% | day 100-150: %4.1f%% | by day 150: %4.1f%% | by day %d: %4.1f%%" % (
+            label, summary[label][0], summary[label][1], summary[label][2], days, summary[label][3]))
+        print("%-34s finish day p10/p50/p90 of finishers %s = %s hours at the assumed speed mix, %s hours if every day ran at 1x" % (
+            "", q3(fd), "/".join(str(round(real_hours(x), 1)) for x in (pct(fd, .1), pct(fd, .5), pct(fd, .9))),
+            "/".join(str(round(x * 0.25, 1)) for x in (pct(fd, .1), pct(fd, .5), pct(fd, .9)))))
+    summary["tier5_reach_by_profile"] = {p: sum(1 for arch in HABIT_W for r in cells[(p, arch)] if 5 in r["all"]) * 100.0 / sum(len(cells[(p, arch)]) for arch in HABIT_W) for p in PROFILES}
+    print("T5 reached within %d days by profile: %s" % (days, ", ".join("%s %.0f%%" % (p, v) for p, v in summary["tier5_reach_by_profile"].items())))
+    print("\n-- behaviour archetypes (casual profile): finish day and bankruptcies")
     for arch in ARCH:
-        rs = cohort_runs(P, "mid", arch, n, days)
-        print("%-8s bankrupt runs %2d/%d  events med %s  loans taken %d  token recoveries %d  quit %d | day-360 gross/day med $%s | day-720 cash med $%s | T3 all med %s" % (
-            arch, sum(1 for r in rs if r["bankrupt_events"]), n, pct([r["bankrupt_events"] for r in rs], .5),
-            sum(r["loans"] for r in rs), sum(r["token_rec"] for r in rs), sum(1 for r in rs if r["quit"]),
-            format((pct([r["snap"][360]["gross"] for r in rs if 360 in r["snap"]], .5) or 0) // 100, ","),
-            format((pct([r["final_cash"] for r in rs], .5) or 0) // 100, ","),
-            fmt(pct([r["all"][3] for r in rs if 3 in r["all"]], .5))))
+        rs = cohort_runs(P, "casual", arch, max(n // 2, 15), days)
+        t5 = [r["all"][5] for r in rs if 5 in r["all"]]
+        print("%-8s T5-all p10/p50/p90 %s (%d/%d)  bankrupt runs %2d  loans %d token recoveries %d quit %d | day-150 gross/day med $%s | day-400 cash med $%s" % (
+            arch, q3(t5), len(t5), len(rs), sum(1 for r in rs if r["bankrupt_events"]), sum(r["loans"] for r in rs),
+            sum(r["token_rec"] for r in rs), sum(1 for r in rs if r["quit"]),
+            format((pct([r["snap"][150]["gross"] for r in rs if 150 in r["snap"]], .5) or 0) // 100, ","),
+            format((pct([r["final_cash"] for r in rs], .5) or 0) // 100, ",")))
     return out
 
 
 def demo_report(P, n=30):
     print("=== demo cut (DEC-055/063): 9 holes max, Clubhouse T2, Pro shop T2, Range T2, Restaurant T1 (7 building steps)")
-    for sk in ("low", "mid", "high"):
-        rs = cohort_runs(P, sk, "casual", n, 500, demo=True)
-        wall = [r["last_buy_day"] for r in rs if "last_buy_day" in r]
-        c100 = [r["snap"][360]["cash"] for r in rs if 360 in r["snap"]]
-        net = [r["snap"][360]["net"] for r in rs if 360 in r["snap"]]
-        print("%-5s last demo purchase day med %s (p25 %s, p75 %s) = %s real hours at 1x | holes %s | day-360 cash med $%s, net/day $%s" % (
-            sk, pct(wall, .5), pct(wall, .25), pct(wall, .75), (pct(wall, .5) or 0) * 15 // 60, pct([r["holes"] for r in rs], .5),
-            format((pct(c100, .5) or 0) // 100, ","), format((pct(net, .5) or 0) // 100, ",")))
+    for sc in (None, 25000, 15000):
+        for sk in ("novice", "casual", "competent"):
+            rs = cohort_runs(P, sk, "casual", n, 400, demo=True, start_cash=None if sc is None else sc * 100)
+            wall = [r["last_buy_day"] for r in rs if "last_buy_day" in r]
+            c150 = [r["snap"][150]["cash"] for r in rs if 150 in r["snap"]]
+            net = [r["snap"][150]["net"] for r in rs if 150 in r["snap"]]
+            print("start cash %-8s %-9s last demo purchase day med %s (p25 %s, p75 %s) = %s real hours | holes %s | day-150 cash med $%s, net/day $%s" % (
+                "default" if sc is None else "$%s" % format(sc, ","), sk, pct(wall, .5), pct(wall, .25), pct(wall, .75),
+                round(real_hours(pct(wall, .5) or 0), 1), pct([r["holes"] for r in rs], .5),
+                format((pct(c150, .5) or 0) // 100, ","), format((pct(net, .5) or 0) // 100, ",")))
 
 
 def stress_report(P, n=10):
     print("=== stress: demand shocks (events agent hook ext_permille). Rows: shock = (start day, days, demand permille of normal)")
-    for shock in [(40, 30, 250), (150, 30, 250), (300, 30, 250), (150, 30, 0), (300, 60, 0)]:
+    for shock in [(20, 30, 250), (80, 30, 250), (150, 30, 250), (80, 30, 0), (150, 60, 0)]:
         for arch in ("casual", "greedy"):
             rs = []
-            for sk in ("mid", "high"):
-                rs += cohort_runs(P, sk, arch, n, 500, shock=shock)
+            for sk in ("casual", "competent"):
+                rs += cohort_runs(P, sk, arch, n, 300, shock=shock)
             print("%-16s %-7s bankrupt runs %2d/%d  events %d  loans %d  token recoveries %d  quit %d" % (
                 shock, arch, sum(1 for r in rs if r["bankrupt_events"]), len(rs), sum(r["bankrupt_events"] for r in rs),
                 sum(r["loans"] for r in rs), sum(r["token_rec"] for r in rs), sum(1 for r in rs if r["quit"])))
 
 
-def sens_report(P, n=10):
-    print("=== sensitivities (mid and high skill, casual bot, median): T3-all day | T4-all day | T5-all day (high) | cash at day 720")
+def sens_report(P, n=12):
+    print("=== sensitivities (casual and competent profiles, casual habits, median): T3-all | T4-all | T5-all day | purchase-days d6-30 | cash at day 400")
     base_land = dict(LAND)
+
     def row(label, P2, start_cash=None):
         out = []
-        for sk in ("mid", "high"):
-            rs = cohort_runs(P2, sk, "casual", n, 720, start_cash=start_cash)
-            t = []
-            for k in (3, 4, 5):
-                v = [r["all"][k] for r in rs if k in r["all"]]
-                t.append(fmt(pct(v, .5)))
-            out.append("%s: T3 %s T4 %s T5 %s cash720 $%s" % (sk, t[0], t[1], t[2], format(pct([r["final_cash"] for r in rs], .5) // 100, ",")))
-        print("%-34s %s" % (label, " || ".join(out)))
-    for sc in (10000, 20000, 40000, 80000):
+        for sk in ("casual", "competent"):
+            rs = cohort_runs(P2, sk, "casual", n, 400, start_cash=start_cash)
+            t = [fmt(pct([r["all"][k] for r in rs if k in r["all"]], .5)) for k in (3, 4, 5)]
+            pd = pct([len([x for x in set(r.get("buy_days", [])) if 5 < x <= 30]) for r in rs], .5)
+            out.append("%s: T3 %s T4 %s T5 %s pd %s cash400 $%s" % (sk, t[0], t[1], t[2], pd, format(pct([r["final_cash"] for r in rs], .5) // 100, ",")))
+        print("%-30s %s" % (label, " || ".join(out)))
+    for sc in (20000, 30000, 50000, 80000):
         row("start cash $%s" % format(sc, ","), P, sc * 100)
-    for base, growth in ((25000, 130), (25000, 115), (12500, 130), (12500, 115)):
+    for base, growth in ((8000, 115), (8000, 130), (12000, 115), (25000, 130)):
         LAND["parcel_base_cost"] = base
         LAND["parcel_growth_pct"] = growth
         row("parcels $%s x %d%%" % (format(base, ","), growth), P)
     LAND.update(base_land)
-    for lo, hi in ((6, 8), (8, 12)):
-        pass
 
 
 def token_report(P):

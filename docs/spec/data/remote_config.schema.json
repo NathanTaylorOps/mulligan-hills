@@ -85,8 +85,6 @@
       "type": "object",
       "additionalProperties": false,
       "required": [
-        "cost_multiplier_x100",
-        "building_cost_scale_pct",
         "parcel_base_cost",
         "parcel_growth_pct",
         "hole_cost",
@@ -95,21 +93,6 @@
         "green_fee_max"
       ],
       "properties": {
-        "cost_multiplier_x100": {
-          "type": "array",
-          "minItems": 5,
-          "maxItems": 5,
-          "items": {
-            "type": "integer",
-            "minimum": 50,
-            "maximum": 5000
-          }
-        },
-        "building_cost_scale_pct": {
-          "type": "integer",
-          "minimum": 25,
-          "maximum": 400
-        },
         "parcel_base_cost": {
           "type": "integer",
           "minimum": 1000,
@@ -140,7 +123,8 @@
           "minimum": 1,
           "maximum": 10000
         }
-      }
+      },
+      "description": "Clamped economy knobs only. Building prices are NOT here: they are payback targets (DEC-050) owned by the economy data, and remote config never carries the price (PROP-03). The old cost_multiplier_x100 and building_cost_scale_pct were removed for that reason."
     },
     "events": {
       "type": "object",

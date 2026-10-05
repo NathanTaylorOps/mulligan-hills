@@ -19,7 +19,8 @@ def load(n):
 def bad(msg): fails.append(msg); print("FAIL", msg)
 def ok(msg): print("ok  ", msg)
 
-SCHEMAS = ["course","save","buildings","tournaments","commission_templates","event_cards","remote_config","analytics_catalog","analytics_event","strings"]
+SCHEMAS = ["course","save","buildings","tournaments","commission_templates","event_cards","remote_config","analytics_catalog","analytics_event","strings",
+           "achievements","daily_challenges","progression"]
 schemas = {s: load(s + ".schema.json") for s in SCHEMAS}
 reg = Registry()
 for s in schemas.values():
@@ -44,7 +45,9 @@ def no_floats(o, label, path=""):
 docs = {"course.example.json": "course", "save.example.json": "save", "buildings.json": "buildings", "tournaments.json": "tournaments",
         "commission_templates.example.json": "commission_templates", "event_cards.example.json": "event_cards",
         "remote_config.example.json": "remote_config", "analytics_catalog.json": "analytics_catalog",
-        "analytics_event.example.json": "analytics_event", "strings.example.en.json": "strings"}
+        "analytics_event.example.json": "analytics_event", "strings.example.en.json": "strings",
+        "event_cards.json": "event_cards", "achievements.json": "achievements", "daily_challenges.json": "daily_challenges",
+        "progression.json": "progression"}
 loaded = {}
 for f, s in docs.items():
     d = load(f); loaded[f] = d; check(s, d, f); no_floats(d, f)
@@ -118,6 +121,8 @@ else:
     with open(COPY, encoding="utf-8") as f1, open(os.path.join(HERE, "buildings.json"), encoding="utf-8") as f2:
         if json.load(f1) != json.load(f2): bad("game/data/buildings.json differs from docs/spec/data/buildings.json")
         else: ok("game/data/buildings.json equals docs/spec/data/buildings.json")
+# every building (this loop used to run on the last building only)
+for b in B["buildings"]:
     for t in b["tiers"]:
         r = t["requires"]
         if t["tier"] == 5 and not r["hosted_tournament"]: bad(f"{b['id']}: tier 5 needs a hosted tournament")
@@ -214,6 +219,98 @@ for k, v in S["strings"].items():
     if found != sorted(v.get("placeholders", [])): bad(f"strings {k}: placeholders {found} != declared {v.get('placeholders', [])}")
     if re.search(r"\s\s|^\s|\s$|—", v["text"]): bad(f"strings {k}: double space, edge space or em dash")
 ok("strings: length and placeholder checks done")
+
+# --- negative tests: save fields added after the first v1 files (all optional, v1 files stay valid) and ironman (DEC-058)
+sv = copy.deepcopy(loaded["save.example.json"]); sv["ironman"] = True; must_reject("save", sv, "ironman true (DEC-058)")
+sv = copy.deepcopy(loaded["save.example.json"]); sv["slot_kind"] = "ironman"; must_reject("save", sv, "slot_kind ironman (DEC-058)")
+sv = copy.deepcopy(loaded["save.example.json"]); sv["world"]["minute_of_day"] = 660; must_reject("save", sv, "minute_of_day 660 (day has 660 minutes, 0..659)")
+sv = copy.deepcopy(loaded["save.example.json"]); sv["progress"]["stats"]["unlocked_everything"] = 1; must_reject("save", sv, "unknown progress.stats key")
+sv = copy.deepcopy(loaded["save.example.json"]); sv["progress"]["stats"]["level"] = 1.5; must_reject("save", sv, "float in progress.stats")
+sv = copy.deepcopy(loaded["save.example.json"]); sv["progress"]["daily"]["best_pm"] = 1001; must_reject("save", sv, "daily best_pm over 1000")
+sv = copy.deepcopy(loaded["save.example.json"]); sv["progress"]["daily"]["board"] = [{"day": 1, "score_pm": 1, "fairness_pm": 1}] * 91; must_reject("save", sv, "daily board over 90 rows")
+sv = copy.deepcopy(loaded["save.example.json"]); sv["progress"]["streak"]["last_day"] = -2; must_reject("save", sv, "streak last_day below -1")
+# a legacy v1 save written before those fields existed must still validate
+sv = copy.deepcopy(loaded["save.example.json"])
+sv["ironman"] = False; del sv["world"]["minute_of_day"]
+for k in ("playtime_s", "stats", "streak", "daily"): del sv["progress"][k]
+for k in ("hosted_count", "attempted_count"): del sv["progress"]["tournaments"][k]
+check("save", sv, "legacy v1 save (ironman false, none of the later optional fields)")
+# stats keys equal the achievement stat enum plus bonus_prestige
+def _find_stat_enum(o):
+    if isinstance(o, dict):
+        for k, v in o.items():
+            if k == "enum" and isinstance(v, list) and "holes_max" in v: return v
+            r = _find_stat_enum(v)
+            if r: return r
+    elif isinstance(o, list):
+        for v in o:
+            r = _find_stat_enum(v)
+            if r: return r
+    return None
+stat_enum = _find_stat_enum(schemas["achievements"])
+if set(schemas["save"]["properties"]["progress"]["properties"]["stats"]["properties"]) != set(stat_enum) | {"bonus_prestige"}:
+    bad("save progress.stats keys differ from the achievement stat enum plus bonus_prestige")
+else: ok("save progress.stats keys equal the achievement stat enum plus bonus_prestige")
+
+# --- semantic: event cards (the full file, not only the example)
+EC = loaded["event_cards.json"]; ids = [c["id"] for c in EC["cards"]]
+if len(ids) != len(set(ids)): bad("event_cards: duplicate card ids")
+if len(ids) < 40: bad(f"event_cards: {len(ids)} cards, DEC-043 wants about 40 at launch")
+EC_OPS = {"add_cash", "add_reputation", "add_members", "add_prestige", "set_flag", "clear_flag", "weather_next_day", "golfer_flow_pct"}
+for c in EC["cards"]:
+    if c["weight"] < 1: bad(f"event card {c['id']}: weight below 1")
+    if len({ch["id"] for ch in c["choices"]}) != len(c["choices"]): bad(f"event card {c['id']}: duplicate choice ids")
+    for ch in c["choices"]:
+        for e in ch["effects"]:
+            if e["op"] not in EC_OPS: bad(f"event card {c['id']}/{ch['id']}: unknown effect op {e['op']}")
+    if c["id"] not in c["title_key"]: bad(f"event card {c['id']}: title_key does not contain the id")
+ECS = json.load(open(os.path.join(HERE, "..", "..", "..", "game", "core", "events", "event_cards_strings_en.json"), encoding="utf-8"))["strings"]
+for c in EC["cards"]:
+    for k in [c["title_key"], c["body_key"]] + [x for ch in c["choices"] for x in (ch["label_key"], ch["outcome_key"])]:
+        if k not in ECS: bad(f"event card {c['id']}: no draft string for {k}")
+        elif len(ECS[k]["text"]) > {"title": 28, "body": 300}.get(k.rsplit(".", 1)[1], 160 if k.endswith("_out") else 40): bad(f"event string {k}: {len(ECS[k]['text'])} chars is over the localization limit")
+ok(f"event_cards.json: {len(ids)} cards, unique ids, known effect ops, every text key has a draft string within the length limits")
+
+# --- runtime copies shipped in the game (docs/ is not exported)
+GAME_DATA = os.path.join(HERE, "..", "..", "..", "game", "data")
+for fn in ("tournaments.json", "daily_challenges.json", "achievements.json", "progression.json", "event_cards.json"):
+    p = os.path.join(GAME_DATA, fn)
+    if not os.path.exists(p): bad(f"game/data/{fn} (runtime copy) missing"); continue
+    with open(p, encoding="utf-8") as f1, open(os.path.join(HERE, fn), encoding="utf-8") as f2:
+        if json.load(f1) != json.load(f2): bad(f"game/data/{fn} differs from docs/spec/data/{fn}")
+        else: ok(f"game/data/{fn} equals docs/spec/data/{fn}")
+
+# --- semantic: progression, achievements, daily challenges
+P = loaded["progression.json"]
+if [l["level"] for l in P["levels"]] != list(range(1, len(P["levels"]) + 1)): bad("progression: levels must be numbered 1.. in order")
+if [l["prestige_needed"] for l in P["levels"]] != sorted({l["prestige_needed"] for l in P["levels"]}) or P["levels"][0]["prestige_needed"] != 0: bad("progression: prestige_needed must rise strictly from 0")
+A = loaded["achievements.json"]["achievements"]
+if len({a["id"] for a in A}) != len(A): bad("achievements: duplicate ids")
+for a in A:
+    for c in a["all"]:
+        if c["stat"] not in stat_enum: bad(f"achievement {a['id']}: unknown stat {c['stat']}")
+D = loaded["daily_challenges.json"]
+if len({t["id"] for t in D["templates"]}) != len(D["templates"]): bad("daily_challenges: duplicate template ids")
+ok("progression, achievements and daily challenges: semantic checks done")
+
+# --- export presets must pack the runtime JSON (res://data/*.json is read at runtime and is not a Godot resource)
+PRESETS = os.path.join(HERE, "..", "..", "..", "game", "export_presets.cfg.template")
+if not os.path.exists(PRESETS): bad("game/export_presets.cfg.template missing")
+else:
+    with open(PRESETS, encoding="utf-8") as f: txt = f.read()
+    filters = re.findall(r'^include_filter="([^"]*)"', txt, re.M)
+    names = re.findall(r'^name="([^"]*)"', txt, re.M)
+    if len(filters) < 5 or len(filters) != len([n for n in names if n in ("Android Debug APK", "Android Debug AAB", "Android Release AAB", "Windows Desktop", "iOS")]): bad(f"export presets: {len(filters)} include_filter lines for presets {names}")
+    for fl in filters:
+        parts = [p.strip() for p in fl.split(",")]
+        for need in ("build_info.json", "data/*.json", "data/*/*.json"):
+            if need not in parts: bad(f"export preset include_filter {fl!r} lacks {need}")
+    for sub in os.listdir(os.path.join(HERE, "..", "..", "..", "game", "data")):
+        pth = os.path.join(HERE, "..", "..", "..", "game", "data", sub)
+        if os.path.isdir(pth):
+            for _r, ds, _f in os.walk(pth):
+                if ds: bad(f"game/data/{sub} nests deeper than the data/*/*.json filter covers")
+    ok("export presets pack build_info.json and game/data/*.json and game/data/*/*.json")
 
 # --- unit sanity: no bare 'unlocked' or 'entitlement' key anywhere in save schema properties
 if re.search(r'"(unlocked|entitlement|is_paid|premium)"', json.dumps(schemas["save"]["properties"])): bad("save schema must not carry entitlement fields")

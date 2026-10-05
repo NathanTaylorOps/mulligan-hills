@@ -56,7 +56,7 @@ func _same_dict(a: Dictionary, want: Dictionary) -> void:
 
 func test_start_state() -> void:
 	var e: MHEconomy = _new_eco()
-	assert_int(e.cash).is_equal(4000000)
+	assert_int(e.cash).is_equal(_p.c("start_cash_cents"))
 	assert_int(e.green_fee()).is_equal(_p.c("fee_start_cents"))
 	assert_int(e.holes).is_equal(6)
 	assert_int(e.parcels).is_equal(5)
@@ -73,13 +73,14 @@ func test_create_rejects_bad_inputs() -> void:
 
 func test_spend_and_earn_rules() -> void:
 	var e: MHEconomy = _new_eco()
+	var start: int = _p.c("start_cash_cents")
 	assert_int(e.spend(-1)).is_equal(MHEconomy.ERR_INVALID)
-	assert_int(e.cash).is_equal(4000000)
-	assert_int(e.spend(4000001)).is_equal(MHEconomy.ERR_INSUFFICIENT)
-	assert_int(e.cash).is_equal(4000000)
-	assert_bool(e.can_afford(4000000)).is_true()
-	assert_bool(e.can_afford(4000001)).is_false()
-	assert_int(e.spend(4000000)).is_equal(MHEconomy.OK)
+	assert_int(e.cash).is_equal(start)
+	assert_int(e.spend(start + 1)).is_equal(MHEconomy.ERR_INSUFFICIENT)
+	assert_int(e.cash).is_equal(start)
+	assert_bool(e.can_afford(start)).is_true()
+	assert_bool(e.can_afford(start + 1)).is_false()
+	assert_int(e.spend(start)).is_equal(MHEconomy.OK)
 	assert_int(e.cash).is_equal(0)
 	assert_int(e.earn(-5)).is_equal(MHEconomy.ERR_INVALID)
 	assert_int(e.earn(250)).is_equal(MHEconomy.OK)
@@ -332,3 +333,58 @@ func test_deterministic_replay() -> void:
 		a.tick_hour()
 		b.tick_hour()
 	assert_array(Array(a.state_list())).is_equal(Array(b.state_list()))
+
+
+func test_golden_renovation_sink() -> void:
+	var sc: Dictionary = _g["scenario_renovation"]
+	var e: MHEconomy = _new_eco()
+	assert_bool(e.from_dict(sc["init"])).is_true()
+	assert_int(e.renovation).is_equal(0)
+	assert_bool(e.renovation_available()).is_true()
+	# refused when the course is short of 18 holes or one building is below renov_min_tier, and nothing is spent
+	var na: Array = sc["not_available"]
+	var short: MHEconomy = _new_eco()
+	short.from_dict({"cash": 1000000000, "holes": 17, "tiers": [5, 5, 5, 5, 5, 5, 5, 5, 5, 5]})
+	assert_int(short.purchase_renovation()).is_equal(int(na[0]))
+	assert_int(short.cash).is_equal(1000000000)
+	var low: MHEconomy = _new_eco()
+	low.from_dict({"cash": 1000000000, "holes": 18, "tiers": [5, 5, 5, 5, 5, 5, 5, 5, 5, 3]})
+	assert_int(low.purchase_renovation()).is_equal(int(na[1]))
+	assert_int(low.cash).is_equal(1000000000)
+	var res: Array = sc["results"]
+	var upkeep0: int = e.daily_upkeep()
+	assert_int(e.purchase_renovation()).is_equal(int(res[0]))
+	_same_dict(e.to_dict(), sc["after1"])
+	assert_bool(e.daily_upkeep() > upkeep0).is_true()
+	assert_int(e.purchase_renovation()).is_equal(int(res[1]))
+	_same_dict(e.to_dict(), sc["after2"])
+	var cash_before: int = e.cash
+	assert_int(e.purchase_renovation()).is_equal(int(res[2]))
+	assert_int(e.cash).is_equal(cash_before)
+	assert_int(e.renovation).is_equal(2)
+	_replay(e, sc["rows"])
+	_same_dict(e.to_dict(), sc["final"])
+
+
+func test_renovation_stops_at_the_maximum_and_survives_save() -> void:
+	var e: MHEconomy = _new_eco()
+	e.from_dict({"cash": 1000000000000, "holes": 18, "tiers": [5, 5, 5, 5, 5, 5, 5, 5, 5, 5]})
+	for i: int in range(_p.c("renov_max_levels")):
+		assert_int(e.purchase_renovation()).is_equal(MHEconomy.OK)
+	assert_bool(e.renovation_available()).is_false()
+	assert_int(e.renovation_cost()).is_equal(0)
+	assert_int(e.purchase_renovation()).is_equal(MHEconomy.ERR_NOT_AVAILABLE)
+	var f: MHEconomy = _new_eco()
+	assert_bool(f.from_dict(e.to_dict())).is_true()
+	assert_int(f.renovation).is_equal(_p.c("renov_max_levels"))
+	assert_bool(f.from_dict({"renovation": _p.c("renov_max_levels") + 1})).is_false()
+	assert_bool(f.from_dict({"renovation": -1})).is_false()
+
+
+func test_renovation_opens_at_tier_four() -> void:
+	var e: MHEconomy = _new_eco()
+	e.from_dict({"cash": 1000000000, "holes": 18, "tiers": [4, 4, 4, 4, 4, 4, 4, 4, 4, 4]})
+	assert_int(_p.c("renov_min_tier")).is_equal(4)
+	assert_bool(e.renovation_available()).is_true()
+	assert_int(e.purchase_renovation()).is_equal(MHEconomy.OK)
+	assert_int(e.renovation).is_equal(1)

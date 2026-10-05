@@ -38,14 +38,14 @@ Item 10 (kill during save leaves a loadable file at every instant): the JSON and
 
 ## 5. Risks and follow-ups (for the lead, not owned by this workstream)
 
-1. Schema gaps. `docs/spec/data/save.schema.json` has `additionalProperties: false`, and these are needed: `progress.playtime_s` (cloud conflict prompt needs play time; the code treats it as optional and `validate()` accepts it, but validate.py would reject a save that carries it) and a place for the in-day clock position (see `clock_events.md`, `world.minute_of_day` proposed). The schema still lists `slot_kind: "ironman"` and an `ironman` boolean; the code rejects both. `SAVE_MIGRATION.md` rules 9 (ironman) and the "resume at start of day" paragraph are out of date after DEC-052 and DEC-058.
+1. Schema gaps: FIXED. `save.schema.json` now has the optional additions `world.minute_of_day` (0..659, DEC-052), `progress.playtime_s`, `progress.tournaments.hosted_count/attempted_count`, `progress.stats`, `progress.streak` and `progress.daily`; `ironman` is optional and must be false, `slot_kind` is autosave/manual/backup (DEC-058). `save_version` stays 1: the new fields are optional, so old v1 saves stay valid and readers use defaults (SAVE_MIGRATION.md rules 12 and 13). `MHSaveGame.validate` checks them (`test_save_progress.gd`).
 2. The terrain pairing hash (`course.terrain.content_hash`) is the 32-bit FNV-1a of heights only. A torn pair that differs only in paint layers (splat) would not be detected. The blob header already holds a splat hash; adding it to the JSON is a schema change.
 3. Cloud upload and the real conflict prompt belong to the platform and UI workstreams; this module only provides the model and the validated export/import calls.
 4. `MHSaveGame.course_validator` must be set by the course module so the embedded course is checked on load and save (loader step 7).
 5. The sim and rating versions in `written_by` and `ratings.rating_version` are stored but the "recompute ratings on version mismatch" step (loader step 8) is the rating module's job.
 6. After loading, the game must set `store.last_saved_hour = MHAutosavePolicy.hour_of(clock.total_minutes())`, otherwise the first hour after load saves immediately (harmless, one extra write).
 7. Heal after a "JSON newer than blob" recovery rewrites the older JSON as the main file and moves the newer one to `.bak`. The next load tries the newer one first and falls back again until the next save. Correct, slightly wasteful; acceptable.
-8. Export presets only include `build_info.json` (`include_filter`). Godot may not pack plain `.json` files such as `res://data/event_cards.json`; workstream A should add `data/*.json` to the include filter and confirm on a device build.
+8. Export presets: `export_presets.cfg.template` now includes `data/*.json, data/*/*.json` next to `build_info.json` (checked by validate.py). Still to confirm on a real device export that the JSON files are packed.
 
 ## 6. For Nathan
 

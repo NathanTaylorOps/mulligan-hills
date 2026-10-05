@@ -35,13 +35,13 @@ func test_score_and_hole_gates_every_building() -> void:
 
 
 func test_payback_targets_and_no_fixed_cost() -> void:
-	var pay: Array = [6, 8, 10, 12, 15]
+	var pay: Array = [10, 12, 16, 50, 80]
 	for b: Variant in _defs.ids():
 		var id: String = str(b)
 		for t: int in range(1, 6):
 			assert_int(_defs.target_payback_days(id, t)).is_equal(int(pay[t - 1]))
 			assert_bool(_defs.tier_data(id, t).has("cost")).is_false()
-	assert_int(_defs.price_for("clubhouse", 2, 500)).is_equal(4000)
+	assert_int(_defs.price_for("clubhouse", 2, 500)).is_equal(6000)
 	assert_int(_defs.price_for("clubhouse", 2, -5)).is_equal(0)
 
 

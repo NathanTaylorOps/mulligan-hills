@@ -272,7 +272,59 @@ func load_save_ids(ids: Array) -> int:
 	return dropped
 
 
-## Stats, unlocked ids and streak (the streak and stats are not in save.schema.json yet, see the docs).
+## The progression part of a save document's `progress` object (save.schema.json): achievements (unlocked ids),
+## stats (flat map of high-water marks) and streak. Merge it into the progress dictionary the save builds.
+func to_save_progress() -> Dictionary:
+	return {
+		"achievements": to_save_ids(),
+		"stats": stats.to_save_block(),
+		"streak": streak.to_save_block(),
+	}
+
+
+## Reads achievements, stats and streak from a save's `progress` object. A missing "stats" or "streak" block (a v1
+## save written before they existed) leaves the current values, so the streak starts fresh and the stats rebuild
+## from the next observe calls. A malformed block returns false and changes nothing. Call refresh() afterwards.
+func load_save_progress(progress: Dictionary) -> bool:
+	var new_stats: MHProgressStats = null
+	if progress.has("stats"):
+		if typeof(progress["stats"]) != TYPE_DICTIONARY:
+			return false
+		new_stats = MHProgressStats.new()
+		if not new_stats.from_save_block(progress["stats"] as Dictionary):
+			return false
+	var new_streak: MHStreak = null
+	if progress.has("streak"):
+		if typeof(progress["streak"]) != TYPE_DICTIONARY:
+			return false
+		new_streak = _blank_streak()
+		if not new_streak.from_save_block(progress["streak"] as Dictionary):
+			return false
+	if progress.has("achievements") and typeof(progress["achievements"]) != TYPE_ARRAY:
+		return false
+	if new_stats != null:
+		stats = new_stats
+	if new_streak != null:
+		streak = new_streak
+	if progress.has("achievements"):
+		load_save_ids(progress["achievements"] as Array)
+	return true
+
+
+## A streak with the configured rules (from progression.json) and no history.
+func _blank_streak() -> MHStreak:
+	var s: MHStreak = MHStreak.new()
+	s.grace_start = streak.grace_start
+	s.grace_max = streak.grace_max
+	s.regain_every_days = streak.regain_every_days
+	s.max_bridge_days = streak.max_bridge_days
+	s.resume_percent = streak.resume_percent
+	s.milestones = streak.milestones.duplicate(true)
+	s.grace = mini(s.grace_start, s.grace_max)
+	return s
+
+
+## Stats, unlocked ids and streak in one Dictionary (a self-contained snapshot; saves use to_save_progress).
 func to_dict() -> Dictionary:
 	return {
 		"v": SAVE_VERSION,

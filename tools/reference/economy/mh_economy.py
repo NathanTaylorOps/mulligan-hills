@@ -167,9 +167,9 @@ def building_upkeep_cents(upkeep_dollars, tiers):
     return u
 
 
-def day_estimate(P, upkeep_dollars, tiers, holes, parcels, rating, members_milli, fee, rep=1000, ext=1000):
+def day_estimate(P, upkeep_dollars, tiers, holes, parcels, rating, members_milli, fee, rep=1000, ext=1000, renovation=0):
     """Expected one-day figures, integer cents. Used for pricing, fee suggestion and bot decisions."""
-    dem = effect_sum(P, tiers, "dem")
+    dem = effect_sum(P, tiers, "dem") + renovation_dem_milli(P, renovation)
     anc = effect_sum(P, tiers, "anc")
     arr = arrivals_milli(P, holes, rating, dem, rep, ext)
     acc = acceptance_permille(fee, wtp_cents(P, rating, holes))
@@ -180,17 +180,17 @@ def day_estimate(P, upkeep_dollars, tiers, holes, parcels, rating, members_milli
     ancr = (g * anc) // 1000
     cut = effect_sum(P, tiers, "cut")
     up_course = course_upkeep_cents(P, holes, parcels, cut)
-    up_bld = building_upkeep_cents(upkeep_dollars, tiers)
+    up_bld = building_upkeep_cents(upkeep_dollars, tiers) + renovation_upkeep_cents(P, renovation)
     return {"arrivals_milli": arr, "acc": acc, "golfers_milli": g, "fees": fees, "anc": ancr, "flat": flat,
             "dues": dues, "revenue": fees + ancr + flat + dues, "upkeep_course": up_course,
             "upkeep_buildings": up_bld, "upkeep": up_course + up_bld,
             "net": fees + ancr + flat + dues - up_course - up_bld}
 
 
-def suggest_fee_cents(P, upkeep_dollars, tiers, holes, rating, rep=1000):
+def suggest_fee_cents(P, upkeep_dollars, tiers, holes, rating, rep=1000, renovation=0):
     """Fee that maximises fees + ancillary per day (first maximum, so ties go to the lower fee)."""
     c = P["core"]
-    dem = effect_sum(P, tiers, "dem")
+    dem = effect_sum(P, tiers, "dem") + renovation_dem_milli(P, renovation)
     anc = effect_sum(P, tiers, "anc")
     arr = arrivals_milli(P, holes, rating, dem, rep, 1000)
     w = wtp_cents(P, rating, holes)
@@ -231,6 +231,28 @@ def hole_cost_cents(P, holes_built):
     return d * 100
 
 
+def renovation_cost_cents(P, level):
+    """Cost of buying renovation level+1 when `level` renovations are done (late-game cash sink, geometric, whole
+    dollars). Returns 0 when the maximum level is reached."""
+    c = P["core"]
+    if level < 0 or level >= c["renov_max_levels"]:
+        return 0
+    d = c["renov_base_dollars"]
+    for _ in range(level):
+        d = (d * c["renov_growth_permille"]) // 1000
+    return d * 100
+
+
+def renovation_dem_milli(P, level):
+    """Extra golfers per day x1000 that `level` renovations add (additive, like building demand)."""
+    return clamp(level, 0, P["core"]["renov_max_levels"]) * P["core"]["renov_dem_milli_per_level"]
+
+
+def renovation_upkeep_cents(P, level):
+    """Extra upkeep per day that `level` renovations add (not reduced by Maintenance)."""
+    return clamp(level, 0, P["core"]["renov_max_levels"]) * P["core"]["renov_upkeep_cents_per_level"]
+
+
 def speed_tokens_for_days(game_days):
     """Tokens a sped-up stretch costs under the clock's own rates (game/core/clock/mh_game_clock.gd): 2x, 4x and 8x
     drain 1, 2 and 4 tokens per real minute while a game day lasts 7.5, 3.75 and 1.875 real minutes, so every sped-up
@@ -263,6 +285,7 @@ class Economy:
         self.rating = self.c["start_rating"]
         self.parcels = self.c["start_parcels"]
         self.tiers = [0] * NB
+        self.renovation = 0
         self.ext_permille = 1000
         self.total_revenue = 0
         self.total_upkeep_paid = 0
@@ -297,13 +320,36 @@ class Economy:
 
     def daily_upkeep(self):
         cut = effect_sum(self.P, self.tiers, "cut")
-        return course_upkeep_cents(self.P, self.holes, self.parcels, cut) + building_upkeep_cents(self.upk, self.tiers)
+        return (course_upkeep_cents(self.P, self.holes, self.parcels, cut) + building_upkeep_cents(self.upk, self.tiers)
+                + renovation_upkeep_cents(self.P, self.renovation))
+
+    # renovation (late-game sink): needs a full 18-hole course and every building at tier renov_min_tier (4) or higher,
+    # so a player who is stuck below tier 5 on the rating gate still has something to spend cash on
+    def renovation_available(self):
+        if self.holes < 18:
+            return False
+        for t in self.tiers:
+            if t < self.c["renov_min_tier"]:
+                return False
+        return self.renovation < self.c["renov_max_levels"]
+
+    def renovation_cost(self):
+        return renovation_cost_cents(self.P, self.renovation)
+
+    def purchase_renovation(self):
+        if not self.renovation_available():
+            return ERR_NOT_AVAILABLE
+        r = self.spend(self.renovation_cost())
+        if r != OK:
+            return r
+        self.renovation += 1
+        return OK
 
     # one game hour
     def tick_hour(self):
         P = self.P
         h = self.hour
-        dem = effect_sum(P, self.tiers, "dem")
+        dem = effect_sum(P, self.tiers, "dem") + renovation_dem_milli(P, self.renovation)
         anc = effect_sum(P, self.tiers, "anc")
         arr = arrivals_milli(P, self.holes, self.rating, dem, self.reputation, self.ext_permille)
         acc = acceptance_permille(self.fee, wtp_cents(P, self.rating, self.holes))
@@ -417,13 +463,13 @@ class Economy:
                 "holiday_hours": self.holiday_hours, "bankrupt": 1 if self.bankrupt else 0,
                 "carry_milli": self.carry_milli, "last_daily_upkeep": self.last_daily_upkeep,
                 "members_milli": self.members_milli, "holes": self.holes, "rating": self.rating,
-                "parcels": self.parcels, "ext_permille": self.ext_permille, "tiers": list(self.tiers),
-                "total_revenue": self.total_revenue, "total_upkeep_paid": self.total_upkeep_paid}
+                "parcels": self.parcels, "ext_permille": self.ext_permille, "renovation": self.renovation,
+                "tiers": list(self.tiers), "total_revenue": self.total_revenue, "total_upkeep_paid": self.total_upkeep_paid}
 
     def from_dict(self, d):
         for k in ("cash", "fee", "day", "hour", "arrears", "loan_balance", "loans_taken", "reputation",
                   "holiday_hours", "carry_milli", "last_daily_upkeep", "members_milli", "holes", "rating",
-                  "parcels", "ext_permille", "total_revenue", "total_upkeep_paid"):
+                  "parcels", "ext_permille", "renovation", "total_revenue", "total_upkeep_paid"):
             if k in d:
                 setattr(self, k, d[k])
         if "bankrupt" in d:

@@ -60,15 +60,15 @@ func test_buyable_at_start_sorted() -> void:
 
 
 func test_price_curve_integer() -> void:
-	# base 25000, growth 130 percent, truncating integer division each step
-	assert_int(_land.price_for_purchase_index(0)).is_equal(25000)
-	assert_int(_land.price_for_purchase_index(1)).is_equal(32500)
-	assert_int(_land.price_for_purchase_index(2)).is_equal(42250)
-	assert_int(_land.price_for_purchase_index(3)).is_equal(54925)
-	assert_int(_land.next_price()).is_equal(25000)
-	assert_int(_land.buy(4)).is_equal(25000)
-	assert_int(_land.next_price()).is_equal(32500)
-	assert_int(_land.buy(0)).is_equal(32500)
+	# base 8000, growth 115 percent, truncating integer division each step (economy rebalance, DEC-066)
+	assert_int(_land.price_for_purchase_index(0)).is_equal(8000)
+	assert_int(_land.price_for_purchase_index(1)).is_equal(9200)
+	assert_int(_land.price_for_purchase_index(2)).is_equal(10580)
+	assert_int(_land.price_for_purchase_index(3)).is_equal(12167)
+	assert_int(_land.next_price()).is_equal(8000)
+	assert_int(_land.buy(4)).is_equal(8000)
+	assert_int(_land.next_price()).is_equal(9200)
+	assert_int(_land.buy(0)).is_equal(9200)
 
 
 func test_buy_all_in_recommended_order() -> void:

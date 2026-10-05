@@ -16,12 +16,12 @@ func test_cost_is_payback_days_times_income() -> void:
 	var v: MHFakeGameStateView = MHFakeGameStateView.new()
 	var c: Dictionary = MHBuildMenuModel.row(v, "clubhouse")
 	assert_int(int(c["next_tier"])).is_equal(2)
-	assert_int(int(c["payback_days"])).is_equal(8)
+	assert_int(int(c["payback_days"])).is_equal(12)
 	assert_int(int(c["income"])).is_equal(1800)
-	assert_int(int(c["cost"])).is_equal(14400)
+	assert_int(int(c["cost"])).is_equal(21600)
 	assert_bool(bool(c["cost_known"])).is_true()
 	var p: Dictionary = MHBuildMenuModel.row(v, "pro_shop")
-	assert_int(int(p["cost"])).is_equal(8000)
+	assert_int(int(p["cost"])).is_equal(12000)
 	for r: Variant in MHBuildMenuModel.rows(v):
 		var d: Dictionary = r
 		if bool(d["maxed"]):
@@ -108,7 +108,7 @@ func test_reason_mapping() -> void:
 	assert_str(str((k["params"] as Dictionary)["kind_key"])).is_equal("land.kind.homes")
 	assert_str(str(MHBuildMenuModel.reason_for_row(["avg_hole_score", false, 1, 2])["key"])).is_equal("build.req.avg_score")
 	assert_str(str(MHBuildMenuModel.reason_for_row(["wat", false, 1, 2])["key"])).is_equal("build.req.unknown")
-	for row_key: String in ["holes", "avg_hole_score", "parcels_owned", "members", "any_others", "demo_limit", "previous_tier", "hosted_tournament", "building:landmark", "parcel_kind:homes", "unknown_tier"]:
+	for row_key: String in ["holes", "avg_hole_score", "parcels_owned", "members", "any_others", "demo_limit", "previous_tier", "hosted_tournament", "building:landmark", "parcel_kind:homes", "unknown_tier", "pace_score", "staff", "spectators"]:
 		var rr: Dictionary = MHBuildMenuModel.reason_for_row([row_key, false, 0, 1])
 		assert_bool(MHStrings.has_key(str(rr["key"]))).override_failure_message("no text for " + row_key).is_true()
 

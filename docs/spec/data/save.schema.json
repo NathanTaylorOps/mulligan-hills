@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://schemas.mulliganhills.example/save.schema.json",
   "title": "Mulligan Hills save file v1",
-  "description": "One save slot. Rules: every integer is within +/-2^53 (Godot JSON parses numbers as float64; 64-bit values such as RNG state are stored as 16-char hex strings). No floats. NO entitlement, unlock flag or receipt is ever stored here (additionalProperties is false, so a stray 'unlocked' key fails validation); the paid unlock lives in the separate signed entitlement cache. In-flight golfers are not saved: the simulation resumes at the start of the saved day. See SAVE_MIGRATION.md.",
+  "description": "One save slot. Rules: every integer is within +/-2^53 (Godot JSON parses numbers as float64; 64-bit values such as RNG state are stored as 16-char hex strings). No floats. NO entitlement, unlock flag or receipt is ever stored here (additionalProperties is false, so a stray 'unlocked' key fails validation); the paid unlock lives in the separate signed entitlement cache. In-flight golfers are not saved: the simulation resumes at world.minute_of_day of the saved day with a fresh golfer roster (DEC-052). Ironman was cut (DEC-058): the legacy 'ironman' key is optional and must be false. Fields added after the first v1 files (world.minute_of_day, progress.playtime_s, progress.stats, progress.streak, progress.daily, progress.tournaments counters) are all optional so older v1 saves stay valid; readers default them. See SAVE_MIGRATION.md.",
   "type": "object",
   "additionalProperties": false,
   "required": [
@@ -16,7 +16,6 @@
     "saved_at_unix",
     "install_id",
     "mode",
-    "ironman",
     "checksum",
     "world",
     "club",
@@ -84,8 +83,7 @@
       "enum": [
         "autosave",
         "manual",
-        "backup",
-        "ironman"
+        "backup"
       ]
     },
     "revision": {
@@ -111,7 +109,8 @@
       ]
     },
     "ironman": {
-      "type": "boolean"
+      "const": false,
+      "description": "Legacy key from the first v1 files. Ironman was cut (DEC-058). Optional; if present it must be false. New saves omit it."
     },
     "checksum": {
       "type": "object",
@@ -150,6 +149,12 @@
             "autumn",
             "winter"
           ]
+        },
+        "minute_of_day": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 659,
+          "description": "Position inside the game day in game minutes (a day is 660 minutes, DEC-052). Missing means 0 (start of the day)."
         }
       }
     },
@@ -607,6 +612,18 @@
                   ]
                 }
               }
+            },
+            "hosted_count": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 1000000,
+              "description": "Tournaments hosted successfully (all levels, repeats count). Feeds the tournaments_hosted achievement stat."
+            },
+            "attempted_count": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 1000000,
+              "description": "Tournaments resolved, successful or failed. Feeds the tournaments_attempted achievement stat."
             }
           }
         },
@@ -703,6 +720,389 @@
                 "type": "integer",
                 "minimum": 1,
                 "maximum": 5
+              }
+            }
+          }
+        },
+        "playtime_s": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991,
+          "description": "Whole seconds played (real time, game clock running). Shown in the cloud conflict prompt. Missing means 0."
+        },
+        "stats": {
+          "type": "object",
+          "additionalProperties": false,
+          "description": "Achievement and club prestige stats. Every value is a high-water mark (only ever rises). Keys equal the stat enum of achievements.schema.json plus bonus_prestige.",
+          "properties": {
+            "holes_max": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 1000000000
+            },
+            "holes_good_max": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 1000000000
+            },
+            "best_hole_score": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 1000000000
+            },
+            "best_course_score": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 1000000000
+            },
+            "parcels_max": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 1000000000
+            },
+            "members_max": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 1000000000
+            },
+            "reputation_max": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 1000000000
+            },
+            "lifetime_earned": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 1000000000
+            },
+            "days_played": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 1000000000
+            },
+            "buildings_built": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 1000000000
+            },
+            "tier_sum": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 1000000000
+            },
+            "tier5_count": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 1000000000
+            },
+            "tournaments_hosted": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 1000000000
+            },
+            "tournaments_attempted": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 1000000000
+            },
+            "commissions_done": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 1000000000
+            },
+            "commission_kinds": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 1000000000
+            },
+            "challenges_completed": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 1000000000
+            },
+            "challenges_attempted": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 1000000000
+            },
+            "streak_best": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 1000000000
+            },
+            "active_days": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 1000000000
+            },
+            "cards_played": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 1000000000
+            },
+            "tutorial_done": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 1000000000
+            },
+            "golfers_finished": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 1000000000
+            },
+            "level": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 1000000000
+            },
+            "hosted_local": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 1000000000
+            },
+            "hosted_regional": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 1000000000
+            },
+            "hosted_national": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 1000000000
+            },
+            "hosted_major": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 1000000000
+            },
+            "best_axis": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 1000000000
+            },
+            "tier_clubhouse": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 1000000000
+            },
+            "tier_pro_shop": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 1000000000
+            },
+            "tier_driving_range": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 1000000000
+            },
+            "tier_restaurant": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 1000000000
+            },
+            "tier_pool_spa": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 1000000000
+            },
+            "tier_cart_barn": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 1000000000
+            },
+            "tier_maintenance": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 1000000000
+            },
+            "tier_lodging": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 1000000000
+            },
+            "tier_homes": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 1000000000
+            },
+            "tier_landmark": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 1000000000
+            },
+            "bonus_prestige": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 1000000000
+            }
+          }
+        },
+        "streak": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "current",
+            "best",
+            "grace",
+            "active_days",
+            "last_day",
+            "claimed"
+          ],
+          "description": "Daily activity streak (MHStreak). last_day is the UTC day number of the last active day, -1 when none.",
+          "properties": {
+            "current": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 1000000
+            },
+            "best": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 1000000
+            },
+            "grace": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 1000000
+            },
+            "active_days": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 1000000
+            },
+            "last_day": {
+              "type": "integer",
+              "minimum": -1,
+              "maximum": 1000000
+            },
+            "claimed": {
+              "type": "array",
+              "maxItems": 64,
+              "uniqueItems": true,
+              "items": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 10000
+              },
+              "description": "Streak milestone days already paid."
+            }
+          }
+        },
+        "daily": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "day",
+            "used",
+            "completed_today",
+            "best_pm",
+            "best_f",
+            "attempted_days",
+            "completed_days",
+            "history",
+            "board"
+          ],
+          "description": "Daily challenge record (MHDailyState). Scores are permille 0..1000. day is the UTC day number of the latest attempt, -1 when none.",
+          "properties": {
+            "day": {
+              "type": "integer",
+              "minimum": -1,
+              "maximum": 1000000
+            },
+            "used": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 10
+            },
+            "completed_today": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 1
+            },
+            "best_pm": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 1000
+            },
+            "best_f": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 1000
+            },
+            "attempted_days": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 1000000
+            },
+            "completed_days": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 1000000
+            },
+            "history": {
+              "type": "array",
+              "maxItems": 30,
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "day",
+                  "attempts",
+                  "completed",
+                  "best_pm"
+                ],
+                "properties": {
+                  "day": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 1000000
+                  },
+                  "attempts": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 10
+                  },
+                  "completed": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 1
+                  },
+                  "best_pm": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 1000
+                  }
+                }
+              }
+            },
+            "board": {
+              "type": "array",
+              "maxItems": 90,
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "day",
+                  "score_pm",
+                  "fairness_pm"
+                ],
+                "properties": {
+                  "day": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 1000000
+                  },
+                  "score_pm": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 1000
+                  },
+                  "fairness_pm": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 1000
+                  }
+                }
               }
             }
           }

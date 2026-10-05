@@ -32,6 +32,12 @@ static func reason_for_row(row: Array) -> Dictionary:
 		key = "build.req.demo"
 	elif rk == "previous_tier":
 		key = "build.req.previous"
+	elif rk == "pace_score":
+		key = "build.req.pace"
+	elif rk == "staff":
+		key = "build.req.staff"
+	elif rk == "spectators":
+		key = "build.req.spectators"
 	elif rk == "hosted_tournament":
 		key = "build.req.hosted"
 		var idx: int = clampi(need - 1, 0, MHBuildingDefs.LEVELS.size() - 1)

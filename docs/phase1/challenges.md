@@ -43,7 +43,7 @@ All `.gd` here. Python mirror verified the generator and the distribution. Unver
 
 ## Risks and follow-ups
 
-1. `DailyState` (and the streak and stats in `progression.md`) have no home in `save.schema.json`: `progress` is closed (`additionalProperties: false`). Options: add `progress.daily` and `progress.stats` to the schema (preferred, they should follow the save to a new device and into cloud save), or keep a small `user://` file like `MHTokenLedger`.
+1. Save schema: FIXED. `progress.daily` and `progress.stats` / `progress.streak` are in `save.schema.json` (optional). `MHDailyState.to_save_block/from_save_block`; the `daily_play` intent runs through `MHProgressBridge`.
 2. Thresholds are placeholders until the rating engine's real score distribution is measured (the data file says so). The hard challenges may be unreachable or trivial.
 3. The five axis keys `accuracy, imagination, length, beauty, fairness` are the rating spec's names; the IP lawyer review of those names (DEC open item 9) applies to the challenge text too.
 4. The local board is the player's own history, not a social board. The online board and its tie-break (score, fairness, server receive time, submission id) belong to the server and `MHRTournament.rank`.

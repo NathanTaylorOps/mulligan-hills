@@ -1,9 +1,9 @@
 # Interface: Buildings (`game/core/buildings/`, owner assigned in Phase 1)
 
-## Implementation status (29 Sep 2026)
-No code exists (`MHBuildings`, `MHGateView`, `MHGateReport`, `MHEconomy`, `MHResult` are drafts only). The data file `docs/spec/data/buildings.json` exists and validates. Its gates use `min_avg_hole_score` 25 / 30 / 36 / 42 for tiers 2 to 5 on a 0..100 scale, but the rating spec (`docs/spec/rating/rating-engine.md` 7.2, `params.json` `gates_avg_score_x10`) proposes 32 / 42 / 52 / 62. Unreconciled placeholder, see `docs/spec/OPEN_QUESTIONS.md`. The rating spec also says a hole counts toward the hole-count gate only if valid and not dead (`score_pm >= 250`), which `MHGateView.holes` must reflect.
+## Implementation status (5 Oct 2026)
+Built in `game/core/buildings/` and `game/core/land/` (Phase 1, see `docs/phase1/buildings.md`): `MHBuildingDefs` (loader, validation, `price_for`), `MHUnlockRules` (`check_gate`, `next_tier`, `purchasable`, demo locks), `MHGateView` (snapshot), `MHGateReport` (checklist rows) and `MHLandModel`. NOT built: `MHBuildings` below (purchase, specialisation, demolition blocking, save block), `MHEconomy` and `MHResult`; they remain drafts. The data file `docs/spec/data/buildings.json` (schema_version 2) is the source of truth, with a byte-identical runtime copy in `game/data/buildings.json`.
 
-Purpose: the 10 x 5 tier catalogue, gate checking, purchase, specialisation choice, persistence of gates. Reads `buildings.json` (schema `buildings.schema.json`). Gates are persistent: purchased tiers are recorded and their dependencies cannot be demolished.
+Locked numbers (DEC-048, DEC-050, DEC-055, DEC-056, DEC-063): average hole score gates 32 / 42 / 52 / 62 for tiers 2 to 5 and hole gates 6 / 10 / 14 / 18, tier 1 has no course gate. A hole counts toward the hole gate only if it is valid and not dead (score under 25); dead holes stay in the average. Prices are payback-targeted: price = `target_payback_days` (6 / 8 / 10 / 12 / 15, placeholders) x the tier's added daily income from the economy; there are no fixed costs in the data. Demo caps: 9 holes, Clubhouse tier 2, Pro shop 2, Driving range 2, Restaurant 1, all others 0.
 
 ```gdscript
 class_name MHBuildings extends RefCounted
@@ -22,23 +22,26 @@ func from_save_block(buildings: Array, purchased: Array) -> MHResult
 ```
 ```gdscript
 class_name MHGateView extends RefCounted   # snapshot handed in, so the check is pure
-var holes: int
+var holes: int                   # valid holes that are NOT dead
 var avg_hole_score: int          # 0..100
 var parcels_owned: int
 var members: int
-var hosted_levels: PackedStringArray   # "local".."major"
+var parcels_by_kind: Dictionary  # "golf" / "facility" / "homes" -> owned count
+var hosted_level: String         # highest tournament level hosted: "", "local", "regional", "national", "major"
 var tiers: Dictionary            # building_id -> int (read only, copy)
+var demo: bool                   # true = demo build, tiers above demo_max_tier are locked
 
 class_name MHGateReport extends RefCounted
 var met: bool
-var checklist: Array             # rows: [requirement_key: String, met: bool, have: int, need: int]; drives the "what is met and what is missing" card
+var demo_locked: bool            # locked only by the demo cap (UI shows the unlock flow)
+var rows: Array                  # (was "checklist" in the draft) rows: [requirement_key: String, met: bool, have: int, need: int]; drives the "what is met and what is missing" card
 ```
 
 ## Rules
-- Requirements: holes, average hole score, parcels owned, members, specific other-building tiers, any-N-others at tier T, hosted tournament (tier 5). See `buildings.json`; fixed prerequisite links: Restaurant 3 needs Clubhouse 3; Lodging 3 needs Restaurant 3; Pro shop 4 needs Driving range 3; Homes 4 needs Clubhouse 4; Landmark 5 needs Homes 3. Tier 3: one other building at tier 2. Tier 4: two others at tier 3, 50 members.
+- Requirements: holes, average hole score, parcels owned, members, specific other-building tiers, any-N-others at tier T, hosted tournament (tier 5: local, Landmark needs regional). See `buildings.json`; fixed prerequisite links: Restaurant 3 needs Clubhouse 3; Lodging 3 needs Restaurant 3; Pro shop 4 needs Driving range 3; Homes 4 needs Clubhouse 4; Landmark 5 needs Homes 3. Tier 3: one other building at tier 2. Tier 4: two others at tier 3, 50 members.
 - Tournament prerequisites never include a tier 5 building.
 - Demo: tiers above `demo_max_tier` are shown locked with a preview, purchase returns `ERR_DEMO_LIMIT` (UI shows the unlock flow).
-- Costs read through the economy's clamped params.
+- Costs: `price = target_payback_days x added daily income` (DEC-050), computed by the economy. Remote config does not carry prices.
 
 ## Consumers
 UI (upgrade card), economy, save, render (model selection by tier and spec), tournaments (facilities score).

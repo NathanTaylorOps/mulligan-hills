@@ -45,13 +45,8 @@ export function validateRemoteConfig(c: unknown): string[] {
     for (const k of KILL_SWITCHES) if (k in ks && typeof ks[k] !== "boolean") errs.push(`kill switch ${k} must be true or false`);
   }
   const eco = c.economy;
-  if (keysOk(eco, ["cost_multiplier_x100", "building_cost_scale_pct", "parcel_base_cost", "parcel_growth_pct", "hole_cost",
+  if (keysOk(eco, ["parcel_base_cost", "parcel_growth_pct", "hole_cost",
                    "start_cash", "green_fee_min", "green_fee_max"], [], "economy", errs)) {
-    const m = eco.cost_multiplier_x100;
-    if (!Array.isArray(m) || m.length !== 5 || !m.every((x) => typeof x === "number" && Number.isInteger(x) && x >= 50 && x <= 5000)) {
-      errs.push("cost_multiplier_x100 needs 5 integers from 50 to 5000");
-    }
-    if (!intIn(eco, "building_cost_scale_pct", 25, 400)) errs.push("building_cost_scale_pct must be 25 to 400");
     if (!intIn(eco, "parcel_base_cost", 1000, 1_000_000)) errs.push("parcel_base_cost must be 1000 to 1000000");
     if (!intIn(eco, "parcel_growth_pct", 100, 200)) errs.push("parcel_growth_pct must be 100 to 200");
     if (!intIn(eco, "hole_cost", 500, 100_000)) errs.push("hole_cost must be 500 to 100000");

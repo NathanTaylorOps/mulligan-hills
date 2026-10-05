@@ -8,7 +8,12 @@ extends RefCounted
 ## Steps are applied one at a time, in order, never skipped. The migrator refuses a step that changes the determinism
 ## state (sim.rng_seed, sim.rng_inc, sim.rating_epoch), because rule 8 says those survive migration unchanged.
 ##
-## create_default() is the registry the game uses. It is empty while SAVE_VERSION is 1. To add v1 -> v2:
+## create_default() is the registry the game uses. It is empty while SAVE_VERSION is 1. Fields added to v1 after the
+## first files (world.minute_of_day, progress.playtime_s, progress.stats, progress.streak, progress.daily and the two
+## tournament counters) are OPTIONAL and need no step: a v1 file without them is valid and the readers default them
+## (MHSaveGame.minute_of_day_of / playtime_s_of; the progression loaders keep their defaults when a block is missing).
+## The legacy "ironman": false key is also accepted (MHSaveGame.strip_legacy_keys drops it on rewrite). Once a build has
+## shipped, any further shape change is a real step. To add v1 -> v2:
 ##   1. bump MHSaveGame.SAVE_VERSION, 2. add `m.register_step(1, Callable(MHSaveMigrations, "v1_to_v2"))` in create_default,
 ##   3. add fixtures and a test, 4. update the manifest table in docs/spec/data/SAVE_MIGRATION.md.
 

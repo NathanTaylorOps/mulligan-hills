@@ -151,6 +151,20 @@ func to_dict() -> Dictionary:
 	}
 
 
+## The block for save.schema.json progress.streak: to_dict() without the version tag.
+func to_save_block() -> Dictionary:
+	var out: Dictionary = to_dict()
+	out.erase("v")
+	return out
+
+
+## Loads a progress.streak block. Returns false and changes nothing when malformed.
+func from_save_block(block: Dictionary) -> bool:
+	var d: Dictionary = block.duplicate(true)
+	d["v"] = SAVE_VERSION
+	return from_dict(d)
+
+
 ## Returns false and changes nothing when malformed.
 func from_dict(d: Dictionary) -> bool:
 	var errs: Array = []

@@ -26,7 +26,7 @@ Streak (numbers from `progression.json`, interpretation mine): one active day ex
 
 - Feed stats whenever the underlying number changes (cheap, only raises): `stats.observe({"holes_max": n, "holes_good_max": n, "best_hole_score": s, "best_course_score": c, "parcels_max": p, "members_max": m, "reputation_max": r, "lifetime_earned": e, "days_played": d, "commissions_done": n, "commission_kinds": k, "cards_played": n, "golfers_finished": n, "best_axis": a, "tutorial_done": true})`, `stats.observe_tiers(purchased_tiers)`, `observe_tournaments(state)`, `observe_daily(state)`. Then `refresh()` once per game day and after each purchase or event.
 - Event cards: for an `add_prestige` effect call `add_bonus_prestige(amount)` (positive amounts only; negative effects are ignored on purpose, prestige never drops).
-- Save: `progress.achievements = progression.to_save_ids()`. Stats and streak have no schema field (see risks): store `progression.to_dict()` next to the save.
+- Save: `progress.achievements = progression.to_save_ids()`. Stats and streak: `progression.to_save_progress()` gives `achievements`, `stats`, `streak` (schema `progress.stats`, `progress.streak`); `load_save_progress(progress)` validates first, then assigns.
 - Platform: `MHGamesService` achievements (Play Games and Game Center) are not wired; the platform doc says only leaderboards exist.
 
 ## Tests (`game/tests/progression/`)
@@ -39,7 +39,7 @@ All `.gd` here. Python mirror verified the formulas and the refresh result of th
 
 ## Risks and follow-ups
 
-1. Save schema: `progress` is closed. `stats`, `streak` (and the daily state) need fields or a sidecar file. Without them the unlocked achievements survive (ids are saved) but the streak restarts, and stats that have no other source in the game state (`streak_best, active_days, tournaments_attempted, challenges_*, cards_played, commission_kinds, best_axis`) restart from zero; the others rebuild on the next `observe_*` calls.
+1. Save schema: FIXED (`progress.stats`, `progress.streak`, `progress.daily` are optional fields of v1). Streak active-day and token awards for achievements/challenges are wired by the caller of `MHProgressBridge`, not yet by a real adapter.
 2. Achievement ids that were saved but later removed from the catalogue are dropped silently on load (`load_save_ids` returns how many).
 3. Points are placeholders; at the shipped numbers my rough estimate for a completed game plus a month of dailies is 4,000 to 5,000 points, so levels above 12 or so are far away. Tune once the economy and content exist.
 4. Platform achievements (store achievements) are out of scope.

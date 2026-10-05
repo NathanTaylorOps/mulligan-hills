@@ -168,3 +168,19 @@ func test_configure_rejects_bad_blocks() -> void:
 	var blk2: Dictionary = raw2["streak"]
 	(blk2["milestones"] as Array).reverse()
 	assert_bool(s.configure(blk2)).is_false()
+
+
+func test_save_block_round_trip_has_no_version_tag() -> void:
+	var s: MHStreak = MHProgressionFixture.streak()
+	_run(s, [0, 1, 2, 3, 5, 6])
+	var blk: Dictionary = s.to_save_block()
+	assert_bool(blk.has("v")).is_false()
+	for key: String in ["current", "best", "grace", "active_days", "last_day", "claimed"]:
+		assert_bool(blk.has(key)).is_true()
+	var parsed: Variant = JSON.parse_string(JSON.stringify(blk))
+	var t: MHStreak = MHProgressionFixture.streak()
+	assert_bool(t.from_save_block(parsed as Dictionary)).is_true()
+	assert_bool(t.to_save_block() == blk).is_true()
+	var bad: Dictionary = blk.duplicate(true)
+	bad.erase("best")
+	assert_bool(MHProgressionFixture.streak().from_save_block(bad)).is_false()

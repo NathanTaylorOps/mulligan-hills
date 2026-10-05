@@ -125,7 +125,7 @@ Deno.test("remote config: example from docs validates; each rule catches its mis
   assert(bad((c) => { c.economy.price = 1; }).length > 0, "price smuggled");
   assert(bad((c) => { c.economy.sim_speed = 1; }).length > 0, "sim parameter smuggled");
   assert(bad((c) => { c.economy.green_fee_min = 300; }).length > 0, "fee order");
-  assert(bad((c) => { c.economy.cost_multiplier_x100 = [1, 2]; }).length > 0, "multiplier count");
+  assert(bad((c) => { c.economy.cost_multiplier_x100 = [100, 200, 400, 800, 1400]; }).length > 0, "retired cost multiplier key");
   assert(bad((c) => { c.min_app_version = "1.0"; }).length > 0, "version format");
   assert(bad((c) => { c.banner_key = "Bad Key"; }).length > 0, "banner key");
   assert(bad((c) => { c.events.event_cash_scale_pct = 1000; }).length > 0, "events range");

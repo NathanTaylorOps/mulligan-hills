@@ -52,6 +52,9 @@ def main():
     G["hole_cost"] = [E.hole_cost_cents(P, h) for h in range(6, 18)]
     G["payback"] = [[t, a, E.payback_price_cents(t, a)] for t, a in ((6, 12345), (15, 0), (0, 500), (10, 99999), (8, -3))]
     G["speed_tokens"] = [E.speed_tokens_for_days(d) for d in range(0, 13)]
+    G["renovation"] = {"cost": [E.renovation_cost_cents(P, n) for n in range(-1, P["core"]["renov_max_levels"] + 2)],
+                       "dem": [E.renovation_dem_milli(P, n) for n in range(0, P["core"]["renov_max_levels"] + 2)],
+                       "upkeep": [E.renovation_upkeep_cents(P, n) for n in range(0, P["core"]["renov_max_levels"] + 2)]}
     G["course_upkeep"] = [[h, p, c, E.course_upkeep_cents(P, h, p, c)] for h, p, c in ((6, 5, 0), (18, 15, 600), (10, 8, 250))]
 
     est = []
@@ -61,13 +64,15 @@ def main():
         ([2, 2, 1, 1, 0, 0, 1, 0, 0, 0], 10, 8, 42, 45000, 2200, 1000, 1000),
         ([3] * 10, 12, 10, 46, 100000, 1600, 900, 1000),
         ([4, 4, 3, 3, 3, 3, 3, 3, 3, 2], 16, 13, 56, 200000, 2800, 1000, 600),
-        ([5] * 10, 18, 15, 66, 350000, 4100, 1000, 1000),
+        ([5] * 10, 18, 15, 66, 350000, 4100, 1000, 1000, 0),
+        ([5] * 10, 18, 15, 70, 400000, 4100, 1000, 1000, 4),
     ]
-    for tiers, h, par, r, mem, fee, rep, ext in states:
-        d = E.day_estimate(P, UP, tiers, h, par, r, mem, fee, rep, ext)
+    for tiers, h, par, r, mem, fee, rep, ext, *rest in states:
+        reno = rest[0] if rest else 0
+        d = E.day_estimate(P, UP, tiers, h, par, r, mem, fee, rep, ext, reno)
         est.append({"tiers": tiers, "holes": h, "parcels": par, "rating": r, "members_milli": mem, "fee": fee,
-                    "rep": rep, "ext": ext, "out": d,
-                    "suggest": E.suggest_fee_cents(P, UP, tiers, h, r, rep)})
+                    "rep": rep, "ext": ext, "renovation": reno, "out": d,
+                    "suggest": E.suggest_fee_cents(P, UP, tiers, h, r, rep, reno)})
     G["estimates"] = est
 
     # scenario A: three ordinary days
@@ -117,6 +122,27 @@ def main():
     rows_c2 = run_ticks(ec, 66)
     G["scenario_tokens"] = {"init": init_b, "rows": rows_c, "result": rc, "after": after_c, "rows_after": rows_c2,
                             "final": ec.to_dict(), "token_cost": P["core"]["recovery_token_cost"]}
+
+    # scenario D: late-game renovation sink. Full course, every building at tier 5, cash for two levels and a bit more.
+    ed = E.Economy(P, UP)
+    c0 = E.renovation_cost_cents(P, 0)
+    c1 = E.renovation_cost_cents(P, 1)
+    ed.from_dict({"cash": c0 + c1 + 123456, "fee": 4000, "members_milli": 300000, "holes": 18, "rating": 66,
+                  "parcels": 15, "tiers": [5] * 10})
+    init_d = ed.to_dict()
+    e_not = E.Economy(P, UP)
+    e_not.from_dict({"cash": 10 ** 9, "holes": 17, "tiers": [5] * 10})
+    e_not2 = E.Economy(P, UP)
+    e_not2.from_dict({"cash": 10 ** 9, "holes": 18, "tiers": [5] * 9 + [3]})
+    r_not = [e_not.purchase_renovation(), e_not2.purchase_renovation()]
+    r1 = ed.purchase_renovation()
+    after1 = ed.to_dict()
+    r2 = ed.purchase_renovation()
+    after2 = ed.to_dict()
+    r3 = ed.purchase_renovation()            # not enough cash for level 3
+    rows_d = run_ticks(ed, 22)
+    G["scenario_renovation"] = {"init": init_d, "not_available": r_not, "results": [r1, r2, r3], "after1": after1,
+                                "after2": after2, "rows": rows_d, "final": ed.to_dict()}
 
     G["tier_prices_dollars"] = P["price_dollars"]
     G["spend_cases"] = {"start_cash": P["core"]["start_cash_cents"]}

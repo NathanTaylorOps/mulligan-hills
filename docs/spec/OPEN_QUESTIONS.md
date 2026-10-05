@@ -24,7 +24,7 @@ Not covered here because they need real-world facts rather than a choice: the na
 
 ## B. Economy numbers
 
-**Q4. Start cash and the first purchase.** Placeholder start cash is 40,000 dollars; first building (Clubhouse tier 1) costs 20,000; hole 8,000; parcel 25,000 with 130 percent growth per parcel.
+**Q4. Start cash and the first purchase.** Economy rebalance (DEC-066, `docs/phase1/economy.md`): start cash 50,000 dollars; first holes cost 5,000 growing 10 percent each; parcels 8,000 growing 15 percent per parcel; building prices follow the payback targets 10/12/16/50/80 days (first Clubhouse tier costs a few hundred dollars).
 - A. Keep 40,000 and tune with the economy simulation (DEC-023).
 - B. Lower start cash so the first purchase lands within about 5 minutes of play (economy interface rule).
 - Recommended: A until the economy simulation exists, then let the simulation set it.
@@ -89,7 +89,7 @@ Not covered here because they need real-world facts rather than a choice: the na
 
 ## E. Save safety versus Ironman
 
-**Q15. Is Ironman in v1?** Spec: one slot, autosave only, no manual backup or export, cloud copy is upload-only backup (PROP-07). It conflicts with the general rule "never lose a player's save".
+**Q15. Is Ironman in v1?** RESOLVED: cut (DEC-058). Spec: one slot, autosave only, no manual backup or export, cloud copy is upload-only backup (PROP-07). It conflicts with the general rule "never lose a player's save".
 - A. Include Ironman as an option; the cloud copy can restore only after the local file is missing.
 - B. Include Ironman, but keep one hidden automatic backup the player can restore once.
 - C. Cut Ironman from v1.

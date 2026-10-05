@@ -75,6 +75,13 @@ func test_every_dynamic_key_family_exists() -> void:
 		need.append("settings.palette." + str(p))
 	for b: String in ["poor", "fair", "good", "great", "superb"]:
 		need.append("score.band." + b)
+	for why: String in ["busy", "cash", "cooldown", "disabled", "locked", "unknown_level"]:
+		need.append("tournament.blocked." + why)
+	for tk: String in ["toast.tournament.started", "toast.daily.done", "toast.daily.tried", "toast.daily.off", "toast.daily.no_attempts", "daily.completed", "gallery.tournament_ready"]:
+		need.append(tk)
+	for lvl2: Variant in MHBuildingDefs.LEVELS:
+		need.append("tournament." + str(lvl2) + ".desc")
+	need.append(view.level_title_key())
 	var d: Dictionary = view.daily_challenge()
 	need.append(str(d["title_key"]))
 	need.append(str(d["desc_key"]))

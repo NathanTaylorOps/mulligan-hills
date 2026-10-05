@@ -11,7 +11,12 @@ extends RefCounted
 ##    serialisation of the sealed document, so save -> load -> save is byte identical.
 ##  - checksum: sha256 (hex) of canonical_json(document without its "checksum" key).
 ##  - No entitlement, receipt or unlock data is ever accepted (validate() rejects it).
-##  - Ironman is cut (DEC-058): ironman must be false and slot_kind "ironman" is rejected.
+##  - Ironman is cut (DEC-058): the legacy "ironman" key is optional and must be false when present; slot_kind
+##    "ironman" is rejected. New saves leave the key out (strip_legacy_keys removes it from an old document).
+##  - Compatibility: every field added after the first v1 files is OPTIONAL (world.minute_of_day, progress.playtime_s,
+##    progress.stats, progress.streak, progress.daily, progress.tournaments.hosted_count / attempted_count), so a
+##    plain v1 save stays valid and readable without a migration step. Read them with the *_of accessors below,
+##    which default a missing value. See SAVE_MIGRATION.md "Additive optional fields".
 
 const SCHEMA_ID: String = "mh.save"
 const SAVE_VERSION: int = 1
@@ -22,11 +27,26 @@ const MAX_INT: int = 9007199254740991
 const MAX_FILE_BYTES: int = 16777216
 const MAX_DEPTH: int = 48
 
+## Keys a save may carry. "ironman" is legacy (always false, optional).
 const TOP_KEYS: Array = [
 	"schema", "save_version", "min_reader_version", "written_by", "slot", "slot_kind", "revision",
 	"saved_at_unix", "install_id", "mode", "ironman", "checksum", "world", "club", "buildings", "land",
 	"course", "sim", "ratings", "progress",
 ]
+## Keys every save must carry (TOP_KEYS without the legacy "ironman").
+const REQUIRED_TOP_KEYS: Array = [
+	"schema", "save_version", "min_reader_version", "written_by", "slot", "slot_kind", "revision",
+	"saved_at_unix", "install_id", "mode", "checksum", "world", "club", "buildings", "land",
+	"course", "sim", "ratings", "progress",
+]
+## The game day has 660 game minutes (MHGameClock.MINUTES_PER_DAY, DEC-052), so minute_of_day is 0..659.
+const MAX_MINUTE_OF_DAY: int = 659
+const MAX_COUNTER: int = 1000000
+const MAX_STAT: int = 1000000000
+const MAX_STAT_KEYS: int = 64
+const MAX_DAILY_HISTORY: int = 30
+const MAX_DAILY_BOARD: int = 90
+const MAX_STREAK_CLAIMED: int = 64
 const FORBIDDEN_KEYS: Array = [
 	"unlocked", "entitlement", "entitlements", "receipt", "receipts", "purchase_token", "token", "is_full_version",
 	"full_version", "premium",
@@ -278,7 +298,7 @@ static func validate(d: Dictionary, strict: bool = true) -> Array:
 			errs.append("entitlement data is never stored in a save: " + String(k))
 		elif strict and not TOP_KEYS.has(k):
 			errs.append("unknown top-level key " + String(k))
-	for k2 in TOP_KEYS:
+	for k2 in REQUIRED_TOP_KEYS:
 		if not d.has(k2):
 			errs.append("missing top-level key " + String(k2))
 	if not errs.is_empty():
@@ -292,7 +312,7 @@ static func validate(d: Dictionary, strict: bool = true) -> Array:
 	_int_in(d, "saved_at_unix", 0, MAX_INT, "$", errs)
 	_enum_in(d, "slot_kind", SLOT_KINDS, "$", errs)
 	_enum_in(d, "mode", MODES, "$", errs)
-	if typeof(d["ironman"]) != TYPE_BOOL or bool(d["ironman"]):
+	if d.has("ironman") and (typeof(d["ironman"]) != TYPE_BOOL or bool(d["ironman"])):
 		errs.append("ironman must be false (ironman was cut in DEC-058)")
 	if not _matches("^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$", d["install_id"]):
 		errs.append("install_id malformed")
@@ -313,8 +333,9 @@ static func validate(d: Dictionary, strict: bool = true) -> Array:
 	if not world.is_empty():
 		_int_in(world, "day", 0, 1000000, "$.world", errs)
 		_enum_in(world, "season", SEASONS, "$.world", errs)
+		_int_in(world, "minute_of_day", 0, MAX_MINUTE_OF_DAY, "$.world", errs, false)
 		if strict:
-			_only_keys(world, ["day", "season"], "$.world", errs)
+			_only_keys(world, ["day", "season", "minute_of_day"], "$.world", errs)
 	_validate_club(d, strict, errs)
 	_validate_buildings(d, errs)
 	var land: Dictionary = _dict_at(d, "land", "$", errs)
@@ -468,8 +489,108 @@ static func _validate_progress(d: Dictionary, errs: Array) -> void:
 	if not tn.is_empty():
 		_array_at(tn, "hosted_levels", 4, "$.progress.tournaments", errs)
 		_int_in(tn, "cooldown_until_day", 0, 1000000, "$.progress.tournaments", errs)
+		_int_in(tn, "hosted_count", 0, MAX_COUNTER, "$.progress.tournaments", errs, false)
+		_int_in(tn, "attempted_count", 0, MAX_COUNTER, "$.progress.tournaments", errs, false)
 	_array_at(pr, "commissions", 20, "$.progress", errs, false)
 	_array_at(pr, "card_history", 300, "$.progress", errs, false)
 	_array_at(pr, "purchased_tiers", 50, "$.progress", errs, false)
-	# Optional, needs a schema addition (see docs/phase1/save.md): progress.playtime_s, whole seconds.
 	_int_in(pr, "playtime_s", 0, MAX_INT, "$.progress", errs, false)
+	_validate_stats(pr, errs)
+	_validate_streak(pr, errs)
+	_validate_daily(pr, errs)
+
+
+## progress.stats: {stat name: int 0..1e9}. Unknown names are not an error here (MHProgressStats drops them on load,
+## so a save from a newer build that added a stat still loads); the JSON Schema is the strict check.
+static func _validate_stats(pr: Dictionary, errs: Array) -> void:
+	var st: Dictionary = _dict_at(pr, "stats", "$.progress", errs, false)
+	if st.size() > MAX_STAT_KEYS:
+		errs.append("$.progress.stats has too many keys")
+	for k in st.keys():
+		if not _matches(ID_PATTERN, k):
+			errs.append("$.progress.stats has a malformed key")
+		else:
+			_int_in(st, String(k), 0, MAX_STAT, "$.progress.stats", errs)
+
+
+static func _validate_streak(pr: Dictionary, errs: Array) -> void:
+	var sk: Dictionary = _dict_at(pr, "streak", "$.progress", errs, false)
+	if not pr.has("streak"):
+		return
+	for key in ["current", "best", "grace", "active_days"]:
+		_int_in(sk, key, 0, MAX_COUNTER, "$.progress.streak", errs)
+	_int_in(sk, "last_day", -1, MAX_COUNTER, "$.progress.streak", errs)
+	var claimed: Array = _array_at(sk, "claimed", MAX_STREAK_CLAIMED, "$.progress.streak", errs)
+	var seen: Dictionary = {}
+	for c in claimed:
+		if typeof(c) != TYPE_INT or int(c) < 1 or int(c) > 10000:
+			errs.append("$.progress.streak.claimed has a bad day")
+		elif seen.has(c):
+			errs.append("$.progress.streak.claimed has a duplicate")
+		else:
+			seen[c] = true
+
+
+static func _validate_daily(pr: Dictionary, errs: Array) -> void:
+	var dd: Dictionary = _dict_at(pr, "daily", "$.progress", errs, false)
+	if not pr.has("daily"):
+		return
+	_int_in(dd, "day", -1, MAX_COUNTER, "$.progress.daily", errs)
+	_int_in(dd, "used", 0, 10, "$.progress.daily", errs)
+	_int_in(dd, "completed_today", 0, 1, "$.progress.daily", errs)
+	_int_in(dd, "best_pm", 0, 1000, "$.progress.daily", errs)
+	_int_in(dd, "best_f", 0, 1000, "$.progress.daily", errs)
+	_int_in(dd, "attempted_days", 0, MAX_COUNTER, "$.progress.daily", errs)
+	_int_in(dd, "completed_days", 0, MAX_COUNTER, "$.progress.daily", errs)
+	var hist: Array = _array_at(dd, "history", MAX_DAILY_HISTORY, "$.progress.daily", errs)
+	for i in range(hist.size()):
+		if typeof(hist[i]) != TYPE_DICTIONARY:
+			errs.append("$.progress.daily.history[%d] is not an object" % i)
+			continue
+		var h: Dictionary = hist[i]
+		_int_in(h, "day", 0, MAX_COUNTER, "$.progress.daily.history", errs)
+		_int_in(h, "attempts", 0, 10, "$.progress.daily.history", errs)
+		_int_in(h, "completed", 0, 1, "$.progress.daily.history", errs)
+		_int_in(h, "best_pm", 0, 1000, "$.progress.daily.history", errs)
+	var board: Array = _array_at(dd, "board", MAX_DAILY_BOARD, "$.progress.daily", errs)
+	for j in range(board.size()):
+		if typeof(board[j]) != TYPE_DICTIONARY:
+			errs.append("$.progress.daily.board[%d] is not an object" % j)
+			continue
+		var b: Dictionary = board[j]
+		_int_in(b, "day", 0, MAX_COUNTER, "$.progress.daily.board", errs)
+		_int_in(b, "score_pm", 0, 1000, "$.progress.daily.board", errs)
+		_int_in(b, "fairness_pm", 0, 1000, "$.progress.daily.board", errs)
+
+
+# ---------------------------------------------------------------- optional fields (v1 additive, see header)
+
+## world.minute_of_day, 0 when the save has none (a v1 save resumes at the start of its day).
+static func minute_of_day_of(d: Dictionary) -> int:
+	var world: Variant = d.get("world", null)
+	if typeof(world) != TYPE_DICTIONARY:
+		return 0
+	return clampi(_opt_int(world, "minute_of_day"), 0, MAX_MINUTE_OF_DAY)
+
+
+## progress.playtime_s, 0 when the save has none.
+static func playtime_s_of(d: Dictionary) -> int:
+	var pr: Variant = d.get("progress", null)
+	if typeof(pr) != TYPE_DICTIONARY:
+		return 0
+	return maxi(0, _opt_int(pr, "playtime_s"))
+
+
+## A deep copy without legacy keys (today only "ironman"). Use it before sealing a document that came from an old
+## save, so the rewritten file matches the current schema. Does not touch the checksum: re-seal afterwards.
+static func strip_legacy_keys(d: Dictionary) -> Dictionary:
+	var out: Dictionary = d.duplicate(true)
+	out.erase("ironman")
+	return out
+
+
+static func _opt_int(d: Dictionary, key: String) -> int:
+	var v: Variant = d.get(key, 0)
+	if typeof(v) == TYPE_INT:
+		return int(v)
+	return 0

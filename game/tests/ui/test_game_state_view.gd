@@ -140,3 +140,47 @@ func test_changed_signal_fires_on_sample_edits() -> void:
 	assert_int(v.cash()).is_equal(500)
 	assert_int(v.tokens_total()).is_equal(3)
 	assert_bool(v.is_demo()).is_false()
+
+
+func test_fake_progress_rows() -> void:
+	var v: MHFakeGameStateView = MHFakeGameStateView.new()
+	var d: Dictionary = v.daily_challenge()
+	assert_bool(bool(d["enabled"])).is_true()
+	assert_int(int(d["attempts_total"])).is_equal(3)
+	assert_int(int(d["attempts_left"])).is_equal(2)
+	assert_int(int(d["best_score"])).is_equal(48)
+	assert_int(int(d["streak_days"])).is_equal(4)
+	assert_bool(bool(d["completed_today"])).is_false()
+	assert_int(v.tournaments().size()).is_equal(4)
+	for t: Variant in v.tournaments():
+		assert_bool((t as Dictionary).has("can_host")).is_true()
+		assert_bool((t as Dictionary).has("block_reason")).is_true()
+	assert_bool(v.club_level() >= 1).is_true()
+	assert_bool(v.club_points() >= 0).is_true()
+	assert_bool(MHStrings.has_key(v.level_title_key())).is_true()
+	assert_bool(v.tournament_event().is_empty()).is_true()
+	assert_int(v.achievements().size()).is_equal(v.sample_bridge().progression.achievement_rows().size())
+
+
+func test_fake_host_tournament_intent() -> void:
+	var v: MHFakeGameStateView = MHFakeGameStateView.new()
+	v.sample_set_tournament_ready(true)
+	v.sample_set_cash(1000000)
+	var hits: Array = [0]
+	v.changed.connect(func() -> void: hits[0] = int(hits[0]) + 1)
+	var r: Dictionary = v.sample_handle_intent(&"tournament_host", {"level": "local"})
+	assert_bool(bool(r["ok"])).override_failure_message(str(r["reason"])).is_true()
+	assert_bool(v.cash() < 1000000).is_true()
+	assert_bool(not v.tournament_event().is_empty()).is_true()
+	assert_bool(int(hits[0]) >= 1).is_true()
+	var other: Dictionary = v.sample_handle_intent(&"unknown_intent", {})
+	assert_bool(bool(other["handled"])).is_false()
+
+
+func test_fake_daily_play_intent() -> void:
+	var v: MHFakeGameStateView = MHFakeGameStateView.new()
+	var r: Dictionary = v.sample_handle_intent(&"daily_play", {})
+	assert_bool(bool(r["ok"])).is_true()
+	var d: Dictionary = v.daily_challenge()
+	assert_int(int(d["attempts_left"])).is_equal(1)
+	assert_bool(bool(d["completed_today"])).is_true()

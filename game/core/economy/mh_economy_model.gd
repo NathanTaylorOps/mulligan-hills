@@ -115,8 +115,8 @@ static func building_upkeep_cents(upkeep_dollars: PackedInt32Array, tiers: Packe
 
 
 ## Expected one-day figures in integer cents (golfers in thousandths). Used for fee advice and tests.
-static func day_estimate(p: MHEconomyParams, upkeep_dollars: PackedInt32Array, tiers: PackedInt32Array, holes: int, parcels: int, rating: int, members_milli: int, fee: int, rep_permille: int, ext_permille: int) -> Dictionary:
-	var dem: int = effect_sum(p.eff_dem, tiers)
+static func day_estimate(p: MHEconomyParams, upkeep_dollars: PackedInt32Array, tiers: PackedInt32Array, holes: int, parcels: int, rating: int, members_milli: int, fee: int, rep_permille: int, ext_permille: int, renovation: int = 0) -> Dictionary:
+	var dem: int = effect_sum(p.eff_dem, tiers) + renovation_dem_milli(p, renovation)
 	var anc: int = effect_sum(p.eff_anc, tiers)
 	var arr: int = arrivals_milli(p, holes, rating, dem, rep_permille, ext_permille)
 	var acc: int = acceptance_permille(fee, wtp_cents(p, rating, holes))
@@ -127,7 +127,7 @@ static func day_estimate(p: MHEconomyParams, upkeep_dollars: PackedInt32Array, t
 	var ancr: int = idiv(g * anc, 1000)
 	var cut: int = effect_sum(p.eff_cut, tiers)
 	var up_course: int = course_upkeep_cents(p, holes, parcels, cut)
-	var up_bld: int = building_upkeep_cents(upkeep_dollars, tiers)
+	var up_bld: int = building_upkeep_cents(upkeep_dollars, tiers) + renovation_upkeep_cents(p, renovation)
 	var revenue: int = fees + ancr + flat + dues
 	return {
 		"arrivals_milli": arr, "acc": acc, "golfers_milli": g, "fees": fees, "anc": ancr, "flat": flat,
@@ -137,8 +137,8 @@ static func day_estimate(p: MHEconomyParams, upkeep_dollars: PackedInt32Array, t
 
 
 ## Fee (cents) that maximises fees + ancillary per day; the first maximum wins, so ties go to the lower fee.
-static func suggest_fee_cents(p: MHEconomyParams, tiers: PackedInt32Array, holes: int, rating: int, rep_permille: int) -> int:
-	var dem: int = effect_sum(p.eff_dem, tiers)
+static func suggest_fee_cents(p: MHEconomyParams, tiers: PackedInt32Array, holes: int, rating: int, rep_permille: int, renovation: int = 0) -> int:
+	var dem: int = effect_sum(p.eff_dem, tiers) + renovation_dem_milli(p, renovation)
 	var anc: int = effect_sum(p.eff_anc, tiers)
 	var arr: int = arrivals_milli(p, holes, rating, dem, rep_permille, 1000)
 	var w: int = wtp_cents(p, rating, holes)
@@ -177,6 +177,27 @@ static func hole_cost_cents(p: MHEconomyParams, holes_built: int) -> int:
 	for _i: int in range(maxi(holes_built - p.c("start_holes"), 0)):
 		d = idiv(d * p.c("hole_cost_growth_permille"), 1000)
 	return d * 100
+
+
+## Late-game cash sink: cost in cents of renovation level + 1 when `level` renovations are done (geometric, whole
+## dollars, integer growth each step). 0 once renov_max_levels is reached or for a negative level.
+static func renovation_cost_cents(p: MHEconomyParams, level: int) -> int:
+	if level < 0 or level >= p.c("renov_max_levels"):
+		return 0
+	var d: int = p.c("renov_base_dollars")
+	for _i: int in range(level):
+		d = idiv(d * p.c("renov_growth_permille"), 1000)
+	return d * 100
+
+
+## Extra golfers per day x1000 that `level` renovations add (additive, like building demand).
+static func renovation_dem_milli(p: MHEconomyParams, level: int) -> int:
+	return clampi(level, 0, p.c("renov_max_levels")) * p.c("renov_dem_milli_per_level")
+
+
+## Extra upkeep per day in cents that `level` renovations add (not reduced by Maintenance).
+static func renovation_upkeep_cents(p: MHEconomyParams, level: int) -> int:
+	return clampi(level, 0, p.c("renov_max_levels")) * p.c("renov_upkeep_cents_per_level")
 
 
 ## Tokens a sped-up stretch costs under the clock's own rates (MHGameClock): every sped-up game day costs 7.5 tokens at

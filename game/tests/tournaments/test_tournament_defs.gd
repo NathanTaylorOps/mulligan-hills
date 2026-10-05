@@ -77,7 +77,7 @@ func test_accessors_return_copies() -> void:
 	var d: MHTournamentDefs = MHTournamentFixture.defs()
 	var row: Dictionary = d.level_data("local")
 	row["host_cost"] = 1
-	assert_int(d.level_int("local", "host_cost")).is_equal(10000)
+	assert_int(d.level_int("local", "host_cost")).is_equal(25000)
 	assert_bool(d.level_data("nope").is_empty()).is_true()
 	assert_int(d.level_int("nope", "host_cost")).is_equal(0)
 
@@ -109,6 +109,25 @@ func test_rejects_bad_prestige_weights_and_purse() -> void:
 	assert_bool(d.load_from_dict(raw2)).is_false()
 
 
+func test_rejects_missing_or_bad_revenue() -> void:
+	var raw: Dictionary = _data_dict()
+	MHTestEdit.put(raw, ["levels", 0, "revenue", "attendance_pct"], 101)
+	var d: MHTournamentDefs = MHTournamentDefs.new()
+	assert_bool(d.load_from_dict(raw)).is_false()
+	var raw2: Dictionary = _data_dict()
+	((raw2["levels"] as Array)[0] as Dictionary).erase("revenue")
+	assert_bool(d.load_from_dict(raw2)).is_false()
+
+
+func test_host_costs_follow_dec_065() -> void:
+	var d: MHTournamentDefs = MHTournamentFixture.defs()
+	assert_int(d.level_int("local", "host_cost")).is_equal(25000)
+	assert_int(d.level_int("regional", "host_cost")).is_equal(60000)
+	for lid: Variant in d.level_ids():
+		var rv: Dictionary = d.level_data(str(lid))["revenue"]
+		assert_int(int(rv["attendance_pct"])).is_between(0, 100)
+
+
 func test_rejects_levels_out_of_order_or_missing() -> void:
 	var raw: Dictionary = _data_dict()
 	var lv: Array = raw["levels"]
@@ -123,7 +142,7 @@ func test_rejects_levels_out_of_order_or_missing() -> void:
 
 
 func test_rejects_fractional_numbers_in_text() -> void:
-	var text: String = _data_text().replace("\"host_cost\": 10000,", "\"host_cost\": 10000.5,")
+	var text: String = _data_text().replace("\"host_cost\": 25000,", "\"host_cost\": 25000.5,")
 	var d: MHTournamentDefs = MHTournamentDefs.new()
 	assert_bool(d.load_from_text(text)).is_false()
 	assert_bool(d.load_from_text("[1, 2]")).is_false()

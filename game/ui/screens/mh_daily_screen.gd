@@ -26,6 +26,8 @@ func _fill() -> void:
 	box.add_child(MHUIKit.label(MHStrings.t("daily.attempts", {"left": int(d["attempts_left"]), "total": int(d["attempts_total"])}), &"MutedLabel"))
 	box.add_child(MHUIKit.label(MHStrings.t("daily.streak", {"days": int(d["streak_days"])}), &"MutedLabel"))
 	box.add_child(MHUIKit.label(MHStrings.t("daily.ends", {"time": MHFormat.duration_minutes(int(d["ends_in_minutes"]))}), &"MutedLabel"))
+	if bool(d.get("completed_today", false)):
+		box.add_child(MHUIKit.label(MHStrings.t("daily.completed"), &"GoodLabel"))
 	var play: MHTapButton = MHUIKit.button(ctx, MHStrings.t("daily.play"), &"PrimaryButton")
 	play.disabled = int(d["attempts_left"]) <= 0
 	play.pressed.connect(send.bind(&"daily_play", {}))

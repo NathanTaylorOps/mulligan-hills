@@ -38,7 +38,8 @@ const SAVE_VERSION: int = 1
 
 const _INT_KEYS: Array = [
 	"cash", "fee", "day", "hour", "arrears", "loan_balance", "loans_taken", "reputation", "holiday_hours", "carry_milli",
-	"last_daily_upkeep", "members_milli", "holes", "rating", "parcels", "ext_permille", "total_revenue", "total_upkeep_paid",
+	"last_daily_upkeep", "members_milli", "holes", "rating", "parcels", "ext_permille", "renovation", "total_revenue",
+	"total_upkeep_paid",
 ]
 
 var params: MHEconomyParams
@@ -61,6 +62,8 @@ var holes: int = 6
 var rating: int = 34
 var parcels: int = 5
 var ext_permille: int = 1000
+## Late-game renovation level (0..renov_max_levels): a repeatable cash sink that adds demand and upkeep.
+var renovation: int = 0
 var tiers: PackedInt32Array = PackedInt32Array()
 var total_revenue: int = 0
 var total_upkeep_paid: int = 0
@@ -116,6 +119,7 @@ func reset_to_start() -> void:
 	rating = params.c("start_rating")
 	parcels = params.c("start_parcels")
 	ext_permille = 1000
+	renovation = 0
 	tiers = PackedInt32Array()
 	tiers.resize(MHEconomyParams.BUILDINGS)
 	total_revenue = 0
@@ -184,7 +188,7 @@ func green_fee() -> int:
 
 
 func suggest_fee() -> int:
-	return MHEconomyModel.suggest_fee_cents(params, tiers, holes, rating, reputation)
+	return MHEconomyModel.suggest_fee_cents(params, tiers, holes, rating, reputation, renovation)
 
 
 func members() -> int:
@@ -229,11 +233,39 @@ func hole_cost_cents() -> int:
 # ------------------------------------------------------------------ upkeep
 func daily_upkeep() -> int:
 	var cut: int = MHEconomyModel.effect_sum(params.eff_cut, tiers)
-	return MHEconomyModel.course_upkeep_cents(params, holes, parcels, cut) + MHEconomyModel.building_upkeep_cents(upkeep_dollars, tiers)
+	return MHEconomyModel.course_upkeep_cents(params, holes, parcels, cut) + MHEconomyModel.building_upkeep_cents(upkeep_dollars, tiers) + MHEconomyModel.renovation_upkeep_cents(params, renovation)
+
+
+# ------------------------------------------------------------------ renovation (late-game cash sink)
+## True when a renovation can be bought: full 18-hole course, every building at tier renov_min_tier (4) or higher,
+## below the maximum level. Tier 4 and not 5, so a player held below tier 5 by the rating gate still has a cash sink.
+func renovation_available() -> bool:
+	if holes < MHEconomyParams.MAX_HOLES:
+		return false
+	for t: int in tiers:
+		if t < params.c("renov_min_tier"):
+			return false
+	return renovation < params.c("renov_max_levels")
+
+
+## Cost in cents of the next renovation level (0 at the maximum level).
+func renovation_cost() -> int:
+	return MHEconomyModel.renovation_cost_cents(params, renovation)
+
+
+## Spends renovation_cost() and raises the level by one. ERR_NOT_AVAILABLE when renovation_available() is false.
+func purchase_renovation() -> int:
+	if not renovation_available():
+		return ERR_NOT_AVAILABLE
+	var r: int = spend(renovation_cost())
+	if r != OK:
+		return r
+	renovation += 1
+	return OK
 
 
 func estimate_day() -> Dictionary:
-	return MHEconomyModel.day_estimate(params, upkeep_dollars, tiers, holes, parcels, rating, members_milli, fee, reputation, ext_permille)
+	return MHEconomyModel.day_estimate(params, upkeep_dollars, tiers, holes, parcels, rating, members_milli, fee, reputation, ext_permille, renovation)
 
 
 # ------------------------------------------------------------------ the hourly tick
@@ -242,7 +274,7 @@ func estimate_day() -> Dictionary:
 func tick_hour() -> Dictionary:
 	var cash_before: int = cash
 	var h: int = hour
-	var dem: int = MHEconomyModel.effect_sum(params.eff_dem, tiers)
+	var dem: int = MHEconomyModel.effect_sum(params.eff_dem, tiers) + MHEconomyModel.renovation_dem_milli(params, renovation)
 	var anc: int = MHEconomyModel.effect_sum(params.eff_anc, tiers)
 	var arr: int = MHEconomyModel.arrivals_milli(params, holes, rating, dem, reputation, ext_permille)
 	var acc: int = MHEconomyModel.acceptance_permille(fee, MHEconomyModel.wtp_cents(params, rating, holes))
@@ -392,8 +424,8 @@ func to_dict() -> Dictionary:
 		"loan_balance": loan_balance, "loans_taken": loans_taken, "reputation": reputation,
 		"holiday_hours": holiday_hours, "bankrupt": 1 if bankrupt else 0, "carry_milli": carry_milli,
 		"last_daily_upkeep": last_daily_upkeep, "members_milli": members_milli, "holes": holes, "rating": rating,
-		"parcels": parcels, "ext_permille": ext_permille, "tiers": tl, "total_revenue": total_revenue,
-		"total_upkeep_paid": total_upkeep_paid,
+		"parcels": parcels, "ext_permille": ext_permille, "renovation": renovation, "tiers": tl,
+		"total_revenue": total_revenue, "total_upkeep_paid": total_upkeep_paid,
 	}
 
 
@@ -439,6 +471,8 @@ func from_dict(d: Dictionary) -> bool:
 	if vals.has("arrears") and int(vals["arrears"]) < 0:
 		return false
 	if vals.has("fee") and int(vals["fee"]) < 0:
+		return false
+	if vals.has("renovation") and (int(vals["renovation"]) < 0 or int(vals["renovation"]) > params.c("renov_max_levels")):
 		return false
 	for k: Variant in vals.keys():
 		set(str(k), int(vals[k]))

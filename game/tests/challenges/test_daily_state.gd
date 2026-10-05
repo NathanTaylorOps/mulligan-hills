@@ -168,3 +168,20 @@ func test_bad_data_is_rejected() -> void:
 	assert_int(t.current_day()).is_equal(-1)
 	assert_bool(t.from_dict(good)).is_true()
 	assert_int(t.current_day()).is_equal(5)
+
+
+func test_save_block_round_trip_has_no_version_tag() -> void:
+	var s: MHDailyState = MHDailyState.new()
+	s.record_attempt(40, false, 420, 610)
+	s.record_attempt(41, true, 750, 800)
+	var blk: Dictionary = s.to_save_block()
+	assert_bool(blk.has("v")).is_false()
+	for key: String in ["day", "used", "completed_today", "best_pm", "best_f", "attempted_days", "completed_days", "history", "board"]:
+		assert_bool(blk.has(key)).is_true()
+	var parsed: Variant = JSON.parse_string(JSON.stringify(blk))
+	var t: MHDailyState = MHDailyState.new()
+	assert_bool(t.from_save_block(parsed as Dictionary)).is_true()
+	assert_bool(t.to_save_block() == blk).is_true()
+	var bad: Dictionary = blk.duplicate(true)
+	bad["best_pm"] = 2000
+	assert_bool(MHDailyState.new().from_save_block(bad)).is_false()

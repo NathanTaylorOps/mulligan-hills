@@ -16,9 +16,14 @@ extends RefCounted
 ##   hole rating:  hole_no, par, length_yd, valid(bool), dead(bool), score_pm, accuracy_pm, imagination_pm,
 ##                 length_pm, beauty_pm, fairness_pm, reasons(Array of {code, severity, a, b})
 ##   daily:        enabled(bool), title_key, desc_key, attempts_left, attempts_total, target_score,
-##                 best_score, streak_days, ends_in_minutes, board(Array of {name, score})
+##                 best_score, streak_days, ends_in_minutes, board(Array of {name, score}),
+##                 completed_today(bool, optional)
 ##   tournament:   level, status ("locked","available","cooldown","active"), host_cost, reward_cash,
-##                 reward_reputation, cooldown_days, rows(Array of [key, met, have, need])
+##                 reward_reputation, cooldown_days, rows(Array of [key, met, have, need]),
+##                 can_host(bool, optional, default true), block_reason(String, optional: "" or one of
+##                 unknown_level, disabled, busy, cooldown, locked, cash)
+##   tournament event (tournament_event): {} or level, status ("preparing","running","done","failed"), start_day,
+##                 resolve_day, days_left
 ##   achievement:  id, category, tier, points, hidden(bool), earned(bool), progress, target
 ##   recovery:     active(bool), shortfall, loan_amount, reputation_penalty, token_cost
 ##   product:      id, tokens, price_text   (placeholders; no store code exists)
@@ -132,6 +137,29 @@ func daily_challenge() -> Dictionary:
 
 func tournaments() -> Array:
 	return []
+
+
+## The running tournament event, {} when none (see the row shape above).
+func tournament_event() -> Dictionary:
+	return {}
+
+
+## Club level 1.. and club prestige points (MHProgression). points_for_next_level is -1 at the top level.
+func club_level() -> int:
+	return 1
+
+
+func club_points() -> int:
+	return 0
+
+
+func points_for_next_level() -> int:
+	return -1
+
+
+## String key of the level title, "" when unknown.
+func level_title_key() -> String:
+	return ""
 
 
 func achievements() -> Array:

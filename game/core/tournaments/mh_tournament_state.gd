@@ -10,8 +10,9 @@ extends RefCounted
 ##   ready     day D+prep_days+duration_days   evaluate with MHTournamentSim.evaluate then call finish()
 ##   finish()  status "done" (success) or "failed"; cooldown starts that day; acknowledge() clears the record.
 ## cancel() is allowed only while preparing and refunds cancel_refund_pct of the host cost.
-## Save shape (save.schema.json progress.tournaments) is to_save_block()/from_save_block(); the two counters the
-## achievements need (hosted_count, attempted_count) are NOT in that schema, they travel in to_dict().
+## Save shape (save.schema.json progress.tournaments) is to_save_block()/from_save_block(): hosted_levels,
+## cooldown_until_day, optional active, and the two counters the achievements read (hosted_count, attempted_count;
+## optional in the schema, so a save written before they existed still loads). to_dict() adds only "v".
 
 const SAVE_VERSION: int = 1
 const STATUSES: Array = ["preparing", "running", "done", "failed"]
@@ -204,14 +205,20 @@ func _sort_levels() -> void:
 
 ## Exactly the shape of save.schema.json progress.tournaments.
 func to_save_block() -> Dictionary:
-	var out: Dictionary = {"hosted_levels": hosted_levels.duplicate(), "cooldown_until_day": cooldown_until_day}
+	var out: Dictionary = {
+		"hosted_levels": hosted_levels.duplicate(),
+		"cooldown_until_day": cooldown_until_day,
+		"hosted_count": hosted_count,
+		"attempted_count": attempted_count,
+	}
 	if not active.is_empty():
 		out["active"] = active.duplicate()
 	return out
 
 
-## Replaces hosted_levels, cooldown and active from a save block. Counters are not in the block: when they are
-## below what the block implies they are raised (hosted_count >= number of levels, attempted_count >= hosted_count).
+## Replaces hosted_levels, cooldown, active and the counters from a save block. When the block has no counters (a
+## save written before they existed) the current counters are kept. Either way the counters are raised to what the
+## block implies (hosted_count >= number of levels, attempted_count >= hosted_count).
 ## Returns false and changes nothing when the block is invalid.
 func from_save_block(block: Dictionary) -> bool:
 	var errs: Array = []
@@ -229,6 +236,16 @@ func from_save_block(block: Dictionary) -> bool:
 		levels.append(str(l))
 	if not MHDataJson.is_int_in(b.get("cooldown_until_day", null), 0, 1000000):
 		return false
+	var new_hosted: int = hosted_count
+	var new_attempted: int = attempted_count
+	if b.has("hosted_count"):
+		if not MHDataJson.is_int_in(b["hosted_count"], 0, 1000000):
+			return false
+		new_hosted = int(b["hosted_count"])
+	if b.has("attempted_count"):
+		if not MHDataJson.is_int_in(b["attempted_count"], 0, 1000000):
+			return false
+		new_attempted = int(b["attempted_count"])
 	var act: Dictionary = {}
 	if b.has("active"):
 		var av: Variant = b["active"]
@@ -253,17 +270,15 @@ func from_save_block(block: Dictionary) -> bool:
 	_sort_levels()
 	cooldown_until_day = int(b["cooldown_until_day"])
 	active = act
-	hosted_count = maxi(hosted_count, hosted_levels.size())
-	attempted_count = maxi(attempted_count, hosted_count)
+	hosted_count = maxi(new_hosted, hosted_levels.size())
+	attempted_count = maxi(new_attempted, hosted_count)
 	return true
 
 
-## Full state including the counters.
+## Full state: the save block plus a version tag.
 func to_dict() -> Dictionary:
 	var d: Dictionary = to_save_block()
 	d["v"] = SAVE_VERSION
-	d["hosted_count"] = hosted_count
-	d["attempted_count"] = attempted_count
 	return d
 
 

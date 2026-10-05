@@ -34,6 +34,7 @@ func _ready() -> void:
 	root.add_child(stage)
 	stage.add_child(_shell)
 	_shell.setup(_view, _settings)
+	_shell.intent.connect(_on_intent)
 	theme = MHTheme.build(_settings.text_scale_pct)
 	_settings.changed.connect(_on_settings_changed)
 
@@ -55,6 +56,7 @@ func _ready() -> void:
 	_tool(tools, "gallery.cash_rich", _view.sample_set_cash.bind(250000))
 	_tool(tools, "gallery.recovery_on", _view.sample_set_recovery.bind(true))
 	_tool(tools, "gallery.recovery_off", _view.sample_set_recovery.bind(false))
+	_tool(tools, "gallery.tournament_ready", _view.sample_set_tournament_ready.bind(true))
 	_tool(tools, "gallery.text_down", _on_text.bind(-1))
 	_tool(tools, "gallery.text_up", _on_text.bind(1))
 	_tool(tools, "gallery.left_hand", _toggle_left)
@@ -66,6 +68,13 @@ func _tool(parent: Control, key: String, handler: Callable) -> void:
 	var b: MHTapButton = MHUIKit.button(_shell.ctx, MHStrings.t(key), &"GhostButton", 96.0)
 	b.pressed.connect(handler)
 	parent.add_child(b)
+
+
+## The gallery is the "game" for the two progression intents: they run against the real modules on sample data.
+func _on_intent(id: StringName, args: Dictionary) -> void:
+	var r: Dictionary = _view.sample_handle_intent(id, args)
+	if bool(r.get("handled", false)) and str(r.get("message_key", "")) != "":
+		_shell.toast(str(r["message_key"]), r.get("message_params", {}) as Dictionary)
 
 
 func show_screen(id: String) -> void:

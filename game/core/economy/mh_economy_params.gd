@@ -20,7 +20,8 @@ const REQUIRED_CORE: Array = [
 	"bankrupt_min_arrears_cents", "loan_upkeep_days", "loan_min_cents", "loan_max_cents", "loan_fee_permille",
 	"loan_repay_share_permille", "loan_max_taken", "loan_rep_penalty_permille", "rep_floor_permille",
 	"rep_recover_per_day_permille", "recovery_token_cost", "recovery_holiday_days", "tournament_cost_cents",
-	"tournament_regional_cost_cents",
+	"tournament_regional_cost_cents", "renov_base_dollars", "renov_growth_permille", "renov_max_levels",
+	"renov_dem_milli_per_level", "renov_upkeep_cents_per_level", "renov_min_tier",
 ]
 
 var core: Dictionary = {}
@@ -255,6 +256,14 @@ func _check_ranges() -> String:
 		return "hole_cost_growth_permille below 1000"
 	if c("tee_groups_per_hour") < 1 or c("tee_group_size_x10") < 10:
 		return "bad tee capacity"
+	if c("renov_growth_permille") < 1000:
+		return "renov_growth_permille below 1000"
+	if c("renov_max_levels") < 0 or c("renov_max_levels") > 100:
+		return "renov_max_levels outside 0..100"
+	if c("renov_base_dollars") < 0 or c("renov_dem_milli_per_level") < 0 or c("renov_upkeep_cents_per_level") < 0:
+		return "negative renovation constant"
+	if c("renov_min_tier") < 1 or c("renov_min_tier") > TIERS:
+		return "renov_min_tier outside 1..5"
 	for v: int in hour_profile:
 		if v < 0:
 			return "negative hour_profile entry"

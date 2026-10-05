@@ -94,6 +94,33 @@ func test_stat_keys_match_the_schema_enum() -> void:
 		assert_bool(MHProgressStats.STAT_KEYS.has(str(k))).is_true()
 
 
+func test_stats_save_block_is_flat_and_skips_zero() -> void:
+	var s: MHProgressStats = _stats({"holes_max": 18, "bonus_prestige": 40, "level": 0})
+	var blk: Dictionary = s.to_save_block()
+	assert_int(blk.size()).is_equal(2)
+	assert_int(int(blk["holes_max"])).is_equal(18)
+	assert_bool(blk.has("v")).is_false()
+	var parsed: Variant = JSON.parse_string(JSON.stringify(blk))
+	var t: MHProgressStats = MHProgressStats.new()
+	assert_bool(t.from_save_block(parsed as Dictionary)).is_true()
+	assert_int(t.value_of("bonus_prestige")).is_equal(40)
+	assert_bool(MHProgressStats.new().from_save_block({"holes_max": -1})).is_false()
+	assert_bool(MHProgressStats.new().from_save_block({"holes_max": 1.5})).is_false()
+	assert_bool(MHProgressStats.new().from_save_block({"retired_stat": 4, "holes_max": 2})).is_true()
+
+
+func test_save_schema_stats_keys_match() -> void:
+	var docs_path: String = ProjectSettings.globalize_path("res://").path_join("../docs/spec/data/save.schema.json").simplify_path()
+	if not FileAccess.file_exists(docs_path):
+		return
+	var schema: Dictionary = JSON.parse_string(FileAccess.get_file_as_string(docs_path))
+	var progress: Dictionary = ((schema["properties"] as Dictionary)["progress"] as Dictionary)
+	var stats_props: Dictionary = (((progress["properties"] as Dictionary)["stats"] as Dictionary)["properties"] as Dictionary)
+	assert_int(stats_props.size()).is_equal(MHProgressStats.STAT_KEYS.size() + MHProgressStats.EXTRA_KEYS.size())
+	for k: Variant in stats_props.keys():
+		assert_bool(MHProgressStats.is_known(str(k))).override_failure_message("save schema stat not known to the code: " + str(k)).is_true()
+
+
 # ------------------------------------------------------------------ catalogue
 
 func test_catalogue_loads_with_at_least_forty() -> void:

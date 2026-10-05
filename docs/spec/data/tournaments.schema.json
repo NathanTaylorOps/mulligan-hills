@@ -141,6 +141,7 @@
           "host_cost",
           "prestige_base",
           "reward",
+          "revenue",
           "failure",
           "field"
         ],
@@ -283,6 +284,33 @@
                 "type": "integer",
                 "minimum": 0,
                 "maximum": 100000
+              }
+            }
+          },
+          "revenue": {
+            "description": "Income on a SUCCESSFUL event, whole dollars (DEC-065): entry_fee x field_size, plus tickets = ticket_price x spectator capacity of the Clubhouse tier x attendance_pct / 100 x duration_days. Paid on top of reward.cash (the sponsor payment). Failed events earn nothing.",
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "entry_fee",
+              "ticket_price",
+              "attendance_pct"
+            ],
+            "properties": {
+              "entry_fee": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 1000000
+              },
+              "ticket_price": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 100000
+              },
+              "attendance_pct": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 100
               }
             }
           },

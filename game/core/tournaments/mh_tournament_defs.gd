@@ -138,12 +138,17 @@ func _check_levels(v: Variant) -> String:
 		var msg: String = _check_entry(lid, ld.get("entry", null))
 		if not msg.is_empty():
 			return msg
-		for blk: String in ["reward", "failure", "field"]:
+		for blk: String in ["reward", "revenue", "failure", "field"]:
 			if typeof(ld.get(blk, null)) != TYPE_DICTIONARY:
 				return lid + ": missing " + blk
 		var rw: Dictionary = ld["reward"]
 		if not MHDataJson.is_int_in(rw.get("cash", null), 0, 100000000) or not MHDataJson.is_int_in(rw.get("reputation", null), 0, 100000):
 			return lid + ": bad reward"
+		var rv: Dictionary = ld["revenue"]
+		if not MHDataJson.is_int_in(rv.get("entry_fee", null), 0, 1000000) or not MHDataJson.is_int_in(rv.get("ticket_price", null), 0, 100000):
+			return lid + ": bad revenue"
+		if not MHDataJson.is_int_in(rv.get("attendance_pct", null), 0, 100):
+			return lid + ": bad revenue.attendance_pct"
 		var fl: Dictionary = ld["failure"]
 		for k2: String in ["reputation_loss", "cash_loss", "cooldown_extra_days"]:
 			if not MHDataJson.is_int_in(fl.get(k2, null), 0, 100000000):

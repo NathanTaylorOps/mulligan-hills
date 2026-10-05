@@ -37,7 +37,7 @@ Not built (still the old draft in `docs/spec/interfaces/buildings.md`): `MHBuild
  8 F*  9 G*  10 G* 11 G
  12 F  13 G  14 G  15 H      G golf, F facility, H homes, * start plot
 ```
-  Start plot = parcels 5, 6, 8, 9, 10 (4 golf + 1 facility = 6 holes). A parcel is buyable only if it shares an edge with an owned parcel; otherwise free choice. Price of the n-th purchase = 25000 grown by 130 percent n times (integer, truncating), same numbers as `remote_config.example.json`. `recommended_next` suggests golf first, then facility, then homes, lowest id.
+  Start plot = parcels 5, 6, 8, 9, 10 (4 golf + 1 facility = 6 holes). A parcel is buyable only if it shares an edge with an owned parcel; otherwise free choice. Price of the n-th purchase = 8000 grown by 115 percent n times (DEC-066 rebalance; was 25000 at 130 percent) (integer, truncating), same numbers as `remote_config.example.json`. `recommended_next` suggests golf first, then facility, then homes, lowest id.
 - Hole capacity = owned golf parcels x 3 / 2 (12 golf parcels = 18 holes). Home capacity = homes parcels x 3, max 6.
 - Heavy buildings (Driving range, Pool and spa, Lodging, Homes, Landmark) need one extra parcel at tiers 2 to 5. Encoded in the data as `min_parcels_owned`: light 5 / 5 / 8 / 11 / 14, heavy 5 / 6 / 9 / 12 / 15 (a total-owned count, not a specific parcel kind).
 - Homes need at least one owned homes parcel (`needs_parcel_kind`). Homes hold up to 6 home slots (`home_slots.max_slots`); upgrading a tier replaces the standing homes with the newer bigger model, never adds slots (`upgrade_mode: replace`; the rule text is documentation, the slot bookkeeping belongs to `MHBuildings`).
@@ -52,7 +52,7 @@ CI: tests sit in `game/tests/buildings/` and `game/tests/land/`, picked up by `r
 
 ## 4. Known open conflict, pinned by a test
 
-DEC-055 gives the demo Clubhouse tier 3, but tier 3 needs 10 holes and the demo caps at 9 holes, so a demo player cannot reach it. `MHUnlockRules.demo_unreachable` returns `["clubhouse:3"]` and `test_demo_unreachable_pins_known_conflict` asserts exactly that. When Nathan decides, change the data or the cap and update the test to expect an empty array.
+Resolved by DEC-063: the demo Clubhouse cap is tier 2, so `MHUnlockRules.demo_unreachable` returns an empty array and the test asserts that.
 
 ## 5. Unverified assumptions
 
@@ -65,7 +65,7 @@ DEC-055 gives the demo Clubhouse tier 3, but tier 3 needs 10 holes and the demo 
 
 ## 6. Risks and follow-ups
 
-- Other files still carry the old model and are not mine to edit: `remote_config.schema.json` and example (`cost_multiplier_x100`, `building_cost_scale_pct`), `tournaments.json` (local tournament gate `min_avg_hole_score` 30 on the old scale, now below the tier 2 to 4 gates it sits between), `docs/spec/interfaces/buildings.md` (25/30/36/42, costs, `MHBuildings` draft), `docs/spec/data/README.md` rules 8 and 9 (3 holes per parcel, 9 max).
+- Fixed since: `remote_config` schema and example (price knobs removed), `docs/spec/interfaces/buildings.md` and `docs/spec/data/README.md` rules 8 and 9. Still carrying the old model: `tournaments.json` (local tournament gate `min_avg_hole_score` 30 on the old scale; another workstream is rebalancing it).
 - Schema version bump to 2: any loader or save data that read v1 must be updated. Nothing in the repo besides these files read it.
 - Parcel prices are duplicated between this file and remote config (`parcel_base_cost`, `parcel_growth_pct`); remote config should win at runtime once it is wired.
 - `MHBuildings` (purchase, persistence, demolition blocking) is the next piece and depends on the economy interface.

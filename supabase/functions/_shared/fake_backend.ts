@@ -10,7 +10,7 @@ export function goodConfig(over: Obj = {}): Obj {
   return {
     schema: "mh.remote_config", schema_version: 1, config_version: 3, issued_unix: 1790000000, min_app_version: "0.1.0",
     kill_switches: { cloud_sync: true, daily_challenge: true, analytics: true, purchase_flow: true, tournaments: true, notifications: true },
-    economy: { cost_multiplier_x100: [100, 200, 400, 800, 1400], building_cost_scale_pct: 100, parcel_base_cost: 25000, parcel_growth_pct: 130,
+    economy: { parcel_base_cost: 25000, parcel_growth_pct: 130,
       hole_cost: 8000, start_cash: 40000, green_fee_min: 5, green_fee_max: 250 },
     events: { random_event_per_day_permille: 60, commission_offer_per_day_permille: 40, event_cash_scale_pct: 100 },
     ...over,

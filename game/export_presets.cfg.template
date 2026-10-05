@@ -11,6 +11,10 @@
 ; unknown option keys and uses defaults for missing ones, so a renamed key degrades to a
 ; default rather than failing; check the Android export log if a setting seems ignored.
 ;
+; include_filter packs the non-resource JSON the game reads at runtime: build_info.json and everything under
+; res://data (data/*.json, and data/rating/*.json one level down). Without it the game data would be missing in
+; an exported build. UNVERIFIED on a device build: confirm once that the files are in the APK/AAB.
+;
 ; Preset order (CI selects by NAME, not index):
 ;   0 Android Debug APK   1 Android Debug AAB   2 Android Release AAB
 ;   3 Windows Desktop     4 iOS
@@ -24,7 +28,7 @@ advanced_options=false
 dedicated_server=false
 custom_features=""
 export_filter="all_resources"
-include_filter="build_info.json"
+include_filter="build_info.json, data/*.json, data/*/*.json"
 exclude_filter="tests/*, addons/gdUnit4/*, reports/*, tools/*"
 export_path=""
 patches=PackedStringArray()
@@ -77,7 +81,7 @@ advanced_options=false
 dedicated_server=false
 custom_features=""
 export_filter="all_resources"
-include_filter="build_info.json"
+include_filter="build_info.json, data/*.json, data/*/*.json"
 exclude_filter="tests/*, addons/gdUnit4/*, reports/*, tools/*"
 export_path=""
 patches=PackedStringArray()
@@ -130,7 +134,7 @@ advanced_options=false
 dedicated_server=false
 custom_features=""
 export_filter="all_resources"
-include_filter="build_info.json"
+include_filter="build_info.json, data/*.json, data/*/*.json"
 exclude_filter="tests/*, addons/gdUnit4/*, reports/*, tools/*"
 export_path=""
 patches=PackedStringArray()
@@ -183,7 +187,7 @@ advanced_options=false
 dedicated_server=false
 custom_features=""
 export_filter="all_resources"
-include_filter="build_info.json"
+include_filter="build_info.json, data/*.json, data/*/*.json"
 exclude_filter="tests/*, addons/gdUnit4/*, reports/*, tools/*"
 export_path=""
 patches=PackedStringArray()
@@ -216,7 +220,7 @@ advanced_options=false
 dedicated_server=false
 custom_features=""
 export_filter="all_resources"
-include_filter="build_info.json"
+include_filter="build_info.json, data/*.json, data/*/*.json"
 exclude_filter="tests/*, addons/gdUnit4/*, reports/*, tools/*"
 export_path=""
 patches=PackedStringArray()

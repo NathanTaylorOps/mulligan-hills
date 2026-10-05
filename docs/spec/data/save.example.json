@@ -14,14 +14,14 @@
   "saved_at_unix": 1790000000,
   "install_id": "9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d",
   "mode": "standard",
-  "ironman": false,
   "checksum": {
     "alg": "sha256",
     "value": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
   },
   "world": {
     "day": 17,
-    "season": "spring"
+    "season": "spring",
+    "minute_of_day": 120
   },
   "club": {
     "name_preset_id": 4,
@@ -367,7 +367,9 @@
     ],
     "tournaments": {
       "hosted_levels": [],
-      "cooldown_until_day": 0
+      "cooldown_until_day": 0,
+      "hosted_count": 0,
+      "attempted_count": 0
     },
     "commissions": [
       {
@@ -392,6 +394,68 @@
         "id": "pro_shop",
         "tier": 1
       }
-    ]
+    ],
+    "playtime_s": 5400,
+    "stats": {
+      "holes_max": 7,
+      "holes_good_max": 3,
+      "best_hole_score": 61,
+      "best_course_score": 46,
+      "parcels_max": 5,
+      "members_max": 22,
+      "reputation_max": 140,
+      "lifetime_earned": 64200,
+      "days_played": 17,
+      "buildings_built": 2,
+      "tier_sum": 2,
+      "tier_clubhouse": 1,
+      "tier_pro_shop": 1,
+      "tutorial_done": 1,
+      "level": 2
+    },
+    "streak": {
+      "current": 3,
+      "best": 3,
+      "grace": 1,
+      "active_days": 3,
+      "last_day": 20000,
+      "claimed": [
+        3
+      ]
+    },
+    "daily": {
+      "day": 20000,
+      "used": 2,
+      "completed_today": 0,
+      "best_pm": 480,
+      "best_f": 720,
+      "attempted_days": 3,
+      "completed_days": 1,
+      "history": [
+        {
+          "day": 19998,
+          "attempts": 1,
+          "completed": 1,
+          "best_pm": 560
+        }
+      ],
+      "board": [
+        {
+          "day": 19998,
+          "score_pm": 560,
+          "fairness_pm": 700
+        },
+        {
+          "day": 20000,
+          "score_pm": 480,
+          "fairness_pm": 720
+        },
+        {
+          "day": 20000,
+          "score_pm": 410,
+          "fairness_pm": 650
+        }
+      ]
+    }
   }
 }

@@ -6,7 +6,7 @@ func _defs() -> MHTournamentDefs:
 	return MHTournamentFixture.defs()
 
 
-func _start_local(st: MHTournamentState, day: int, cash: int = 20000) -> Dictionary:
+func _start_local(st: MHTournamentState, day: int, cash: int = 30000) -> Dictionary:
 	return st.start(_defs(), "local", day, MHTournamentFixture.local_view(), cash, true, 40)
 
 
@@ -31,7 +31,7 @@ func test_start_takes_cost_and_locks_the_course() -> void:
 	var st: MHTournamentState = MHTournamentState.new()
 	var r: Dictionary = _start_local(st, 100)
 	assert_bool(bool(r["ok"])).is_true()
-	assert_int(int(r["cost"])).is_equal(10000)
+	assert_int(int(r["cost"])).is_equal(25000)
 	assert_int(int(r["event_id"])).is_equal(400)
 	assert_bool(st.is_active()).is_true()
 	assert_bool(st.course_locked()).is_true()
@@ -49,9 +49,9 @@ func test_start_refusals_in_order() -> void:
 	assert_str(str(st.start(d, "nope", 0, view, 99999, true, 40)["reason"])).is_equal("unknown_level")
 	assert_str(str(st.start(d, "local", 0, view, 99999, false, 40)["reason"])).is_equal("disabled")
 	assert_str(str(st.start(d, "local", 0, {}, 99999, true, 40)["reason"])).is_equal("locked")
-	assert_str(str(st.start(d, "local", 0, view, 9999, true, 40)["reason"])).is_equal("cash")
+	assert_str(str(st.start(d, "local", 0, view, 24999, true, 40)["reason"])).is_equal("cash")
 	assert_bool(st.is_active()).is_false()
-	assert_bool(bool(st.start(d, "local", 0, view, 10000, true, 40)["ok"])).is_true()
+	assert_bool(bool(st.start(d, "local", 0, view, 25000, true, 40)["ok"])).is_true()
 	assert_str(str(st.start(d, "local", 1, view, 99999, true, 40)["reason"])).is_equal("busy")
 
 
@@ -180,8 +180,10 @@ func test_save_block_round_trip_matches_schema_shape() -> void:
 	_start_local(st, 100)
 	st.advance(_defs(), 103)
 	var blk: Dictionary = st.to_save_block()
-	assert_int(blk.size()).is_equal(3)
+	assert_int(blk.size()).is_equal(5)
 	assert_bool(blk.has("hosted_levels")).is_true()
+	assert_int(int(blk["hosted_count"])).is_equal(0)
+	assert_int(int(blk["attempted_count"])).is_equal(0)
 	assert_int(int(blk["cooldown_until_day"])).is_equal(0)
 	var act: Dictionary = blk["active"]
 	assert_str(str(act["level"])).is_equal("local")
@@ -244,3 +246,42 @@ func test_hosted_levels_are_kept_in_ladder_order() -> void:
 	# counters are raised to match the block
 	assert_int(st.hosted_count).is_equal(2)
 	assert_int(st.attempted_count).is_equal(2)
+
+
+func test_save_block_carries_the_counters() -> void:
+	var st: MHTournamentState = MHTournamentState.new()
+	_start_local(st, 100)
+	st.finish(_defs(), 104, _result(true))
+	st.acknowledge()
+	_start_local(st, 130)
+	st.finish(_defs(), 134, _result(false))
+	st.acknowledge()
+	var blk: Dictionary = st.to_save_block()
+	assert_int(int(blk["hosted_count"])).is_equal(1)
+	assert_int(int(blk["attempted_count"])).is_equal(2)
+	var st2: MHTournamentState = MHTournamentState.new()
+	assert_bool(st2.from_save_block(blk)).is_true()
+	assert_int(st2.hosted_count).is_equal(1)
+	assert_int(st2.attempted_count).is_equal(2)
+	# JSON round trip (whole floats)
+	var parsed: Variant = JSON.parse_string(JSON.stringify(blk))
+	var st3: MHTournamentState = MHTournamentState.new()
+	assert_bool(st3.from_save_block(parsed as Dictionary)).is_true()
+	assert_int(st3.attempted_count).is_equal(2)
+
+
+func test_old_block_without_counters_keeps_current_counters_and_bad_counters_are_refused() -> void:
+	var st: MHTournamentState = MHTournamentState.new()
+	st.hosted_count = 3
+	st.attempted_count = 5
+	assert_bool(st.from_save_block({"hosted_levels": ["local"], "cooldown_until_day": 0})).is_true()
+	assert_int(st.hosted_count).is_equal(3)
+	assert_int(st.attempted_count).is_equal(5)
+	var other: MHTournamentState = MHTournamentState.new()
+	assert_bool(other.from_save_block({"hosted_levels": [], "cooldown_until_day": 0, "hosted_count": -1})).is_false()
+	assert_bool(other.from_save_block({"hosted_levels": [], "cooldown_until_day": 0, "attempted_count": 1.5})).is_false()
+	assert_int(other.hosted_count).is_equal(0)
+	# a count below what the levels imply is raised
+	assert_bool(other.from_save_block({"hosted_levels": ["local", "regional"], "cooldown_until_day": 0, "hosted_count": 0, "attempted_count": 0})).is_true()
+	assert_int(other.hosted_count).is_equal(2)
+	assert_int(other.attempted_count).is_equal(2)

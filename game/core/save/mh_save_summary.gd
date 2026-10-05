@@ -12,7 +12,7 @@ var day: int = 0
 ## Cash in the economy module's smallest whole unit (cents). Displayed by the UI, never converted here.
 var cash: int = 0
 var holes: int = 0
-## Whole seconds played. 0 when the save has no progress.playtime_s (field pending a schema addition).
+## Whole seconds played (progress.playtime_s). 0 when the save has none (older v1 saves do not carry it).
 var playtime_s: int = 0
 
 

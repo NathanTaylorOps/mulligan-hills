@@ -97,6 +97,21 @@ func to_dict() -> Dictionary:
 	return {"v": SAVE_VERSION, "stats": out}
 
 
+## Flat {stat name: int} for save.schema.json progress.stats (stats at zero are left out).
+func to_save_block() -> Dictionary:
+	var out: Dictionary = {}
+	for k: Variant in _v.keys():
+		if int(_v[k]) > 0:
+			out[str(k)] = int(_v[k])
+	return out
+
+
+## Loads the flat block written by to_save_block. Unknown names are dropped, a bad value rejects the whole block
+## (returns false, nothing changed).
+func from_save_block(block: Dictionary) -> bool:
+	return from_dict({"v": SAVE_VERSION, "stats": block})
+
+
 ## Unknown stat keys are dropped, bad values reject the whole load (returns false, nothing changed).
 func from_dict(d: Dictionary) -> bool:
 	var errs: Array = []

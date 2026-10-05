@@ -13,18 +13,10 @@
     "notifications": true
   },
   "economy": {
-    "cost_multiplier_x100": [
-      100,
-      200,
-      400,
-      800,
-      1400
-    ],
-    "building_cost_scale_pct": 100,
-    "parcel_base_cost": 25000,
-    "parcel_growth_pct": 130,
-    "hole_cost": 8000,
-    "start_cash": 40000,
+    "parcel_base_cost": 8000,
+    "parcel_growth_pct": 115,
+    "hole_cost": 5000,
+    "start_cash": 50000,
     "green_fee_min": 5,
     "green_fee_max": 250
   },

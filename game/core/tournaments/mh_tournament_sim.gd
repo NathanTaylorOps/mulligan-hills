@@ -142,8 +142,8 @@ static func _tail_sum(row: Array, count: int) -> int:
 ##   "fairness" Array of 0..100 per hole, "maintenance_tier" int, "tiers" Dictionary building -> tier,
 ##   "pars" Array (optional, defaults used when missing), "total_yards" int (course length).
 ## Result keys: level, success, failed_triggers (Array of String), condition_id, unfair_holes, satisfaction_pm,
-## event_prestige_pm, cash_delta, reputation_delta, prestige_points (club prestige awarded), cooldown_days,
-## winner, winner_over_par, order, totals, purse (Array of dollars per place), pars.
+## event_prestige_pm, cash_delta, entry_income, ticket_income, reputation_delta, prestige_points (club prestige
+## awarded), cooldown_days, winner, winner_over_par, order, totals, purse (Array of dollars per place), pars.
 ## Only triggers listed in the level's failure.triggers can fail an event.
 static func evaluate(defs: MHTournamentDefs, level_id: String, ctx: Dictionary) -> Dictionary:
 	var ld: Dictionary = defs.level_data(level_id)
@@ -175,7 +175,16 @@ static func evaluate(defs: MHTournamentDefs, level_id: String, ctx: Dictionary) 
 	var success: bool = failed.is_empty()
 	var rw: Dictionary = ld["reward"]
 	var fl: Dictionary = ld["failure"]
-	var cash_delta: int = int(rw["cash"]) if success else -int(fl["cash_loss"])
+	var rv: Dictionary = ld["revenue"]
+	var spectators: int = defs.spectator_capacity(int(tiers.get("clubhouse", 0)))
+	var entry_income: int = 0
+	var ticket_income: int = 0
+	if success:
+		entry_income = int(rv["entry_fee"]) * int(ld["field_size"])
+		ticket_income = (int(rv["ticket_price"]) * spectators * int(rv["attendance_pct"]) / 100) * int(ld["duration_days"])
+	var cash_delta: int = -int(fl["cash_loss"])
+	if success:
+		cash_delta = int(rw["cash"]) + entry_income + ticket_income
 	var rep_delta: int = int(rw["reputation"]) if success else -int(fl["reputation_loss"])
 	var pts: int = MHTournamentRules.prestige_points_awarded(defs, level_id, prestige_pm) if success else 0
 	var cd: int = int(ld["cooldown_days"])
@@ -190,6 +199,8 @@ static func evaluate(defs: MHTournamentDefs, level_id: String, ctx: Dictionary) 
 		"satisfaction_pm": sat,
 		"event_prestige_pm": prestige_pm,
 		"cash_delta": cash_delta,
+		"entry_income": entry_income,
+		"ticket_income": ticket_income,
 		"reputation_delta": rep_delta,
 		"prestige_points": pts,
 		"cooldown_days": cd,

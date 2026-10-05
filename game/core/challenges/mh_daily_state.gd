@@ -5,7 +5,7 @@ extends RefCounted
 ## passes the UTC day number (MHDailyChallenge.day_number_from_unix). It does NOT touch the streak: the caller calls
 ## MHStreak.record_active(day) on the first attempt of a day (result["first_attempt"]).
 ## Scores are permille (0..1000) as the rating engine returns them (score_pm, F).
-## Not part of save.schema.json yet (no field for it), see docs/phase1/challenges.md; to_dict is JSON safe.
+## Saved in save.schema.json progress.daily (to_save_block / from_save_block); to_dict is JSON safe.
 @warning_ignore_start("integer_division")
 
 const SAVE_VERSION: int = 1
@@ -155,6 +155,20 @@ func to_dict() -> Dictionary:
 		"history": _history.duplicate(true),
 		"board": _board.duplicate(true),
 	}
+
+
+## The block for save.schema.json progress.daily: to_dict() without the version tag.
+func to_save_block() -> Dictionary:
+	var out: Dictionary = to_dict()
+	out.erase("v")
+	return out
+
+
+## Loads a progress.daily block. Returns false and changes nothing when malformed.
+func from_save_block(block: Dictionary) -> bool:
+	var d: Dictionary = block.duplicate(true)
+	d["v"] = SAVE_VERSION
+	return from_dict(d)
 
 
 ## Returns false and changes nothing when the data is malformed.

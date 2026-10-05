@@ -160,13 +160,42 @@ func test_golden_day_estimates_and_fee_suggestion() -> void:
 	for r: Variant in rows:
 		var row: Dictionary = r
 		var tiers: PackedInt32Array = _tiers(row["tiers"])
-		var out: Dictionary = MHEconomyModel.day_estimate(_p, _up, tiers, int(row["holes"]), int(row["parcels"]), int(row["rating"]), int(row["members_milli"]), int(row["fee"]), int(row["rep"]), int(row["ext"]))
+		var reno: int = int(row.get("renovation", 0))
+		var out: Dictionary = MHEconomyModel.day_estimate(_p, _up, tiers, int(row["holes"]), int(row["parcels"]), int(row["rating"]), int(row["members_milli"]), int(row["fee"]), int(row["rep"]), int(row["ext"]), reno)
 		var want: Dictionary = row["out"]
 		for k: Variant in want.keys():
 			assert_int(int(out[k])).is_equal(int(want[k]))
-		assert_int(MHEconomyModel.suggest_fee_cents(_p, tiers, int(row["holes"]), int(row["rating"]), int(row["rep"]))).is_equal(int(row["suggest"]))
+		assert_int(MHEconomyModel.suggest_fee_cents(_p, tiers, int(row["holes"]), int(row["rating"]), int(row["rep"]), reno)).is_equal(int(row["suggest"]))
 		# ledger arithmetic: net = revenue - upkeep
 		assert_int(int(out["net"])).is_equal(int(out["revenue"]) - int(out["upkeep"]))
+
+
+func test_golden_renovation_sink() -> void:
+	var g: Dictionary = _g["renovation"]
+	var costs: Array = g["cost"]
+	# index 0 is level -1 (invalid), then levels 0 .. max, then one past the maximum
+	for i: int in range(costs.size()):
+		assert_int(MHEconomyModel.renovation_cost_cents(_p, i - 1)).is_equal(int(costs[i]))
+	assert_int(int(costs[0])).is_equal(0)
+	assert_int(int(costs[costs.size() - 1])).is_equal(0)
+	assert_int(int(costs[costs.size() - 2])).is_equal(0)
+	var dem: Array = g["dem"]
+	var upk: Array = g["upkeep"]
+	for n: int in range(dem.size()):
+		assert_int(MHEconomyModel.renovation_dem_milli(_p, n)).is_equal(int(dem[n]))
+		assert_int(MHEconomyModel.renovation_upkeep_cents(_p, n)).is_equal(int(upk[n]))
+	assert_int(MHEconomyModel.renovation_dem_milli(_p, -3)).is_equal(0)
+	# every level costs more than the one before and the first level is a real late-game price
+	for lvl: int in range(1, _p.c("renov_max_levels")):
+		assert_bool(MHEconomyModel.renovation_cost_cents(_p, lvl) > MHEconomyModel.renovation_cost_cents(_p, lvl - 1)).is_true()
+
+
+func test_tournament_costs_match_tournament_data() -> void:
+	# DEC-065: the economy's tournament constants equal the host cost in tournaments.json (dollars x 100)
+	var t: MHTournamentDefs = MHTournamentDefs.new()
+	assert_bool(t.load_from_file("res://data/tournaments.json")).is_true()
+	assert_int(_p.c("tournament_cost_cents")).is_equal(t.level_int("local", "host_cost") * 100)
+	assert_int(_p.c("tournament_regional_cost_cents")).is_equal(t.level_int("regional", "host_cost") * 100)
 
 
 func test_tier_prices_follow_payback_rule() -> void:

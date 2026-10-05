@@ -2,6 +2,8 @@ class_name MHTournamentScreen
 extends MHScreen
 ## Tournaments: local, regional, national, major. Each card shows status, entry checklist (met and missing),
 ## host cost and reward. In the demo only a preview shows (DEC-028). Intent: tournament_host {level}.
+## The Host button needs status available, every checklist row met and can_host (cash, remote switch); when only
+## can_host fails, the reason shows as a line (tournament.blocked.<reason>).
 
 
 func screen_id() -> String:
@@ -38,7 +40,10 @@ func _card(t: Variant) -> Control:
 			all_met = false
 		box.add_child(MHUIKit.label(MHStrings.t(str(reason["key"]), reason["params"]), &"GoodLabel" if met else &"WarnLabel"))
 	var b: MHTapButton = MHUIKit.button(ctx, MHStrings.t("tournament.host"), &"PrimaryButton")
-	var open_now: bool = str(d["status"]) == "available" and all_met and not view.is_demo()
+	var can_host: bool = bool(d.get("can_host", true))
+	var open_now: bool = str(d["status"]) == "available" and all_met and not view.is_demo() and can_host
+	if str(d["status"]) == "available" and all_met and not can_host and str(d.get("block_reason", "")) != "":
+		box.add_child(MHUIKit.label(MHStrings.t("tournament.blocked." + str(d["block_reason"])), &"WarnLabel"))
 	b.disabled = not open_now
 	if open_now:
 		b.pressed.connect(send.bind(&"tournament_host", {"level": level}))

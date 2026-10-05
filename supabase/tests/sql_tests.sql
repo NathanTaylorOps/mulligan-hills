@@ -113,7 +113,7 @@ begin
   perform t.ok(public.mh_validate_remote_config(jsonb_set(good, '{kill_switches,cloud_sync}', '"yes"')) is not null, 'kill switch must be a boolean');
   perform t.ok(public.mh_validate_remote_config(jsonb_set(good, '{economy,start_cash}', '999999999')) is not null, 'out of range start_cash is refused');
   perform t.ok(public.mh_validate_remote_config(jsonb_set(good, '{economy,green_fee_min}', '300')) is not null, 'fee min above fee max is refused');
-  perform t.ok(public.mh_validate_remote_config(jsonb_set(good, '{economy,cost_multiplier_x100}', '[1,2,3]')) is not null, 'wrong multiplier count is refused');
+  perform t.ok(public.mh_validate_remote_config(jsonb_set(good, '{economy,cost_multiplier_x100}', '[100,200,400,800,1400]')) is not null, 'the retired cost multiplier key is refused (DEC-050, PROP-03)');
   perform t.ok(public.mh_validate_remote_config(good || '{"min_app_version":"1.0"}') is not null, 'bad min_app_version is refused');
   perform t.ok(public.mh_validate_remote_config(good || '{"banner_key":"Bad Key"}') is not null, 'bad banner_key is refused');
   perform t.ok(public.mh_validate_remote_config(good || '{"banner_key":"banner.maintenance"}') is null, 'a good banner_key is accepted');

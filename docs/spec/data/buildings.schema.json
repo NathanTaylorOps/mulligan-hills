@@ -317,7 +317,7 @@
                   "type": "integer",
                   "minimum": 1,
                   "maximum": 365,
-                  "description": "DEC-050: price = target_payback_days x added daily income (economy computes it). Placeholder curve 6/8/10/12/15."
+                  "description": "DEC-050: price = target_payback_days x added daily income (economy computes it). Tuned by the economy simulation (DEC-066 rebalance): 10/12/16/50/80 for tiers 1 to 5."
                 },
                 "upkeep_per_day": {
                   "type": "integer",
