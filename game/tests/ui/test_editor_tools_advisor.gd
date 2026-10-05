@@ -10,8 +10,8 @@ func test_tools_map_to_brush_modes() -> void:
 	assert_int(MHEditorTools.brush_mode(MHEditorTools.LEVEL)).is_equal(MHBrush.Mode.FLATTEN)
 	assert_int(MHEditorTools.brush_mode(MHEditorTools.PAINT)).is_equal(MHBrush.Mode.PAINT)
 	assert_int(MHEditorTools.brush_mode(&"bogus")).is_equal(MHBrush.Mode.RAISE)
-	assert_bool(MHEditorTools.is_tool(&"paint")).is_true()
-	assert_bool(MHEditorTools.is_tool(&"bogus")).is_false()
+	assert_bool(MHEditorTools.is_editor_tool(&"paint")).is_true()
+	assert_bool(MHEditorTools.is_editor_tool(&"bogus")).is_false()
 
 
 func test_surfaces_and_radius() -> void:

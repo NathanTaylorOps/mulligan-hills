@@ -19,7 +19,7 @@ static func tool_ids() -> Array:
 	return [RAISE, LOWER, SMOOTH, LEVEL, PAINT]
 
 
-static func is_tool(id: StringName) -> bool:
+static func is_editor_tool(id: StringName) -> bool:
 	return tool_ids().has(id)
 
 
