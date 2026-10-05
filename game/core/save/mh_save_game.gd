@@ -121,7 +121,7 @@ static func canonical_json(v: Variant) -> String:
 		return str(v)
 	if t == TYPE_FLOAT:
 		var f: float = v
-		if f == floor(f) and absf(f) <= 9007199254740991.0:
+		if f == floor(f) and absf(f) <= float(MAX_INT):
 			return str(int(f))
 		return JSON.stringify(v)
 	if t == TYPE_STRING:

@@ -69,6 +69,6 @@ static func _geti(d: Dictionary, key: String) -> int:
 		return int(v)
 	if typeof(v) == TYPE_FLOAT:
 		var f: float = v
-		if f == floor(f) and absf(f) <= 9007199254740991.0:
+		if f == floor(f) and absf(f) <= float(MHSaveGame.MAX_INT):
 			return int(f)
 	return 0
