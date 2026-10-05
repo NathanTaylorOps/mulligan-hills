@@ -1,0 +1,11 @@
+# Personal golfer Godot port status
+
+5 October 2026. Typed integer `MHPersonalEnvelope` and `MHPersonalShot` mirror the separate Python personal model. They implement seven-field profile validation, carry/error envelopes, automatic clubs, per-shot/axis PCG streams, ground hazard intersections, tree impact, penalties and sampled putting capture. Shaping/Luck are stored but their gameplay effects remain pending. Official rating/sim unchanged.
+
+The port API takes a validated, privately owned `MHRHole` rather than accepting untrusted raw JSON. Caller must use the existing course validation/adapter before construction. Unlike Python wrapper, this layer does not repeat raw geometry schema checks. Existing `tree_hit` mutates scratch hit fields: do not share this hole between concurrent calls. No geometry or profile content is modified. Typed coordinate/seed/index/style arguments are checked for valid ranges and starting lies; invalid calls return an empty Dictionary.
+
+Godot golden regressions compare every output field for twelve saved Python vectors, repeat each shot after preview, check strict profile scalar validation/copying, explicit envelope vector, zero-width ground hazard and invalid starts/indexes. Fixture copied byte-for-byte from Python source; local gdparse/schema/fixture checks PASS, but actual Godot parity is pending CI. Independent review in `personal_golf_port_verification.md`.
+
+No new engine API signatures were introduced; reused project MHRHole/MHRParams/MHRMath/MHRng methods and existing Dictionary/Array/Vector2i/test helpers. No unverified new Godot API identified. Local parser cannot certify engine typing or warnings; CI is required.
+
+This is core port only, not a switched live practice model: current practice/save version1 continues its old deterministic rules. Next add explicit version2 personal practice state with frozen profile/model version and backward-compatible version1 restore, then wire fresh personal practice/UI styles and saved golfer training. Do not silently reroll existing rounds. No avatar, XP, stakes, Luck events, wind/roll/mishit or curved-shot launch completion is claimed. Emulator interaction and real-device performance remain pending.
