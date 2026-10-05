@@ -25,10 +25,10 @@ func test_normalize_rejects_bad_numbers() -> void:
 
 
 func test_normalize_two_pow_53_edge() -> void:
-	var ok: MHSaveResult = MHSaveGame.normalize({"a": 9007199254740991.0})
+	var ok: MHSaveResult = MHSaveGame.normalize({"a": float(9007199254740991)})
 	assert_bool(ok.is_ok()).is_true()
 	assert_int(int((ok.value as Dictionary)["a"])).is_equal(9007199254740991)
-	assert_bool(MHSaveGame.normalize({"a": 9007199254740992.0}).is_ok()).is_false()
+	assert_bool(MHSaveGame.normalize({"a": float(9007199254740992)}).is_ok()).is_false()
 	assert_bool(MHSaveGame.normalize({"a": 9007199254740991}).is_ok()).is_true()
 	assert_bool(MHSaveGame.normalize({"a": 9007199254740992}).is_ok()).is_false()
 	assert_bool(MHSaveGame.normalize({"a": -9007199254740992}).is_ok()).is_false()
