@@ -57,7 +57,7 @@ func test_heavy_buildings_need_one_extra_parcel_tiers_2_to_5() -> void:
 
 func test_demo_caps() -> void:
 	assert_int(_defs.demo_max_holes()).is_equal(9)
-	assert_int(_defs.demo_max_tier("clubhouse")).is_equal(3)
+	assert_int(_defs.demo_max_tier("clubhouse")).is_equal(2)
 	assert_int(_defs.demo_max_tier("pro_shop")).is_equal(2)
 	assert_int(_defs.demo_max_tier("driving_range")).is_equal(2)
 	assert_int(_defs.demo_max_tier("restaurant")).is_equal(1)

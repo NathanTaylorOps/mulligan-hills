@@ -130,7 +130,7 @@ func test_unknown_ids_and_tiers_fail() -> void:
 
 
 func test_demo_caps_block_purchase() -> void:
-	var caps: Dictionary = {"clubhouse": 3, "pro_shop": 2, "driving_range": 2, "restaurant": 1, "pool_spa": 0}
+	var caps: Dictionary = {"clubhouse": 2, "pro_shop": 2, "driving_range": 2, "restaurant": 1, "pool_spa": 0}
 	for k: Variant in caps.keys():
 		var id: String = str(k)
 		var cap: int = int(caps[k])
