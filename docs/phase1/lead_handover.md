@@ -53,3 +53,5 @@ New live launcher scene connects ground editing, pause/history, real club menus 
 5 October follow-up: practice camera follow/overview/back are implemented in `golfer_camera.md`, pending Godot/device checks. `docs/spec/golfer_controls.md` records the detailed attribute/style proposal; numerical mechanics remain unimplemented/unlocked.
 
 Nathan requested Luck on 5 October 2026: seven proposed golfer attributes now include bounded positive encounters/stories/interactions and golf breaks. Details in `docs/spec/golfer_controls.md`; growth and coefficients remain open, and no Luck runtime implementation is claimed.
+
+Luck scope clarified by Nathan: also affects encounter frequency for animals/celebrities and private-match/challenge offers from NPC pros. Proposal includes eligibility, cooldowns, offer limits and explicit player acceptance; not runtime implemented.
