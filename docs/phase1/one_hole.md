@@ -46,3 +46,5 @@ Latest preceding integration CI at 2675841: Android/import/screenshots runs mark
 5. Report whether selecting targets feels useful. These development buttons are not final mobile controls.
 
 Low-end phone purchase, Supabase setup and official trademark search remain Nathan's tasks.
+
+5 October aiming follow-up: DEC-076 locks automatic execution with target/shot-style decisions. `aiming.md` adds tap-to-aim and non-consuming path/reach/spread feedback; engine/device checks remain pending.

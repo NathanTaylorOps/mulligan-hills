@@ -215,3 +215,25 @@ func test_live_scene_finalization_can_save_and_reload_practice() -> void:
 		assert_dict(restored_session.practice.to_dict()).is_equal(scene.session.practice.to_dict())
 		assert_int(restored_session.economy.cash).is_equal(scene.session.economy.cash)
 	scene._active = false
+
+
+func test_screen_aim_projection_sets_target_without_playing_or_charging() -> void:
+	var scene: MHLiveConstruction = auto_free(MHLiveConstruction.new())
+	scene.store = MHSaveStore.new(DIR)
+	scene.ledger_dir = LEDGERS
+	add_child(scene)
+	scene.one_hole.open()
+	scene.one_hole._finalize()
+	var before: Dictionary = scene.session.practice.to_dict()
+	var cash: int = scene.session.economy.cash
+	var screen: Vector2 = scene.controller.camera.unproject_position(Vector3(48.0, 0.0, 79.72))
+	assert_bool(scene.one_hole.aim_from_screen(screen)).is_true()
+	assert_int(scene.one_hole.aim_x).is_equal(0)
+	assert_int(scene.one_hole.aim_y).is_equal(5000)
+	assert_dict(scene.session.practice.to_dict()).is_equal(before)
+	assert_int(scene.session.economy.cash).is_equal(cash)
+	assert_bool(scene.one_hole.blocks_world_tap(scene.one_hole.get_global_rect().get_center())).is_true()
+	scene.aim_input.taps.down(0, Vector2.ZERO, false)
+	scene.aim_input._notification(Node.NOTIFICATION_APPLICATION_FOCUS_OUT)
+	assert_bool(scene.aim_input.taps.up(0, Vector2.ZERO, false)["aim"]).is_false()
+	scene._active = false

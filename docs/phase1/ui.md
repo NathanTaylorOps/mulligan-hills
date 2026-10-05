@@ -101,3 +101,5 @@ Editor toolbar now exposes pause/resume because editor mode hides the normal HUD
 ## Live construction connection (5 October)
 
 `MHLiveGameStateView` now reads real terrain undo/redo history. The live construction scene connects editor intents and ordinary club menus to the real session; world input is suppressed on opaque pages/modals, stale pointer modes reset on suppression, and hidden overlays no longer contribute live region rects. See `live_construction.md` for save/scope limits. Phone layout and Godot interaction remain pending, not gallery/device sign-off.
+
+5 October aiming follow-up: DEC-076 locks automatic execution with target/shot-style decisions. `aiming.md` adds tap-to-aim and non-consuming path/reach/spread feedback; engine/device checks remain pending.

@@ -126,3 +126,23 @@ static func restore(layout: Dictionary, raw: Dictionary) -> MHPracticeRound:
 	r.finished = bool(raw["finished"])
 	r.picked_up = bool(raw["picked_up"])
 	return r
+
+
+## Non-consuming, no-random-draw preview. Spread is a rough scale, not a probability/guarantee.
+func aim_preview(aim_x: int, aim_y: int) -> Dictionary:
+	if absi(aim_x) > 120000 or absi(aim_y) > 120000:
+		return {"ok": false}
+	var u: Vector3i = MHRMath.unit(aim_x - x, aim_y - y)
+	var club: int = MHRSim.pick_club(u.z, skill, lie)
+	var limit: int = 3000 if lie == MHRHole.LIE_GREEN else MHRSim.carry_max(club, skill, lie)
+	var deff: int = mini(u.z, limit)
+	var spread: int = 0
+	if lie != MHRHole.LIE_GREEN:
+		var short_mult: int = MHRMath.interp(MHRParams.short_game, deff / 100)
+		spread = deff * MHRSim.spread_pm(skill) / 1000 * MHRParams.lie_disp[lie] / 1000 * short_mult / 1000
+	var tx: int = x + MHRMath.rdiv(u.x * deff, 1024)
+	var ty: int = y + MHRMath.rdiv(u.y * deff, 1024)
+	var target_lie: int = hole.lie_at(tx, ty)
+	return {"ok": true, "distance_cy": u.z, "reachable": u.z <= limit, "club": club,
+		"landing_x": tx, "landing_y": ty, "landing_lie": target_lie, "spread_cy": spread,
+		"finished": finished}

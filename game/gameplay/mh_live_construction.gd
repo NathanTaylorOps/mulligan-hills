@@ -18,6 +18,7 @@ var router: MHInputRouter
 var controller: MHCameraController
 var store: MHSaveStore = MHSaveStore.new(SAVE_DIR)
 var document: Dictionary = {}
+var aim_input: MHPracticeAimInput
 var one_hole: MHOneHolePanel
 var _status: Label
 var _pending_save: bool = false
@@ -128,6 +129,9 @@ func _ready() -> void:
 	editor.history_applied.connect(_history)
 	editor.stroke_cancelled.connect(func() -> void: view.changed.emit())
 	session.autosave_requested.connect(_request_save)
+	aim_input = MHPracticeAimInput.new()
+	aim_input.panel = one_hole
+	add_child(aim_input) # Last sibling sees input before the UI bridge; UI contacts remain unconsumed.
 	_active = true
 	_last_usec = Time.get_ticks_usec()
 	_request_save()

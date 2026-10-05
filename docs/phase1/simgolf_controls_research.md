@@ -1,6 +1,6 @@
 # Personal golf controls: SimGolf research and proposed direction
 
-Date: 5 October 2026. Nathan requested SimGolf mechanics research during the one-hole prototype. This is a control-design proposal, not a new locked decision. DEC-072 still requires a controllable golfer, training, progression, personal tournaments and private NPC matches.
+Date: 5 October 2026. Nathan requested SimGolf mechanics research during the one-hole prototype. Nathan accepted the target/shot-style automatic-execution direction; it is now DEC-076. Detailed numeric/progression proposals below remain open. DEC-072 still requires a controllable golfer, training, progression, personal tournaments and private NPC matches.
 
 ## What the 2002 Sid Meier game did
 
@@ -26,6 +26,8 @@ Improve on the frustrating parts reported by players: free design pause already 
 
 ## Current code and next step
 
-The development one-hole panel uses buttons to move an aim and commits automatic integer flight, with no timing bar. Club choice is automatic; practice has fixed scalar skill, no career rewards, a simplified individual putt and a saved round. It supports neither varied shot styles nor a finished golfer avatar. Numeric/button aiming, instant ball relocation and flat primitive shapes are technical proof controls only.
+The development one-hole panel now uses course taps to move an aim and a separate confirmation to commit automatic integer flight, with no timing bar. Club choice is automatic; practice has fixed scalar skill, no career rewards, a simplified individual putt and a saved round. It supports neither varied shot styles nor a finished golfer avatar. Instant ball relocation, the simplified putt and flat primitive shapes remain technical proof choices only.
 
-Next control increment: tap-to-aim on the exact hole, visible path and reachable landing preview, camera follow, then skill-specific shot choices. Measure whether players understand risk without a tutorial wall before widening content or adding animation detail. Proposed DEC wording if Nathan accepts: 'Personal golf uses target and shot-style decisions with automatic execution driven by golfer attributes; no mandatory timed/swipe swing. Training shares those controls.' This remains a proposal.
+Tap-to-aim, visible line and rough reach/spread feedback are implemented in the pending aiming increment. Next: camera follow and skill-specific shot choices. Measure whether players understand risk without a tutorial wall before widening content or adding animation detail. Proposed DEC wording if Nathan accepts: 'Personal golf uses target and shot-style decisions with automatic execution driven by golfer attributes; no mandatory timed/swipe swing. Training shares those controls.' This control wording is now locked by DEC-076; exact numerical mechanics remain open.
+
+Tap-to-aim and path/reach/spread feedback followed in `aiming.md`; no timing/swipe mechanics were added.

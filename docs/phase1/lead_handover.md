@@ -47,3 +47,5 @@ Nathan answered “must ship” to PROP-11–14. DEC-072–075 now lock personal
 ## Live construction implementation checkpoint
 
 New live launcher scene connects ground editing, pause/history, real club menus and accounting to official isolated save slots. Optional reader-2 runtime retains exact money/clock state; content-addressed external ledger and full terrain-byte pairing protect recovery. Separate review found four defects (paint-only torn pairing, malformed capture indexing, official/runtime world mismatch, stale pointer routing); corrected with regressions. The integration remains zero-finalized-hole only. See `live_construction.md` and `live_construction_verification.md`. No player golf or overall completion claimed; Godot CI still pending.
+
+5 October aiming follow-up: DEC-076 locks automatic execution with target/shot-style decisions. `aiming.md` adds tap-to-aim and non-consuming path/reach/spread feedback; engine/device checks remain pending.
