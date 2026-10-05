@@ -9,7 +9,7 @@ func test_ten_rows_five_tiers() -> void:
 	for r: Variant in rows:
 		var d: Dictionary = r
 		assert_int((d["tiers"] as Array).size()).is_equal(5)
-		assert_str(str(d["name_key"])).begins_with("building.")
+		assert_bool(str(d["name_key"]).begins_with("building.")).is_true()
 
 
 func test_cost_is_payback_days_times_income() -> void:
