@@ -21,6 +21,7 @@ var save_secret: int = 0
 var rating_epoch: int = 0
 var unix_now: int = 0
 var recent_scores: Array = []
+var practice: MHPracticeRound = null
 var _holes: Array = []
 var _ratings: Array = []
 var _course: Dictionary = {}
@@ -40,6 +41,42 @@ static func create() -> MHGameSession:
 	s._apply_course()
 	s._sync_progress()
 	return s
+
+
+func hole_definitions() -> Array:
+	return _holes.duplicate(true)
+
+
+## Checkpoint restore re-rates designs without charging construction or granting achievement rewards.
+## This is used only on a fresh, unexposed session after the save boundary validates it.
+func restore_course(hole_defs: Array) -> bool:
+	if not _holes.is_empty() or not _ratings.is_empty():
+		return false
+	var cap: int = mini(defs.hole_cap(), land.hole_capacity())
+	if demo:
+		cap = mini(cap, defs.demo_max_holes())
+	if hole_defs.size() > cap:
+		return false
+	var seen: Dictionary = {}
+	for row: Variant in hole_defs:
+		if typeof(row) != TYPE_DICTIONARY:
+			return false
+		var h: Dictionary = row
+		var check: Dictionary = MHRatingEngine.validate_input({"schema": 1, "engine": MHRatingEngine.RATING_VERSION, "hole": h})
+		if not bool(check["ok"]) or not MHRValidate.is_int_value(h.get("slot_id", null)):
+			return false
+		var slot: int = int(h["slot_id"])
+		if slot < 0 or slot >= defs.hole_cap() or seen.has(slot):
+			return false
+		seen[slot] = true
+	var rated: Dictionary = MHRatingEngine.rate_course(hole_defs, {"save_secret": save_secret, "rating_epoch": rating_epoch})
+	for row: Variant in rated["holes"]:
+		if not bool((row as Dictionary).get("valid", false)):
+			return false
+	_holes = hole_defs.duplicate(true)
+	_ratings = (rated["holes"] as Array).duplicate(true)
+	_course = (rated["course"] as Dictionary).duplicate(true)
+	return true
 
 
 func hole_results() -> Array:

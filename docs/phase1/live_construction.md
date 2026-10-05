@@ -1,5 +1,8 @@
 # Phase 1: live construction and exact checkpoints
 
+> 5 October follow-up: `one_hole.md` adds an exact short-hole finalization/rating/save and aim-controlled practice prototype. Earlier zero-hole limits below describe the preceding increment. Legacy polygon conversion, full terrain authoring and finished golfer RPG remain unresolved. See `simgolf_controls_research.md` for Nathan's requested controls research.
+
+
 Status: 5 October 2026. Implementation and regression tests written. Python schema, economy and clock checks PASS; third-party GDScript syntax parser PASS. Godot import/tests, rendered scene and device checks NOT YET RUN. Separate static review in `live_construction_verification.md`; no completion certification.
 
 ## What this increment connects

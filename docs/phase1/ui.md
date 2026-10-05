@@ -1,5 +1,8 @@
 # Phase 1: UI shell and screens (`game/ui/`)
 
+> 5 October follow-up: `one_hole.md` adds an exact short-hole finalization/rating/save and aim-controlled practice prototype. Earlier zero-hole limits below describe the preceding increment. Legacy polygon conversion, full terrain authoring and finished golfer RPG remain unresolved. See `simgolf_controls_research.md` for Nathan's requested controls research.
+
+
 Status: written 4 Oct 2026. NOT YET RUN. Nobody could run Godot here, so none of this GDScript has been parsed or executed by the engine. CI is the first test. Expect to fix parse errors and small type mistakes on the first red run.
 
 ## 1. What was built

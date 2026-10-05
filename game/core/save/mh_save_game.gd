@@ -21,7 +21,7 @@ extends RefCounted
 const SCHEMA_ID: String = "mh.save"
 const SAVE_VERSION: int = 1
 ## Highest min_reader_version this build can read. Bump when a save change is not readable by older apps.
-const READER_VERSION: int = 2
+const READER_VERSION: int = 3
 const MAX_SLOTS: int = 5
 const MAX_INT: int = 9007199254740991
 const MAX_FILE_BYTES: int = 16777216
@@ -398,6 +398,8 @@ static func _validate_buildings(d: Dictionary, errs: Array) -> void:
 
 static func _validate_course_ref(d: Dictionary, errs: Array) -> void:
 	var course: Dictionary = _dict_at(d, "course", "$", errs)
+	if typeof(course.get("schema_version", 1)) == TYPE_INT and int(course.get("schema_version", 1)) == 2 and typeof(d.get("min_reader_version", null)) == TYPE_INT and int(d["min_reader_version"]) < 3:
+		errs.append("primitive course requires reader version 3")
 	if course.is_empty():
 		return
 	if course.has("terrain"):
@@ -605,7 +607,7 @@ static func _validate_runtime(d: Dictionary, errs: Array) -> void:
 	if typeof(d.get("min_reader_version", null)) != TYPE_INT or int(d["min_reader_version"]) < 2:
 		errs.append("runtime requires reader version 2")
 	var rt: Dictionary = _dict_at(d, "runtime", "$", errs)
-	_only_keys(rt, ["v", "clock", "economy", "save_secret", "recent_scores", "ledger_hash", "terrain_bytes_hash"], "$.runtime", errs)
+	_only_keys(rt, ["v", "clock", "economy", "save_secret", "recent_scores", "ledger_hash", "terrain_bytes_hash", "practice"], "$.runtime", errs)
 	if not _matches("^[0-9a-f]{64}$", rt.get("terrain_bytes_hash", null)):
 		errs.append("runtime terrain hash invalid")
 	if not _matches("^[0-9a-f]{64}$", rt.get("ledger_hash", null)):
@@ -616,6 +618,9 @@ static func _validate_runtime(d: Dictionary, errs: Array) -> void:
 	for score: Variant in scores:
 		if typeof(score) != TYPE_INT or int(score) < 0 or int(score) > 100:
 			errs.append("runtime score invalid")
+	if rt.has("practice"):
+		if typeof(d.get("min_reader_version", null)) != TYPE_INT or int(d["min_reader_version"]) < 3 or typeof(rt["practice"]) != TYPE_DICTIONARY:
+			errs.append("practice requires reader 3 and an object")
 	var cl: Dictionary = _dict_at(rt, "clock", "$.runtime", errs)
 	_only_keys(cl, ["v", "real_us_per_day", "total_minutes", "acc", "speed", "paused", "credit"], "$.runtime.clock", errs)
 	_int_in(cl, "v", 1, 1, "$.runtime.clock", errs)

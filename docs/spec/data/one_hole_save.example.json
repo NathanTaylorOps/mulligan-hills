@@ -1,0 +1,398 @@
+{
+  "schema": "mh.save",
+  "save_version": 1,
+  "min_reader_version": 3,
+  "written_by": {
+    "app_version": "0.1.0",
+    "sim_version": "MHSIM-1.0.0",
+    "rating_version": "MHRATE-1.0.0",
+    "platform": "android"
+  },
+  "slot": 1,
+  "slot_kind": "autosave",
+  "revision": 42,
+  "saved_at_unix": 1790000000,
+  "install_id": "9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d",
+  "mode": "standard",
+  "checksum": {
+    "alg": "sha256",
+    "value": "5659aba3e46af19b566613b17c5a8305413869cb4e00850b32a43559f04c062f"
+  },
+  "world": {
+    "day": 0,
+    "minute_of_day": 123,
+    "season": "spring"
+  },
+  "club": {
+    "name_preset_id": 4,
+    "cash": 12345,
+    "lifetime_earned": 0,
+    "green_fee": 15,
+    "members": 12,
+    "reputation": 1000,
+    "prestige": 0,
+    "staff": {
+      "greenkeepers": 0,
+      "marshals": 0,
+      "pro_shop_staff": 0,
+      "caterers": 0
+    }
+  },
+  "buildings": [
+    {
+      "id": "clubhouse",
+      "tier": 0
+    },
+    {
+      "id": "pro_shop",
+      "tier": 0
+    },
+    {
+      "id": "driving_range",
+      "tier": 0
+    },
+    {
+      "id": "restaurant",
+      "tier": 0
+    },
+    {
+      "id": "pool_spa",
+      "tier": 0
+    },
+    {
+      "id": "cart_barn",
+      "tier": 0
+    },
+    {
+      "id": "maintenance",
+      "tier": 0
+    },
+    {
+      "id": "lodging",
+      "tier": 0
+    },
+    {
+      "id": "homes",
+      "tier": 0
+    },
+    {
+      "id": "landmark",
+      "tier": 0
+    }
+  ],
+  "land": {
+    "owned_parcel_ids": [
+      5,
+      6,
+      8,
+      9,
+      10
+    ]
+  },
+  "course": {
+    "schema": "mh.course",
+    "schema_version": 2,
+    "rating_engine_version": "MHRATE-1.0.0",
+    "course_id": "3f2c9a10-7b1e-4c55-9d0e-1a2b3c4d5e6f",
+    "name_preset_id": 12,
+    "world": {
+      "width_dm": 1280,
+      "height_dm": 1280,
+      "parcels": [
+        {
+          "parcel_id": 0,
+          "x0": 0,
+          "y0": 0,
+          "x1": 319,
+          "y1": 319,
+          "owned": false
+        },
+        {
+          "parcel_id": 1,
+          "x0": 320,
+          "y0": 0,
+          "x1": 639,
+          "y1": 319,
+          "owned": false
+        },
+        {
+          "parcel_id": 2,
+          "x0": 640,
+          "y0": 0,
+          "x1": 959,
+          "y1": 319,
+          "owned": false
+        },
+        {
+          "parcel_id": 3,
+          "x0": 960,
+          "y0": 0,
+          "x1": 1279,
+          "y1": 319,
+          "owned": false
+        },
+        {
+          "parcel_id": 4,
+          "x0": 0,
+          "y0": 320,
+          "x1": 319,
+          "y1": 639,
+          "owned": false
+        },
+        {
+          "parcel_id": 5,
+          "x0": 320,
+          "y0": 320,
+          "x1": 639,
+          "y1": 639,
+          "owned": true
+        },
+        {
+          "parcel_id": 6,
+          "x0": 640,
+          "y0": 320,
+          "x1": 959,
+          "y1": 639,
+          "owned": true
+        },
+        {
+          "parcel_id": 7,
+          "x0": 960,
+          "y0": 320,
+          "x1": 1279,
+          "y1": 639,
+          "owned": false
+        },
+        {
+          "parcel_id": 8,
+          "x0": 0,
+          "y0": 640,
+          "x1": 319,
+          "y1": 959,
+          "owned": true
+        },
+        {
+          "parcel_id": 9,
+          "x0": 320,
+          "y0": 640,
+          "x1": 639,
+          "y1": 959,
+          "owned": true
+        },
+        {
+          "parcel_id": 10,
+          "x0": 640,
+          "y0": 640,
+          "x1": 959,
+          "y1": 959,
+          "owned": true
+        },
+        {
+          "parcel_id": 11,
+          "x0": 960,
+          "y0": 640,
+          "x1": 1279,
+          "y1": 959,
+          "owned": false
+        },
+        {
+          "parcel_id": 12,
+          "x0": 0,
+          "y0": 960,
+          "x1": 319,
+          "y1": 1279,
+          "owned": false
+        },
+        {
+          "parcel_id": 13,
+          "x0": 320,
+          "y0": 960,
+          "x1": 639,
+          "y1": 1279,
+          "owned": false
+        },
+        {
+          "parcel_id": 14,
+          "x0": 640,
+          "y0": 960,
+          "x1": 959,
+          "y1": 1279,
+          "owned": false
+        },
+        {
+          "parcel_id": 15,
+          "x0": 960,
+          "y0": 960,
+          "x1": 1279,
+          "y1": 1279,
+          "owned": false
+        }
+      ]
+    },
+    "terrain": {
+      "format_version": 2,
+      "file": "terrain_0.mhts",
+      "width_cells": 128,
+      "height_cells": 128,
+      "cell_size_dm": 10,
+      "height_unit_mm": 1,
+      "height_min_mm": -2000,
+      "height_max_mm": 9000,
+      "surface_layers": [
+        "rough",
+        "fairway",
+        "first_cut",
+        "green",
+        "fringe",
+        "tee",
+        "bunker_sand",
+        "water",
+        "path",
+        "waste",
+        "dirt"
+      ],
+      "content_hash": "00000001"
+    },
+    "holes": [
+      {
+        "hole_no": 1,
+        "origin_dm": [
+          480,
+          340
+        ],
+        "layout": {
+          "slot_id": 0,
+          "tee": [
+            0,
+            0
+          ],
+          "green": [
+            0,
+            60,
+            5
+          ],
+          "features": [
+            {
+              "t": "fairway",
+              "rect": [
+                -8,
+                0,
+                8,
+                60
+              ]
+            }
+          ]
+        }
+      }
+    ],
+    "objects": [],
+    "paths": []
+  },
+  "sim": {
+    "rating_epoch": 0,
+    "rng_seed": "00000000deadbeef",
+    "rng_inc": "0000000000000055",
+    "golfer_serial": 511,
+    "regulars": [
+      {
+        "regular_id": 7,
+        "visits": 3,
+        "affinity": 12,
+        "met_day": 5
+      }
+    ]
+  },
+  "ratings": {
+    "rating_version": "MHRATE-1.0.0",
+    "computed_day": 0,
+    "course_score": 22,
+    "holes": [
+      {
+        "hole_no": 1,
+        "score": 22,
+        "axes": {
+          "accuracy": 79,
+          "imagination": 0,
+          "length": 0,
+          "beauty": 15,
+          "fairness": 98
+        }
+      }
+    ]
+  },
+  "progress": {
+    "tutorial_step": 0,
+    "achievements": [],
+    "tournaments": {
+      "hosted_levels": [],
+      "cooldown_until_day": 0
+    }
+  },
+  "runtime": {
+    "v": 1,
+    "clock": {
+      "v": 1,
+      "real_us_per_day": 1500000000,
+      "total_minutes": 123,
+      "acc": 750000000,
+      "speed": 1,
+      "paused": true,
+      "credit": 0
+    },
+    "economy": {
+      "cash": 1234567,
+      "fee": 1500,
+      "day": 0,
+      "hour": 2,
+      "arrears": 123,
+      "loan_balance": 98765,
+      "loans_taken": 0,
+      "reputation": 1000,
+      "holiday_hours": 0,
+      "bankrupt": 0,
+      "carry_milli": 987,
+      "last_daily_upkeep": 0,
+      "members_milli": 12345,
+      "holes": 1,
+      "rating": 22,
+      "parcels": 5,
+      "ext_permille": 1000,
+      "renovation": 0,
+      "tiers": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "total_revenue": 0,
+      "total_upkeep_paid": 0,
+      "v": 1
+    },
+    "save_secret": 0,
+    "recent_scores": [
+      0
+    ],
+    "ledger_hash": "08b10d36196a2218de80c289739e0f4b9bf332a66d6807cad55ef44c9bf8fff2",
+    "terrain_bytes_hash": "0000000000000000000000000000000000000000000000000000000000000000",
+    "practice": {
+      "v": 1,
+      "slot_id": 0,
+      "content_hash": "1e6e5f2349ac540a",
+      "seed": 1234,
+      "skill": 500,
+      "x": -897,
+      "y": 5352,
+      "lie": 3,
+      "strokes": 1,
+      "shot": 2,
+      "finished": false,
+      "picked_up": false
+    }
+  }
+}

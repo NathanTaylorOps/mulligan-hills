@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://schemas.mulliganhills.example/save.schema.json",
   "title": "Mulligan Hills save file v1",
-  "description": "One save slot. Rules: every integer is within +/-2^53 (Godot JSON parses numbers as float64; 64-bit values such as RNG state are stored as 16-char hex strings). No floats. NO entitlement, unlock flag or receipt is ever stored here (additionalProperties is false, so a stray 'unlocked' key fails validation); the paid unlock lives in the separate signed entitlement cache. In-flight golfers are not saved: the simulation resumes at world.minute_of_day of the saved day with a fresh golfer roster (DEC-052). Ironman was cut (DEC-058): the legacy 'ironman' key is optional and must be false. Fields added after the first v1 files (world.minute_of_day, progress.playtime_s, progress.stats, progress.streak, progress.daily, progress.tournaments counters) are all optional so older v1 saves stay valid; readers default them. See SAVE_MIGRATION.md. Optional runtime stores exact live clock/economy accounting. Files containing it require min_reader_version 2; older saves remain readable. Cross-field clock/day/hour and club/land/building consistency are checked by MHSessionSave.",
+  "description": "One save slot. Rules: every integer is within +/-2^53 (Godot JSON parses numbers as float64; 64-bit values such as RNG state are stored as 16-char hex strings). No floats. NO entitlement, unlock flag or receipt is ever stored here (additionalProperties is false, so a stray 'unlocked' key fails validation); the paid unlock lives in the separate signed entitlement cache. In-flight guest golfers are not saved: the simulation resumes at world.minute_of_day of the saved day with a fresh golfer roster (DEC-052). Ironman was cut (DEC-058): the legacy 'ironman' key is optional and must be false. Fields added after the first v1 files (world.minute_of_day, progress.playtime_s, progress.stats, progress.streak, progress.daily, progress.tournaments counters) are all optional so older v1 saves stay valid; readers default them. See SAVE_MIGRATION.md. Optional runtime stores exact live clock/economy accounting. Files containing it require min_reader_version 2; older saves remain readable. Cross-field clock/day/hour and club/land/building consistency are checked by MHSessionSave. Primitive course v2 and optional personal practice checkpoints require reader3.",
   "type": "object",
   "additionalProperties": false,
   "required": [
@@ -1341,6 +1341,81 @@
           "type": "string",
           "pattern": "^[0-9a-f]{64}$",
           "description": "SHA256 of lowercase hex text of the complete compressed terrain blob; pairs heights AND paint with the accounting checkpoint."
+        },
+        "practice": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "v",
+            "slot_id",
+            "seed",
+            "skill",
+            "x",
+            "y",
+            "lie",
+            "strokes",
+            "shot",
+            "content_hash",
+            "finished",
+            "picked_up"
+          ],
+          "properties": {
+            "v": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 1
+            },
+            "slot_id": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 17
+            },
+            "seed": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 4294967295
+            },
+            "skill": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 1000
+            },
+            "x": {
+              "type": "integer",
+              "minimum": -120000,
+              "maximum": 120000
+            },
+            "y": {
+              "type": "integer",
+              "minimum": -120000,
+              "maximum": 120000
+            },
+            "lie": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 8
+            },
+            "strokes": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 10
+            },
+            "shot": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 11
+            },
+            "content_hash": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{16}$"
+            },
+            "finished": {
+              "type": "boolean"
+            },
+            "picked_up": {
+              "type": "boolean"
+            }
+          }
         }
       }
     }
@@ -1356,6 +1431,50 @@
         "properties": {
           "min_reader_version": {
             "minimum": 2
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "course": {
+            "properties": {
+              "schema_version": {
+                "const": 2
+              }
+            },
+            "required": [
+              "schema_version"
+            ]
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "min_reader_version": {
+            "minimum": 3
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "runtime": {
+            "required": [
+              "practice"
+            ]
+          }
+        },
+        "required": [
+          "runtime"
+        ]
+      },
+      "then": {
+        "properties": {
+          "min_reader_version": {
+            "minimum": 3
           }
         }
       }

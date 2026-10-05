@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://schemas.mulliganhills.example/course.schema.json",
   "title": "Mulligan Hills course data v1",
-  "description": "Course geometry and references only. Horizontal coordinates are integer decimetres (dm, 1 dm = 100 mm) on a plan grid: x grows east, y grows south, origin top-left, range 0..65535. Heights live in the terrain blob (int16 millimetres), never in this JSON. No floats anywhere. No score is ever stored here; ratings are recomputed by the rating engine on load.",
+  "description": "Course geometry and references only. Horizontal coordinates are integer decimetres (dm, 1 dm = 100 mm) on a plan grid: x grows east, y grows south, origin top-left, range 0..65535. Heights live in the terrain blob (int16 millimetres), never in this JSON. No floats anywhere. No score is ever stored here; ratings are recomputed by the rating engine on load. Version 2 additionally supports exact RHI primitive holes: local whole-yard layout plus a world integer-dm origin. These are an alternative to legacy polygons, never an approximation of them.",
   "type": "object",
   "additionalProperties": false,
   "required": [
@@ -24,7 +24,7 @@
     "schema_version": {
       "type": "integer",
       "minimum": 1,
-      "maximum": 1
+      "maximum": 2
     },
     "rating_engine_version": {
       "type": "string",
@@ -254,7 +254,35 @@
       "minItems": 3,
       "maxItems": 64
     },
-    "hole": {
+    "object": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "pos"
+      ],
+      "properties": {
+        "kind": {
+          "description": "Prop id from the prop catalog (tree_oak, rock_small, bench...).",
+          "type": "string",
+          "pattern": "^[a-z0-9_]{1,32}$"
+        },
+        "pos": {
+          "$ref": "#/$defs/point"
+        },
+        "rot_deg": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 359
+        },
+        "scale_pct": {
+          "type": "integer",
+          "minimum": 50,
+          "maximum": 200
+        }
+      }
+    },
+    "legacy_hole": {
       "type": "object",
       "additionalProperties": false,
       "required": [
@@ -371,33 +399,220 @@
         }
       }
     },
-    "object": {
+    "primitive_hole": {
       "type": "object",
       "additionalProperties": false,
       "required": [
-        "kind",
-        "pos"
+        "hole_no",
+        "origin_dm",
+        "layout"
       ],
       "properties": {
-        "kind": {
-          "description": "Prop id from the prop catalog (tree_oak, rock_small, bench...).",
-          "type": "string",
-          "pattern": "^[a-z0-9_]{1,32}$"
+        "hole_no": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 18
         },
-        "pos": {
+        "origin_dm": {
           "$ref": "#/$defs/point"
         },
-        "rot_deg": {
-          "type": "integer",
-          "minimum": 0,
-          "maximum": 359
+        "layout": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "slot_id",
+            "tee",
+            "green",
+            "features"
+          ],
+          "properties": {
+            "slot_id": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 17
+            },
+            "tee": {
+              "type": "array",
+              "minItems": 2,
+              "maxItems": 2,
+              "items": {
+                "type": "integer",
+                "minimum": -1200,
+                "maximum": 1200
+              }
+            },
+            "green": {
+              "type": "array",
+              "minItems": 3,
+              "maxItems": 3,
+              "items": {
+                "type": "integer",
+                "minimum": -1200,
+                "maximum": 1200
+              }
+            },
+            "tee_z_mm": {
+              "type": "integer",
+              "minimum": -32768,
+              "maximum": 32767
+            },
+            "green_z_mm": {
+              "type": "integer",
+              "minimum": -32768,
+              "maximum": 32767
+            },
+            "features": {
+              "type": "array",
+              "maxItems": 3000,
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "t"
+                ],
+                "properties": {
+                  "t": {
+                    "enum": [
+                      "fairway",
+                      "deep_rough",
+                      "bunker",
+                      "water",
+                      "ob",
+                      "tree",
+                      "rock",
+                      "flower"
+                    ]
+                  },
+                  "rect": {
+                    "type": "array",
+                    "minItems": 4,
+                    "maxItems": 4,
+                    "items": {
+                      "type": "integer",
+                      "minimum": -1200,
+                      "maximum": 1200
+                    }
+                  },
+                  "circle": {
+                    "type": "array",
+                    "minItems": 3,
+                    "maxItems": 3,
+                    "items": {
+                      "type": "integer",
+                      "minimum": -1200,
+                      "maximum": 1200
+                    }
+                  },
+                  "at": {
+                    "type": "array",
+                    "maxItems": 1500,
+                    "items": {
+                      "type": "array",
+                      "minItems": 2,
+                      "maxItems": 2,
+                      "items": {
+                        "type": "integer",
+                        "minimum": -1200,
+                        "maximum": 1200
+                      }
+                    }
+                  },
+                  "count": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 1500
+                  }
+                },
+                "allOf": [
+                  {
+                    "if": {
+                      "properties": {
+                        "t": {
+                          "enum": [
+                            "fairway",
+                            "deep_rough",
+                            "bunker",
+                            "water",
+                            "ob"
+                          ]
+                        }
+                      }
+                    },
+                    "then": {
+                      "oneOf": [
+                        {
+                          "required": [
+                            "rect"
+                          ]
+                        },
+                        {
+                          "required": [
+                            "circle"
+                          ]
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "if": {
+                      "properties": {
+                        "t": {
+                          "const": "tree"
+                        }
+                      }
+                    },
+                    "then": {
+                      "oneOf": [
+                        {
+                          "required": [
+                            "at"
+                          ]
+                        },
+                        {
+                          "required": [
+                            "rect",
+                            "count"
+                          ]
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    "hole": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/legacy_hole"
         },
-        "scale_pct": {
-          "type": "integer",
-          "minimum": 50,
-          "maximum": 200
+        {
+          "$ref": "#/$defs/primitive_hole"
+        }
+      ]
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "schema_version": {
+            "const": 1
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "holes": {
+            "items": {
+              "$ref": "#/$defs/legacy_hole"
+            }
+          }
         }
       }
     }
-  }
+  ]
 }

@@ -18,6 +18,7 @@ var router: MHInputRouter
 var controller: MHCameraController
 var store: MHSaveStore = MHSaveStore.new(SAVE_DIR)
 var document: Dictionary = {}
+var one_hole: MHOneHolePanel
 var _status: Label
 var _pending_save: bool = false
 var _active: bool = false
@@ -52,6 +53,9 @@ func _ready() -> void:
 		document = _new_document()
 	else:
 		_fail("Checkpoint could not load; existing files were kept. " + loaded.message)
+		return
+	if not MHOneHolePanel.supported(document["course"] as Dictionary):
+		_fail("This development view cannot display that hole layout. Existing files were kept.")
 		return
 	chunks = MHTerrainChunks.new()
 	add_child(chunks)
@@ -88,7 +92,7 @@ func _ready() -> void:
 	var settings: MHUISettings = MHUISettings.new()
 	settings.load_from()
 	shell.setup(view, settings)
-	router.world_input_allowed = func() -> bool: return shell.current_screen_id() == MHScreenIds.EDITOR and shell.modal_id() == ""
+	router.world_input_allowed = func() -> bool: return shell.current_screen_id() == MHScreenIds.EDITOR and shell.modal_id() == "" and (one_hole == null or not one_hole.visible)
 	shell.intent.connect(_on_intent)
 	shell.screen_changed.connect(_screen_changed)
 	shell.show_root(MHScreenIds.HUD)
@@ -101,13 +105,21 @@ func _ready() -> void:
 	var back: MHTapButton = MHUIKit.button(shell.ctx, "Save & launcher", &"ChipButton", 160)
 	back.pressed.connect(_back)
 	bar.add_child(back)
+	var play: MHTapButton = MHUIKit.button(shell.ctx, "Build / play one hole", &"ChipButton", 180)
+	bar.add_child(play)
+	one_hole = MHOneHolePanel.new()
+	layer.add_child(one_hole)
+	one_hole.setup(self)
+	play.pressed.connect(one_hole.open)
+	router.register_ui_region(&"live_practice", Callable(play, "get_global_rect"))
 	router.register_ui_region(&"live_save", Callable(save_button, "get_global_rect"))
 	router.register_ui_region(&"live_back", Callable(back, "get_global_rect"))
 	router.ui_tapped.connect(func(id: StringName) -> void:
 		if id == &"live_save": save_button.pressed.emit()
 		elif id == &"live_back": back.pressed.emit()
+		elif id == &"live_practice": play.pressed.emit()
 		else: shell.trigger_region(id))
-	_status = MHUIKit.label("Live construction: shape and paint the ground. Golf-hole setup comes next.")
+	_status = MHUIKit.label("Live construction: ground edits are separate from the exact Build / play one hole layout.")
 	_status.position = Vector2(8, 245)
 	_status.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	layer.add_child(_status)
@@ -126,7 +138,7 @@ func _pick(pos: Vector2) -> Vector2i:
 func _screen_changed(id: String) -> void:
 	if router == null:
 		return
-	router.accept_world_input = id == MHScreenIds.EDITOR and shell.modal_id() == ""
+	router.accept_world_input = id == MHScreenIds.EDITOR and shell.modal_id() == "" and (one_hole == null or not one_hole.visible)
 	if not router.accept_world_input:
 		router.cancel_world_input()
 	for region: Variant in shell.region_rects().keys():
@@ -194,7 +206,7 @@ func save_now() -> bool:
 	document["revision"] = summary.revision
 	document["saved_at_unix"] = summary.saved_at_unix
 	_pending_save = false
-	_status.text = "Saved. Shape and paint the ground; golf-hole setup comes next."
+	_status.text = "Saved: ground, club and exact hole/practice state."
 	return true
 
 func _process(_delta: float) -> void:
@@ -205,7 +217,7 @@ func _process(_delta: float) -> void:
 	_last_usec = now
 	session.advance(elapsed, int(Time.get_unix_time_from_system()))
 	chunks.flush(editor.dirty)
-	router.accept_world_input = shell.current_screen_id() == MHScreenIds.EDITOR and shell.modal_id() == ""
+	router.accept_world_input = shell.current_screen_id() == MHScreenIds.EDITOR and shell.modal_id() == "" and (one_hole == null or not one_hole.visible)
 	if not router.accept_world_input:
 		router.cancel_world_input()
 	if _pending_save and not editor.is_stroke_open():

@@ -42,7 +42,7 @@ def no_floats(o, label, path=""):
     elif isinstance(o, dict): [no_floats(v, label, path + "/" + k) for k, v in o.items()]
     elif isinstance(o, list): [no_floats(v, label, f"{path}[{i}]") for i, v in enumerate(o)]
 
-docs = {"live_save.example.json": "save", "course.example.json": "course", "save.example.json": "save", "buildings.json": "buildings", "tournaments.json": "tournaments",
+docs = {"one_hole_save.example.json": "save", "live_save.example.json": "save", "course.example.json": "course", "save.example.json": "save", "buildings.json": "buildings", "tournaments.json": "tournaments",
         "commission_templates.example.json": "commission_templates", "event_cards.example.json": "event_cards",
         "remote_config.example.json": "remote_config", "analytics_catalog.json": "analytics_catalog",
         "analytics_event.example.json": "analytics_event", "strings.example.en.json": "strings",
@@ -78,6 +78,12 @@ for path, value, label in [(('min_reader_version',),1,'runtime with old reader')
     target[path[-1]] = value
     must_reject('save', sv, label)
 sv = copy.deepcopy(loaded['live_save.example.json']); del sv['runtime']['ledger_hash']; must_reject('save', sv, 'missing ledger generation hash')
+
+# Reader-3 exact primitive/practice examples.
+sv = copy.deepcopy(loaded['one_hole_save.example.json']); sv['min_reader_version'] = 2; must_reject('save', sv, 'primitive layout with reader 2')
+sv = copy.deepcopy(loaded['one_hole_save.example.json']); sv['course']['schema_version'] = 1; must_reject('save', sv, 'primitive layout under polygon course v1')
+sv = copy.deepcopy(loaded['one_hole_save.example.json']); sv['runtime']['practice']['skill'] = 1001; must_reject('save', sv, 'practice skill over limit')
+sv = copy.deepcopy(loaded['one_hole_save.example.json']); sv['course']['holes'][0]['layout']['features'][0]['circle'] = [0,30,5]; must_reject('save', sv, 'ambiguous area rect plus circle')
 
 # --- semantic: buildings
 B = loaded["buildings.json"]; by = {b["id"]: b for b in B["buildings"]}

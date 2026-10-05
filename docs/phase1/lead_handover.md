@@ -1,5 +1,8 @@
 # Temporary lead handover (5 October 2026)
 
+> 5 October follow-up: `one_hole.md` adds an exact short-hole finalization/rating/save and aim-controlled practice prototype. Earlier zero-hole limits below describe the preceding increment. Legacy polygon conversion, full terrain authoring and finished golfer RPG remain unresolved. See `simgolf_controls_research.md` for Nathan's requested controls research.
+
+
 ## Purpose and scope
 Repair phase1 CI, verify the DEC-069 economy, and connect the existing modules into a live loop. Nathan authorises work directly on phase1; main is untouched until all four workflows pass and independent verification is complete. No spending, new accounts, or public publishing is authorised.
 

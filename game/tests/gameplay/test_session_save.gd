@@ -187,3 +187,31 @@ func test_live_scene_routes_pause_paint_history_purchase_and_reload() -> void:
 	var terrain: MHTerrainSave.LoadResult = MHTerrainSave.decode(saved.blob)
 	assert_int(terrain.splat.hash_fnv1a()).is_equal(painted)
 	scene._active = false
+
+
+func test_live_scene_finalization_can_save_and_reload_practice() -> void:
+	var scene: MHLiveConstruction = auto_free(MHLiveConstruction.new())
+	scene.store = MHSaveStore.new(DIR)
+	scene.ledger_dir = LEDGERS
+	add_child(scene)
+	assert_bool(scene._active).is_true()
+	scene.session.clock.pause()
+	scene.one_hole.open()
+	scene.one_hole._finalize()
+	assert_int(scene.session.hole_definitions().size()).is_equal(1)
+	assert_int(int(scene.document["min_reader_version"])).is_equal(3)
+	scene.one_hole._shoot()
+	assert_object(scene.session.practice).is_not_null()
+	assert_int(scene.session.practice.strokes).is_greater(0)
+	assert_bool(scene.save_now()).is_true()
+	var loaded: MHSaveResult = scene.store.load_slot(0)
+	assert_bool(loaded.is_ok()).is_true()
+	var saved: MHLoadedSave = loaded.value as MHLoadedSave
+	var ledger: MHSaveResult = MHSessionSave.load_ledger(saved.data, LEDGERS)
+	var restored: MHSaveResult = MHSessionSave.restore(saved.data, ledger.value as MHTokenLedger)
+	assert_bool(restored.is_ok()).is_true()
+	if restored.is_ok():
+		var restored_session: MHGameSession = restored.value
+		assert_dict(restored_session.practice.to_dict()).is_equal(scene.session.practice.to_dict())
+		assert_int(restored_session.economy.cash).is_equal(scene.session.economy.cash)
+	scene._active = false
