@@ -109,6 +109,14 @@ These fill gaps the Master Plan leaves open. They are written into the data file
 - DEC-062 Art is fully procedural from code: no imported assets, no downloads.
 - DEC-063 Demo Clubhouse is capped at tier 2 (supersedes the Clubhouse tier 3 part of DEC-055). Dead holes (score under 25) are included in the average hole score but do not count toward hole-count gates.
 
+## H. Nathan's answers after Phase 1 build (2026-10-04)
+
+- DEC-064 No paid token packs in v1. Store is demo plus one-time unlock only (`mh_full_unlock`). Tokens are earned only. Amends DEC-053: paid time-skip and paid bankruptcy recovery are cut for v1; earned tokens still work. Revisit after launch.
+- DEC-065 Tournament money matches the economy sim: host cost $25k local and $60k regional (tournaments.json to be updated to match). Entry fees / ticket income are added as tournament revenue; tune in the economy sim.
+- DEC-066 Campaign length target (lead recommendation, accepted as working target): about 20 to 30 hours to reach full course and all tier 5 buildings (roughly 100 to 150 game days at typical speed mix), then open-ended sandbox. Economy and gates get rebalanced to this, not the old 240 to 290 day finish.
+- DEC-067 Publisher is Nathan personally (individual developer account). No lawyer for now: privacy policy and terms stay drafts, risk accepted by Nathan.
+- DEC-068 Trademark: web check on 2026-10-04 found no exact "Mulligan Hills" game, but "Mulligan(s)" is crowded in golf apps, including a Steam game "Mulligans Golf Game". Not a clearance search. Home Links stays the fallback; do an official USPTO/IP Australia search before any store upload.
+
 ## E. Open items (no decision yet)
 
 1. Named low-end benchmark Android phone (DEC-034 has the rule, DEC-046 says Galaxy A14/A15 class; the exact model is not yet bought or recorded).
