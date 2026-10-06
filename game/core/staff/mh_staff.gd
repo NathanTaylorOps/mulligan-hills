@@ -246,6 +246,21 @@ func service_avg(view: Dictionary) -> int:
 ## Everything a status screen needs in one Dictionary.
 func report(view: Dictionary) -> Dictionary:
 	var ov: Dictionary = overlay(view)
+	var hires: Array = []
+	for role_id_v: Variant in defs.role_ids():
+		var role_id: String = str(role_id_v)
+		var building: String = defs.role_building(role_id)
+		var tier: int = MHStaffView.tier_of(view, building)
+		var cap: int = defs.cap(role_id, tier)
+		var current: int = roster.role_count(role_id)
+		hires.append({"role": role_id, "name_key": str(defs.role(role_id).get("name_key", "")),
+			"building": building, "current": current, "cap": cap, "hire_cost_cents": defs.hire_cost(role_id),
+			"daily_wage_cents": defs.wage(role_id, 0), "available": check_hire(role_id, view, 1000000000).is_empty()})
+	var equipment_catalog: Array = []
+	for type_id_v: Variant in MHStaffEquipment.TYPES.keys():
+		var type_id: String = str(type_id_v)
+		equipment_catalog.append({"type": type_id, "price_cents": equipment_price(type_id),
+			"kind": str((MHStaffEquipment.TYPES[type_id] as Dictionary)["kind"])})
 	return {
 		"head_count": roster.count(), "gate_staff": gate_staff_count(view), "payroll_cents": daily_payroll_cents(),
 		"avg_condition": grounds.avg_cond(defs, view), "avg_pest": grounds.avg_pest(view),
@@ -253,6 +268,7 @@ func report(view: Dictionary) -> Dictionary:
 		"satisfaction_penalty_permille": condition_penalty_permille(view), "equipment_units": equipment.units.size(), "equipment_capacity": equipment_capacity(view),
 		"equipment_operating_cost_cents": equipment_operating_cost_cents(), "equipment_repair_cost_cents": equipment_repair_cost_cents(),
 		"employees": roster.employees.duplicate(true), "equipment": equipment.units.duplicate(true),
+		"hire_options": hires, "equipment_catalog": equipment_catalog,
 		"warnings": management_warnings(view),
 		"beauty_delta_pm": int(ov["beauty_delta_pm"]), "fairness_delta_pm": int(ov["fairness_delta_pm"]),
 	}
