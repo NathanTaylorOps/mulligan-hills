@@ -427,3 +427,29 @@ func test_roster_restore_rejects_asymmetric_social_graph_and_duplicate_home_slot
 		g["home_status"] = "resident"
 		g["home_slot"] = 0
 	assert_bool(MHGolferRoster.new().from_dict(duplicate_home)).is_false()
+
+
+func test_authoritative_party_starts_together_and_finishes_after_slowest_member() -> void:
+	var q: MHCustomerRoundQueue = MHCustomerRoundQueue.new()
+	var short_events: Array = [{"kind": "putt", "shot": 1, "strokes": 1, "x0": 0, "y0": 0, "x1": 0, "y1": 0}]
+	var long_events: Array = [
+		{"kind": "shot", "shot": 1, "x0": 0, "y0": 0, "x1": 0, "y1": 5000},
+		{"kind": "shot", "shot": 2, "x0": 0, "y0": 5000, "x1": 0, "y1": 10000},
+	]
+	var rows: Array = [
+		{"serial": 10, "party_id": 10, "round": {"events": short_events}},
+		{"serial": 11, "party_id": 10, "round": {"events": long_events}},
+	]
+	q.admit(rows, {}, {}, {})
+	var started: Dictionary = q.advance(0.0)
+	assert_str(str(started["kind"])).is_equal("started")
+	assert_int((started["customers"] as Array).size()).is_equal(2)
+	assert_int((q.active["customers"] as Array).size()).is_equal(2)
+	var short_done: float = MHAIRoundTimeline.total_duration(short_events) + 0.1
+	assert_dict(q.advance(short_done)).is_empty()
+	assert_bool(q.active.is_empty()).is_false()
+	var long_done: float = MHAIRoundTimeline.total_duration(long_events) + 0.1
+	var finished: Dictionary = q.advance(long_done)
+	assert_str(str(finished["kind"])).is_equal("finished")
+	assert_int((finished["customers"] as Array).size()).is_equal(2)
+	assert_int(q.completed.size()).is_equal(2)
