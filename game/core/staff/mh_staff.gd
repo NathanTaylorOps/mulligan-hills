@@ -114,8 +114,29 @@ func assign_equipment(equipment_serial: int, employee_serial: int) -> bool:
 	return equipment.assign_unit(equipment_serial, employee_serial, kind)
 
 
+
+func technician_work_permille() -> int:
+	# Technician support is intentionally separate from grounds output: it maintains machines.
+	# The role becomes active when present in staff definitions; until then there is no free repair labor.
+	if not defs.has_role("equipment_technician"):
+		return 0
+	return roster.role_work_sum(defs, "equipment_technician")
+
+
+func superintendent_coordination_permille() -> int:
+	if not defs.has_role("superintendent"):
+		return 1000
+	var work: int = roster.role_work_sum(defs, "superintendent")
+	return 1000 + mini(200, MHStaffMath.idiv(work, 10))
+
+
+
 func equipment_operating_cost_cents() -> int:
 	return equipment.operating_cost_for_day()
+
+
+func equipment_repair_cost_cents() -> int:
+	return equipment.repair_cost_for_day()
 
 
 # ------------------------------------------------------------------ grounds
@@ -132,7 +153,7 @@ func personal_patrol(parcel: int, cells: int, cells_per_parcel: int, view: Dicti
 func on_day(day: int, view: Dictionary, secret: int) -> Dictionary:
 	var res: Dictionary = grounds.on_day(defs, roster, day, view, secret, equipment)
 	if bool(res["ran"]):
-		equipment.on_day(MHStaffView.tier_of(view, "maintenance"))
+		equipment.on_day(MHStaffView.tier_of(view, "maintenance"), technician_work_permille())
 	if bool(res["ran"]):
 		roster.age_one_day()
 	return res
@@ -179,7 +200,7 @@ func report(view: Dictionary) -> Dictionary:
 		"avg_condition": grounds.avg_cond(defs, view), "avg_pest": grounds.avg_pest(view),
 		"service": service_avg(view), "demand_permille": demand_permille(view), "pace_points": pace_points(),
 		"satisfaction_penalty_permille": condition_penalty_permille(view), "equipment_units": equipment.units.size(),
-		"equipment_operating_cost_cents": equipment_operating_cost_cents(),
+		"equipment_operating_cost_cents": equipment_operating_cost_cents(), "equipment_repair_cost_cents": equipment_repair_cost_cents(),
 		"beauty_delta_pm": int(ov["beauty_delta_pm"]), "fairness_delta_pm": int(ov["fairness_delta_pm"]),
 	}
 
