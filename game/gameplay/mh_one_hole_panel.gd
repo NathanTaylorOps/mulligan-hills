@@ -22,6 +22,9 @@ var _ai_ball: MeshInstance3D
 var _customers: MHCustomerRoundQueue = MHCustomerRoundQueue.new()
 var _customer_time: float = 0.0
 var _last_customer_serial: int = -1
+var _companions: Array = []
+var _walkers: Array = []
+var _building_positions: Dictionary = {}
 var _scroll: MHScrollBox
 var _toggle: MHTapButton
 ## Header only (body hidden). Layout is recomputed by the scene on `layout_changed`.
@@ -242,12 +245,15 @@ func _shoot() -> void:
 
 func _process(delta: float) -> void:
 	var dt: float = maxf(delta, 0.0)
+	_advance_walkers(dt)
 	_customer_time += dt
 	_admit_economy_customers()
 	var customer_event: Dictionary = _customers.advance(_customer_time)
 	if not customer_event.is_empty():
 		var customer: Dictionary = customer_event["customer"]
 		if str(customer_event["kind"]) == "started":
+			_clear_companions()
+			_spawn_group_companions(customer)
 			_last_customer_serial = int(customer["serial"])
 			_ai_record = customer["round"] as Dictionary
 			_ai_playing = false
@@ -274,7 +280,8 @@ func _process(delta: float) -> void:
 			if int(updated.get("group_id", -1)) >= 0:
 				_feedback.text += " | %s group #%d" % [str(updated.get("relationship_role", "friend")), int(updated["group_id"]) + 1]
 			if not facility_visit.is_empty():
-				_feedback.text += " | visiting %s" % facility.replace("_", " ")
+				_feedback.text += " | walking to %s" % facility.replace("_", " ")
+				_send_finished_golfer_to_facility(updated, facility)
 	if not _customers.active.is_empty():
 		_apply_ai_visual(_customers.visual_state(_customer_time))
 		return
@@ -593,3 +600,58 @@ func _follow_camera() -> void:
 	var point: Vector3 = _position(r.x if r != null else 0, r.y if r != null else 0, -20.0)
 	# Downward framing bias keeps the ball above the prototype's lower controls; device tuning pending.
 	live.controller.focus_target(point, 100.0)
+
+
+func _spawn_group_companions(customer: Dictionary) -> void:
+	if _world == null:
+		return
+	var count: int = clampi(int(customer.get("group_size", 1)) - 1, 0, 3)
+	var identity: Dictionary = customer.get("identity", {}) as Dictionary
+	for i: int in range(count):
+		var figure: MHGolferFigure = MHGolferFigure.new()
+		_world.add_child(figure)
+		figure.setup(MHGolferLook.from_seed(int(identity.get("look_seed", 4242)) + (i + 1) * 997), 0, MHArtMaterials.vertex_color())
+		figure.position = Vector3(float(i + 1) * 1.2, 0.0, -1.4)
+		_companions.append(figure)
+
+
+func _clear_companions() -> void:
+	for v: Variant in _companions:
+		var n: Node = v
+		if is_instance_valid(n):
+			n.queue_free()
+	_companions.clear()
+
+
+func _send_finished_golfer_to_facility(identity: Dictionary, facility: String) -> void:
+	if _ai_golfer == null or not is_instance_valid(_ai_golfer):
+		return
+	if _building_positions.is_empty():
+		_building_positions = MHClubPedestrian.building_positions(live.session)
+	if not _building_positions.has(facility):
+		return
+	var start: Vector3 = _ai_golfer.global_position
+	var dest: Vector3 = _building_positions[facility] as Vector3
+	var route_points: Array = MHClubPedestrian.route(start, dest, int(identity.get("id", 0)))
+	_walkers.append({"node": _ai_golfer, "route": route_points, "segment": 0, "facility": facility,
+		"identity": identity.duplicate(true)})
+	_ai_golfer = null
+
+
+func _advance_walkers(delta: float) -> void:
+	var keep: Array = []
+	for v: Variant in _walkers:
+		var w: Dictionary = v
+		var node: Node3D = w["node"]
+		if not is_instance_valid(node):
+			continue
+		var step: Dictionary = MHClubPedestrian.advance(w["route"] as Array, int(w["segment"]), node.global_position, delta)
+		node.global_position = step["position"] as Vector3
+		w["segment"] = int(step["segment"])
+		if bool(step["done"]):
+			node.queue_free()
+			_feedback.text = "%s arrived at %s." % [str((w["identity"] as Dictionary).get("name", "Golfer")),
+				str(w["facility"]).replace("_", " ")]
+		else:
+			keep.append(w)
+	_walkers = keep
