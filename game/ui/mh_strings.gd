@@ -365,6 +365,8 @@ const TABLE: Dictionary = {
 	"management.difficulty.standard": "Standard",
 	"management.difficulty.tycoon": "Tycoon",
 	"management.attention": "Needs attention",
+	"management.warning": "• {warning}",
+	"management.staff_number": "#{serial}",
 	"management.team": "Team",
 	"management.no_staff": "No staff hired yet.",
 	"management.employee": "#{serial}  {role}  •  experience {days} days",
