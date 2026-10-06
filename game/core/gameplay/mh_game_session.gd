@@ -148,6 +148,29 @@ func staff_view() -> Dictionary:
 	return MHStaffView.make(tiers(), land.owned_ids(), MHStaffView.kinds_from_defs(defs))
 
 
+func live_staff_assignments() -> Array:
+	# Presentation-only projection of authoritative staff/equipment assignments.
+	if staff_system == null:
+		return []
+	var report: Dictionary = staff_system.report(staff_view())
+	var equipment_by_employee: Dictionary = {}
+	for unit_v: Variant in report.get("equipment", []):
+		var unit: Dictionary = unit_v as Dictionary
+		var employee_serial: int = int(unit.get("assigned_employee", 0))
+		if employee_serial > 0:
+			equipment_by_employee[employee_serial] = unit.duplicate(true)
+	var out: Array = []
+	for employee_v: Variant in report.get("employees", []):
+		var employee: Dictionary = employee_v as Dictionary
+		var areas: Array = employee.get("areas", []) as Array
+		if areas.is_empty():
+			continue
+		var row: Dictionary = employee.duplicate(true)
+		row["equipment"] = (equipment_by_employee.get(int(employee.get("serial", 0)), {}) as Dictionary).duplicate(true)
+		out.append(row)
+	return out
+
+
 func maintenance_quality() -> int:
 	if staff_system == null:
 		return 0
