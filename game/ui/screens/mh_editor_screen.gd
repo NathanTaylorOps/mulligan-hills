@@ -20,6 +20,7 @@ var _done: MHTapButton
 var _pause: MHTapButton
 var _minus: MHTapButton
 var _plus: MHTapButton
+var _slot: Control
 
 
 func _init() -> void:
@@ -73,7 +74,8 @@ func _build() -> void:
 	for it: Variant in items:
 		top.add_child(it)
 
-	root.add_child(MHUIKit.spacer())
+	_slot = MHUIKit.spacer()
+	root.add_child(_slot)
 
 	_surface_row = MHUIKit.flow(6)
 	root.add_child(_surface_row)
@@ -97,6 +99,12 @@ func _build() -> void:
 		tb.pressed.connect(_on_tool.bind(t))
 		bar.add_child(tb)
 		_tool_buttons[t] = tb
+
+
+func free_rect() -> Rect2:
+	if _slot == null or not is_instance_valid(_slot) or not _slot.is_visible_in_tree():
+		return Rect2()
+	return _slot.get_global_rect()
 
 
 func refresh() -> void:

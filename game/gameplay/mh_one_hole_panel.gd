@@ -14,22 +14,46 @@ var _world: Node3D
 var _ball: MeshInstance3D
 var _path: Node3D
 var _feedback: Label
+var _scroll: MHScrollBox
+var _toggle: MHTapButton
+## Header only (body hidden). Layout is recomputed by the scene on `layout_changed`.
+var collapsed: bool = false
+signal layout_changed()
 var _aim: MeshInstance3D
 const ORIGIN: Array = [480, 340]
 
 func setup(scene: MHLiveConstruction) -> void:
 	live = scene
-	position = Vector2(8, 285)
-	add_child(MHUIKit.label("One-hole practice prototype — no prizes or XP"))
+	# No absolute position or size: the scene's frame (MHLiveLayout zones) sizes this panel. Header stays visible
+	# when collapsed; everything else lives in a scroll box so a short free area never overlaps its neighbours.
+	size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	size_flags_vertical = Control.SIZE_EXPAND_FILL
+	add_theme_constant_override("separation", 8)
+	var head: HBoxContainer = MHUIKit.hbox(8)
+	add_child(head)
+	var title: Label = MHUIKit.label("One-hole practice", &"", false)
+	title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	title.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	title.clip_text = true
+	title.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+	head.add_child(title)
+	_toggle = MHUIKit.button(live.shell.ctx, "Hide", &"ChipButton", 96)
+	_toggle.pressed.connect(toggle_collapsed)
+	head.add_child(_toggle)
+	_scroll = MHScrollBox.new()
+	add_child(_scroll)
+	var content: VBoxContainer = MHUIKit.vbox(8)
+	content.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_scroll.add_child(content)
+	content.add_child(MHUIKit.label("Development prototype: no prizes or XP."))
 	_info = MHUIKit.label("")
-	add_child(_info)
+	content.add_child(_info)
 	_info.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_feedback = MHUIKit.label("Tap the course to aim. Play shot is a separate confirmation.")
 	_feedback.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	add_child(_feedback)
-	size.x = maxf(240.0, get_viewport().get_visible_rect().size.x - 16.0)
+	content.add_child(_feedback)
 	var design: HFlowContainer = MHUIKit.flow(6)
-	add_child(design)
+	content.add_child(design)
 	_button(design, "Length -", func() -> void: length_yd = maxi(60, length_yd - 1); _draft_changed())
 	_button(design, "Length +", func() -> void: length_yd = mini(62, length_yd + 1); _draft_changed())
 	_button(design, "Narrow", func() -> void: half_width_yd = maxi(6, half_width_yd - 2); _draft_changed())
@@ -37,7 +61,7 @@ func setup(scene: MHLiveConstruction) -> void:
 	_button(design, "Side water on/off", func() -> void: water = not water; _draft_changed())
 	_button(design, "Finalize / redesign", _finalize)
 	var shots: HFlowContainer = MHUIKit.flow(6)
-	add_child(shots)
+	content.add_child(shots)
 	_button(shots, "Aim at cup", _aim_cup)
 	_button(shots, "Back to golfer", _back_to_golfer)
 	_button(shots, "Course overview", _overview)
@@ -56,7 +80,19 @@ func setup(scene: MHLiveConstruction) -> void:
 	_describe()
 	hide()
 
+func set_collapsed(value: bool) -> void:
+	collapsed = value
+	if _scroll != null:
+		_scroll.visible = not collapsed
+	if _toggle != null:
+		_toggle.text = "Show" if collapsed else "Hide"
+	layout_changed.emit()
+
+func toggle_collapsed() -> void:
+	set_collapsed(not collapsed)
+
 func open() -> void:
+	set_collapsed(false)
 	live.router.cancel_world_input()
 	if live.aim_input != null:
 		live.aim_input.taps.clear()
@@ -254,7 +290,10 @@ static func supported(course: Dictionary) -> bool:
 
 
 func blocks_world_tap(pos: Vector2) -> bool:
-	if get_global_rect().has_point(pos) or live.shell.modal_id() != "":
+	# A visible panel that has not been laid out yet (zero size) still counts as 1x1 so it never leaks a tap.
+	var own: Rect2 = get_global_rect()
+	own.size = own.size.max(Vector2.ONE)
+	if own.has_point(pos) or live.shell.modal_id() != "":
 		return true
 	for getter: Variant in live.shell.region_rects().values():
 		var rect: Rect2 = (getter as Callable).call()
@@ -262,7 +301,7 @@ func blocks_world_tap(pos: Vector2) -> bool:
 			return true
 	for n: Node in get_tree().get_nodes_in_group(MHTapButton.GROUP):
 		var b: Button = n as Button
-		if b != null and b.is_visible_in_tree() and b.get_global_rect().has_point(pos):
+		if b != null and not is_ancestor_of(b) and b.is_visible_in_tree() and b.get_global_rect().has_point(pos):
 			return true
 	return false
 

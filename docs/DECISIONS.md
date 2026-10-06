@@ -160,3 +160,14 @@ Nathan answered “must ship” to the concrete PROP-11–14 launch proposal. Th
 ## M. Lead review of ChatGPT interim work (2026-10-05)
 
 - DEC-077 Nathan reviewed and accepted all decisions made during the interim period (DEC-069 to DEC-076: economy rebalance, 25-minute day, 50-hour campaign, required v1 golfer/club RPG scope, SimGolf-style controls) including the parody pro and celebrity roster concept. Known accepted risks: (a) scope is much larger than the 29 Sep freeze and the schedule needs re-estimating; (b) the roster characters are puns on real people and there is no lawyer review (DEC-067), so right-of-publicity and trademark exposure is accepted by Nathan; names stay provisional and unreleased until reviewed or replaced with original characters; (c) final career milestone, RPG numbers and staffing system are still open.
+
+## N. Nathan's content and craft decisions (2026-10-05, after first device test)
+
+- DEC-078 Landscape only for the whole app (sensor landscape, project orientation 4). Supersedes any portrait layouts.
+- DEC-079 Tree variety: 3 height classes and 15 tree styles (procedural, parameter-driven), with colour variants where sensible.
+- DEC-080 Plants and flowers: about 10 styles each with 15 colours. Cosmetic placement items; performance via shared meshes per style and colour in MultiMeshes, with a hard per-scene budget set from the low-end phone.
+- DEC-081 Paths: cheaper walking paths that carts cannot use (golfers walk, which speeds play) plus 3 styles of cart path that carts and walkers can both use. Path type affects pace of play and cost.
+- DEC-082 Grass: multiple turf types a real course uses (for example bent, bermuda, fescue, rye, zoysia, plus rough and native grass), with different look, cost, upkeep and playability. Exact list and effects to be specified in the craft spec.
+- DEC-083 Variety principle: every placeable category gets design variety, types and colours wherever it makes sense.
+- DEC-084 Hole building becomes a craft: a much richer terrain designer in the spirit of SimGolf's (raise, lower, smooth, flatten, plateau shapes, shaping greens, bunkers and water by hand), with visible shot analysis feedback. Reference image supplied by Nathan is inspiration only; no copying of assets or UI. Scope risk accepted: this extends DEC-072 to 077; schedule to be re-estimated after the craft spec.
+

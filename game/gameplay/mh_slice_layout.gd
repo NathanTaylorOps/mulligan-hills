@@ -8,8 +8,10 @@ extends RefCounted
 ## Buildings sit in CELLS: a parcel holds a 2x2 grid of CELL_M cells, so up to 4 buildings per parcel.
 ## A building mesh is scaled down (never up) so its tier-5 footprint fits one cell, which keeps the size
 ## constant while the tier grows. The slot of a building is sticky: once placed it never moves.
-## Parcels that a hole corridor may use (HOLE_PARCELS) are RESERVED and never hold a building.
-## When no owned free cell is left, a building goes into the ANNEX, a strip of cells just south of the map.
+## Cells under a hole corridor (HOLE_ORIGINS_DM, 16 m wide) are RESERVED and never hold a building. Cells that no
+## corridor touches stay free for buildings even inside a hole parcel (the east column of parcels 6 and 10 sits
+## right beside the three starter holes). When no owned free cell is left, a building goes into the ANNEX, a strip
+## of cells just south of the map (fallback only).
 ## NOT YET RUN in Godot.
 @warning_ignore_start("integer_division")
 
@@ -33,69 +35,121 @@ const YARD_M: float = 0.9144
 const ORDER: Array = ["clubhouse", "pro_shop", "driving_range", "restaurant", "pool_spa", "cart_barn",
 	"maintenance", "lodging", "homes", "landmark"]
 
-## Candidate parcels per building, best first. Reserved (hole) parcels never appear here.
-## Parcel kinds from buildings.json: golf 0,1,2,4,5,6,7,9,10,11,13,14; facility 8,12; homes 3,15.
+## Candidate parcels per building, best first. Only cells that no hole corridor touches are used, so listing a hole
+## parcel (6, 10) is safe: just its free east column is offered. Parcel kinds from buildings.json: golf
+## 0,1,2,4,5,6,7,9,10,11,13,14; facility 8,12; homes 3,15.
 const PREFERENCE: Dictionary = {
-	"clubhouse": [8, 12, 1, 2, 13, 14, 3, 15],
-	"pro_shop": [8, 12, 1, 2, 13, 14, 3, 15],
-	"restaurant": [8, 12, 1, 2, 13, 14, 3, 15],
-	"cart_barn": [8, 12, 1, 2, 13, 14, 3, 15],
-	"maintenance": [8, 12, 1, 2, 13, 14, 3, 15],
-	"driving_range": [1, 2, 13, 14, 8, 12, 3, 15],
-	"pool_spa": [1, 2, 13, 14, 8, 12, 3, 15],
-	"lodging": [1, 2, 13, 14, 8, 12, 3, 15],
-	"landmark": [1, 2, 13, 14, 8, 12, 3, 15],
-	"homes": [3, 15, 8, 12, 1, 2, 13, 14],
+	"clubhouse": [8, 6, 10, 12, 1, 2, 13, 14, 3, 15],
+	"pro_shop": [8, 6, 10, 12, 1, 2, 13, 14, 3, 15],
+	"restaurant": [8, 6, 10, 12, 1, 2, 13, 14, 3, 15],
+	"cart_barn": [8, 6, 10, 12, 1, 2, 13, 14, 3, 15],
+	"maintenance": [8, 6, 10, 12, 1, 2, 13, 14, 3, 15],
+	"driving_range": [1, 2, 13, 14, 6, 10, 8, 12, 3, 15],
+	"pool_spa": [1, 2, 13, 14, 6, 10, 8, 12, 3, 15],
+	"lodging": [1, 2, 13, 14, 6, 10, 8, 12, 3, 15],
+	"landmark": [1, 2, 13, 14, 6, 10, 8, 12, 3, 15],
+	"homes": [3, 15, 8, 12, 6, 10, 1, 2, 13, 14],
 }
 
 ## Hole slot k is built at HOLE_ORIGINS_DM[k] (decimetres, the unit MHCourseLayout uses). Holes run toward +Z.
-## Two holes share one parcel column (16 m apart in x), so the four start parcels 5, 6, 9, 10 already
-## hold four holes. This table is a development choice, not final routing.
-const HOLE_ORIGINS_DM: Array = [[400, 320], [560, 320], [720, 320], [880, 320], [1040, 320], [1200, 320], [80, 5], [240, 5]]
+## Slots 0..2 are the starter holes on parcels 5/9 and 6/10 (16 m pitch, x 32..80), which leaves x 80..96 of
+## parcels 6 and 10 free for four building cells right beside the course. Slots 3, 4 need parcels 7 and 11,
+## slots 5, 6 need parcels 0 and 4. Development choice, not final routing. Seven sites, so the slice cannot
+## reach the 10 holes the tier 3 gates ask for.
+const HOLE_ORIGINS_DM: Array = [[400, 320], [560, 320], [720, 320], [1040, 320], [1200, 320], [80, 5], [240, 5]]
 ## Parcels each hole slot lies on. A slot can be built only when all of them are owned.
-const HOLE_PARCELS: Array = [[5, 9], [5, 9], [6, 10], [6, 10], [7, 11], [7, 11], [0, 4], [0, 4]]
-## A short par 3 with fairway, bunker, water and two trees. Scores 34..46 with the Python rating reference
-## (tools/reference/rating, seed 0, slots 0..7). The plain 60 yd fairway hole scores 22, which is dead (< 25)
-## and earns almost nothing. NOT yet confirmed with the GDScript rating engine.
-const HOLE_LENGTH_YD: int = 64
-const HOLE_HALF_WIDTH_YD: int = 8
-const HOLE_GREEN_RADIUS_YD: int = 5
-const HOLE_TREES_YD: Array = [[-10, 30], [10, 40]]
+const HOLE_PARCELS: Array = [[5, 9], [5, 9], [6, 10], [7, 11], [7, 11], [0, 4], [0, 4]]
+## Half width and length (metres) of the corridor kept free of buildings for every hole slot.
+const CORRIDOR_HALF_M: float = 8.0
+const CORRIDOR_LENGTH_M: float = 61.0
+## Longest hole length of HOLE_DESIGNS (yards). The nature scatter keeps this much of every corridor clear.
+const HOLE_LENGTH_YD: int = 66
+
+## One design per hole slot, hole-local yards (tee at 0,0, green at 0,length). No two designs are alike on purpose:
+## the course roll-up (rating spec 7) multiplies the score of a hole by 0.4 when it is a near copy of an earlier
+## one, which is what held the old identical-hole course at rating 20 to 23 while each hole alone scored 42.
+## Fields: length, half_width (fairway), green_r, trees [[x, y]], water [[x0, y0, x1, y1]], bunkers [[...]].
+## Checked with tools/reference/rating (seed 0, slot k, calm): see docs/phase1/vertical_slice.md.
+const HOLE_DESIGNS: Array = [
+@@DESIGNS@@
+]
 
 
 static func hole_slot_count() -> int:
 	return HOLE_ORIGINS_DM.size()
 
 
-## The rating-engine hole definition for hole slot `slot` (same shape as MHOneHolePanel._layout(), more features).
+## The rating-engine hole definition for hole slot `slot` (RHI v1, whole yards): fairway, then bunkers, water and
+## trees from HOLE_DESIGNS[slot]. The slot id is the rating seed input, so it must equal the slot the hole is built in.
 static func hole_template(slot: int) -> Dictionary:
+	var d: Dictionary = HOLE_DESIGNS[clampi(slot, 0, HOLE_DESIGNS.size() - 1)] as Dictionary
+	var length: int = int(d["length"])
+	var half: int = int(d["half_width"])
+	var feats: Array = [{"t": "fairway", "rect": [-half, 0, half, length]}]
+	for r: Variant in (d["bunkers"] as Array):
+		feats.append({"t": "bunker", "rect": _ints(r as Array)})
+	for r2: Variant in (d["water"] as Array):
+		feats.append({"t": "water", "rect": _ints(r2 as Array)})
 	var trees: Array = []
-	for t: Variant in HOLE_TREES_YD:
+	for t: Variant in (d["trees"] as Array):
 		trees.append([int((t as Array)[0]), int((t as Array)[1])])
-	return {"slot_id": slot, "tee": [0, 0], "green": [0, HOLE_LENGTH_YD, HOLE_GREEN_RADIUS_YD],
-		"features": [
-			{"t": "fairway", "rect": [-HOLE_HALF_WIDTH_YD, 0, HOLE_HALF_WIDTH_YD, HOLE_LENGTH_YD]},
-			{"t": "bunker", "rect": [4, HOLE_LENGTH_YD - 12, 10, HOLE_LENGTH_YD - 4]},
-			{"t": "water", "rect": [10, 20, 14, 30]},
-			{"t": "tree", "at": trees}]}
+	if not trees.is_empty():
+		feats.append({"t": "tree", "at": trees})
+	return {"slot_id": slot, "tee": [0, 0], "green": [0, length, int(d["green_r"])], "features": feats}
 
 
-## Parcels reserved for hole corridors, ascending, no duplicates.
-static func reserved_parcels() -> PackedInt32Array:
-	var seen: Dictionary = {}
-	for row: Variant in HOLE_PARCELS:
-		for p: Variant in (row as Array):
-			seen[int(p)] = true
-	var keys: Array = seen.keys()
-	keys.sort()
+static func _ints(a: Array) -> Array:
+	var out: Array = []
+	for v: Variant in a:
+		out.append(int(v))
+	return out
+
+
+## Hole length in yards of the design for `slot`.
+static func hole_length_yd(slot: int) -> int:
+	return int((HOLE_DESIGNS[clampi(slot, 0, HOLE_DESIGNS.size() - 1)] as Dictionary)["length"])
+
+
+## Corridor kept free of buildings for hole slot `slot`, in metres (x, z, width, depth).
+static func corridor_rect_m(slot: int) -> Rect2:
+	var o: Array = HOLE_ORIGINS_DM[clampi(slot, 0, HOLE_ORIGINS_DM.size() - 1)] as Array
+	return Rect2(float(int(o[0])) * 0.1 - CORRIDOR_HALF_M, float(int(o[1])) * 0.1, CORRIDOR_HALF_M * 2.0, CORRIDOR_LENGTH_M)
+
+
+## True when building cell `slot` (0..63) overlaps any hole corridor, built or not. Edge contact is not overlap.
+static func cell_reserved(slot: int) -> bool:
+	if slot < 0 or slot >= ANNEX_BASE:
+		return false
+	var c: Vector2 = slot_centre_m(slot)
+	var cell: Rect2 = Rect2(c.x - CELL_M * 0.5, c.y - CELL_M * 0.5, CELL_M, CELL_M)
+	for k: int in range(HOLE_ORIGINS_DM.size()):
+		var r: Rect2 = corridor_rect_m(k)
+		if cell.position.x < r.end.x and cell.end.x > r.position.x and cell.position.y < r.end.y and cell.end.y > r.position.y:
+			return true
+	return false
+
+
+## Free (buildable) cells of a parcel, ascending cell order, as slot numbers.
+static func free_cells(parcel: int) -> PackedInt32Array:
 	var out: PackedInt32Array = PackedInt32Array()
-	for k: Variant in keys:
-		out.append(int(k))
+	for cell: int in range(CELLS_PER_PARCEL):
+		var slot: int = parcel * CELLS_PER_PARCEL + cell
+		if not cell_reserved(slot):
+			out.append(slot)
+	return out
+
+
+## Parcels whose four cells are all under hole corridors (no building can stand there), ascending.
+static func reserved_parcels() -> PackedInt32Array:
+	var out: PackedInt32Array = PackedInt32Array()
+	for p: int in range(PARCEL_COUNT):
+		if free_cells(p).is_empty():
+			out.append(p)
 	return out
 
 
 static func is_reserved(parcel: int) -> bool:
-	return reserved_parcels().has(parcel)
+	return parcel >= 0 and parcel < PARCEL_COUNT and free_cells(parcel).is_empty()
 
 
 ## True when hole slot `slot` exists and every parcel under it is in `owned`.
@@ -195,6 +249,56 @@ static func building_transform(slot: int, bounds5: AABB) -> Transform3D:
 	return Transform3D(basis, Vector3(c.x - cx * s, 0.0, c.y - cz * s))
 
 
+## Footprint of a building at each tier as a share of the cell's usable width (CELL_M minus both margins):
+## tier 1 about half a cell, tier 5 the whole cell, so growth is clearly visible and nothing is tiny.
+const TIER_FOOTPRINT_SHARE: Array = [0.5, 0.62, 0.75, 0.88, 1.0]
+## A very small mesh is never blown up by more than this.
+const MAX_UPSCALE: float = 3.0
+
+
+## Target footprint (metres, the longer side) of a building at `tier` (clamped 1..5).
+static func footprint_target_m(tier: int) -> float:
+	var share: float = float(TIER_FOOTPRINT_SHARE[clampi(tier, 1, TIER_FOOTPRINT_SHARE.size()) - 1])
+	return (CELL_M - 2.0 * CELL_MARGIN_M) * share
+
+
+## Uniform scale that makes a mesh whose footprint is size_x by size_z metres reach the tier's target footprint.
+static func tier_scale(size_x: float, size_z: float, tier: int) -> float:
+	var big: float = maxf(size_x, size_z)
+	if big <= 0.0001:
+		return 1.0
+	return minf(MAX_UPSCALE, footprint_target_m(tier) / big)
+
+
+## Placement of the mesh of `tier`: `bounds` is that tier's own AABB (MHBuildingMeshes.bounds). The footprint
+## centre of the bounds lands on the slot centre and the scale comes from tier_scale().
+static func building_transform_tier(slot: int, bounds: AABB, tier: int) -> Transform3D:
+	var s: float = tier_scale(bounds.size.x, bounds.size.z, tier)
+	var c: Vector2 = slot_centre_m(slot)
+	var cx: float = bounds.position.x + bounds.size.x * 0.5
+	var cz: float = bounds.position.z + bounds.size.z * 0.5
+	var basis: Basis = Basis.from_scale(Vector3(s, s, s))
+	return Transform3D(basis, Vector3(c.x - cx * s, 0.0, c.y - cz * s))
+
+
+# ---------------------------------------------------------------- land
+
+## Order in which the slice buys land: the parcels that open hole sites first (7 and 11 for slots 3 and 4, then 4 and 0
+## for slots 5 and 6), then the rest. The session's own recommended_next would pick the lowest golf id.
+const LAND_ORDER: Array = [7, 11, 4, 0, 1, 2, 12, 13, 14, 3, 15]
+
+
+## The parcel the Buy land button buys: the first of LAND_ORDER that is in `buyable` (the session's own list of parcels
+## that touch owned land), else the lowest buyable id, else -1.
+static func next_land_parcel(buyable: PackedInt32Array) -> int:
+	for p: Variant in LAND_ORDER:
+		if buyable.has(int(p)):
+			return int(p)
+	if buyable.size() > 0:
+		return buyable[0]
+	return -1
+
+
 # ---------------------------------------------------------------- slot assignment
 
 ## Free slot for `building_id` given owned parcels and already used slots, or -1 when even the annex is full.
@@ -202,10 +306,9 @@ static func pick_slot(building_id: String, owned: PackedInt32Array, used: Dictio
 	var prefs: Array = PREFERENCE.get(building_id, []) as Array
 	for p: Variant in prefs:
 		var parcel: int = int(p)
-		if not owned.has(parcel) or is_reserved(parcel):
+		if not owned.has(parcel):
 			continue
-		for cell: int in range(CELLS_PER_PARCEL):
-			var slot: int = parcel * CELLS_PER_PARCEL + cell
+		for slot: int in free_cells(parcel):
 			if not used.has(slot):
 				return slot
 	for k: int in range(ANNEX_SLOTS):
@@ -215,8 +318,8 @@ static func pick_slot(building_id: String, owned: PackedInt32Array, used: Dictio
 
 
 ## Slots for every building with tier > 0. `tiers` maps building id to owned tier (MHGameSession.tiers()).
-## `previous` is the last result: a previous slot is kept while it is still valid (its parcel is owned and not
-## reserved, or it is an annex slot) and not claimed by an earlier building. Others get pick_slot in ORDER.
+## `previous` is the last result: a previous slot is kept while it is still valid (its parcel is owned and its cell
+## is not under a hole corridor, or it is an annex slot) and not claimed by an earlier building. Others get pick_slot in ORDER.
 ## Returns {building_id: slot}. Same inputs always give the same output.
 static func assign_slots(tiers: Dictionary, owned: PackedInt32Array, previous: Dictionary) -> Dictionary:
 	var out: Dictionary = {}
@@ -244,4 +347,4 @@ static func _slot_still_valid(slot: int, owned: PackedInt32Array) -> bool:
 	if slot_is_annex(slot):
 		return slot < ANNEX_BASE + ANNEX_SLOTS
 	var parcel: int = slot_parcel(slot)
-	return parcel >= 0 and owned.has(parcel) and not is_reserved(parcel)
+	return parcel >= 0 and owned.has(parcel) and not cell_reserved(slot)

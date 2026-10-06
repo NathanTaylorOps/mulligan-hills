@@ -29,6 +29,30 @@ static func within_slop(start: Vector2, pos: Vector2) -> bool:
 	return start.distance_to(pos) <= TAP_SLOP
 
 
+## Pure. The part of `rect` that is inside every clip rect; an empty Rect2 when nothing is left.
+static func clipped(rect: Rect2, clips: Array) -> Rect2:
+	var r: Rect2 = rect
+	for c: Variant in clips:
+		var cr: Rect2 = c
+		r = r.intersection(cr)
+		if r.size.x <= 0.0 or r.size.y <= 0.0:
+			return Rect2()
+	return r
+
+
+## A button's tappable rectangle: its global rect minus whatever a scroll container above it clips away, so a
+## button scrolled out of view can never swallow a tap meant for the control drawn there.
+static func visible_rect(b: Control) -> Rect2:
+	var clips: Array = []
+	var p: Node = b.get_parent()
+	while p != null:
+		var sc: ScrollContainer = p as ScrollContainer
+		if sc != null:
+			clips.append(sc.get_global_rect())
+		p = p.get_parent()
+	return clipped(b.get_global_rect(), clips)
+
+
 func _candidates() -> Array:
 	var out: Array = []
 	for n: Node in get_tree().get_nodes_in_group(MHTapButton.GROUP):
@@ -46,7 +70,7 @@ func _button_at(pos: Vector2) -> Button:
 	var rects: Array = []
 	for c: Variant in cands:
 		var b: Button = c
-		rects.append(b.get_global_rect())
+		rects.append(visible_rect(b))
 	var i: int = pick(rects, pos)
 	if i < 0:
 		return null
@@ -95,7 +119,7 @@ func _input(event: InputEvent) -> void:
 			if btn != null and is_instance_valid(btn):
 				btn.modulate = Color(1, 1, 1, 1)
 				var still_tap: bool = not bool(d["moved"]) and not t.canceled
-				if still_tap and btn.get_global_rect().has_point(t.position) and not btn.disabled:
+				if still_tap and visible_rect(btn).has_point(t.position) and not btn.disabled:
 					btn.pressed.emit()
 				get_viewport().set_input_as_handled()
 	elif event is InputEventScreenDrag:

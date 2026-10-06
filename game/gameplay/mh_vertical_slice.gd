@@ -19,7 +19,11 @@ const NATURE_SEED: int = 20261005
 const NATURE_COUNT: int = 90
 const HUD_REFRESH_S: float = 0.2
 ## Holes built on entry, so the first minutes are not an empty course (each is paid for through submit_course).
-const STARTER_HOLES: int = 2
+## The starter club (holes, tier 1 buildings, fee) is MHSliceStarter; see docs/phase1/vertical_slice.md for why.
+const STARTER_HOLES: int = MHSliceStarter.STARTER_HOLES
+## Golfers waiting on the first tee at 7:00 (picture only, never booked): the economy books its first golfers when
+## the first game hour ends, about 2.3 real minutes at 1x.
+const OPENING_GOLFERS: int = 3
 ## Development only: turns the in-memory session's demo flag off so all ten buildings can be bought and shown
 ## (the demo caps six of them at tier 0). Never persisted. Set false to test the demo limits.
 const UNLOCK_FULL_GAME: bool = true
@@ -90,15 +94,12 @@ func _ready() -> void:
 	add_child(golfers)
 	golfers.setup(_mat)
 	_apply_quality()
-	schedule = MHSliceSchedule.from_economy(session.economy)
-	_last_hour = _absolute_hour()
 	_build_hud()
-	# Starter setup, through the same player paths a button uses: one hole, and the economy's own fee suggestion.
-	for i: int in range(STARTER_HOLES):
-		starter_hole_error = build_next_hole()
-		if starter_hole_error != "":
-			break
-	session.handle_intent(&"set_green_fee", {"cents": session.economy.suggest_fee()})
+	# Starter club, through the same player paths a button uses: holes, tier 1 buildings, the economy's own fee.
+	starter_hole_error = MHSliceStarter.setup(session, view)
+	schedule = MHSliceSchedule.from_economy(session.economy)
+	schedule.prime(0, OPENING_GOLFERS) # opening group only; hour 0's own arrivals follow when the hour ends
+	_last_hour = _absolute_hour()
 	session.changed.connect(_on_session_changed)
 	_sync_world(true)
 	_refresh_hud()
@@ -135,40 +136,47 @@ func tick(elapsed_us: int, wall_unix: int, delta: float) -> void:
 # ---------------------------------------------------------------- player actions (the only session writers)
 
 ## Builds the next free hole slot through MHGameSession.submit_course (cost, caps and rating are the session's).
-## Returns "" on success or a short reason.
+## Returns "" on success or a reason in plain words.
 func build_next_hole() -> String:
-	var defs: Array = session.hole_definitions()
-	var taken: Array = []
-	for d: Variant in defs:
-		taken.append(int((d as Dictionary)["slot_id"]))
-	var slot: int = MHSliceLayout.next_hole_slot(taken, session.land.owned_ids())
-	if slot < 0:
-		return "no free hole site, buy more land"
-	defs.append(MHSliceLayout.hole_template(slot))
-	var result: Dictionary = session.submit_course(defs)
-	if bool(result.get("ok", false)):
-		return ""
-	return str(result.get("reason", "failed"))
+	return MHSliceStarter.build_next_hole(session)
 
 
 func buy_next_tier(building_id: String) -> String:
-	var row: Dictionary = MHBuildMenuModel.row(view, building_id)
-	if row.is_empty() or bool(row["maxed"]):
-		return "nothing to buy"
-	var result: Dictionary = session.handle_intent(&"buy_tier", {"building": building_id, "tier": int(row["next_tier"])})
-	if bool(result.get("ok", false)):
-		return ""
-	return str(result.get("reason", "failed"))
+	return MHSliceStarter.buy_next_tier(session, view, building_id)
 
 
-func buy_next_parcel() -> String:
-	var parcel: int = session.land.recommended_next()
+## What the Buy land button would do right now: {"parcel": int (-1 when none), "price": dollars the session charges,
+## "affordable": bool, "reason": plain words, empty when the purchase can go ahead}.
+func land_offer() -> Dictionary:
+	var land: MHLandModel = session.land
+	var buyable: PackedInt32Array = land.buyable_parcels()
+	var parcel: int = MHSliceLayout.next_land_parcel(buyable)
+	var price: int = land.next_price()
+	var out: Dictionary = {"parcel": parcel, "price": price, "affordable": false, "reason": ""}
 	if parcel < 0:
-		return "all land owned"
-	var result: Dictionary = session.handle_intent(&"buy_parcel", {"parcel": parcel})
+		if land.owned_count() >= land.parcel_count():
+			out["reason"] = "you already own all %d parcels" % land.parcel_count()
+		else:
+			out["reason"] = "no unowned parcel touches your land"
+		return out
+	if session.economy.is_bankrupt():
+		out["reason"] = "the club is bankrupt"
+	elif not session.economy.can_afford(price * 100):
+		out["reason"] = "parcel %d costs %s and you have %s" % [parcel, MHFormat.money(price), MHFormat.money(session.economy.cash / 100)]
+	else:
+		out["affordable"] = true
+	return out
+
+
+## Buys the parcel land_offer() names. Returns "" on success or the reason in plain words.
+func buy_next_parcel() -> String:
+	var offer: Dictionary = land_offer()
+	if not bool(offer["affordable"]):
+		return str(offer["reason"])
+	var result: Dictionary = session.handle_intent(&"buy_parcel", {"parcel": int(offer["parcel"])})
 	if bool(result.get("ok", false)):
 		return ""
-	return str(result.get("reason", "failed"))
+	return MHSliceText.intent_words(str(result.get("reason", "")))
 
 
 func _real_cost_dollars(building_id: String, tier: int) -> int:
@@ -262,9 +270,11 @@ func _sync_building(id: String, tier: int) -> void:
 			_mesh_cache[key] = MHBuildingMeshes.build(id, tier, "a")
 		node.mesh = _mesh_cache[key] as Mesh
 		building_tiers[id] = tier
-	if not _bounds_cache.has(id):
-		_bounds_cache[id] = MHBuildingMeshes.bounds(id, MHBuildingMeshes.TIER_COUNT, "a")
-	node.transform = MHSliceLayout.building_transform(int(slots[id]), _bounds_cache[id] as AABB)
+	var bkey: String = "%s:%d" % [id, tier]
+	if not _bounds_cache.has(bkey):
+		_bounds_cache[bkey] = MHBuildingMeshes.bounds(id, tier, "a")
+	# Scaled so tier 1 fills about half a cell and tier 5 the whole cell (MHSliceLayout.TIER_FOOTPRINT_SHARE).
+	node.transform = MHSliceLayout.building_transform_tier(int(slots[id]), _bounds_cache[bkey] as AABB, tier)
 
 
 func _rebuild_course(owned: PackedInt32Array) -> void:
@@ -484,14 +494,20 @@ func _on_fee(delta_cents: int) -> void:
 
 func _on_build_hole() -> void:
 	var err: String = build_next_hole()
-	_set_status("Hole built." if err == "" else "Cannot build hole: " + err)
+	_set_status("Hole built." if err == "" else "Cannot build hole: " + err + ".")
 	_sync_world(false)
 	_refresh_hud()
 
 
 func _on_buy_land() -> void:
+	var offer: Dictionary = land_offer()
 	var err: String = buy_next_parcel()
-	_set_status("Land bought." if err == "" else "Cannot buy land: " + err)
+	if err == "":
+		var next_offer: Dictionary = land_offer()
+		var tail: String = "" if int(next_offer["parcel"]) < 0 else " The next parcel costs %s." % MHFormat.money(int(next_offer["price"]))
+		_set_status("Bought parcel %d for %s.%s" % [int(offer["parcel"]), MHFormat.money(int(offer["price"])), tail])
+	else:
+		_set_status("Cannot buy land: " + err + ".")
 	_sync_world(false)
 	_refresh_hud()
 
@@ -504,7 +520,7 @@ func _on_toggle_menu() -> void:
 
 func _on_buy(id: String) -> void:
 	var err: String = buy_next_tier(id)
-	_set_status("Bought %s." % MHSliceText.building_title(id) if err == "" else "Cannot buy: " + err)
+	_set_status("Bought %s." % MHSliceText.building_title(id) if err == "" else "Cannot buy %s: %s." % [MHSliceText.building_title(id), err])
 	_sync_world(false)
 	_refresh_hud()
 
@@ -532,37 +548,43 @@ func _refresh_hud() -> void:
 	_speed_button.text = "Speed x%d" % session.clock.speed()
 	var slot: int = MHSliceLayout.next_hole_slot(built_slots, session.land.owned_ids())
 	if slot < 0:
-		_hole_button.text = "No hole site"
+		_hole_button.text = "All holes built" if built_slots.size() >= MHSliceLayout.hole_slot_count() else "Holes need land"
 		_hole_button.disabled = true
 	else:
 		_hole_button.text = "Build hole %s" % MHFormat.money(e.hole_cost_cents() / 100)
 		_hole_button.disabled = false
-	if session.land.recommended_next() < 0:
-		_land_button.text = "All land owned"
+	# The price is what the session charges (it grows 15 percent with every parcel bought). The button stays enabled
+	# while a parcel exists, so a tap that cannot go through says why in the status line.
+	var offer: Dictionary = land_offer()
+	if int(offer["parcel"]) < 0:
+		_land_button.text = "No land to buy"
 		_land_button.disabled = true
 	else:
-		_land_button.text = "Buy land %s" % MHFormat.money(session.land.next_price())
+		_land_button.text = "Buy land %s" % MHFormat.money(int(offer["price"]))
 		_land_button.disabled = false
-	if _menu_panel.visible and _menu_dirty:
+	if _menu_panel.visible:
 		_menu_dirty = false
-		_refresh_menu()
+		_refresh_menu() # cash moves every game hour, so affordability is re-read on every HUD refresh
 
 
 func _refresh_menu() -> void:
+	var cash_dollars: int = session.economy.cash / 100
 	for id: Variant in MHSliceLayout.ORDER:
 		var bid: String = str(id)
 		var refs: Dictionary = _menu_rows[bid] as Dictionary
 		var row: Dictionary = MHBuildMenuModel.row(view, bid)
 		var label: Label = refs["label"] as Label
 		var button: MHTapButton = refs["button"] as MHTapButton
-		label.text = MHSliceText.row_summary(row)
-		if row.is_empty() or bool(row["maxed"]) or bool(row["demo_locked"]) or not bool(row["met"]):
+		if row.is_empty() or bool(row["maxed"]) or bool(row["demo_locked"]):
+			label.text = MHSliceText.row_text(row, 0, cash_dollars)
 			button.text = MHSliceText.buy_label(row, 0)
 			button.disabled = true
 			continue
+		# Always the real charge (economy.price_cents), also while a requirement is unmet.
 		var cost: int = _real_cost_dollars(bid, int(row["next_tier"]))
+		label.text = MHSliceText.row_text(row, cost, cash_dollars)
 		button.text = MHSliceText.buy_label(row, cost)
-		button.disabled = not session.economy.can_afford(cost * 100)
+		button.disabled = not bool(row["met"]) or not session.economy.can_afford(cost * 100)
 
 
 # ---------------------------------------------------------------- camera input (world area only)

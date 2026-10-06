@@ -254,11 +254,14 @@ func handle_intent(id: StringName, args: Dictionary) -> Dictionary:
 			out = _result(false, "parcel")
 			var parcel: int = int(args.get("parcel", -1))
 			var price: int = land.next_price() * 100
-			if land.check_buy(parcel) == "" and economy.can_afford(price):
-				if economy.spend(price) == MHEconomy.OK:
-					land.buy(parcel)
-					_apply_course()
-					out = _result(true)
+			if land.check_buy(parcel) == "":
+				# The parcel is allowed; a refusal now can only be cash ("cash", not the generic "parcel").
+				out = _result(false, "cash")
+				if economy.can_afford(price):
+					if economy.spend(price) == MHEconomy.OK:
+						land.buy(parcel)
+						_apply_course()
+						out = _result(true)
 		&"set_green_fee":
 			economy.set_green_fee(int(args.get("cents", economy.fee)))
 			out = _result(true)

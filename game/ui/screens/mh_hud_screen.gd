@@ -16,6 +16,7 @@ var _speed_buttons: Dictionary = {}
 var _speed_note: Label
 var _pause_button: MHTapButton
 var _nav_buttons: Dictionary = {}
+var _slot: Control
 
 
 func _init() -> void:
@@ -65,7 +66,8 @@ func _build() -> void:
 	note_chip.add_child(_speed_note)
 	speed_row.add_child(note_chip)
 
-	root.add_child(MHUIKit.spacer())
+	_slot = MHUIKit.spacer()
+	root.add_child(_slot)
 
 	var nav: HBoxContainer = MHUIKit.hbox(8)
 	root.add_child(nav)
@@ -83,6 +85,12 @@ func _build() -> void:
 	else:
 		for i: int in range(ids.size()):
 			nav.add_child(_nav_buttons[str(ids[i])])
+
+
+func free_rect() -> Rect2:
+	if _slot == null or not is_instance_valid(_slot) or not _slot.is_visible_in_tree():
+		return Rect2()
+	return _slot.get_global_rect()
 
 
 func _make_cash_chip() -> Control:

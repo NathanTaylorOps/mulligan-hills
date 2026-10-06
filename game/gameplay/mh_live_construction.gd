@@ -21,11 +21,19 @@ var document: Dictionary = {}
 var aim_input: MHPracticeAimInput
 var one_hole: MHOneHolePanel
 var _status: Label
+## Responsive layout (MHLiveLayout zones inside the area the HUD leaves free). See docs/phase1/live_construction.md.
+var _dock: Control
+var _actions: HFlowContainer
+var _action_buttons: Array = []
+var _status_zone: PanelContainer
+var _panel_frame: PanelContainer
+var _layout_key: Array = []
 var _pending_save: bool = false
 var _active: bool = false
 var _last_usec: int = 0
 
 func _ready() -> void:
+	MHOrientation.apply_game() # No-op off mobile; one switch, see MHOrientation.
 	var ledger: MHTokenLedger = MHTokenLedger.new()
 	var loaded: MHSaveResult = store.load_slot(0)
 	if loaded.is_ok():
@@ -97,33 +105,50 @@ func _ready() -> void:
 	shell.intent.connect(_on_intent)
 	shell.screen_changed.connect(_screen_changed)
 	shell.show_root(MHScreenIds.HUD)
-	var bar: HFlowContainer = MHUIKit.flow(6)
-	bar.position = Vector2(8, 180)
-	layer.add_child(bar)
+	_dock = Control.new()
+	_dock.set_anchors_preset(Control.PRESET_FULL_RECT)
+	_dock.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_dock.theme = shell.theme # The dock is a sibling of the shell, so it does not inherit the shell's theme.
+	layer.add_child(_dock)
+	_actions = MHUIKit.flow(8)
+	_dock.add_child(_actions)
 	var save_button: MHTapButton = MHUIKit.button(shell.ctx, "Save", &"ChipButton", 96)
 	save_button.pressed.connect(_request_save)
-	bar.add_child(save_button)
 	var back: MHTapButton = MHUIKit.button(shell.ctx, "Save & launcher", &"ChipButton", 160)
 	back.pressed.connect(_back)
-	bar.add_child(back)
 	var play: MHTapButton = MHUIKit.button(shell.ctx, "Build / play one hole", &"ChipButton", 180)
-	bar.add_child(play)
+	for b: MHTapButton in [save_button, back, play]:
+		_actions.add_child(b)
+		_action_buttons.append(b)
+	_status_zone = MHUIKit.panel(&"HudChip")
+	_status_zone.clip_contents = true
+	_dock.add_child(_status_zone)
+	_panel_frame = MHUIKit.panel(&"CardPanel")
+	_panel_frame.clip_contents = true
+	_panel_frame.visible = false
+	_dock.add_child(_panel_frame)
 	one_hole = MHOneHolePanel.new()
-	layer.add_child(one_hole)
+	_panel_frame.add_child(one_hole)
 	one_hole.setup(self)
+	one_hole.visibility_changed.connect(_on_panel_visibility)
+	one_hole.layout_changed.connect(_relayout)
+	get_viewport().size_changed.connect(_relayout)
+	shell.screen_changed.connect(func(_id: String) -> void: _relayout())
 	play.pressed.connect(one_hole.open)
-	router.register_ui_region(&"live_practice", Callable(play, "get_global_rect"))
-	router.register_ui_region(&"live_save", Callable(save_button, "get_global_rect"))
-	router.register_ui_region(&"live_back", Callable(back, "get_global_rect"))
+	router.register_ui_region(&"live_practice", _button_rect.bind(play))
+	router.register_ui_region(&"live_save", _button_rect.bind(save_button))
+	router.register_ui_region(&"live_back", _button_rect.bind(back))
 	router.ui_tapped.connect(func(id: StringName) -> void:
 		if id == &"live_save": save_button.pressed.emit()
 		elif id == &"live_back": back.pressed.emit()
 		elif id == &"live_practice": play.pressed.emit()
 		else: shell.trigger_region(id))
-	_status = MHUIKit.label("Live construction: ground edits are separate from the exact Build / play one hole layout.")
-	_status.position = Vector2(8, 245)
-	_status.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	layer.add_child(_status)
+	# The status label sits in a container with a real width (an autowrap Label directly under a CanvasLayer has
+	# zero width and wraps one character per line) and is limited to MHLiveLayout.STATUS_LINES lines.
+	_status = MHUIKit.label("Live construction: ground edits are separate from the exact Build / play one hole layout.", &"SmallLabel")
+	_status.max_lines_visible = MHLiveLayout.STATUS_LINES
+	_status.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+	_status_zone.add_child(_status)
 	editor.stroke_began.connect(func() -> void: view.changed.emit())
 	editor.stroke_ended.connect(_edited)
 	editor.history_applied.connect(_history)
@@ -135,9 +160,63 @@ func _ready() -> void:
 	_active = true
 	_last_usec = Time.get_ticks_usec()
 	_request_save()
+	_relayout()
 
 func _pick(pos: Vector2) -> Vector2i:
 	return MHPicking.pick(editor.grid, controller.camera.project_ray_origin(pos), controller.camera.project_ray_normal(pos), 1500.0)
+
+## Rect getter for router UI regions that is empty while the button is hidden (dock hidden, panel closed).
+func _button_rect(b: Control) -> Rect2:
+	if b == null or not is_instance_valid(b) or not b.is_visible_in_tree():
+		return Rect2()
+	return b.get_global_rect()
+
+func _on_panel_visibility() -> void:
+	if _panel_frame != null and one_hole != null:
+		_panel_frame.visible = one_hole.visible
+	_layout_key = []
+	_relayout()
+
+func _panel_state() -> int:
+	if one_hole == null or not one_hole.visible:
+		return MHLiveLayout.PanelState.HIDDEN
+	return MHLiveLayout.PanelState.COLLAPSED if one_hole.collapsed else MHLiveLayout.PanelState.OPEN
+
+## Places the three zones inside the rectangle the HUD/editor leaves free. Cheap; skips work when nothing changed.
+func _relayout() -> void:
+	if _dock == null or shell == null or one_hole == null:
+		return
+	if _dock.theme != shell.theme:
+		_dock.theme = shell.theme # Text-size changes build a new theme.
+	var on: bool = shell.overlay_active()
+	_dock.visible = on
+	if not on:
+		_layout_key = []
+		return
+	var free: Rect2 = shell.overlay_free_rect()
+	if free.size.x <= 0.0 or free.size.y <= 0.0:
+		return # Not laid out yet; the next frame asks again.
+	var tm: float = shell.ctx.touch_min()
+	var state: int = _panel_state()
+	var key: Array = [free, tm, state, shell.ctx.scaled(MHTheme.FONT_SMALL), shell.ctx.left_handed()]
+	if key == _layout_key:
+		return
+	_layout_key = key
+	var widths: Array = []
+	for b: Variant in _action_buttons:
+		widths.append((b as Control).custom_minimum_size.x)
+	var line_h: float = ceilf(float(shell.ctx.scaled(MHTheme.FONT_SMALL)) * 1.4)
+	var zones: Dictionary = MHLiveLayout.compute(free, tm, line_h, state, widths, shell.ctx.left_handed())
+	_place(_actions, zones["actions"] as Rect2)
+	_place(_status_zone, zones["status"] as Rect2)
+	_place(_panel_frame, zones["panel"] as Rect2)
+	_panel_frame.visible = state != MHLiveLayout.PanelState.HIDDEN and (zones["panel"] as Rect2).size.y > 0.0
+
+func _place(c: Control, r: Rect2) -> void:
+	c.visible = r.size.x > 0.0 and r.size.y > 0.0
+	if c.visible:
+		c.position = r.position
+		c.size = r.size
 
 func _screen_changed(id: String) -> void:
 	if router == null:
@@ -221,6 +300,7 @@ func _process(_delta: float) -> void:
 	_last_usec = now
 	session.advance(elapsed, int(Time.get_unix_time_from_system()))
 	chunks.flush(editor.dirty)
+	_relayout()
 	router.accept_world_input = shell.current_screen_id() == MHScreenIds.EDITOR and shell.modal_id() == "" and (one_hole == null or not one_hole.visible)
 	if not router.accept_world_input:
 		router.cancel_world_input()
@@ -234,6 +314,9 @@ func _notification(what: int) -> void:
 		router.cancel_world_input()
 		save_now()
 
+func _exit_tree() -> void:
+	MHOrientation.restore_default()
+
 func _back() -> void:
 	if _active:
 		router.cancel_world_input()
@@ -244,8 +327,13 @@ func _back() -> void:
 func _fail(message: String) -> void:
 	var layer: CanvasLayer = CanvasLayer.new()
 	add_child(layer)
-	var box: VBoxContainer = VBoxContainer.new()
-	layer.add_child(box)
+	var margin: MarginContainer = MarginContainer.new()
+	margin.set_anchors_preset(Control.PRESET_FULL_RECT)
+	for side: String in ["left", "right", "top", "bottom"]:
+		margin.add_theme_constant_override("margin_" + side, 24)
+	layer.add_child(margin)
+	var box: VBoxContainer = MHUIKit.vbox(12)
+	margin.add_child(box)
 	box.add_child(MHUIKit.label(message))
 	var back: MHTapButton = MHTapButton.new()
 	back.text = "Back to launcher"

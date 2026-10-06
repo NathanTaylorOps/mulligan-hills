@@ -128,6 +128,23 @@ func set_mode(new_mode: int) -> void:
 	mode_changed.emit(m)
 
 
+## True while the top screen is a transparent overlay (HUD, editor toolbar) and no modal is open: the 3D view is
+## visible and a game scene may show its own controls on top.
+func overlay_active() -> bool:
+	if _modal != null:
+		return false
+	var top: MHScreen = _top_node()
+	return top != null and top.is_overlay and top.is_visible_in_tree()
+
+
+## Rectangle left free by the top overlay screen (between its top controls and bottom bar), global UI units.
+## Empty Rect2 when no overlay is active or it has not been laid out yet.
+func overlay_free_rect() -> Rect2:
+	if not overlay_active():
+		return Rect2()
+	return _top_node().free_rect()
+
+
 # ------------------------------------------------------------------ navigation
 
 ## Clears the stack and shows one screen as the root.

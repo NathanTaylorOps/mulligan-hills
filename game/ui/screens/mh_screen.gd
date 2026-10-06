@@ -98,6 +98,12 @@ func _build_page(show_back: bool = true) -> void:
 	scroll.add_child(_body)
 
 
+## Overlay screens: the rectangle (global UI units) left free between their top and bottom controls, where a game
+## scene may place its own controls without overlapping them. Empty Rect2 when not laid out or not an overlay.
+func free_rect() -> Rect2:
+	return Rect2()
+
+
 ## Region id (StringName) -> Button for overlay screens. The shell turns these into MHInputRouter regions
 ## (so a tap on a button never paints) and calls pressed on the button when the router reports the tap.
 func region_buttons() -> Dictionary:

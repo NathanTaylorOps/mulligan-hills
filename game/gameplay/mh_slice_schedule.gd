@@ -71,6 +71,21 @@ func add_hour(milli: int) -> int:
 	return whole
 
 
+## Opening groups, picture only: queues the first hour's expected arrivals and, when that is fewer than
+## `min_golfers`, enough extra golfers to make up the number, so the first tee is busy in the first real minute.
+## Nothing here touches the economy, whose first golfers are booked when the first game hour ends. Returns the
+## number of golfers queued.
+func prime(first_hour_milli: int, min_golfers: int) -> int:
+	var whole: int = add_hour(first_hour_milli)
+	var extra: int = min_golfers - whole
+	if extra <= 0:
+		return whole
+	for size: Variant in split_groups(extra, group_size):
+		queue.append({"serial": next_serial, "size": int(size)})
+		next_serial += 1
+	return whole + extra
+
+
 ## Groups that tee off up to `now_minute` (game minutes, MHGameClock.total_minutes()), oldest first.
 ## Each result is {"serial", "size", "tee_minute"}. Unused tee slots are skipped, never banked.
 func release(now_minute: int) -> Array:
