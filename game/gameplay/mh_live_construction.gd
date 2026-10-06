@@ -58,6 +58,10 @@ var _cart_drive_active: bool = false
 var _hud_layer: CanvasLayer
 var _cart_camera: Camera3D
 var _cart_camera_ready: bool = false
+var _cart_tree_collision_root: Node3D
+var _cart_tree_collision_anchor: Vector3 = Vector3.INF
+const CART_TREE_COLLISION_RADIUS_M: float = 22.0
+const CART_TREE_COLLISION_REFRESH_M: float = 8.0
 var _golfer_reactions: Array = []
 var _visible_staff_root: Node3D
 var _visible_staff_nodes: Dictionary = {}
@@ -620,6 +624,7 @@ func _process(_delta: float) -> void:
 	_sync_course_condition_overlay()
 	_show_new_grounds_events()
 	_update_cart_drive_camera()
+	_sync_cart_tree_collisions()
 	_visible_golfers.advance(float(elapsed) / 1000000.0, controller.rig.global_position)
 	chunks.flush(editor.dirty)
 	_relayout()
@@ -773,6 +778,48 @@ func _update_cart_drive_camera() -> void:
 	else:
 		_cart_camera.global_position = _cart_camera.global_position.lerp(desired, 0.16)
 	_cart_camera.look_at(target, Vector3.UP)
+
+
+func _sync_cart_tree_collisions() -> void:
+	if not _cart_drive_active or _player_cart == null or not is_instance_valid(_player_cart):
+		if _cart_tree_collision_root != null and is_instance_valid(_cart_tree_collision_root):
+			_cart_tree_collision_root.queue_free()
+		_cart_tree_collision_root = null
+		_cart_tree_collision_anchor = Vector3.INF
+		return
+	var cart_pos: Vector3 = _player_cart.global_position
+	if _cart_tree_collision_anchor != Vector3.INF and Vector2(cart_pos.x, cart_pos.z).distance_to(Vector2(_cart_tree_collision_anchor.x, _cart_tree_collision_anchor.z)) < CART_TREE_COLLISION_REFRESH_M:
+		return
+	if _cart_tree_collision_root != null and is_instance_valid(_cart_tree_collision_root):
+		_cart_tree_collision_root.queue_free()
+	_cart_tree_collision_root = Node3D.new()
+	_cart_tree_collision_root.name = "NearbyTreeCollisions"
+	add_child(_cart_tree_collision_root)
+	_cart_tree_collision_anchor = cart_pos
+	var radius_sq: float = CART_TREE_COLLISION_RADIUS_M * CART_TREE_COLLISION_RADIUS_M
+	for n: Node in find_children("*", "MHForest", true, false):
+		var forest: MHForest = n as MHForest
+		if forest.placement.is_empty():
+			forest.build()
+		for i: int in range(forest.placed_tree_count()):
+			var o: int = i * MHTreePlacement.STRIDE
+			var local_pos: Vector3 = MHForest.world_pos_of(forest.placement[o], forest.placement[o + 1])
+			var world_pos: Vector3 = forest.to_global(local_pos)
+			var dx: float = world_pos.x - cart_pos.x
+			var dz: float = world_pos.z - cart_pos.z
+			if dx * dx + dz * dz > radius_sq:
+				continue
+			var scale: float = float(forest.placement[o + 3]) * 0.01
+			var body: StaticBody3D = StaticBody3D.new()
+			var shape_node: CollisionShape3D = CollisionShape3D.new()
+			var trunk: CylinderShape3D = CylinderShape3D.new()
+			trunk.radius = 0.34 * scale
+			trunk.height = 4.8 * scale
+			shape_node.shape = trunk
+			shape_node.position.y = trunk.height * 0.5
+			body.add_child(shape_node)
+			_cart_tree_collision_root.add_child(body)
+			body.global_position = MHClubPedestrian.apply_ground_height(world_pos, editor.grid)
 
 
 func respawn_player_cart() -> bool:
