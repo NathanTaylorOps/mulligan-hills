@@ -5,6 +5,8 @@ extends RefCounted
 const FIRST: Array[String] = ["Alex","Ben","Casey","Dana","Eli","Frankie","Grace","Harper","Jamie","Jordan","Kai","Lee","Morgan","Nico","Parker","Quinn","Riley","Sam","Taylor","Zoe"]
 const LAST: Array[String] = ["Adams","Brooks","Carter","Diaz","Evans","Foster","Green","Hayes","Irwin","Jones","Kim","Lane","Miller","Nguyen","Ortiz","Price","Reed","Singh","Turner","Young"]
 const MAX_ROSTER: int = 128
+const MEMORY_LIMIT: int = 8
+const FACILITIES: Array[String] = ["clubhouse","practice","restaurant","pro_shop","spa","homes"]
 
 var golfers: Dictionary = {}
 var next_id: int = 0
@@ -27,13 +29,16 @@ func identity_for_admission(save_secret: int, admission_serial: int, day: int) -
 	var h: int = MHRMath.h32d(save_secret, id, 0x474F4C46, 0x4552)
 	var g: Dictionary = {"id": id, "name": "%s %s" % [FIRST[posmod(h, FIRST.size())], LAST[posmod(h >> 8, LAST.size())]],
 		"preference": MHGolferPreference.archetype(h >> 16), "skill_band": 1 + posmod(h >> 20, 4),
-		"visits": 0, "loyalty": 50, "best_satisfaction": -1, "worst_satisfaction": 101,
-		"last_satisfaction": 50, "last_day": -1, "favorite_memory": "", "worst_memory": ""}
+		"look_seed": MHRMath.h32d(save_secret, id, 0x4C4F4F4B, 1), "identity_type": "ordinary",
+		"favorite_facility": FACILITIES[posmod(h >> 24, FACILITIES.size())], "favorite_hole_slot": -1,
+		"group_id": id / 3, "relationship_role": ["friend","partner","family"][posmod(h >> 12, 3)],
+		"member": false, "visits": 0, "loyalty": 50, "best_satisfaction": -1, "worst_satisfaction": 101,
+		"last_satisfaction": 50, "last_day": -1, "favorite_memory": "", "worst_memory": "", "memories": []}
 	golfers[id] = g
 	return g.duplicate(true)
 
 
-func record_visit(identity_id: int, day: int, satisfaction: int, memory: String) -> Dictionary:
+func record_visit(identity_id: int, day: int, satisfaction: int, memory: String, hole_slot: int = 0, flags: int = 0) -> Dictionary:
 	if not golfers.has(identity_id):
 		return {}
 	var g: Dictionary = golfers[identity_id]
@@ -41,6 +46,12 @@ func record_visit(identity_id: int, day: int, satisfaction: int, memory: String)
 	g["visits"] = int(g["visits"]) + 1
 	g["last_day"] = day
 	g["last_satisfaction"] = sat
+	g["favorite_hole_slot"] = hole_slot if sat >= int(g.get("best_satisfaction", -1)) else int(g.get("favorite_hole_slot", -1))
+	var memories: Array = g.get("memories", []) as Array
+	memories.append({"day": day, "hole_slot": hole_slot, "satisfaction": sat, "flags": flags, "text": memory})
+	while memories.size() > MEMORY_LIMIT:
+		memories.pop_front()
+	g["memories"] = memories
 	g["loyalty"] = clampi(int(g["loyalty"]) + MHRMath.rdiv(sat - 50, 5), 0, 100)
 	if sat > int(g["best_satisfaction"]):
 		g["best_satisfaction"] = sat
@@ -48,6 +59,8 @@ func record_visit(identity_id: int, day: int, satisfaction: int, memory: String)
 	if sat < int(g["worst_satisfaction"]):
 		g["worst_satisfaction"] = sat
 		g["worst_memory"] = memory
+	if not bool(g.get("member", false)) and int(g["visits"]) >= 3 and int(g["loyalty"]) >= 72 and sat >= 70:
+		g["member"] = true
 	golfers[identity_id] = g
 	return g.duplicate(true)
 
@@ -76,11 +89,12 @@ func from_dict(raw: Dictionary) -> bool:
 		if typeof(v) != TYPE_DICTIONARY:
 			return false
 		var g: Dictionary = v
-		for key: String in ["id","name","preference","skill_band","visits","loyalty","best_satisfaction","worst_satisfaction","last_satisfaction","last_day","favorite_memory","worst_memory"]:
+		for key: String in ["id","name","preference","skill_band","look_seed","identity_type","favorite_facility","favorite_hole_slot","group_id","relationship_role","member","visits","loyalty","best_satisfaction","worst_satisfaction","last_satisfaction","last_day","favorite_memory","worst_memory","memories"]:
 			if not g.has(key):
 				return false
 		var id: int = int(g["id"])
-		if id < 0 or restored.has(id) or int(g["preference"]) < 0 or int(g["preference"]) >= MHGolferPreference.COUNT 				or int(g["skill_band"]) < 1 or int(g["skill_band"]) > 4 or int(g["loyalty"]) < 0 or int(g["loyalty"]) > 100:
+		if id < 0 or restored.has(id) or int(g["preference"]) < 0 or int(g["preference"]) >= MHGolferPreference.COUNT 				or int(g["skill_band"]) < 1 or int(g["skill_band"]) > 4 or int(g["loyalty"]) < 0 or int(g["loyalty"]) > 100 \
+				or typeof(g["memories"]) != TYPE_ARRAY or (g["memories"] as Array).size() > MEMORY_LIMIT:
 			return false
 		restored[id] = g.duplicate(true)
 	var ni: int = int(raw.get("next_id", 0))
