@@ -516,3 +516,15 @@ func test_customer_resolution_does_not_replay_pending_admissions() -> void:
 	assert_int(s.customer_outcomes.size()).is_equal(outcomes)
 	assert_int(s.customer_feedback_count).is_equal(feedback)
 	assert_int(s._pending_customers.size()).is_equal(0)
+
+
+func test_pending_paid_customers_round_trip_through_checkpoint() -> void:
+	var s: MHGameSession = MHGameSession.create()
+	var identity: Dictionary = s.golfer_roster.identity_for_admission(s.save_secret, 91, s.economy.day)
+	s._pending_customers = [{"serial": 91, "identity": identity, "group_size": 1, "paid_fee": 2500,
+		"ancillary": 300, "admitted_day": s.economy.day, "admitted_hour": s.economy.hour, "hole_slot": 0}]
+	var checkpoint: Dictionary = _checkpoint(s)
+	var loaded: MHSaveResult = MHSessionSave.restore(checkpoint, s.ledger)
+	assert_bool(loaded.is_ok()).is_true()
+	var restored: MHGameSession = loaded.value as MHGameSession
+	assert_array(restored._pending_customers).contains_exactly(s._pending_customers)
