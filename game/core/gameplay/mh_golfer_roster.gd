@@ -30,7 +30,16 @@ func group_for_admission(save_secret: int, admission_serial: int, day: int, size
 		g["relationship_role"] = ["friend", "partner", "family"][posmod(int(g["id"]) + i, 3)]
 		if golfers.has(int(g["id"])):
 			golfers[int(g["id"])] = g.duplicate(true)
-		out.append(g)
+		link_associates(int(anchor["id"]), int(g["id"]))
+		out.append((golfers[int(g["id"])] as Dictionary).duplicate(true))
+	# Once an anchor has a social graph, vary future public parties among those known associates.
+	if int(anchor.get("visits", 0)) > 0:
+		var social: Array = public_party(int(anchor["id"]), n, admission_serial + day)
+		if social.size() == n:
+			for member_v: Variant in social:
+				var member: Dictionary = member_v
+				member["group_id"] = int(anchor["group_id"])
+			return social
 	return out
 
 
