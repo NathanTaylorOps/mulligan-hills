@@ -395,6 +395,27 @@ func blocks_world_tap(pos: Vector2) -> bool:
 			return true
 	return false
 
+func craft_from_screen(pos: Vector2) -> bool:
+	if live == null or live.craft_hole == null:
+		return false
+	var camera: Camera3D = live.controller.camera
+	var origin: Vector3 = camera.project_ray_origin(pos)
+	var direction: Vector3 = camera.project_ray_normal(pos)
+	if absf(direction.y) < 0.00001:
+		return false
+	var distance: float = -origin.y / direction.y
+	if distance <= 0.0:
+		return false
+	var hit: Vector3 = origin + direction * distance
+	var local_x_mm: int = roundi(hit.x * 1000.0) - int(ORIGIN[0]) * 100
+	var local_y_mm: int = roundi(hit.z * 1000.0) - int(ORIGIN[1]) * 100
+	var x_yd: int = MHRMath.rdiv(local_x_mm * 1000, 9144)
+	var y_yd: int = MHRMath.rdiv(local_y_mm * 1000, 9144)
+	var tile: Vector2i = live.craft_hole.tile_at_yd(x_yd, y_yd)
+	if tile.x < 0:
+		return false
+	return craft_at_tile(tile.x, tile.y)
+
 func aim_from_screen(pos: Vector2) -> bool:
 	var camera: Camera3D = live.controller.camera
 	var origin: Vector3 = camera.project_ray_origin(pos)
