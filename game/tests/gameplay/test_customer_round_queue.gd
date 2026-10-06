@@ -205,3 +205,24 @@ func test_customer_queue_preserves_authoritative_outcome_without_resimulating() 
 	assert_int(q.waiting.size()).is_equal(1)
 	assert_int(int((q.waiting[0] as Dictionary)["satisfaction"])).is_equal(77)
 	assert_str(str((q.waiting[0] as Dictionary)["reaction"])).is_equal("Already resolved")
+
+
+func test_roster_restore_rejects_colliding_next_id_and_invalid_associates() -> void:
+	var roster: MHGolferRoster = MHGolferRoster.new()
+	var group: Array = roster.group_for_admission(444, 1, 1, 3)
+	var saved: Dictionary = roster.to_dict()
+	var max_id: int = -1
+	for v: Variant in saved["golfers"]:
+		max_id = maxi(max_id, int((v as Dictionary)["id"]))
+	var colliding: Dictionary = saved.duplicate(true)
+	colliding["next_id"] = max_id
+	assert_bool(MHGolferRoster.new().from_dict(colliding)).is_false()
+
+	var self_link: Dictionary = saved.duplicate(true)
+	var first: Dictionary = (self_link["golfers"] as Array)[0]
+	first["associates"] = [int(first["id"])]
+	assert_bool(MHGolferRoster.new().from_dict(self_link)).is_false()
+
+	var dangling: Dictionary = saved.duplicate(true)
+	((dangling["golfers"] as Array)[0] as Dictionary)["associates"] = [9999]
+	assert_bool(MHGolferRoster.new().from_dict(dangling)).is_false()
