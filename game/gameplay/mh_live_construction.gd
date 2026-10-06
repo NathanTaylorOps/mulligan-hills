@@ -724,17 +724,41 @@ func _show_golfer_reaction(customer: Dictionary) -> void:
 
 
 static func _reaction_text(customer: Dictionary) -> String:
+	var identity: Dictionary = customer.get("identity", {}) as Dictionary
+	var name: String = str(identity.get("name", "Golfer")).get_slice(" ", 0)
 	var pace_penalty: int = int(customer.get("pace_penalty", 0))
 	if pace_penalty >= 6:
-		return "That was slow..."
+		return "%s: That was slow..." % name
+	var pref_bonus: int = int(customer.get("preference_bonus", 0))
+	var pref: int = int(customer.get("preference", identity.get("preference", MHGolferPreference.CASUAL)))
+	if pref_bonus >= 6:
+		return "%s: %s" % [name, _preference_praise(pref)]
+	if pref_bonus <= -6:
+		return "%s: %s" % [name, _preference_complaint(pref)]
 	var sat: int = int(customer.get("satisfaction", 50))
 	if sat >= 85:
-		return "What a round!"
+		return "%s: What a round!" % name
 	if sat <= 30:
-		return "Rough day out there."
+		return "%s: Rough day out there." % name
 	if pace_penalty > 0:
-		return "Bit of a wait."
+		return "%s: Bit of a wait." % name
 	return ""
+
+
+static func _preference_praise(kind: int) -> String:
+	match kind:
+		MHGolferPreference.STRATEGIST: return "Loved the choices out there."
+		MHGolferPreference.THRILL_SEEKER: return "Now that was exciting!"
+		MHGolferPreference.PURIST: return "That's proper golf."
+	return "Beautiful, fair course."
+
+
+static func _preference_complaint(kind: int) -> String:
+	match kind:
+		MHGolferPreference.STRATEGIST: return "Not enough interesting choices."
+		MHGolferPreference.THRILL_SEEKER: return "Could use more excitement."
+		MHGolferPreference.PURIST: return "That didn't feel quite fair."
+	return "That course was a bit rough."
 
 
 func _advance_golfer_reactions(delta_s: float) -> void:
