@@ -69,6 +69,10 @@ func upkeep_per_day() -> int:
 	return _session.economy.daily_upkeep() / 100
 
 
+func management_report() -> Dictionary:
+	return _session.management_report().duplicate(true)
+
+
 func hole_scores() -> Array:
 	return _session.hole_scores()
 
