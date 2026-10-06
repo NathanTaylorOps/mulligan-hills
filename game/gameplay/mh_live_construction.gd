@@ -583,9 +583,16 @@ func _advance_customer_playback(delta_s: float) -> void:
 	var green_v: Array = hole.get("green", [])
 	if tee_v.size() < 2 or green_v.size() < 2:
 		return
-	var tee: Vector2 = Vector2(float(tee_v[0]), float(tee_v[1]))
-	var green: Vector2 = Vector2(float(green_v[0]), float(green_v[1]))
-	_visible_golfers.spawn_authoritative_party(customers, tee, green)
+	var course: Dictionary = document.get("course", {}) as Dictionary
+	var tee_mm: Vector2i = MHCourseLayout.world_point_mm(course, slot, int(tee_v[0]) * 100, int(tee_v[1]) * 100)
+	var green_mm: Vector2i = MHCourseLayout.world_point_mm(course, slot, int(green_v[0]) * 100, int(green_v[1]) * 100)
+	if tee_mm.x < 0 or green_mm.x < 0:
+		return
+	var tee: Vector2 = Vector2(float(tee_mm.x) / 1000.0, float(tee_mm.y) / 1000.0)
+	var green: Vector2 = Vector2(float(green_mm.x) / 1000.0, float(green_mm.y) / 1000.0)
+	var origin_dm: Array = MHCourseLayout.origin_for_slot(course, slot)
+	var world_origin: Vector2 = Vector2(float(origin_dm[0]) / 10.0, float(origin_dm[1]) / 10.0)
+	_visible_golfers.spawn_authoritative_party(customers, tee, green, world_origin)
 
 func _queue_finished_customer_facility(customer: Dictionary, now_s: float) -> void:
 	if int(customer.get("satisfaction", 0)) < 55:
@@ -618,7 +625,10 @@ func _advance_facility_walkers(delta_s: float) -> void:
 				continue
 			var green_v: Array = hole.get("green", [])
 			if green_v.size() >= 2:
-				start = Vector3(float(green_v[0]), 0.0, float(green_v[1]))
+				var green_mm: Vector2i = MHCourseLayout.world_point_mm(document.get("course", {}) as Dictionary,
+					int(hole.get("slot_id", -1)), int(green_v[0]) * 100, int(green_v[1]) * 100)
+				if green_mm.x >= 0:
+					start = Vector3(float(green_mm.x) / 1000.0, 0.0, float(green_mm.y) / 1000.0)
 				break
 		start = MHClubPedestrian.apply_ground_height(start, editor.grid)
 		var node: Node3D = Node3D.new()
