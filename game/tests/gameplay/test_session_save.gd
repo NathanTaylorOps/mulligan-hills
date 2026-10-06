@@ -292,3 +292,50 @@ func test_first_real_round_status_distinguishes_fresh_and_restored_play() -> voi
 	assert_object(resumed.session.practice).is_not_null()
 	assert_str(resumed._first_round_status()).contains("continue your saved round")
 	resumed._active = false
+
+
+func test_first_real_round_flat_terrain_keeps_legacy_no_relief_path() -> void:
+	var scene: MHLiveConstruction = auto_free(MHLiveConstruction.new())
+	scene.store = MHSaveStore.new(DIR)
+	scene.ledger_dir = LEDGERS
+	add_child(scene)
+	var layout: Dictionary = scene.one_hole._layout()
+	assert_bool(layout.has("relief")).is_false()
+	scene._active = false
+
+
+func test_first_real_round_terrain_relief_rates_plays_and_survives_save() -> void:
+	var scene: MHLiveConstruction = auto_free(MHLiveConstruction.new())
+	scene.store = MHSaveStore.new(DIR)
+	scene.ledger_dir = LEDGERS
+	add_child(scene)
+	scene.session.clock.pause()
+	# Raise terrain under the middle of the authored hole. The exact sampled heightmap, not a cosmetic flag,
+	# must become the rating/practice relief grid.
+	scene.editor.grid.set_h(48, 62, 6000)
+	scene.one_hole.open()
+	scene.one_hole._finalize()
+	var layouts: Array = scene.session.hole_definitions()
+	assert_int(layouts.size()).is_equal(1)
+	var layout: Dictionary = layouts[0]
+	assert_bool(layout.has("relief")).is_true()
+	var parsed: MHRHole = MHRHole.from_def(layout)
+	assert_bool(parsed.has_relief).is_true()
+	assert_bool(parsed.relief_range > 0).is_true()
+	assert_bool(parsed.elev_mm() > 0).is_true()
+	assert_object(scene.session.practice).is_not_null()
+	assert_bool(scene.session.practice.hole.has_relief).is_true()
+	assert_bool(scene.save_now()).is_true()
+	var loaded: MHSaveResult = scene.store.load_slot(0)
+	assert_bool(loaded.is_ok()).is_true()
+	var saved: MHLoadedSave = loaded.value as MHLoadedSave
+	var ledger: MHSaveResult = MHSessionSave.load_ledger(saved.data, LEDGERS)
+	var restored: MHSaveResult = MHSessionSave.restore(saved.data, ledger.value as MHTokenLedger)
+	assert_bool(restored.is_ok()).is_true()
+	if restored.is_ok():
+		var restored_session: MHGameSession = restored.value
+		var restored_layout: Dictionary = restored_session.hole_definitions()[0]
+		assert_bool(restored_layout.has("relief")).is_true()
+		assert_bool(restored_session.practice.hole.has_relief).is_true()
+		assert_str(restored_session.practice.hole.content_hash()).is_equal(scene.session.practice.hole.content_hash())
+	scene._active = false
