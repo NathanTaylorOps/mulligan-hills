@@ -43,7 +43,10 @@ func hire(role_id: String, day: int, view: Dictionary, cash_cents: int) -> Dicti
 
 
 func fire(serial: int) -> bool:
-	return roster.fire(serial)
+	if not roster.fire(serial):
+		return false
+	equipment.unassign_employee(serial)
+	return true
 
 
 func assign(serial: int, areas: Array, view: Dictionary) -> String:
@@ -92,16 +95,30 @@ func equipment_price(type_id: String) -> int:
 	return int((MHStaffEquipment.TYPES[type_id] as Dictionary)["price"])
 
 
-func buy_equipment(type_id: String, cash_cents: int) -> Dictionary:
+func equipment_capacity(view: Dictionary) -> int:
+	var tier: int = MHStaffView.tier_of(view, "maintenance")
+	return [0, 3, 6, 10, 16, 24][clampi(tier, 0, 5)]
+
+
+func buy_equipment(type_id: String, cash_cents: int, view: Dictionary = {}) -> Dictionary:
 	var price: int = equipment_price(type_id)
 	if price <= 0:
 		return {"ok": false, "reason": "bad_type", "serial": 0, "cost": 0}
 	if cash_cents < price:
 		return {"ok": false, "reason": "cash", "serial": 0, "cost": 0}
+	if not view.is_empty() and equipment.units.size() >= equipment_capacity(view):
+		return {"ok": false, "reason": "workshop_capacity", "serial": 0, "cost": 0}
 	var result: Dictionary = equipment.add_unit(type_id)
 	if not bool(result["ok"]):
 		return {"ok": false, "reason": "capacity", "serial": 0, "cost": 0}
 	return {"ok": true, "reason": "", "serial": int(result["serial"]), "cost": price}
+
+
+
+
+func sell_equipment(equipment_serial: int) -> Dictionary:
+	var value: int = equipment.sell_unit(equipment_serial)
+	return {"ok": value > 0, "value": value}
 
 
 func assign_equipment(equipment_serial: int, employee_serial: int) -> bool:
@@ -153,7 +170,7 @@ func personal_patrol(parcel: int, cells: int, cells_per_parcel: int, view: Dicti
 func on_day(day: int, view: Dictionary, secret: int) -> Dictionary:
 	var res: Dictionary = grounds.on_day(defs, roster, day, view, secret, equipment)
 	if bool(res["ran"]):
-		equipment.on_day(MHStaffView.tier_of(view, "maintenance"), technician_work_permille())
+		equipment.on_day(MHStaffView.tier_of(view, "maintenance"), technician_work_permille(), res.get("used_employees", []) as Array)
 	if bool(res["ran"]):
 		roster.age_one_day()
 	return res
@@ -199,7 +216,7 @@ func report(view: Dictionary) -> Dictionary:
 		"head_count": roster.count(), "gate_staff": gate_staff_count(view), "payroll_cents": daily_payroll_cents(),
 		"avg_condition": grounds.avg_cond(defs, view), "avg_pest": grounds.avg_pest(view),
 		"service": service_avg(view), "demand_permille": demand_permille(view), "pace_points": pace_points(),
-		"satisfaction_penalty_permille": condition_penalty_permille(view), "equipment_units": equipment.units.size(),
+		"satisfaction_penalty_permille": condition_penalty_permille(view), "equipment_units": equipment.units.size(), "equipment_capacity": equipment_capacity(view),
 		"equipment_operating_cost_cents": equipment_operating_cost_cents(), "equipment_repair_cost_cents": equipment_repair_cost_cents(),
 		"beauty_delta_pm": int(ov["beauty_delta_pm"]), "fairness_delta_pm": int(ov["fairness_delta_pm"]),
 	}
