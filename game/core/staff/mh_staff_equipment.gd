@@ -97,7 +97,7 @@ func operating_cost_for_day() -> int:
 func repair_cost_for_day() -> int:
 	return repair_cost_cents
 
-func on_day(maintenance_tier: int, technician_work_pm: int = 0, used_employees: Array = []) -> void:
+func on_day(maintenance_tier: int, technician_work_pm: int = 0, used_employees: Array = [], pressure_pm: int = 1000, service_pm: int = 1000) -> void:
 	operating_cost_cents = 0
 	repair_cost_cents = 0
 	for v: Variant in units:
@@ -105,7 +105,7 @@ func on_day(maintenance_tier: int, technician_work_pm: int = 0, used_employees: 
 		var d: Dictionary = TYPES[str(u["type"])]
 		if bool(u["broken"]):
 			if maintenance_tier >= 2 and technician_work_pm > 0:
-				var repair_gain: int = MHStaffMath.idiv(maintenance_tier * 80 * technician_work_pm, 1000)
+				var repair_gain: int = MHStaffMath.idiv(maintenance_tier * 80 * technician_work_pm * service_pm, 1000000)
 				u["condition"] = mini(1000, int(u["condition"]) + repair_gain)
 				repair_cost_cents += repair_gain * 8
 				if int(u["condition"]) >= 400:
@@ -113,12 +113,12 @@ func on_day(maintenance_tier: int, technician_work_pm: int = 0, used_employees: 
 			continue
 		var was_used: bool = used_employees.has(int(u.get("assigned_employee", 0)))
 		if was_used:
-			u["condition"] = maxi(0, int(u["condition"]) - int(d["wear"]))
+			u["condition"] = maxi(0, int(u["condition"]) - MHStaffMath.idiv(int(d["wear"]) * pressure_pm, 1000))
 			operating_cost_cents += 75 + int(d["wear"]) * 5
 		if int(u["condition"]) < 150:
 			u["broken"] = true
 		elif maintenance_tier > 0 and technician_work_pm > 0:
-			var service_gain: int = MHStaffMath.idiv(maintenance_tier * 6 * technician_work_pm, 1000)
+			var service_gain: int = MHStaffMath.idiv(maintenance_tier * 6 * technician_work_pm * service_pm, 1000000)
 			u["condition"] = mini(1000, int(u["condition"]) + service_gain)
 			repair_cost_cents += service_gain * 3
 
