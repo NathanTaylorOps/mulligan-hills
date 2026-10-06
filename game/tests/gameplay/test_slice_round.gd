@@ -120,3 +120,20 @@ func test_ball_flies_a_parabola_from_tee_to_green() -> void:
 	assert_float(top.y).is_equal_approx(0.1 + MHSliceRound.BALL_APEX_M, 0.0001)
 	assert_float(start.y).is_equal_approx(0.1, 0.0001)
 	assert_float(end.y).is_equal_approx(0.1, 0.0001)
+
+
+func test_golfer_renderer_uses_authoritative_shot_endpoints() -> void:
+	var golfers: MHSliceGolfers = auto_free(MHSliceGolfers.new())
+	add_child(golfers)
+	golfers.setup(MHArtMaterials.vertex_color())
+	var events: Array = [{"kind": "shot", "shot": 1, "x0": 1000, "y0": 2000, "x1": 2000, "y1": 4000,
+		"z0": 0, "z1": 0, "penalty": 0, "tree": false}]
+	golfers.spawn_group(7, 1, Vector2.ZERO, Vector2(100.0, 100.0), {"events": events})
+	var address: Dictionary = golfers._authoritative_state(events, 0.2, 0, 1)
+	assert_bool(bool(address["done"])).is_false()
+	assert_vector2(address["world"] as Vector2).is_equal(Vector2(9.144, 18.288))
+	var flight: Dictionary = golfers._authoritative_state(events,
+		MHAIRoundTimeline.ADDRESS_S + MHAIRoundTimeline.SWING_S + 0.7, 0, 1)
+	assert_float(float(flight["ball_u"])).is_greater(0.0)
+	assert_vector2(flight["ball_from"] as Vector2).is_equal(Vector2(9.144, 18.288))
+	assert_vector2(flight["ball_to"] as Vector2).is_equal(Vector2(18.288, 36.576))
