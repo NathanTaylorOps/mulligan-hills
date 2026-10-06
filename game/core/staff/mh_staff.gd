@@ -252,6 +252,7 @@ func report(view: Dictionary) -> Dictionary:
 		"service": service_avg(view), "demand_permille": demand_permille(view), "pace_points": pace_points(),
 		"satisfaction_penalty_permille": condition_penalty_permille(view), "equipment_units": equipment.units.size(), "equipment_capacity": equipment_capacity(view),
 		"equipment_operating_cost_cents": equipment_operating_cost_cents(), "equipment_repair_cost_cents": equipment_repair_cost_cents(),
+		"employees": roster.employees.duplicate(true), "equipment": equipment.units.duplicate(true),
 		"warnings": management_warnings(view),
 		"beauty_delta_pm": int(ov["beauty_delta_pm"]), "fairness_delta_pm": int(ov["fairness_delta_pm"]),
 	}
