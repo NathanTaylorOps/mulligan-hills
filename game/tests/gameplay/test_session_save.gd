@@ -838,3 +838,22 @@ func test_staff_route_state_moves_deterministically_across_work_route() -> void:
 	var second: Dictionary = MHLiveConstruction._route_state(route, 0.75)
 	assert_float((second["position"] as Vector3).x).is_equal(10.0)
 	assert_float((second["position"] as Vector3).z).is_equal(5.0)
+
+
+func test_live_maintenance_state_separates_specialists_and_broken_fleet() -> void:
+	var s: MHGameSession = MHGameSession.create()
+	var view: Dictionary = s.staff_view()
+	var tech: Dictionary = s.staff_system.hire("equipment_technician", s.economy.day, view, 100000000)
+	if bool(tech.get("ok", false)):
+		assert_int(int(tech["serial"])).is_greater(0)
+	var bought: Dictionary = s.staff_system.buy_equipment("greens_mower", 100000000)
+	assert_bool(bool(bought["ok"])).is_true()
+	var unit_serial: int = int(bought["serial"])
+	for unit_v: Variant in s.staff_system.equipment.units:
+		var unit: Dictionary = unit_v as Dictionary
+		if int(unit["serial"]) == unit_serial:
+			unit["condition"] = 100
+			unit["broken"] = true
+	var live: Dictionary = s.live_maintenance_state()
+	assert_int((live["broken_equipment"] as Array).size()).is_equal(1)
+	assert_int(int(((live["broken_equipment"] as Array)[0] as Dictionary)["serial"])).is_equal(unit_serial)
