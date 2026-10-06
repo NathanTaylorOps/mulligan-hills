@@ -90,6 +90,18 @@ func personal_patrol(defs: MHStaffDefs, parcel: int, cells: int, cells_per_parce
 	return gain
 
 
+## Apply a bounded external turf-damage event (for example a player cart driving onto a green).
+## Damage is authoritative, saved through the existing condition array, and normal grounds work repairs it later.
+func damage_condition(parcel: int, amount: int, view: Dictionary) -> int:
+	if parcel < 0 or parcel >= MHStaffDefs.NPARCELS or not MHStaffView.is_owned(view, parcel):
+		return 0
+	var applied: int = mini(clampi(amount, 0, 250), int(condition[parcel]))
+	if applied <= 0:
+		return 0
+	condition[parcel] = int(condition[parcel]) - applied
+	return applied
+
+
 ## One game day (call once per MHGameClock.EV_DAY, after the day's hourly accounting). Order per owned parcel, ascending id:
 ## pest growth/decline, ranger control, decay vs grounds work, pest damage, incident roll. Returns {"ran": bool,
 ## "incidents": Array of {parcel, kind, positive, handled}}. Idempotent per day: day <= last_day does nothing.
