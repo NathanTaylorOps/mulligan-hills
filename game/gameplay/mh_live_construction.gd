@@ -624,6 +624,7 @@ func _process(_delta: float) -> void:
 	_sync_course_condition_overlay()
 	_show_new_grounds_events()
 	_update_cart_drive_camera()
+	_update_player_cart_wheels()
 	_sync_cart_tree_collisions()
 	_visible_golfers.advance(float(elapsed) / 1000000.0, controller.rig.global_position)
 	chunks.flush(editor.dirty)
@@ -881,6 +882,7 @@ static func _add_player_cart_visual(cart: Node3D) -> void:
 			wheel.mesh = wheel_mesh
 			wheel.rotation_degrees.z = 90.0
 			wheel.position = Vector3(x, 0.28, z)
+			wheel.name = ("Front" if z < 0.0 else "Rear") + ("LeftWheel" if x < 0.0 else "RightWheel")
 			cart.add_child(wheel)
 	var bag: MeshInstance3D = MeshInstance3D.new()
 	var bag_mesh: CylinderMesh = CylinderMesh.new()
@@ -892,6 +894,19 @@ static func _add_player_cart_visual(cart: Node3D) -> void:
 	bag.position = Vector3(0.0, 1.05, 1.05)
 	bag.name = "GolfBag"
 	cart.add_child(bag)
+
+
+func _update_player_cart_wheels() -> void:
+	if _player_cart == null or not is_instance_valid(_player_cart):
+		return
+	var spin: float = _player_cart.wheel_spin()
+	var steer_angle: float = deg_to_rad(24.0) * _player_cart.steering_input()
+	for wheel_name: String in ["FrontLeftWheel", "FrontRightWheel", "RearLeftWheel", "RearRightWheel"]:
+		var wheel: Node3D = _player_cart.get_node_or_null(wheel_name) as Node3D
+		if wheel == null:
+			continue
+		# Cylinder axis is local Y; Z=90 lays it across the cart. Spin remains cosmetic and cheap.
+		wheel.rotation = Vector3(spin, steer_angle if wheel_name.begins_with("Front") else 0.0, PI * 0.5)
 
 
 func _on_player_cart_green_violation() -> void:
