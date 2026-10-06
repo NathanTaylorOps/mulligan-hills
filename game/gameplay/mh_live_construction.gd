@@ -49,6 +49,9 @@ var _building_mesh_cache: Dictionary = {}
 var _visible_golfers: MHSliceGolfers
 var _facility_walkers: Dictionary = {}
 var _hole_transition_walkers: Dictionary = {}
+var _golfer_reactions: Array = []
+const MAX_GOLFER_REACTIONS: int = 6
+const GOLFER_REACTION_LIFETIME_S: float = 5.0
 
 func _ready() -> void:
 	MHOrientation.apply_game() # No-op off mobile; one switch, see MHOrientation.
@@ -549,6 +552,7 @@ func _process(_delta: float) -> void:
 	_advance_customer_playback(float(elapsed) / 1000000.0)
 	_advance_hole_transition_walkers(float(elapsed) / 1000000.0)
 	_advance_facility_walkers(float(elapsed) / 1000000.0)
+	_advance_golfer_reactions(float(elapsed) / 1000000.0)
 	_visible_golfers.advance(float(elapsed) / 1000000.0, controller.rig.global_position)
 	chunks.flush(editor.dirty)
 	_relayout()
@@ -568,6 +572,7 @@ func _advance_customer_playback(delta_s: float) -> void:
 		if kind == "finished":
 			for customer_v: Variant in event.get("customers", [event.get("customer", {})]):
 				var customer: Dictionary = session.apply_playback_pace_experience(customer_v as Dictionary)
+				_show_golfer_reaction(customer)
 				_queue_finished_customer_facility(customer, now_s)
 		elif kind == "hole_transition":
 			_begin_hole_transition(event)
@@ -665,6 +670,51 @@ func _render_customer_hole(event: Dictionary) -> void:
 	var origin_dm: Array = MHCourseLayout.origin_for_slot(course, slot)
 	var world_origin: Vector2 = Vector2(float(origin_dm[0]) / 10.0, float(origin_dm[1]) / 10.0)
 	_visible_golfers.spawn_authoritative_party(customers, tee, green, world_origin)
+
+
+func _show_golfer_reaction(customer: Dictionary) -> void:
+	var slot: int = int(customer.get("hole_slot", -1))
+	var position: Vector3 = _hole_world_point(slot, "green")
+	if position == Vector3.INF:
+		return
+	var text: String = _reaction_text(customer)
+	if text.is_empty():
+		return
+	var label: Label3D = Label3D.new()
+	label.text = text
+	label.font_size = 24
+	label.outline_size = 6
+	label.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+	label.no_depth_test = true
+	label.position = position + Vector3(0.0, 2.4, 0.0)
+	add_child(label)
+	_golfer_reactions.append({"node": label, "remaining": GOLFER_REACTION_LIFETIME_S})
+	while _golfer_reactions.size() > MAX_GOLFER_REACTIONS:
+		var oldest: Dictionary = _golfer_reactions.pop_front() as Dictionary
+		(oldest["node"] as Label3D).queue_free()
+
+
+static func _reaction_text(customer: Dictionary) -> String:
+	var pace_penalty: int = int(customer.get("pace_penalty", 0))
+	if pace_penalty >= 6:
+		return "That was slow..."
+	var sat: int = int(customer.get("satisfaction", 50))
+	if sat >= 85:
+		return "What a round!"
+	if sat <= 30:
+		return "Rough day out there."
+	if pace_penalty > 0:
+		return "Bit of a wait."
+	return ""
+
+
+func _advance_golfer_reactions(delta_s: float) -> void:
+	for i: int in range(_golfer_reactions.size() - 1, -1, -1):
+		var reaction: Dictionary = _golfer_reactions[i] as Dictionary
+		reaction["remaining"] = float(reaction["remaining"]) - delta_s
+		if float(reaction["remaining"]) <= 0.0:
+			(reaction["node"] as Label3D).queue_free()
+			_golfer_reactions.remove_at(i)
 
 
 func _queue_finished_customer_facility(customer: Dictionary, now_s: float) -> void:
