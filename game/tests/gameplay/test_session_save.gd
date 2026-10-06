@@ -472,3 +472,32 @@ func test_multiple_building_instances_keep_distinct_identity() -> void:
 	assert_int(s.building_placements.size()).is_equal(2)
 	assert_bool(s.building_placements.has("clubhouse_a")).is_true()
 	assert_bool(s.building_placements.has("clubhouse_b")).is_true()
+
+
+func test_maintenance_quality_depends_on_worker_skill_and_facilities() -> void:
+	var s: MHGameSession = MHGameSession.create()
+	assert_bool(s.set_maintenance_workers([1, 1])).is_true()
+	var low_workers: int = s.maintenance_quality()
+	assert_bool(s.set_maintenance_workers([5, 5])).is_true()
+	var skilled_workers: int = s.maintenance_quality()
+	assert_bool(skilled_workers > low_workers).is_true()
+	var maintenance_index: int = s.economy.params.building_index("maintenance")
+	if maintenance_index >= 0:
+		s.economy.set_tier(maintenance_index, 2)
+	var shed_index: int = s.economy.params.building_index("equipment_shed")
+	if shed_index >= 0:
+		s.economy.set_tier(shed_index, 2)
+	var workshop_index: int = s.economy.params.building_index("maintenance_workshop")
+	if workshop_index >= 0:
+		s.economy.set_tier(workshop_index, 2)
+	assert_bool(s.maintenance_quality() >= skilled_workers).is_true()
+
+
+func test_invalid_maintenance_worker_levels_are_rejected() -> void:
+	var s: MHGameSession = MHGameSession.create()
+	assert_bool(s.set_maintenance_workers([0])).is_false()
+	assert_bool(s.set_maintenance_workers([6])).is_false()
+	var too_many: Array = []
+	for i: int in range(MHGameSession.MAX_MAINTENANCE_WORKERS + 1):
+		too_many.append(1)
+	assert_bool(s.set_maintenance_workers(too_many)).is_false()
