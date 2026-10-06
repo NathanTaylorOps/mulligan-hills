@@ -583,6 +583,5 @@ func _placement_obstacles() -> Array:
 			forest.build()
 		for i: int in range(forest.placed_tree_count()):
 			var o: int = i * MHTreePlacement.STRIDE
-			var wp: Vector3 = MHForest.world_pos_of(forest.placement[o], forest.placement[o + 1])
-			out.append({"kind": "tree", "x_mm": roundi(wp.x * 1000.0), "y_mm": roundi(wp.z * 1000.0), "radius_mm": 2200})
+			out.append({"kind": "tree", "x_mm": forest.placement[o], "y_mm": forest.placement[o + 1], "radius_mm": 2200})
 	return out
