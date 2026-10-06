@@ -427,17 +427,10 @@ func _valid_building_placement_record(building_id: String, placement: Dictionary
 	var rotation: int = int(placement["rotation_quarters"])
 	if rotation < 0 or rotation > 3:
 		return false
-	# World bounds are authoritative for this integration surface; half-footprint must remain inside it.
-	var half_x_mm: int = int(size[0]) * 500
-	var half_y_mm: int = int(size[1]) * 500
-	if rotation % 2 == 1:
-		var swap: int = half_x_mm
-		half_x_mm = half_y_mm
-		half_y_mm = swap
-	var world_mm: int = 128000
-	if int(center[0]) - half_x_mm < 0 or int(center[1]) - half_y_mm < 0 			or int(center[0]) + half_x_mm > world_mm or int(center[1]) + half_y_mm > world_mm:
-		return false
-	return true
+	# Exact world-edge, terrain, ownership and conflict checks require the authoritative terrain
+	# grid and are performed by MHLiveConstruction after the terrain blob is decoded. Do not bake
+	# the prototype 128 m world size into persistent session validation.
+	return int(center[0]) >= 0 and int(center[1]) >= 0
 
 
 func handle_intent(id: StringName, args: Dictionary) -> Dictionary:
