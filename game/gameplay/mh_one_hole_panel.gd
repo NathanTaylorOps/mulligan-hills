@@ -175,7 +175,10 @@ func _refresh_canonical_craft() -> void:
 	else:
 		canonical_draft.clear()
 		_preview_draft = true
-		_info.text = "Craft hole needs: " + ", ".join(PackedStringArray(problems))
+		var labels: PackedStringArray = PackedStringArray()
+		for problem: Variant in problems:
+			labels.append(str(problem))
+		_info.text = "Craft hole needs: " + ", ".join(labels)
 		_draw()
 
 func _craft_undo() -> void:
