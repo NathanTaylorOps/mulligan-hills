@@ -102,7 +102,9 @@ func _ready() -> void:
 	controller = MHCameraController.new()
 	controller.config = cfg
 	add_child(controller)
-	controller.rig.target = Vector3(64, 0, 64)
+	var world_center_x: float = float(editor.grid.cells_x * editor.grid.cell_size_mm) / 2000.0
+	var world_center_z: float = float(editor.grid.cells_y * editor.grid.cell_size_mm) / 2000.0
+	controller.rig.target = Vector3(world_center_x, 0.0, world_center_z)
 	controller.desktop_pan(Vector2.ZERO)
 	var layer: CanvasLayer = CanvasLayer.new()
 	add_child(layer)
@@ -235,7 +237,13 @@ func _revalidate_restored_buildings() -> bool:
 			session.hole_definitions(), _placement_obstacles(), document.get("course", {}) as Dictionary)
 		if not bool(checked.get("ok", false)):
 			return false
-		accepted.append(checked)
+		# The terrain/ownership validator is authoritative. Replace derived geometry from the save
+		# with its canonical result so stale ground/size fields cannot survive a valid restore.
+		var canonical: Dictionary = checked.duplicate(true)
+		canonical["building_id"] = building_id
+		canonical["instance_id"] = instance_id
+		session.building_placements[instance_id] = canonical
+		accepted.append(canonical)
 	return true
 
 
