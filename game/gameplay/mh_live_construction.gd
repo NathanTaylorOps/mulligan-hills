@@ -285,12 +285,10 @@ func _begin_building_placement(building_id: String, tier: int) -> void:
 func _update_ghost_mesh() -> void:
 	if _placement_ghost == null or _placement_id == "":
 		return
-	var size: Vector2i = MHBuildingPlacement.footprint_m(_placement_id, _placement_tier)
-	if _placement_rotation % 2 == 1:
-		size = Vector2i(size.y, size.x)
-	var box: BoxMesh = BoxMesh.new()
-	box.size = Vector3(float(size.x), 2.0, float(size.y))
-	_placement_ghost.mesh = box
+	var mesh_key: String = "%s:%d:a" % [_placement_id, _placement_tier]
+	if not _building_mesh_cache.has(mesh_key):
+		_building_mesh_cache[mesh_key] = MHBuildingMeshes.build(_placement_id, _placement_tier, "a")
+	_placement_ghost.mesh = _building_mesh_cache[mesh_key] as Mesh
 	_placement_ghost.rotation.y = float(_placement_rotation) * PI * 0.5
 
 
@@ -300,7 +298,7 @@ func _placement_preview(world_m: Vector2) -> void:
 	_placement_last = validate_building_placement(_placement_id, _placement_tier, world_m, _placement_rotation)
 	if _placement_ghost != null:
 		var ground: float = float(int(_placement_last.get("ground_mm", 0))) / 1000.0
-		_placement_ghost.position = Vector3(world_m.x, ground + 1.0, world_m.y)
+		_placement_ghost.position = Vector3(world_m.x, ground, world_m.y)
 		_placement_ghost.material_override = _ghost_valid_mat if bool(_placement_last.get("ok", false)) else _ghost_invalid_mat
 	_placement_status.text = "VALID — click/tap to build" if bool(_placement_last.get("ok", false)) else "INVALID — " + _placement_reason(str(_placement_last.get("reason", "")))
 
