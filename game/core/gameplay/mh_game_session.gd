@@ -27,6 +27,7 @@ var customer_admissions: Array = []
 var _customer_serial: int = 0
 var customer_feedback_sum: int = 0
 var customer_feedback_count: int = 0
+var golfer_roster: MHGolferRoster = MHGolferRoster.new()
 var _holes: Array = []
 var _ratings: Array = []
 var _course: Dictionary = {}
@@ -246,7 +247,8 @@ func _queue_customer_admissions(tick: Dictionary) -> void:
 	var fee_each: int = fees / n
 	var anc_each: int = ancillary / n
 	for i: int in range(n):
-		customer_admissions.append({"serial": _customer_serial, "paid_fee": fee_each,
+		var identity: Dictionary = golfer_roster.identity_for_admission(save_secret, _customer_serial, economy.day)
+		customer_admissions.append({"serial": _customer_serial, "identity": identity, "paid_fee": fee_each,
 			"ancillary": anc_each, "admitted_day": economy.day, "admitted_hour": economy.hour,
 			"hole_slot": int((_holes[0] as Dictionary)["slot_id"])})
 		_customer_serial += 1
@@ -262,6 +264,17 @@ func take_customer_admissions(limit: int = 4) -> Array:
 
 ## Completed visible rounds move reputation slowly. 50/100 is neutral; one customer can move at most 4 permille.
 ## Existing MHEconomy arrivals/membership formulas then turn reputation into future demand.
+func record_customer_visit(customer: Dictionary) -> Dictionary:
+	var identity: Dictionary = customer.get("identity", {}) as Dictionary
+	if identity.is_empty():
+		return {}
+	var sat: int = clampi(int(customer.get("satisfaction", 50)), 0, 100)
+	var memory: String = str(customer.get("reaction", "Finished a round."))
+	var updated: Dictionary = golfer_roster.record_visit(int(identity["id"]), economy.day, sat, memory)
+	record_customer_feedback(sat)
+	return updated
+
+
 func record_customer_feedback(satisfaction: int) -> int:
 	var sat: int = clampi(satisfaction, 0, 100)
 	customer_feedback_sum += sat
