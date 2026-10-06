@@ -644,6 +644,25 @@ func handle_intent(id: StringName, args: Dictionary) -> Dictionary:
 		&"set_green_fee":
 			economy.set_green_fee(int(args.get("cents", economy.fee)))
 			out = _result(true)
+		&"set_management_difficulty":
+			out = _result(set_management_difficulty(str(args.get("difficulty", ""))), "difficulty")
+		&"hire_staff":
+			out = hire_staff(str(args.get("role", "")))
+		&"fire_staff":
+			out = _result(fire_staff(int(args.get("employee_serial", 0))), "employee")
+		&"assign_staff":
+			var areas_value: Variant = args.get("areas", [])
+			if typeof(areas_value) == TYPE_ARRAY:
+				out = assign_staff(int(args.get("employee_serial", 0)), areas_value as Array)
+			else:
+				out = _result(false, "areas")
+		&"buy_staff_equipment":
+			out = buy_staff_equipment(str(args.get("type", "")))
+		&"assign_staff_equipment":
+			out = _result(assign_staff_equipment(int(args.get("equipment_serial", 0)),
+				int(args.get("employee_serial", 0))), "equipment")
+		&"sell_staff_equipment":
+			out = sell_staff_equipment(int(args.get("equipment_serial", 0)))
 		&"recovery_loan":
 			out = _result(economy.take_bank_loan() >= 0, "recovery")
 		&"recovery_tokens":
