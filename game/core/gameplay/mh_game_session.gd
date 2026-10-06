@@ -28,6 +28,7 @@ var _customer_serial: int = 0
 var customer_feedback_sum: int = 0
 var customer_feedback_count: int = 0
 var golfer_roster: MHGolferRoster = MHGolferRoster.new()
+var building_placements: Dictionary = {} # id -> terrain-aware freeform placement record
 var _holes: Array = []
 var _ratings: Array = []
 var _course: Dictionary = {}
