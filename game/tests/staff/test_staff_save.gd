@@ -40,7 +40,7 @@ func test_block_shape_matches_the_schema_keys() -> void:
 	var b: Dictionary = _played().to_save_block()
 	var keys: Array = b.keys()
 	keys.sort()
-	assert_array(keys).is_equal(["condition", "employees", "last_day", "next_serial", "personal_pest", "personal_work", "pest", "stats", "v"])
+	assert_array(keys).is_equal(["condition", "employees", "equipment", "last_day", "next_serial", "personal_pest", "personal_work", "pest", "stats", "v"])
 	assert_int(int(b["v"])).is_equal(1)
 	assert_int((b["condition"] as Array).size()).is_equal(16)
 	assert_int((b["employees"] as Array).size()).is_equal(4)
@@ -124,6 +124,33 @@ func test_rejects_bad_blocks() -> void:
 	assert_bool(_bad(func(b: Dictionary) -> void: (b["stats"] as Dictionary)["hires"] = -1)).is_false()
 	assert_bool(_bad(func(b: Dictionary) -> void: (b["stats"] as Dictionary)["cheats"] = 1)).is_false()
 	assert_bool(_bad(func(b: Dictionary) -> void: (b["stats"] as Dictionary).erase("sightings"))).is_false()
+
+
+func test_rejects_dangling_equipment_operator_on_restore() -> void:
+	var st: MHStaff = MHStaffFixture.staff()
+	var hired: Dictionary = st.hire("groundskeeper", 0, _view, RICH)
+	assert_bool(bool(hired["ok"])).is_true()
+	var bought: Dictionary = st.buy_equipment("greens_mower", RICH, _view)
+	assert_bool(bool(bought["ok"])).is_true()
+	assert_bool(st.assign_equipment(int(bought["serial"]), int(hired["serial"]))).is_true()
+	var block: Dictionary = st.to_save_block()
+	((block["equipment"] as Dictionary)["units"][0] as Dictionary)["assigned_employee"] = 999999
+	var restored: MHStaff = MHStaffFixture.staff()
+	assert_bool(restored.from_save_block(block)).is_false()
+
+
+func test_rejects_role_incompatible_equipment_operator_on_restore() -> void:
+	var st: MHStaff = MHStaffFixture.staff()
+	var grounds: Dictionary = st.hire("groundskeeper", 0, _view, RICH)
+	var ranger: Dictionary = st.hire("wildlife_ranger", 0, _view, RICH)
+	assert_bool(bool(grounds["ok"]) and bool(ranger["ok"])).is_true()
+	var bought: Dictionary = st.buy_equipment("greens_mower", RICH, _view)
+	assert_bool(bool(bought["ok"])).is_true()
+	assert_bool(st.assign_equipment(int(bought["serial"]), int(grounds["serial"]))).is_true()
+	var block: Dictionary = st.to_save_block()
+	((block["equipment"] as Dictionary)["units"][0] as Dictionary)["assigned_employee"] = int(ranger["serial"])
+	var restored: MHStaff = MHStaffFixture.staff()
+	assert_bool(restored.from_save_block(block)).is_false()
 
 
 func test_unmodified_block_is_accepted_by_the_helper() -> void:
