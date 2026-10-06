@@ -904,3 +904,14 @@ func test_star_cart_identity_and_skin_are_content_driven() -> void:
 	var pro: Array = [{"identity": {"identity_type": "pro", "parody_id": "tour_pro"}}]
 	assert_bool(MHLiveConstruction._party_has_star(pro)).is_true()
 	assert_str(MHLiveConstruction._star_cart_style(pro)).is_equal("tour_pro")
+
+
+func test_star_cart_profiles_are_data_driven_and_have_safe_fallback() -> void:
+	var lion: Dictionary = MHStarCartProfiles.profile_for("lion_black_suv")
+	assert_str(str(lion["body"])).is_equal("suv")
+	assert_str(str(lion["behavior"])).is_equal("park_nearby_upside_down")
+	assert_bool(MHStarCartProfiles.body_size(lion).z > 2.0).is_true()
+	var unknown: Dictionary = MHStarCartProfiles.profile_for("future_star_skin")
+	assert_str(str(unknown["body"])).is_equal("golf_cart")
+	assert_str(str(unknown["behavior"])).is_equal("park_nearby")
+	assert_str(str(unknown["skin"])).is_equal("future_star_skin")
