@@ -243,3 +243,14 @@ func test_customer_satisfaction_feels_course_condition_without_changing_rating()
 	assert_bool(int((neglected.customer_outcomes[0] as Dictionary)["condition_penalty"]) > 0).is_true()
 	assert_bool(int((cared.customer_outcomes[0] as Dictionary)["satisfaction"]) >
 		int((neglected.customer_outcomes[0] as Dictionary)["satisfaction"])).is_true()
+
+
+func test_pace_score_uses_existing_staff_contribution_without_fake_course_flow() -> void:
+	var s: MHGameSession = MHGameSession.create()
+	assert_int(s.pace_score()).is_equal(0)
+	var clubhouse_index: int = s.economy.params.building_index("clubhouse")
+	s.economy.set_tier(clubhouse_index, 1)
+	var hired: Dictionary = s.hire_staff("marshal")
+	assert_bool(bool(hired["ok"])).is_true()
+	assert_bool(s.pace_score() > 0).is_true()
+	assert_int(s.gate_view().pace_score).is_equal(s.pace_score())
