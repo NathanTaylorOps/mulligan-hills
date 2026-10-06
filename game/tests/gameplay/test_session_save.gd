@@ -614,3 +614,27 @@ func test_live_facility_walker_starts_visit_only_after_arrival() -> void:
 	assert_int(scene.session.customer_playback.pending_facility_visits.size()).is_equal(0)
 	assert_int(scene.session.customer_playback.facility_visits.size()).is_equal(1)
 	scene._active = false
+
+
+func test_facility_travel_is_queued_only_after_playback_finish() -> void:
+	var scene: MHLiveConstruction = auto_free(MHLiveConstruction.new())
+	scene.store = MHSaveStore.new(DIR)
+	scene.ledger_dir = LEDGERS
+	add_child(scene)
+	assert_bool(scene._active).is_true()
+	var clubhouse_index: int = scene.session.economy.params.building_index("clubhouse")
+	scene.session.economy.set_tier(clubhouse_index, 1)
+	assert_bool(scene.session.set_building_placement("clubhouse", {"ok": true, "center_mm": [1000, 0],
+		"size_m": [18, 14], "ground_mm": 0, "rotation_quarters": 0})).is_true()
+	var customer: Dictionary = {"serial": 31, "satisfaction": 80,
+		"identity": {"favorite_facility": "clubhouse", "party_size": 1},
+		"round": {"events": [{"kind": "putt", "shot": 1, "strokes": 1, "x0": 0, "y0": 0, "x1": 0, "y1": 0}]}}
+	scene.session.customer_playback.admit([customer], {}, {}, {})
+	assert_int(scene.session.customer_playback.pending_facility_visits.size()).is_equal(0)
+	scene._advance_customer_playback(0.1)
+	assert_int(scene.session.customer_playback.pending_facility_visits.size()).is_equal(0)
+	var started: Dictionary = scene.session.customer_playback.active
+	started["started_s"] = -1000.0
+	scene._advance_customer_playback(0.1)
+	assert_int(scene.session.customer_playback.pending_facility_visits.size()).is_equal(1)
+	scene._active = false
