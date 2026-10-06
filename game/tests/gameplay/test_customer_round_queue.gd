@@ -246,3 +246,24 @@ func test_satisfaction_is_relative_to_hole_par() -> void:
 		MHCustomerRoundQueue.satisfaction({"strokes": 3, "flags": 0}, 3))
 	assert_bool(MHCustomerRoundQueue.satisfaction({"strokes": 6, "flags": 0}, 5) >
 		MHCustomerRoundQueue.satisfaction({"strokes": 6, "flags": 0}, 3)).is_true()
+
+
+func test_visiting_party_id_is_transient_and_does_not_mutate_saved_social_identity() -> void:
+	var roster: MHGolferRoster = MHGolferRoster.new()
+	var first: Array = roster.group_for_admission(5150, 11, 1, 4)
+	assert_int(first.size()).is_equal(4)
+	var anchor_id: int = int((first[0] as Dictionary)["id"])
+	var first_party_id: int = int((first[0] as Dictionary)["group_id"])
+	assert_int(first_party_id).is_equal(11)
+	# Persistent golfer records keep relationship identity separate from the current visit.
+	assert_int(int((roster.golfers[anchor_id] as Dictionary)["group_id"])).is_equal(-1)
+	for member_v: Variant in first:
+		var member: Dictionary = member_v
+		assert_int(int(member["group_id"])).is_equal(first_party_id)
+		assert_int(int((roster.golfers[int(member["id"])] as Dictionary)["group_id"])).is_equal(-1)
+
+	roster.record_visit(anchor_id, 1, 90, "good", 0, 0)
+	var returning: Array = roster.group_for_admission(5150, 44, 2, 3)
+	if int((returning[0] as Dictionary)["id"]) == anchor_id:
+		assert_int(int((returning[0] as Dictionary)["group_id"])).is_equal(44)
+		assert_int(int((roster.golfers[anchor_id] as Dictionary)["group_id"])).is_equal(-1)
