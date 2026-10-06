@@ -19,6 +19,8 @@ var _scroll: MHScrollBox
 var _toggle: MHTapButton
 var craft_surface: int = MHCraftHole.Surface.FAIRWAY
 var craft_mode: StringName = &"surface"
+var _craft_stroke_open: bool = false
+var _craft_last_tile: Vector2i = Vector2i(-1, -1)
 ## Header only (body hidden). Layout is recomputed by the scene on `layout_changed`.
 var collapsed: bool = false
 signal layout_changed()
@@ -550,26 +552,96 @@ func blocks_world_tap(pos: Vector2) -> bool:
 			return true
 	return false
 
-func craft_from_screen(pos: Vector2) -> bool:
+func _craft_tile_from_screen(pos: Vector2) -> Vector2i:
 	if live == null or live.craft_hole == null:
-		return false
+		return Vector2i(-1, -1)
 	var camera: Camera3D = live.controller.camera
 	var origin: Vector3 = camera.project_ray_origin(pos)
 	var direction: Vector3 = camera.project_ray_normal(pos)
 	if absf(direction.y) < 0.00001:
-		return false
+		return Vector2i(-1, -1)
+	# Authoring currently intersects the local zero plane. This is exact for a flat
+	# draft and remains deterministic on relief; a relief-aware picker can replace
+	# this boundary later without changing the craft model.
 	var distance: float = -origin.y / direction.y
 	if distance <= 0.0:
-		return false
+		return Vector2i(-1, -1)
 	var hit: Vector3 = origin + direction * distance
 	var local_x_mm: int = roundi(hit.x * 1000.0) - int(ORIGIN[0]) * 100
 	var local_y_mm: int = roundi(hit.z * 1000.0) - int(ORIGIN[1]) * 100
 	var x_yd: int = MHRMath.rdiv(local_x_mm * 1000, 9144)
 	var y_yd: int = MHRMath.rdiv(local_y_mm * 1000, 9144)
-	var tile: Vector2i = live.craft_hole.tile_at_yd(x_yd, y_yd)
+	return live.craft_hole.tile_at_yd(x_yd, y_yd)
+
+
+func craft_from_screen(pos: Vector2) -> bool:
+	var tile: Vector2i = _craft_tile_from_screen(pos)
 	if tile.x < 0:
 		return false
 	return craft_at_tile(tile.x, tile.y)
+
+
+func _apply_craft_stroke_tile(tile: Vector2i) -> bool:
+	if live == null or live.craft_hole == null or not live.craft_hole.in_bounds(tile.x, tile.y):
+		return false
+	var h: MHCraftHole = live.craft_hole
+	if craft_mode == &"raise" or craft_mode == &"lower":
+		h.raise_disc(tile.x, tile.y, 1, 1 if craft_mode == &"raise" else -1)
+	elif craft_mode == &"surface":
+		h.paint_disc(tile.x, tile.y, 1, craft_surface)
+	else:
+		return false
+	return true
+
+
+func craft_stroke_begin_from_screen(pos: Vector2) -> bool:
+	var tile: Vector2i = _craft_tile_from_screen(pos)
+	if tile.x < 0:
+		return false
+	if craft_mode == &"tee" or craft_mode == &"pin":
+		return craft_at_tile(tile.x, tile.y)
+	if live.craft_hole.is_stroke_open():
+		live.craft_hole.cancel_stroke()
+	if not live.craft_hole.begin_stroke():
+		return false
+	_craft_stroke_open = true
+	_craft_last_tile = tile
+	_apply_craft_stroke_tile(tile)
+	return true
+
+
+func craft_stroke_move_from_screen(pos: Vector2) -> bool:
+	if not _craft_stroke_open or live == null or live.craft_hole == null:
+		return false
+	var tile: Vector2i = _craft_tile_from_screen(pos)
+	if tile.x < 0 or tile == _craft_last_tile:
+		return false
+	var start: Vector2i = _craft_last_tile
+	var steps: int = maxi(absi(tile.x - start.x), absi(tile.y - start.y))
+	for i: int in range(1, steps + 1):
+		var c: int = start.x + roundi(float(tile.x - start.x) * float(i) / float(steps))
+		var r: int = start.y + roundi(float(tile.y - start.y) * float(i) / float(steps))
+		_apply_craft_stroke_tile(Vector2i(c, r))
+	_craft_last_tile = tile
+	return true
+
+
+func craft_stroke_end() -> bool:
+	if not _craft_stroke_open or live == null or live.craft_hole == null:
+		return false
+	_craft_stroke_open = false
+	_craft_last_tile = Vector2i(-1, -1)
+	var changed: bool = live.craft_hole.commit_stroke()
+	if changed:
+		_refresh_canonical_craft()
+	return changed
+
+
+func craft_stroke_cancel() -> void:
+	if live != null and live.craft_hole != null and live.craft_hole.is_stroke_open():
+		live.craft_hole.cancel_stroke()
+	_craft_stroke_open = false
+	_craft_last_tile = Vector2i(-1, -1)
 
 func aim_from_screen(pos: Vector2) -> bool:
 	var camera: Camera3D = live.controller.camera
