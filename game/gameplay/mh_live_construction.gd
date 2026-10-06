@@ -50,6 +50,8 @@ var _visible_golfers: MHSliceGolfers
 var _facility_walkers: Dictionary = {}
 var _hole_transition_walkers: Dictionary = {}
 var _party_carts: Dictionary = {}
+var _player_cart: MHPlayerCart
+var _player_cart_debris: Node3D
 var _golfer_reactions: Array = []
 var _visible_staff_root: Node3D
 var _visible_staff_nodes: Dictionary = {}
@@ -659,6 +661,49 @@ func _advance_hole_transition_walkers(delta_s: float) -> void:
 		else:
 			_park_star_cart(party_id, int((event.get("customer", {}) as Dictionary).get("hole_slot", -1)))
 		_render_customer_hole(event)
+
+
+func respawn_player_cart() -> bool:
+	var spawn: Vector3 = MHCartRoute.clubhouse_spawn(session)
+	if spawn == Vector3.INF:
+		return false
+	if _player_cart != null and is_instance_valid(_player_cart):
+		_player_cart.queue_free()
+	if _player_cart_debris != null and is_instance_valid(_player_cart_debris):
+		_player_cart_debris.queue_free()
+	_player_cart_debris = Node3D.new()
+	_player_cart_debris.name = "PlayerCartDebris"
+	add_child(_player_cart_debris)
+	_player_cart = MHPlayerCart.new()
+	_player_cart.name = "PlayerCart"
+	_player_cart.splat = editor.splat
+	_player_cart.grid = editor.grid
+	_player_cart.debris_root = _player_cart_debris
+	var body: MeshInstance3D = MeshInstance3D.new()
+	var mesh: BoxMesh = BoxMesh.new()
+	mesh.size = Vector3(1.25, 0.75, 2.0)
+	body.mesh = mesh
+	body.position.y = 0.5
+	_player_cart.add_child(body)
+	var collision: CollisionShape3D = CollisionShape3D.new()
+	var shape: BoxShape3D = BoxShape3D.new()
+	shape.size = Vector3(1.25, 0.75, 2.0)
+	collision.shape = shape
+	collision.position.y = 0.5
+	_player_cart.add_child(collision)
+	add_child(_player_cart)
+	_player_cart.global_position = MHClubPedestrian.apply_ground_height(spawn, editor.grid) + Vector3(0.0, 0.6, 0.0)
+	_player_cart.sunk.connect(func() -> void: _status.text = "Cart sunk — respawn it at the clubhouse.")
+	_player_cart.tipped.connect(func() -> void: _status.text = "Cart rolled over.")
+	_player_cart.clubs_lost.connect(func(count: int) -> void: _status.text = "%d clubs fell off the cart." % count)
+	return true
+
+
+func drive_player_cart(throttle: float, steer: float) -> bool:
+	if _player_cart == null or not is_instance_valid(_player_cart):
+		return false
+	_player_cart.drive(throttle, steer)
+	return true
 
 
 func _party_uses_cart(customers: Array, party_id: int) -> bool:
