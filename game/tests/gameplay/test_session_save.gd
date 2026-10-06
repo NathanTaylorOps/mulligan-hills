@@ -541,3 +541,33 @@ func test_management_difficulty_round_trips_and_rejects_invalid_value() -> void:
 	var bad: Dictionary = checkpoint.duplicate(true)
 	(bad["runtime"] as Dictionary)["management_difficulty"] = "nightmare"
 	assert_bool(MHSessionSave.restore(bad, s.ledger).is_ok()).is_false()
+
+
+func test_full_management_state_round_trips_through_checkpoint() -> void:
+	var s: MHGameSession = MHGameSession.create()
+	var maintenance_index: int = s.economy.params.building_index("maintenance")
+	s.economy.set_tier(maintenance_index, 2)
+	assert_bool(s.set_management_difficulty("tycoon")).is_true()
+	var hired: Dictionary = s.hire_staff("groundskeeper")
+	assert_bool(bool(hired["ok"])).is_true()
+	var employee: int = int(hired["serial"])
+	assert_bool(bool(s.assign_staff(employee, [5, 6, 9])["ok"])).is_true()
+	var bought: Dictionary = s.buy_staff_equipment("greens_mower")
+	assert_bool(bool(bought["ok"])).is_true()
+	var equipment_serial: int = int(bought["serial"])
+	assert_bool(s.assign_staff_equipment(equipment_serial, employee)).is_true()
+	# Exercise the machine so cumulative equipment costs and condition are non-default state.
+	s.staff_system.on_day(s.economy.day + 1, s.staff_view(), s.save_secret, s.management_difficulty)
+	var before: Dictionary = s.staff_system.to_save_block()
+	var checkpoint: Dictionary = _checkpoint(s)
+	var loaded: MHSaveResult = MHSessionSave.restore(checkpoint, s.ledger)
+	assert_bool(loaded.is_ok()).is_true()
+	if loaded.is_ok():
+		var restored: MHGameSession = loaded.value
+		assert_str(restored.management_difficulty).is_equal("tycoon")
+		assert_dict(restored.staff_system.to_save_block()).is_equal(before)
+		var report: Dictionary = restored.management_report()
+		assert_int(int(report["head_count"])).is_equal(1)
+		assert_int(int(report["equipment_units"])).is_equal(1)
+		assert_array((report["employees"][0] as Dictionary)["areas"] as Array).contains_exactly([5, 6, 9])
+		assert_int(int((report["equipment"][0] as Dictionary)["assigned_employee"])).is_equal(employee)
