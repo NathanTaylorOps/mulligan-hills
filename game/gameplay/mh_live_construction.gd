@@ -628,6 +628,7 @@ func _process(_delta: float) -> void:
 		_sync_maintenance_visuals()
 		_sync_course_condition_overlay()
 		_show_new_grounds_events()
+	_enforce_cart_availability()
 	_update_cart_drive_camera()
 	_update_player_cart_wheels()
 	_sync_cart_tree_collisions()
@@ -733,6 +734,22 @@ func _advance_hole_transition_walkers(delta_s: float) -> void:
 		_render_customer_hole(event)
 
 
+func _enforce_cart_availability() -> void:
+	if session == null or session.carts_allowed_now():
+		return
+	# Hosted tournaments are a hard no-cart boundary, including carts that were already visible before lock.
+	for party_v: Variant in _party_carts.keys():
+		_remove_party_cart(int(party_v))
+	if _cart_drive_active:
+		exit_cart_drive_mode()
+	if _player_cart != null and is_instance_valid(_player_cart):
+		_player_cart.queue_free()
+	_player_cart = null
+	if _player_cart_debris != null and is_instance_valid(_player_cart_debris):
+		_player_cart_debris.queue_free()
+	_player_cart_debris = null
+
+
 func enter_cart_drive_mode() -> bool:
 	if not session.carts_allowed_now():
 		_status.text = "Carts are not allowed during tournaments."
@@ -767,7 +784,7 @@ func exit_cart_drive_mode() -> void:
 	_cart_tree_collision_root = null
 	_cart_tree_collision_anchor = Vector3.INF
 	if router != null:
-		router.accept_world_input = true
+		router.accept_world_input = _placement_id == "" and shell != null and shell.current_screen_id() == MHScreenIds.EDITOR and shell.modal_id() == "" and (one_hole == null or not one_hole.visible)
 	if _cart_drive_input != null:
 		_cart_drive_input.reset_controls()
 		_cart_drive_input.hide()
