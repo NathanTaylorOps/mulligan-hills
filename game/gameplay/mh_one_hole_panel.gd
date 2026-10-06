@@ -19,6 +19,9 @@ var _ai_elapsed: float = 0.0
 var _ai_playing: bool = false
 var _ai_golfer: MHGolferFigure
 var _ai_ball: MeshInstance3D
+var _customers: MHCustomerRoundQueue = MHCustomerRoundQueue.new()
+var _customer_time: float = 0.0
+var _last_customer_serial: int = -1
 var _scroll: MHScrollBox
 var _toggle: MHTapButton
 ## Header only (body hidden). Layout is recomputed by the scene on `layout_changed`.
@@ -238,10 +241,41 @@ func _shoot() -> void:
 		_info.text += " | Tree hit"
 
 func _process(delta: float) -> void:
+	var dt: float = maxf(delta, 0.0)
+	_customer_time += dt
+	_admit_economy_customers()
+	var customer_event: Dictionary = _customers.advance(_customer_time)
+	if not customer_event.is_empty():
+		var customer: Dictionary = customer_event["customer"]
+		if str(customer_event["kind"]) == "started":
+			_last_customer_serial = int(customer["serial"])
+			_ai_record = customer["round"] as Dictionary
+			_ai_playing = false
+			_draw()
+			_feedback.text = "Customer #%d teed off after paying $%.2f." % [_last_customer_serial + 1, float(int(customer["paid_fee"])) / 100.0]
+		else:
+			_feedback.text = "Customer #%d finished: %d/100 — %s" % [int(customer["serial"]) + 1,
+				int(customer["satisfaction"]), str(customer["reaction"])]
+	if not _customers.active.is_empty():
+		_apply_ai_visual(_customers.visual_state(_customer_time))
+		return
 	if not _ai_playing or _ai_record.is_empty() or _world == null or not _world.visible:
 		return
-	_ai_elapsed += maxf(delta, 0.0)
+	_ai_elapsed += dt
 	_apply_ai_visual(MHAIRoundTimeline.state(_ai_record.get("events", []) as Array, _ai_elapsed))
+
+
+func _admit_economy_customers() -> void:
+	if live == null or live.session == null:
+		return
+	var layouts: Array = live.session.hole_definitions()
+	if layouts.is_empty():
+		return
+	var admitted: Array = live.session.take_customer_admissions(4)
+	if admitted.is_empty():
+		return
+	_customers.admit(admitted, layouts[0] as Dictionary,
+		{"save_secret": live.session.save_secret, "rating_epoch": live.session.rating_epoch})
 
 
 func _watch_ai() -> void:
@@ -323,6 +357,7 @@ func _describe() -> void:
 	var scores: Array = live.session.hole_results()
 	if not scores.is_empty():
 		_info.text += " | Official hole score %d/100" % int(scores[0]["score"])
+	_info.text += " | Queue %d" % _customers.waiting.size()
 	if not _ai_record.is_empty():
 		_info.text += " | AI: %d strokes, first shot %d yd" % [int(_ai_record["strokes"]), MHRMath.isqrt(int(_ai_record["first_x"]) * int(_ai_record["first_x"]) + int(_ai_record["first_y"]) * int(_ai_record["first_y"])) / 100]
 
