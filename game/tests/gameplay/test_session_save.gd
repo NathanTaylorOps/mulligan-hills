@@ -640,3 +640,25 @@ func test_facility_travel_is_queued_only_after_playback_finish() -> void:
 	scene._advance_customer_playback(0.1)
 	assert_int(scene.session.customer_playback.pending_facility_visits.size()).is_equal(1)
 	scene._active = false
+
+
+func test_management_hire_availability_includes_payroll_reserve() -> void:
+	var s: MHGameSession = MHGameSession.create()
+	var clubhouse_index: int = s.economy.params.building_index("clubhouse")
+	s.economy.set_tier(clubhouse_index, 1)
+	var probe: Dictionary = s.staff_system.hire("marshal", s.economy.day, s.staff_view(), 1000000000)
+	assert_bool(bool(probe.get("ok", false))).is_true()
+	var upfront: int = int(probe["cost"])
+	# Restore the probe mutation so availability is checked against a fresh roster.
+	s.staff_system = MHStaff.create(s.staff_system.defs)
+	s.economy.cash = upfront
+	var report: Dictionary = s.management_report()
+	var marshal_option: Dictionary = {}
+	for option_v: Variant in report.get("hire_options", []):
+		var option: Dictionary = option_v
+		if str(option.get("role", "")) == "marshal":
+			marshal_option = option
+			break
+	assert_bool(marshal_option.is_empty()).is_false()
+	assert_bool(bool(marshal_option.get("available", true))).is_false()
+	assert_bool(bool(s.hire_staff("marshal").get("ok", true))).is_false()
