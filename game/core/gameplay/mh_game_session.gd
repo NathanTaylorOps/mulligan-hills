@@ -283,6 +283,13 @@ func management_report() -> Dictionary:
 	var report: Dictionary = staff_system.report(staff_view())
 	report["difficulty"] = management_difficulty
 	report["automation"] = management_difficulty == "relaxed"
+	report["cash_cents"] = economy.cash
+	for option_v: Variant in report.get("hire_options", []):
+		var option: Dictionary = option_v
+		option["available"] = bool(option.get("available", false)) and economy.can_afford(int(option.get("hire_cost_cents", 0)))
+	for item_v: Variant in report.get("equipment_catalog", []):
+		var item: Dictionary = item_v
+		item["available"] = economy.can_afford(int(item.get("price_cents", 0))) and int(report.get("equipment_units", 0)) < int(report.get("equipment_capacity", 0))
 	return report
 
 
