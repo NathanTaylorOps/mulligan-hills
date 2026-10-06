@@ -73,3 +73,38 @@ func test_broken_equipment_requires_technician_capacity() -> void:
 	fleet.on_day(3, 1000)
 	assert_bool(int(unit["condition"]) > 100).is_true()
 	assert_bool(fleet.repair_cost_for_day() > 0).is_true()
+
+
+func test_unused_equipment_does_not_wear_or_cost_money() -> void:
+	var fleet: MHStaffEquipment = MHStaffEquipment.new()
+	var bought: Dictionary = fleet.add_unit("greens_mower")
+	var serial: int = int(bought["serial"])
+	var before: int = int((fleet.units[0] as Dictionary)["condition"])
+	fleet.on_day(1, 0, [])
+	assert_int(int((fleet.units[0] as Dictionary)["condition"])).is_equal(before)
+	assert_int(fleet.operating_cost_for_day()).is_equal(0)
+	fleet.assign_unit(serial, 9, "grounds")
+	fleet.on_day(1, 0, [9])
+	assert_bool(int((fleet.units[0] as Dictionary)["condition"]) < before).is_true()
+	assert_bool(fleet.operating_cost_for_day() > 0).is_true()
+
+
+func test_condition_is_simple_player_facing_state() -> void:
+	var fleet: MHStaffEquipment = MHStaffEquipment.new()
+	var bought: Dictionary = fleet.add_unit("greens_mower")
+	var serial: int = int(bought["serial"])
+	assert_str(fleet.condition_state(serial)).is_equal("good")
+	(fleet.units[0] as Dictionary)["condition"] = 500
+	assert_str(fleet.condition_state(serial)).is_equal("worn")
+	(fleet.units[0] as Dictionary)["broken"] = true
+	assert_str(fleet.condition_state(serial)).is_equal("broken")
+
+
+func test_selling_equipment_is_simple_and_removes_it() -> void:
+	var fleet: MHStaffEquipment = MHStaffEquipment.new()
+	var bought: Dictionary = fleet.add_unit("utility_vehicle")
+	var serial: int = int(bought["serial"])
+	var value: int = fleet.sell_unit(serial)
+	assert_bool(value > 0).is_true()
+	assert_int(fleet.units.size()).is_equal(0)
+	assert_int(fleet.sell_unit(serial)).is_equal(0)
