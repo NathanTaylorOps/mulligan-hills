@@ -390,3 +390,40 @@ func test_facility_visit_is_keyed_by_instance_and_starts_on_arrival() -> void:
 	var begun: Dictionary = q.begin_facility_visit(31, 12.0)
 	assert_str(str(begun["facility_instance_id"])).is_equal("building_12")
 	assert_float(float(begun["start_s"])).is_equal(12.0)
+
+
+func test_roster_restore_rejects_invalid_membership_and_home_state() -> void:
+	var roster: MHGolferRoster = MHGolferRoster.new()
+	roster.group_for_admission(777, 1, 1, 2)
+	var saved: Dictionary = roster.to_dict()
+	var bad_status: Dictionary = saved.duplicate(true)
+	((bad_status["golfers"] as Array)[0] as Dictionary)["membership_status"] = "invented"
+	assert_bool(MHGolferRoster.new().from_dict(bad_status)).is_false()
+	var inconsistent_member: Dictionary = saved.duplicate(true)
+	var member: Dictionary = (inconsistent_member["golfers"] as Array)[0]
+	member["membership_status"] = "member"
+	member["member"] = false
+	assert_bool(MHGolferRoster.new().from_dict(inconsistent_member)).is_false()
+	var bad_home: Dictionary = saved.duplicate(true)
+	var home: Dictionary = (bad_home["golfers"] as Array)[0]
+	home["home_status"] = "none"
+	home["home_slot"] = 4
+	assert_bool(MHGolferRoster.new().from_dict(bad_home)).is_false()
+
+
+func test_roster_restore_rejects_asymmetric_social_graph_and_duplicate_home_slots() -> void:
+	var roster: MHGolferRoster = MHGolferRoster.new()
+	roster.group_for_admission(888, 1, 1, 2)
+	var saved: Dictionary = roster.to_dict()
+	var asymmetric: Dictionary = saved.duplicate(true)
+	var rows: Array = asymmetric["golfers"] as Array
+	(rows[1] as Dictionary)["associates"] = []
+	assert_bool(MHGolferRoster.new().from_dict(asymmetric)).is_false()
+	var duplicate_home: Dictionary = saved.duplicate(true)
+	rows = duplicate_home["golfers"] as Array
+	for i: int in range(2):
+		var g: Dictionary = rows[i]
+		g["home_interest"] = 100
+		g["home_status"] = "resident"
+		g["home_slot"] = 0
+	assert_bool(MHGolferRoster.new().from_dict(duplicate_home)).is_false()
