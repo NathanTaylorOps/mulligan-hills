@@ -252,7 +252,7 @@ func report(view: Dictionary) -> Dictionary:
 		var building: String = defs.role_building(role_id)
 		var tier: int = MHStaffView.tier_of(view, building)
 		var cap: int = defs.cap(role_id, tier)
-		var current: int = roster.role_count(role_id)
+		var current: int = roster.count_role(role_id)
 		hires.append({"role": role_id, "name_key": str(defs.role(role_id).get("name_key", "")),
 			"building": building, "current": current, "cap": cap, "hire_cost_cents": defs.hire_cost(role_id),
 			"daily_wage_cents": defs.wage(role_id, 0), "available": check_hire(role_id, view, 1000000000).is_empty()})
