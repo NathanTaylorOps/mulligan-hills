@@ -254,8 +254,10 @@ func _process(delta: float) -> void:
 			_draw()
 			_feedback.text = "Customer #%d teed off after paying $%.2f." % [_last_customer_serial + 1, float(int(customer["paid_fee"])) / 100.0]
 		else:
-			_feedback.text = "Customer #%d finished: %d/100 — %s" % [int(customer["serial"]) + 1,
-				int(customer["satisfaction"]), str(customer["reaction"])]
+			var rep_delta: int = live.session.record_customer_feedback(int(customer["satisfaction"]))
+			_feedback.text = "Customer #%d (%s) finished: %d/100 — %s %s | reputation %+d" % [
+				int(customer["serial"]) + 1, MHGolferPreference.name_of(int(customer["preference"])),
+				int(customer["satisfaction"]), str(customer["reaction"]), str(customer["preference_reaction"]), rep_delta]
 	if not _customers.active.is_empty():
 		_apply_ai_visual(_customers.visual_state(_customer_time))
 		return
@@ -274,7 +276,9 @@ func _admit_economy_customers() -> void:
 	var admitted: Array = live.session.take_customer_admissions(4)
 	if admitted.is_empty():
 		return
-	_customers.admit(admitted, layouts[0] as Dictionary,
+	var ratings: Array = live.session.hole_results()
+	var rating: Dictionary = {} if ratings.is_empty() else ratings[0] as Dictionary
+	_customers.admit(admitted, layouts[0] as Dictionary, rating,
 		{"save_secret": live.session.save_secret, "rating_epoch": live.session.rating_epoch})
 
 
@@ -357,7 +361,7 @@ func _describe() -> void:
 	var scores: Array = live.session.hole_results()
 	if not scores.is_empty():
 		_info.text += " | Official hole score %d/100" % int(scores[0]["score"])
-	_info.text += " | Queue %d" % _customers.waiting.size()
+	_info.text += " | Rep %d.%d%% | Feedback %d/100 | Queue %d" % [live.session.economy.reputation / 10, live.session.economy.reputation % 10, live.session.customer_feedback_average(), _customers.waiting.size()]
 	if not _ai_record.is_empty():
 		_info.text += " | AI: %d strokes, first shot %d yd" % [int(_ai_record["strokes"]), MHRMath.isqrt(int(_ai_record["first_x"]) * int(_ai_record["first_x"]) + int(_ai_record["first_y"]) * int(_ai_record["first_y"])) / 100]
 
