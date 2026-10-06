@@ -561,7 +561,11 @@ func _advance_customer_playback(delta_s: float) -> void:
 		return
 	var now_s: float = float(session.clock.total_minutes()) * 60.0
 	var event: Dictionary = session.customer_playback.advance(now_s)
-	if str(event.get("kind", "")) != "started":
+	var kind: String = str(event.get("kind", ""))
+	if kind == "finished":
+		_queue_finished_customer_facility(event.get("customer", {}) as Dictionary, now_s)
+		return
+	if kind != "started":
 		return
 	var customer: Dictionary = event.get("customer", {}) as Dictionary
 	var slot: int = int(customer.get("hole_slot", -1))
@@ -582,6 +586,18 @@ func _advance_customer_playback(delta_s: float) -> void:
 	var identity: Dictionary = customer.get("identity", {}) as Dictionary
 	var size: int = clampi(int(identity.get("party_size", customer.get("group_size", 1))), 1, 4)
 	_visible_golfers.spawn_group(int(customer.get("serial", 0)), size, tee, green, customer.get("round", {}) as Dictionary)
+
+func _queue_finished_customer_facility(customer: Dictionary, now_s: float) -> void:
+	if int(customer.get("satisfaction", 0)) < 55:
+		return
+	var identity: Dictionary = customer.get("identity", {}) as Dictionary
+	var favorite_facility: String = str(identity.get("favorite_facility", ""))
+	var facility_ids: Array = MHClubPedestrian.instance_ids_for_type(session, favorite_facility)
+	if facility_ids.is_empty():
+		return
+	var facility_index: int = posmod(int(customer.get("serial", 0)), facility_ids.size())
+	session.customer_playback.queue_facility_visit(customer, str(facility_ids[facility_index]), now_s)
+
 
 func _advance_facility_walkers(delta_s: float) -> void:
 	var now_s: float = float(session.clock.total_minutes()) * 60.0
