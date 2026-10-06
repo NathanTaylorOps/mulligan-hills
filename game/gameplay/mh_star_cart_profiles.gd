@@ -12,6 +12,7 @@ const DEFAULT_PROFILE: Dictionary = {
 }
 
 const PROFILES: Dictionary = {
+	# Add parody-specific skins here. Renderer behavior stays generic.
 	"lion_black_suv": {
 		"body": "suv",
 		"scale_x10": 13,
@@ -29,6 +30,14 @@ static func profile_for(skin: String) -> Dictionary:
 			out[key] = (PROFILES[skin] as Dictionary)[key]
 	out["skin"] = skin
 	return out
+
+
+static func validate_profile(profile: Dictionary) -> bool:
+	if not ["golf_cart", "suv", "roadster", "utility", "limo"].has(str(profile.get("body", ""))):
+		return false
+	if int(profile.get("scale_x10", 0)) < 5 or int(profile.get("scale_x10", 0)) > 30:
+		return false
+	return ["park_nearby", "park_nearby_upside_down"].has(str(profile.get("behavior", "")))
 
 
 static func body_size(profile: Dictionary) -> Vector3:
