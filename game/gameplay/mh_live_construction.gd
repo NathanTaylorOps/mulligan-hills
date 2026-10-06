@@ -693,10 +693,10 @@ func _sync_visible_staff() -> void:
 		var areas: Array = assignment.get("areas", []) as Array
 		if serial <= 0 or areas.is_empty():
 			continue
-		var slot: int = int(areas[0])
-		var start: Vector3 = _hole_world_point(slot, "tee")
-		var finish: Vector3 = _hole_world_point(slot, "green")
-		if start == Vector3.INF or finish == Vector3.INF:
+		var area_index: int = posmod((session.clock.total_minutes() / 60) + serial, areas.size())
+		var slot: int = int(areas[area_index])
+		var route: Array = _staff_work_route(slot, serial)
+		if route.size() < 2:
 			continue
 		used[serial] = true
 		var node: Node3D = _visible_staff_nodes.get(serial, null) as Node3D
@@ -709,13 +709,42 @@ func _sync_visible_staff() -> void:
 			node.set_meta("visual_key", visual_key)
 			_visible_staff_root.add_child(node)
 			_visible_staff_nodes[serial] = node
-		var phase: float = fmod(float(session.clock.total_minutes() + serial * 7), 60.0) / 60.0
-		var p: Vector3 = start.lerp(finish, 0.15 + 0.7 * absf(sin(phase * PI)))
-		node.position = MHClubPedestrian.apply_ground_height(p, editor.grid)
+		var progress: float = fmod(float(session.clock.total_minutes() * 3 + serial * 11), 100.0) / 100.0
+		var state: Dictionary = _route_state(route, progress)
+		node.position = MHClubPedestrian.apply_ground_height(state["position"] as Vector3, editor.grid)
+		var direction: Vector3 = state["direction"] as Vector3
+		if direction.length_squared() > 0.001:
+			node.rotation.y = atan2(direction.x, direction.z)
 	for serial_v: Variant in _visible_staff_nodes.keys():
 		if not used.has(serial_v):
 			(_visible_staff_nodes[serial_v] as Node3D).queue_free()
 			_visible_staff_nodes.erase(serial_v)
+
+
+func _staff_work_route(slot: int, serial: int) -> Array:
+	var tee: Vector3 = _hole_world_point(slot, "tee")
+	var green: Vector3 = _hole_world_point(slot, "green")
+	if tee == Vector3.INF or green == Vector3.INF:
+		return []
+	var forward: Vector3 = green - tee
+	forward.y = 0.0
+	if forward.length_squared() < 0.01:
+		return [tee, green]
+	var side: Vector3 = Vector3(-forward.z, 0.0, forward.x).normalized()
+	var offset: float = 3.0 + float(posmod(serial, 3)) * 1.5
+	return [tee, tee.lerp(green, 0.28) + side * offset, tee.lerp(green, 0.55) - side * offset,
+		tee.lerp(green, 0.82) + side * offset * 0.6, green]
+
+
+static func _route_state(route: Array, progress: float) -> Dictionary:
+	if route.size() < 2:
+		return {"position": Vector3.ZERO, "direction": Vector3.ZERO}
+	var p: float = clampf(progress, 0.0, 0.999999) * float(route.size() - 1)
+	var segment: int = mini(route.size() - 2, int(floor(p)))
+	var t: float = p - float(segment)
+	var a: Vector3 = route[segment] as Vector3
+	var b: Vector3 = route[segment + 1] as Vector3
+	return {"position": a.lerp(b, t), "direction": b - a}
 
 
 func _make_staff_visual(assignment: Dictionary) -> Node3D:
