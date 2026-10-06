@@ -856,6 +856,8 @@ func respawn_player_cart() -> bool:
 	_player_cart.tipped.connect(func() -> void: _status.text = "Cart rolled over.")
 	_player_cart.clubs_lost.connect(func(count: int) -> void: _status.text = "%d clubs fell off the cart." % count)
 	_player_cart.green_violation.connect(_on_player_cart_green_violation)
+	_player_cart.hard_impact.connect(func(speed_mps: float) -> void:
+		_status.text = "Hard cart impact at %d km/h." % roundi(speed_mps * 3.6))
 	return true
 
 
