@@ -263,12 +263,11 @@ func _process(delta: float) -> void:
 				float(int(customer["paid_fee"])) / 100.0, " — returning golfer" if int(identity.get("visits", 0)) > 0 else "",
 				int(customer.get("group_size", 1))]
 		else:
-			var rep_before: int = live.session.economy.reputation
-			var updated: Dictionary = live.session.record_customer_visit(customer)
+			var updated: Dictionary = customer.get("identity", {}) as Dictionary
 			var facility: String = live.session.choose_post_round_facility(updated)
 			var facility_visit: Dictionary = _customers.queue_facility_visit(customer, facility, _customer_time)
-			var rep_delta: int = live.session.economy.reputation - rep_before
-			var identity: Dictionary = customer.get("identity", {}) as Dictionary
+			var rep_delta: int = 0 # Reputation was already resolved by the authoritative hourly simulation.
+			var identity: Dictionary = updated
 			var golfer_name: String = str(identity.get("name", "Customer #%d" % (int(customer["serial"]) + 1)))
 			_feedback.text = "%s (%s) finished: %d/100 — %s %s | loyalty %d | visit %d | reputation %+d" % [
 				golfer_name, MHGolferPreference.name_of(int(customer["preference"])), int(customer["satisfaction"]),
