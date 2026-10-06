@@ -54,6 +54,8 @@ var _player_cart: MHPlayerCart
 var _player_cart_debris: Node3D
 var _cart_drive_input: MHCartDriveInput
 var _cart_drive_active: bool = false
+var _hud_layer: CanvasLayer
+var _cart_camera: Camera3D
 var _golfer_reactions: Array = []
 var _visible_staff_root: Node3D
 var _visible_staff_nodes: Dictionary = {}
@@ -133,6 +135,7 @@ func _ready() -> void:
 	controller.rig.target = Vector3(world_center_x, 0.0, world_center_z)
 	controller.desktop_pan(Vector2.ZERO)
 	var layer: CanvasLayer = CanvasLayer.new()
+	_hud_layer = layer
 	add_child(layer)
 	var compass: MHCompassButton = MHCompassButton.new()
 	var debug: MHDebugOverlay = MHDebugOverlay.new()
@@ -677,11 +680,18 @@ func enter_player_cart() -> bool:
 	if _cart_drive_input == null or not is_instance_valid(_cart_drive_input):
 		_cart_drive_input = MHCartDriveInput.new()
 		_cart_drive_input.name = "CartDriveInput"
-		get_viewport().get_canvas_layer().add_child(_cart_drive_input) if false else add_child(_cart_drive_input)
+		_hud_layer.add_child(_cart_drive_input)
 		_cart_drive_input.drive_changed.connect(func(throttle: float, steer: float) -> void: drive_player_cart(throttle, steer))
 		_cart_drive_input.exit_requested.connect(exit_player_cart)
 		_cart_drive_input.respawn_requested.connect(func() -> void: respawn_player_cart())
 	_cart_drive_input.show()
+	if _cart_camera == null or not is_instance_valid(_cart_camera):
+		_cart_camera = Camera3D.new()
+		_cart_camera.name = "CartChaseCamera"
+		_player_cart.add_child(_cart_camera)
+		_cart_camera.position = Vector3(0.0, 3.2, 6.5)
+		_cart_camera.rotation_degrees.x = -16.0
+	_cart_camera.current = true
 	router.world_input_allowed = func() -> bool: return not _cart_drive_active and _placement_id == "" and shell.current_screen_id() == MHScreenIds.EDITOR and shell.modal_id() == "" and (one_hole == null or not one_hole.visible)
 	_status.text = "Free drive — keep off the greens... or deal with the consequences."
 	return true
@@ -691,6 +701,9 @@ func exit_player_cart() -> void:
 	_cart_drive_active = false
 	if _cart_drive_input != null and is_instance_valid(_cart_drive_input):
 		_cart_drive_input.hide()
+	if _cart_camera != null and is_instance_valid(_cart_camera):
+		_cart_camera.current = false
+	controller.rig.camera.current = true
 	router.world_input_allowed = func() -> bool: return _placement_id == "" and shell.current_screen_id() == MHScreenIds.EDITOR and shell.modal_id() == "" and (one_hole == null or not one_hole.visible)
 	_status.text = "Exited cart."
 
@@ -701,6 +714,7 @@ func respawn_player_cart() -> bool:
 		return false
 	if _player_cart != null and is_instance_valid(_player_cart):
 		_player_cart.queue_free()
+	_cart_camera = null
 	if _player_cart_debris != null and is_instance_valid(_player_cart_debris):
 		_player_cart_debris.queue_free()
 	_player_cart_debris = Node3D.new()
