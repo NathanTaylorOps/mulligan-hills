@@ -87,3 +87,41 @@ func test_roster_creates_deterministic_returning_golfers() -> void:
 	assert_int(int(returning["id"])).is_equal(int(first["id"]))
 	assert_int(int(returning["visits"])).is_equal(1)
 	assert_bool(int(returning["loyalty"]) > 50).is_true()
+
+
+func test_golfer_has_persistent_look_social_taste_and_structured_memories() -> void:
+	var roster: MHGolferRoster = MHGolferRoster.new()
+	var g: Dictionary = roster.identity_for_admission(2468, 0, 1)
+	assert_bool(int(g["look_seed"]) != 0).is_true()
+	assert_bool(str(g["favorite_facility"]) in MHGolferRoster.FACILITIES).is_true()
+	assert_bool(str(g["relationship_role"]) in ["friend", "partner", "family"]).is_true()
+	var updated: Dictionary = roster.record_visit(int(g["id"]), 1, 88, "Loved the elevation", 2, 16)
+	var memories: Array = updated["memories"]
+	assert_int(memories.size()).is_equal(1)
+	assert_int(int((memories[0] as Dictionary)["hole_slot"])).is_equal(2)
+	assert_int(int(updated["favorite_hole_slot"])).is_equal(2)
+	var restored: MHGolferRoster = MHGolferRoster.new()
+	assert_bool(restored.from_dict(roster.to_dict())).is_true()
+	assert_int(int((restored.golfers[int(g["id"])] as Dictionary)["look_seed"])).is_equal(int(g["look_seed"]))
+
+
+func test_three_strong_visits_can_convert_loyal_golfer_to_member() -> void:
+	var roster: MHGolferRoster = MHGolferRoster.new()
+	var g: Dictionary = roster.identity_for_admission(1357, 0, 1)
+	var id: int = int(g["id"])
+	var updated: Dictionary = {}
+	for day: int in range(1, 4):
+		updated = roster.record_visit(id, day, 90, "Great round", 0, 0)
+	assert_int(int(updated["visits"])).is_equal(3)
+	assert_bool(bool(updated["member"])).is_true()
+	assert_str(MHGolferBubble.after_round(updated, {"satisfaction": 90})).contains("joining")
+
+
+func test_memory_log_is_bounded() -> void:
+	var roster: MHGolferRoster = MHGolferRoster.new()
+	var g: Dictionary = roster.identity_for_admission(9, 0, 1)
+	for day: int in range(20):
+		roster.record_visit(int(g["id"]), day, 60 + day % 20, "Round %d" % day, day % 3, 0)
+	var saved: Dictionary = roster.golfers[int(g["id"])]
+	assert_int((saved["memories"] as Array).size()).is_equal(MHGolferRoster.MEMORY_LIMIT)
+	assert_int(int(((saved["memories"] as Array)[0] as Dictionary)["day"])).is_equal(20 - MHGolferRoster.MEMORY_LIMIT)
