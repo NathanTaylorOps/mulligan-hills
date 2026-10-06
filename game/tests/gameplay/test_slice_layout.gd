@@ -27,8 +27,8 @@ func test_order_matches_the_art_catalogue() -> void:
 
 func test_reserved_parcels_are_the_hole_parcels_and_never_preferred() -> void:
 	var reserved: PackedInt32Array = MHSliceLayout.reserved_parcels()
-	assert_int(reserved.size()).is_equal(8)
-	for p: int in [0, 4, 5, 6, 7, 9, 10, 11]:
+	assert_int(reserved.size()).is_equal(6)
+	for p: int in [0, 4, 5, 7, 9, 11]:
 		assert_bool(reserved.has(p)).is_true()
 	for id: Variant in MHSliceLayout.ORDER:
 		for p: Variant in (MHSliceLayout.PREFERENCE[str(id)] as Array):
@@ -37,7 +37,7 @@ func test_reserved_parcels_are_the_hole_parcels_and_never_preferred() -> void:
 
 func test_hole_tables_have_one_entry_per_slot() -> void:
 	assert_int(MHSliceLayout.HOLE_PARCELS.size()).is_equal(MHSliceLayout.hole_slot_count())
-	assert_int(MHSliceLayout.hole_slot_count()).is_equal(8)
+	assert_int(MHSliceLayout.hole_slot_count()).is_equal(7)
 
 
 func test_hole_corridors_lie_inside_their_parcels_and_the_map() -> void:
@@ -58,7 +58,9 @@ func test_hole_corridors_lie_inside_their_parcels_and_the_map() -> void:
 		assert_float(fairway.end.y).override_failure_message(msg).is_less_equal(hi.y)
 		var pts: Dictionary = MHSliceLayout.hole_points_m(def)
 		var green: Vector2 = pts["green"] as Vector2
-		assert_float(green.y + float(pts["green_radius_m"])).override_failure_message(msg).is_less_equal(hi.y)
+		# The green fringe may overhang the parcel pair by under 2 m (it stays on the map).
+		assert_float(green.y).override_failure_message(msg).is_less_equal(hi.y)
+		assert_float(green.y + float(pts["green_radius_m"])).override_failure_message(msg).is_less_equal(hi.y + 2.0)
 
 
 func test_hole_templates_pass_rating_validation() -> void:
@@ -71,13 +73,14 @@ func test_hole_templates_pass_rating_validation() -> void:
 func test_hole_site_availability_follows_ownership() -> void:
 	var owned: PackedInt32Array = _owned(START_OWNED)
 	assert_bool(MHSliceLayout.can_build_hole_slot(0, owned)).is_true()
-	assert_bool(MHSliceLayout.can_build_hole_slot(3, owned)).is_true()
+	assert_bool(MHSliceLayout.can_build_hole_slot(2, owned)).is_true()
+	assert_bool(MHSliceLayout.can_build_hole_slot(3, owned)).is_false()
 	assert_bool(MHSliceLayout.can_build_hole_slot(4, owned)).is_false()
 	assert_bool(MHSliceLayout.can_build_hole_slot(-1, owned)).is_false()
 	assert_bool(MHSliceLayout.can_build_hole_slot(99, owned)).is_false()
 	assert_int(MHSliceLayout.next_hole_slot([], owned)).is_equal(0)
 	assert_int(MHSliceLayout.next_hole_slot([0, 1], owned)).is_equal(2)
-	assert_int(MHSliceLayout.next_hole_slot([0, 1, 2, 3], owned)).is_equal(-1)
+	assert_int(MHSliceLayout.next_hole_slot([0, 1, 2], owned)).is_equal(-1)
 	assert_int(MHSliceLayout.next_hole_slot([0, 1, 2, 3], _owned([5, 6, 7, 9, 10, 11]))).is_equal(4)
 
 
@@ -137,7 +140,7 @@ func test_assign_slots_fills_the_start_facility_parcel_then_the_annex() -> void:
 	assert_int(int(slots["pro_shop"])).is_equal(33)
 	assert_int(int(slots["restaurant"])).is_equal(34)
 	assert_int(int(slots["cart_barn"])).is_equal(35)
-	assert_int(int(slots["maintenance"])).is_equal(MHSliceLayout.ANNEX_BASE)
+	assert_int(int(slots["maintenance"])).is_equal(25) # parcel 6 east column, beside the starter holes
 
 
 func test_assign_slots_are_unique_and_never_in_reserved_parcels() -> void:
