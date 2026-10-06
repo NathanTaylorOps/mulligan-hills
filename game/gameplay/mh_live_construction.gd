@@ -544,7 +544,7 @@ func _process(_delta: float) -> void:
 	var elapsed: int = maxi(0, now - _last_usec)
 	_last_usec = now
 	session.advance(elapsed, int(Time.get_unix_time_from_system()))
-	_spawn_resolved_customer_groups()
+	_advance_customer_playback(float(elapsed) / 1000000.0)
 	_visible_golfers.advance(float(elapsed) / 1000000.0, controller.rig.global_position)
 	chunks.flush(editor.dirty)
 	_relayout()
@@ -554,28 +554,32 @@ func _process(_delta: float) -> void:
 	if _pending_save and not editor.is_stroke_open():
 		save_now()
 
-func _spawn_resolved_customer_groups() -> void:
-	if _visible_golfers == null:
+func _advance_customer_playback(delta_s: float) -> void:
+	if _visible_golfers == null or session.customer_playback == null or session.clock.is_paused():
 		return
-	for value: Variant in session.take_customer_outcomes(8):
-		var customer: Dictionary = value
-		var slot: int = int(customer.get("hole_slot", -1))
-		var hole: Dictionary = {}
-		for hole_v: Variant in session.hole_definitions():
-			var candidate: Dictionary = hole_v
-			if int(candidate.get("slot_id", -1)) == slot:
-				hole = candidate
-				break
-		if hole.is_empty():
-			continue
-		var tee_v: Array = hole.get("tee", [])
-		var green_v: Array = hole.get("green", [])
-		if tee_v.size() < 2 or green_v.size() < 2:
-			continue
-		var tee: Vector2 = Vector2(float(tee_v[0]), float(tee_v[1]))
-		var green: Vector2 = Vector2(float(green_v[0]), float(green_v[1]))
-		_visible_golfers.spawn_group(int(customer.get("serial", 0)), clampi(int(customer.get("group_size", 1)), 1, 4), tee, green)
-
+	var now_s: float = float(session.clock.total_minutes()) * 60.0
+	var event: Dictionary = session.customer_playback.advance(now_s)
+	if str(event.get("kind", "")) != "started":
+		return
+	var customer: Dictionary = event.get("customer", {}) as Dictionary
+	var slot: int = int(customer.get("hole_slot", -1))
+	var hole: Dictionary = {}
+	for hole_v: Variant in session.hole_definitions():
+		var candidate: Dictionary = hole_v
+		if int(candidate.get("slot_id", -1)) == slot:
+			hole = candidate
+			break
+	if hole.is_empty():
+		return
+	var tee_v: Array = hole.get("tee", [])
+	var green_v: Array = hole.get("green", [])
+	if tee_v.size() < 2 or green_v.size() < 2:
+		return
+	var tee: Vector2 = Vector2(float(tee_v[0]), float(tee_v[1]))
+	var green: Vector2 = Vector2(float(green_v[0]), float(green_v[1]))
+	var identity: Dictionary = customer.get("identity", {}) as Dictionary
+	var size: int = clampi(int(identity.get("party_size", customer.get("group_size", 1))), 1, 4)
+	_visible_golfers.spawn_group(int(customer.get("serial", 0)), size, tee, green)
 
 func _notification(what: int) -> void:
 	if not _active:
