@@ -16,7 +16,7 @@ static func service_avg(defs: MHStaffDefs, roster: MHStaffRoster, view: Dictiona
 	var n: int = 0
 	for rid: Variant in defs.role_ids():
 		var role_id: String = str(rid)
-		if defs.role_kind(role_id) != MHStaffDefs.KIND_STATION:
+		if defs.role_kind(role_id) != MHStaffDefs.KIND_STATION or defs.role_building(role_id) == "maintenance":
 			continue
 		var t: int = MHStaffView.tier_of(view, defs.role_building(role_id))
 		if t <= 0:
@@ -32,7 +32,7 @@ static func service_avg(defs: MHStaffDefs, roster: MHStaffRoster, view: Dictiona
 static func has_station(defs: MHStaffDefs, view: Dictionary) -> bool:
 	for rid: Variant in defs.role_ids():
 		var role_id: String = str(rid)
-		if defs.role_kind(role_id) == MHStaffDefs.KIND_STATION and MHStaffView.tier_of(view, defs.role_building(role_id)) > 0:
+		if defs.role_kind(role_id) == MHStaffDefs.KIND_STATION and defs.role_building(role_id) != "maintenance" and MHStaffView.tier_of(view, defs.role_building(role_id)) > 0:
 			return true
 	return false
 
