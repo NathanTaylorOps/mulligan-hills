@@ -16,6 +16,8 @@ var completed: Array = []
 var facility_visits: Array = []
 var pending_facility_visits: Array = []
 var next_tee_s: float = 0.0
+var wait_started_s: Dictionary = {} # party_id -> time it first became blocked at a next tee.
+var completed_wait_s: Dictionary = {} # customer serial -> accumulated visible tee wait for this playback.
 
 
 func admit(rows: Array, hole_def: Dictionary, rating: Dictionary, ctx: Dictionary) -> void:
@@ -203,10 +205,17 @@ func begin_next_hole(now_s: float, party_id: int = -1) -> Dictionary:
 	if next_hole < 0 or next_party.is_empty():
 		return {}
 	var slot: int = int((next_party[0] as Dictionary).get("hole_slot", -1))
-	if occupied_holes.has(slot):
-		return {} # Tee congestion: wait until the party ahead clears this hole.
-	if _tee_reserved_for_other(slot, party_id):
-		return {} # Another progressing party reached this tee first.
+	if occupied_holes.has(slot) or _tee_reserved_for_other(slot, party_id):
+		if not wait_started_s.has(party_id):
+			wait_started_s[party_id] = now_s
+		return {} # Tee congestion: remain visibly queued until this party owns a free tee.
+	if wait_started_s.has(party_id):
+		var waited: float = maxf(0.0, now_s - float(wait_started_s[party_id]))
+		for customer_v: Variant in next_party:
+			var serial: int = int((customer_v as Dictionary).get("serial", -1))
+			if serial >= 0:
+				completed_wait_s[serial] = float(completed_wait_s.get(serial, 0.0)) + waited
+		wait_started_s.erase(party_id)
 	state["hole_index"] = next_hole
 	state["started_s"] = now_s
 	state["customers"] = next_party
@@ -238,6 +247,20 @@ func _sync_active_compat() -> void:
 	active = (active_parties[ids[0]] as Dictionary).duplicate(true)
 
 
+func wait_seconds_for_customer(serial: int) -> float:
+	return maxf(0.0, float(completed_wait_s.get(serial, 0.0)))
+
+
+func pace_penalty_for_customer(serial: int, marshal_pace_points: int) -> int:
+	# Congestion only hurts after a meaningful wait. Marshal/caddie investment absorbs up to half of it.
+	var waited: float = wait_seconds_for_customer(serial)
+	if waited <= 15.0:
+		return 0
+	var raw: int = clampi(int(floor((waited - 15.0) / 15.0)) * 2 + 2, 0, 20)
+	var relief_pm: int = clampi(marshal_pace_points, 0, 100) * 5
+	return MHRMath.rdiv(raw * (1000 - relief_pm), 1000)
+
+
 func traffic_state() -> Dictionary:
 	# Read-only presentation/debug view. No economy or simulation authority lives here.
 	var parties: Array = []
@@ -253,7 +276,8 @@ func traffic_state() -> Dictionary:
 	for slot_v: Variant in tee_reservations.keys():
 		reservations[int(slot_v)] = (tee_reservations[slot_v] as Array).duplicate()
 	return {"active_parties": parties, "occupied_holes": occupied_holes.duplicate(),
-		"tee_reservations": reservations, "waiting_customers": waiting.size()}
+		"tee_reservations": reservations, "waiting_customers": waiting.size(),
+		"blocked_parties": wait_started_s.size()}
 
 
 func visual_state(now_s: float) -> Dictionary:
