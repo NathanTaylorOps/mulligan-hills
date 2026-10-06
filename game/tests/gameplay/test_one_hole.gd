@@ -116,7 +116,7 @@ func test_malformed_round_and_forged_state_rejected() -> void:
 	assert_object(MHPracticeRound.restore(_layout(), d)).is_null()
 
 
-func test_bad_world_version_slot_and_unsupported_panel_profile_reject() -> void:
+func test_bad_world_version_slot_and_panel_origin_reject() -> void:
 	var s: MHGameSession = MHGameSession.create()
 	var source: Dictionary = _source(s)["course"]
 	for key: String in ["schema_version", "world"]:
@@ -138,7 +138,18 @@ func test_bad_world_version_slot_and_unsupported_panel_profile_reject() -> void:
 	h["features"] = [{"t": "fairway", "circle": [0, 30, 10]}]
 	encoded = MHCourseLayout.encode([h], source, [[480, 340]])
 	assert_bool(encoded.is_ok()).is_true()
-	assert_bool(MHOneHolePanel.supported(encoded.value)).is_false()
+	assert_bool(MHOneHolePanel.supported(encoded.value)).is_true()
+
+	var craft: MHCraftHole = MHCraftHole.new(24, 40)
+	craft.paint_rect(10, 0, 13, 29, MHCraftHole.Surface.FAIRWAY)
+	craft.paint_rect(11, 30, 12, 31, MHCraftHole.Surface.GREEN)
+	craft.add_tee(11, 0)
+	craft.add_pin(11, 30)
+	craft.set_height_tile(11, 15, 6)
+	var relief_layout: Dictionary = MHCraftConvert.to_hole_def(craft, 0, 0, 0)
+	encoded = MHCourseLayout.encode([relief_layout], source, [[480, 340]])
+	assert_bool(encoded.is_ok()).is_true()
+	assert_bool(MHOneHolePanel.supported(encoded.value)).is_true()
 
 
 func test_live_panel_finalizes_exact_canonical_craft_relief_layout() -> void:
@@ -184,6 +195,27 @@ func test_live_build_play_entry_uses_owned_canonical_craft_draft() -> void:
 	assert_dict(scene.one_hole.canonical_draft).is_equal(expected)
 	scene.one_hole._finalize()
 	assert_array(scene.session.hole_definitions()).contains_exactly([expected])
+	scene._active = false
+
+
+func test_one_hole_mode_has_real_panel_area_and_editor_navigation_closes_it() -> void:
+	var scene: MHLiveConstruction = auto_free(MHLiveConstruction.new())
+	scene.store = MHSaveStore.new("user://test_one_hole_layout_mode")
+	scene.ledger_dir = "user://test_one_hole_layout_mode_ledgers"
+	add_child(scene)
+	assert_bool(scene._active).is_true()
+	scene._open_craft_hole()
+	await get_tree().process_frame
+	scene._relayout()
+	assert_bool(scene.one_hole.visible).is_true()
+	assert_bool(scene.one_hole._scroll.visible).is_true()
+	assert_float(scene._panel_frame.size.y).is_greater(MHLiveLayout.panel_header_height(scene.shell.ctx.touch_min()))
+	assert_float(scene._panel_frame.size.x).is_greater(200.0)
+	scene.shell.push_screen(MHScreenIds.EDITOR)
+	await get_tree().process_frame
+	assert_bool(scene.one_hole.visible).is_false()
+	assert_bool(scene.chunks.visible).is_true()
+	assert_bool(scene.router.accept_world_input).is_true()
 	scene._active = false
 
 
