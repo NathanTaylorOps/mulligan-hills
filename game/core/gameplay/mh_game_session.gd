@@ -154,6 +154,24 @@ func carts_allowed_now() -> bool:
 	return bridge == null or bridge.tournaments == null or not bridge.tournaments.course_locked()
 
 
+func damage_turf_at_cell(cx: int, cy: int, cells_x: int, cells_y: int, severity: String = "cart_green") -> Dictionary:
+	var parcel: int = MHStaffGrounds.parcel_of_cell(cx, cy, cells_x, cells_y, 4, 4)
+	if parcel < 0:
+		return {"ok": false, "parcel": -1, "damage": 0}
+	var amount: int = 18
+	if severity == "cart_green":
+		match management_difficulty:
+			"relaxed": amount = 8
+			"tycoon": amount = 30
+	var applied: int = staff_system.damage_turf(parcel, amount, staff_view())
+	if applied > 0:
+		grounds_events.append({"day": economy.day, "parcel": parcel, "kind": severity, "positive": false, "handled": false})
+		while grounds_events.size() > 24:
+			grounds_events.pop_front()
+		changed.emit()
+	return {"ok": applied > 0, "parcel": parcel, "damage": applied}
+
+
 func live_staff_assignments() -> Array:
 	# Presentation-only projection of authoritative staff/equipment assignments.
 	if staff_system == null:
