@@ -22,6 +22,8 @@ func _fill() -> void:
 	box.add_child(MHUIKit.label(MHStrings.t("management.operations"), &"H2Label"))
 	box.add_child(MHUIKit.label(MHStrings.t("management.staff_payroll", {"staff": int(r.get("head_count", 0)), "payroll": MHFormat.money_compact(int(r.get("payroll_cents", 0)) / 100)}), &"Label"))
 	box.add_child(MHUIKit.label(MHStrings.t("management.condition_service", {"condition": int(r.get("avg_condition", 0)), "service": int(r.get("service", 0))}), &"Label"))
+	box.add_child(MHUIKit.label(MHStrings.t("management.course_traffic", {"active": int(r.get("active_parties", 0)),
+		"blocked": int(r.get("blocked_parties", 0)), "pace": int(r.get("pace_score", 0))}), &"Label"))
 	box.add_child(MHUIKit.label(MHStrings.t("management.equipment_costs", {"units": int(r.get("equipment_units", 0)), "capacity": int(r.get("equipment_capacity", 0)), "operating": MHFormat.money_compact(int(r.get("equipment_operating_cost_cents", 0)) / 100), "repairs": MHFormat.money_compact(int(r.get("equipment_repair_cost_cents", 0)) / 100)}), &"SmallLabel"))
 	var difficulty: HFlowContainer = MHUIKit.flow(8)
 	_body.add_child(difficulty)
