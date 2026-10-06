@@ -102,3 +102,13 @@ func test_land_world_mapping_uses_configured_grid_dimensions() -> void:
 	assert_int(land.parcel_id_at_world_mm(1000, 1000, 128000, 128000)).is_equal(0)
 	assert_int(land.parcel_id_at_world_mm(127999, 127999, 128000, 128000)).is_equal(15)
 	assert_int(land.parcel_id_at_world_mm(-1, 1000, 128000, 128000)).is_equal(-1)
+
+
+func test_sharp_local_step_rejects_foundation_even_when_total_relief_is_bounded() -> void:
+	var w: Array = _world()
+	var g: MHHeightGrid = w[0]
+	g.fill(0)
+	g.set_h(48, 48, 500)
+	var r: Dictionary = MHBuildingPlacement.validate(g, w[1], w[2], "pro_shop", 1, Vector2i(48000, 48000))
+	assert_bool(bool(r["ok"])).is_false()
+	assert_str(str(r["reason"])).is_equal("terrain_step")
