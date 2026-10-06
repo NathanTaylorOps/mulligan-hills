@@ -412,8 +412,26 @@ func _resolve_customer_hour() -> void:
 		var round: Dictionary = (course_round[0] as Dictionary)["round"] as Dictionary
 		rating = (course_round[0] as Dictionary)["rating"] as Dictionary
 		var pref: int = int(identity.get("preference", MHGolferPreference.CASUAL))
-		var base: int = MHCustomerRoundQueue.satisfaction(round, int(rating.get("par", 3)))
-		var bonus: int = MHGolferPreference.bonus(pref, rating, round)
+		var base_sum: int = 0
+		var bonus_sum: int = 0
+		var best_hole_slot: int = int(customer.get("hole_slot", 0))
+		var best_hole_score: int = -1
+		var combined_flags: int = 0
+		for course_hole_v: Variant in course_round:
+			var course_hole: Dictionary = course_hole_v
+			var hole_round: Dictionary = course_hole["round"] as Dictionary
+			var hole_rating: Dictionary = course_hole["rating"] as Dictionary
+			var hole_base: int = MHCustomerRoundQueue.satisfaction(hole_round, int(hole_rating.get("par", 3)))
+			var hole_bonus: int = MHGolferPreference.bonus(pref, hole_rating, hole_round)
+			base_sum += hole_base
+			bonus_sum += hole_bonus
+			combined_flags |= int(hole_round.get("flags", 0))
+			var hole_score: int = hole_base + hole_bonus
+			if hole_score > best_hole_score:
+				best_hole_score = hole_score
+				best_hole_slot = int(course_hole.get("hole_slot", best_hole_slot))
+		var base: int = MHRMath.rdiv(base_sum, course_round.size())
+		var bonus: int = MHRMath.rdiv(bonus_sum, course_round.size())
 		# Maintenance and staffed facilities should be felt by the golfer who is actually here, not only
 		# by tomorrow's demand curve. Keep this bounded and separate from the official geometry rating.
 		var condition_penalty: int = MHRMath.rdiv(staff_system.condition_penalty_permille(staff_view()), 10)
@@ -430,10 +448,10 @@ func _resolve_customer_hour() -> void:
 		customer["condition_penalty"] = condition_penalty
 		customer["service_bonus"] = service_bonus
 		customer["satisfaction"] = sat
-		customer["reaction"] = MHCustomerRoundQueue.reaction(sat, int(round.get("flags", 0)))
+		customer["reaction"] = MHCustomerRoundQueue.reaction(sat, combined_flags)
 		customer["preference_reaction"] = MHGolferPreference.describe(pref, bonus)
 		customer["identity"] = golfer_roster.record_visit(int(identity["id"]), economy.day, sat,
-			str(customer["reaction"]), int(customer.get("hole_slot", 0)), int(round.get("flags", 0)))
+			str(customer["reaction"]), best_hole_slot, combined_flags)
 		customer_outcomes.append(customer)
 		var playback_hole: Dictionary = {}
 		for hole_v: Variant in _holes:
