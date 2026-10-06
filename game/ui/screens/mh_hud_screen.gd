@@ -35,6 +35,12 @@ func _build() -> void:
 		margin.add_theme_constant_override("margin_" + side, MHTheme.GUTTER)
 	add_child(margin)
 	var root: VBoxContainer = MHUIKit.vbox(8)
+	# The HUD's spacer only receives the remaining viewport height when this single
+	# MarginContainer child participates in vertical expansion. Without this flag
+	# the VBox collapses to its minimum height, so free_rect() starts at the top
+	# and live-scene controls/panels overlap the HUD instead of occupying the world area.
+	root.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	root.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	margin.add_child(root)
 
 	var top: HFlowContainer = MHUIKit.flow(8)
