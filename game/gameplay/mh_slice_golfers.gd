@@ -81,6 +81,15 @@ func spawn_authoritative_party(customers: Array, tee: Vector2, green: Vector2, w
 			"events": (round.get("events", []) as Array).duplicate(true)})
 
 
+func remove_group(group_id: int) -> void:
+	var keep: Array = []
+	for golfer_v: Variant in golfers:
+		var golfer: Dictionary = golfer_v
+		if int(golfer.get("group", -1)) != group_id:
+			keep.append(golfer)
+	golfers = keep
+
+
 func golfer_count() -> int:
 	return golfers.size()
 
