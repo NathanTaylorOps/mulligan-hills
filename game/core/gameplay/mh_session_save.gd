@@ -147,7 +147,8 @@ static func restore(source: Dictionary, ledger: MHTokenLedger) -> MHSaveResult:
 	s._customer_serial = maxi(0, int(rt.get("customer_serial", 0)))
 	s.customer_feedback_sum = maxi(0, int(rt.get("customer_feedback_sum", 0)))
 	s.customer_feedback_count = maxi(0, int(rt.get("customer_feedback_count", 0)))
-	s.building_placements = (rt.get("building_placements", {}) as Dictionary).duplicate(true)
+	if not s.restore_building_placements(rt.get("building_placements", {})):
+		return _bad("building placement checkpoint invalid")
 	if s.customer_feedback_count == 0 and s.customer_feedback_sum != 0:
 		return _bad("customer feedback checkpoint invalid")
 	if rt.has("practice"):
