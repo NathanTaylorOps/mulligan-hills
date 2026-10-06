@@ -21,7 +21,7 @@ static func footprint_m(building_id: String, tier: int) -> Vector2i:
 
 
 static func validate(grid: MHHeightGrid, splat: MHSplatMap, land: MHLandModel, building_id: String, tier: int,
-		center_mm: Vector2i, existing: Array = [], rotation_quarters: int = 0, holes: Array = []) -> Dictionary:
+		center_mm: Vector2i, existing: Array = [], rotation_quarters: int = 0, holes: Array = [], obstacles: Array = []) -> Dictionary:
 	if grid == null or splat == null or land == null:
 		return _bad("missing_world")
 	var size_m: Vector2i = footprint_m(building_id, tier)
@@ -42,6 +42,8 @@ static func validate(grid: MHHeightGrid, splat: MHSplatMap, land: MHLandModel, b
 		return _bad("unowned_land")
 	if _hits_golf_features(x0, y0, x1, y1, holes):
 		return _bad("golf_feature")
+	if _hits_obstacles(x0, y0, x1, y1, obstacles):
+		return _bad("obstacle")
 	for v: Variant in existing:
 		var b: Dictionary = v
 		var c: Array = b.get("center_mm", [])
@@ -81,6 +83,19 @@ static func validate(grid: MHHeightGrid, splat: MHSplatMap, land: MHLandModel, b
 		return _bad("terrain_slope")
 	return {"ok": true, "reason": "", "center_mm": [center_mm.x, center_mm.y], "size_m": [size_m.x, size_m.y],
 		"ground_mm": MHRMath.rdiv(sum_h, samples), "min_h_mm": min_h, "max_h_mm": max_h, "rotation_quarters": rotation}
+
+
+static func _hits_obstacles(x0: int, y0: int, x1: int, y1: int, obstacles: Array) -> bool:
+	for ov: Variant in obstacles:
+		if typeof(ov) != TYPE_DICTIONARY:
+			continue
+		var o: Dictionary = ov
+		var x: int = int(o.get("x_mm", -999999999))
+		var y: int = int(o.get("y_mm", -999999999))
+		var r: int = maxi(0, int(o.get("radius_mm", 1000)))
+		if _rect_overlap(x0, y0, x1, y1, x - r, y - r, x + r, y + r):
+			return true
+	return false
 
 
 static func _hits_golf_features(x0: int, y0: int, x1: int, y1: int, holes: Array) -> bool:
