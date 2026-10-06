@@ -1,0 +1,218 @@
+{
+ "schema": 1,
+ "note": "Content catalogue for the art and course craft systems (DEC-079..083). Costs are PROPOSED placeholders, not yet wired into the economy.",
+ "tree_heights": [
+  "small",
+  "medium",
+  "tall"
+ ],
+ "trees": [
+  {
+   "id": "oak",
+   "climate": "temperate"
+  },
+  {
+   "id": "maple",
+   "climate": "temperate"
+  },
+  {
+   "id": "birch",
+   "climate": "temperate"
+  },
+  {
+   "id": "elm",
+   "climate": "temperate"
+  },
+  {
+   "id": "pine",
+   "climate": "cool"
+  },
+  {
+   "id": "spruce",
+   "climate": "cool"
+  },
+  {
+   "id": "fir",
+   "climate": "cool"
+  },
+  {
+   "id": "cypress",
+   "climate": "coastal"
+  },
+  {
+   "id": "willow",
+   "climate": "wet"
+  },
+  {
+   "id": "coconut_palm",
+   "climate": "tropical"
+  },
+  {
+   "id": "date_palm",
+   "climate": "arid"
+  },
+  {
+   "id": "banana_palm",
+   "climate": "tropical"
+  },
+  {
+   "id": "acacia",
+   "climate": "arid"
+  },
+  {
+   "id": "baobab",
+   "climate": "arid"
+  },
+  {
+   "id": "cherry_blossom",
+   "climate": "temperate"
+  }
+ ],
+ "plants": [
+  {
+   "id": "daisy"
+  },
+  {
+   "id": "tulip"
+  },
+  {
+   "id": "rose"
+  },
+  {
+   "id": "lily"
+  },
+  {
+   "id": "poppy"
+  },
+  {
+   "id": "lavender"
+  },
+  {
+   "id": "sunflower"
+  },
+  {
+   "id": "iris"
+  },
+  {
+   "id": "marigold"
+  },
+  {
+   "id": "orchid"
+  }
+ ],
+ "plant_colours": [
+  "white",
+  "cream",
+  "yellow",
+  "gold",
+  "orange",
+  "coral",
+  "red",
+  "crimson",
+  "pink",
+  "magenta",
+  "purple",
+  "lavender",
+  "blue",
+  "sky",
+  "teal"
+ ],
+ "turf": [
+  {
+   "id": "bermuda",
+   "climate": "warm",
+   "speed_permille": 1000,
+   "note": "tight, fast, striping holds well"
+  },
+  {
+   "id": "bentgrass",
+   "climate": "cool",
+   "speed_permille": 1100,
+   "note": "premium greens and fairways"
+  },
+  {
+   "id": "zoysia",
+   "climate": "warm",
+   "speed_permille": 1050,
+   "note": "dense, forgiving lies"
+  },
+  {
+   "id": "fescue",
+   "climate": "cool",
+   "speed_permille": 900,
+   "note": "links style, wispy rough"
+  },
+  {
+   "id": "kikuyu",
+   "climate": "warm",
+   "speed_permille": 950,
+   "note": "lush, hardy, grabs the ball"
+  },
+  {
+   "id": "bluegrass",
+   "climate": "cool",
+   "speed_permille": 1000,
+   "note": "classic parkland fairway"
+  },
+  {
+   "id": "seaside_links",
+   "climate": "coastal",
+   "speed_permille": 900,
+   "note": "firm, bouncy, wind-swept"
+  },
+  {
+   "id": "desert_scrub",
+   "climate": "arid",
+   "speed_permille": 800,
+   "note": "hardpan lies, cheap to keep"
+  },
+  {
+   "id": "wiregrass",
+   "climate": "warm",
+   "speed_permille": 850,
+   "note": "rugged rough, slow play"
+  }
+ ],
+ "paths": [
+  {
+   "id": "walking_dirt",
+   "carts": false,
+   "cost_per_m_cents": 100
+  },
+  {
+   "id": "walking_mulch",
+   "carts": false,
+   "cost_per_m_cents": 120
+  },
+  {
+   "id": "walking_gravel",
+   "carts": false,
+   "cost_per_m_cents": 140
+  },
+  {
+   "id": "walking_stone_slab",
+   "carts": false,
+   "cost_per_m_cents": 180
+  },
+  {
+   "id": "walking_wood_chip",
+   "carts": false,
+   "cost_per_m_cents": 110
+  },
+  {
+   "id": "cart_concrete",
+   "carts": true,
+   "cost_per_m_cents": 400
+  },
+  {
+   "id": "cart_crushed_shell",
+   "carts": true,
+   "cost_per_m_cents": 300
+  },
+  {
+   "id": "cart_brick_paver",
+   "carts": true,
+   "cost_per_m_cents": 520
+  }
+ ]
+}
