@@ -45,6 +45,7 @@ var _ghost_invalid_mat: StandardMaterial3D
 var _placed_buildings_root: Node3D
 var _placed_building_nodes: Dictionary = {}
 var _building_mat: StandardMaterial3D
+var _building_mesh_cache: Dictionary = {}
 
 func _ready() -> void:
 	MHOrientation.apply_game() # No-op off mobile; one switch, see MHOrientation.
@@ -377,7 +378,10 @@ func _sync_placed_buildings() -> void:
 			node = MHArtMaterials.make_instance(null, _building_mat, false)
 			_placed_buildings_root.add_child(node)
 			_placed_building_nodes[instance_id] = node
-		node.mesh = MHBuildingMeshes.build(building_id, tier, "a")
+		var mesh_key: String = "%s:%d:a" % [building_id, tier]
+		if not _building_mesh_cache.has(mesh_key):
+			_building_mesh_cache[mesh_key] = MHBuildingMeshes.build(building_id, tier, "a")
+		node.mesh = _building_mesh_cache[mesh_key] as Mesh
 		var center: Array = placement.get("center_mm", []) as Array
 		if center.size() != 2:
 			continue
