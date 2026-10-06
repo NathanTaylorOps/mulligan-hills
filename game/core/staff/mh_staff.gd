@@ -194,6 +194,7 @@ func personal_patrol(parcel: int, cells: int, cells_per_parcel: int, view: Dicti
 func on_day(day: int, view: Dictionary, secret: int, difficulty: String = "standard") -> Dictionary:
 	if difficulty == "relaxed":
 		roster.auto_assign(defs, view)
+		equipment.auto_assign(roster.employees, func(role_id: String) -> String: return defs.role_kind(role_id))
 	var res: Dictionary = grounds.on_day(defs, roster, day, view, secret, equipment)
 	if bool(res["ran"]):
 		var pressure_pm: int = 1000
