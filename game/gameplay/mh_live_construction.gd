@@ -48,6 +48,7 @@ var _building_mat: StandardMaterial3D
 var _building_mesh_cache: Dictionary = {}
 var _visible_golfers: MHSliceGolfers
 var _facility_walkers: Dictionary = {}
+var _hole_transition_walkers: Dictionary = {}
 
 func _ready() -> void:
 	MHOrientation.apply_game() # No-op off mobile; one switch, see MHOrientation.
@@ -546,6 +547,7 @@ func _process(_delta: float) -> void:
 	_last_usec = now
 	session.advance(elapsed, int(Time.get_unix_time_from_system()))
 	_advance_customer_playback(float(elapsed) / 1000000.0)
+	_advance_hole_transition_walkers(float(elapsed) / 1000000.0)
 	_advance_facility_walkers(float(elapsed) / 1000000.0)
 	_visible_golfers.advance(float(elapsed) / 1000000.0, controller.rig.global_position)
 	chunks.flush(editor.dirty)
@@ -566,12 +568,86 @@ func _advance_customer_playback(delta_s: float) -> void:
 		for customer_v: Variant in event.get("customers", [event.get("customer", {})]):
 			_queue_finished_customer_facility(customer_v as Dictionary, now_s)
 		return
+	if kind == "hole_transition":
+		_begin_hole_transition(event)
+		return
 	if kind != "started" and kind != "hole_started":
 		return
+	_render_customer_hole(event)
+
+func _begin_hole_transition(event: Dictionary) -> void:
+	var customer: Dictionary = event.get("customer", {}) as Dictionary
+	var party_id: int = int(customer.get("party_id", customer.get("serial", -1)))
+	if party_id < 0 or _hole_transition_walkers.has(party_id):
+		return
+	var previous_slot: int = int((session.customer_playback.active.get("customers", [customer]) as Array)[0].get("hole_slot", -1))
+	var next_slot: int = int(customer.get("hole_slot", -1))
+	var from_pos: Vector3 = _hole_world_point(previous_slot, "green")
+	var to_pos: Vector3 = _hole_world_point(next_slot, "tee")
+	if from_pos == Vector3.INF or to_pos == Vector3.INF:
+		session.customer_playback.begin_next_hole(float(session.clock.total_minutes()) * 60.0)
+		return
+	_visible_golfers.remove_group(party_id)
+	var node: Node3D = Node3D.new()
+	node.name = "HoleTransition_%d" % party_id
+	node.position = MHClubPedestrian.apply_ground_height(from_pos, editor.grid)
+	var body: MeshInstance3D = MeshInstance3D.new()
+	var capsule: CapsuleMesh = CapsuleMesh.new()
+	capsule.radius = 0.32
+	capsule.height = 1.7
+	capsule.radial_segments = 8
+	capsule.rings = 2
+	body.mesh = capsule
+	body.position.y = 0.85
+	body.material_override = _building_mat
+	node.add_child(body)
+	add_child(node)
+	_hole_transition_walkers[party_id] = {"node": node,
+		"route": MHClubPedestrian.route(node.position, to_pos, party_id), "segment": 1}
+
+
+func _advance_hole_transition_walkers(delta_s: float) -> void:
+	if _hole_transition_walkers.is_empty():
+		return
+	var arrived: Array = []
+	for party_v: Variant in _hole_transition_walkers.keys():
+		var party_id: int = int(party_v)
+		var walker: Dictionary = _hole_transition_walkers[party_id]
+		var node: Node3D = walker["node"] as Node3D
+		var step: Dictionary = MHClubPedestrian.advance(walker["route"] as Array, int(walker["segment"]), node.position, delta_s, editor.grid)
+		node.position = step["position"] as Vector3
+		walker["segment"] = int(step["segment"])
+		if bool(step["done"]):
+			arrived.append(party_id)
+	for party_v: Variant in arrived:
+		var party_id: int = int(party_v)
+		var walker: Dictionary = _hole_transition_walkers[party_id]
+		(walker["node"] as Node3D).queue_free()
+		_hole_transition_walkers.erase(party_id)
+		var event: Dictionary = session.customer_playback.begin_next_hole(float(session.clock.total_minutes()) * 60.0)
+		if not event.is_empty():
+			_render_customer_hole(event)
+
+
+func _hole_world_point(slot: int, key: String) -> Vector3:
+	for hole_v: Variant in session.hole_definitions():
+		var hole: Dictionary = hole_v
+		if int(hole.get("slot_id", -1)) != slot:
+			continue
+		var point: Array = hole.get(key, []) as Array
+		if point.size() < 2:
+			return Vector3.INF
+		var mm: Vector2i = MHCourseLayout.world_point_mm(document.get("course", {}) as Dictionary,
+			slot, int(point[0]) * 100, int(point[1]) * 100)
+		if mm.x < 0:
+			return Vector3.INF
+		return MHClubPedestrian.apply_ground_height(Vector3(float(mm.x) / 1000.0, 0.0, float(mm.y) / 1000.0), editor.grid)
+	return Vector3.INF
+
+
+func _render_customer_hole(event: Dictionary) -> void:
 	var customer: Dictionary = event.get("customer", {}) as Dictionary
 	var customers: Array = event.get("customers", [customer]) as Array
-	if kind == "hole_started":
-		_visible_golfers.remove_group(int(customer.get("party_id", customer.get("serial", 0))))
 	var slot: int = int(customer.get("hole_slot", -1))
 	var hole: Dictionary = {}
 	for hole_v: Variant in session.hole_definitions():
@@ -595,6 +671,7 @@ func _advance_customer_playback(delta_s: float) -> void:
 	var origin_dm: Array = MHCourseLayout.origin_for_slot(course, slot)
 	var world_origin: Vector2 = Vector2(float(origin_dm[0]) / 10.0, float(origin_dm[1]) / 10.0)
 	_visible_golfers.spawn_authoritative_party(customers, tee, green, world_origin)
+
 
 func _queue_finished_customer_facility(customer: Dictionary, now_s: float) -> void:
 	if int(customer.get("satisfaction", 0)) < 55:
