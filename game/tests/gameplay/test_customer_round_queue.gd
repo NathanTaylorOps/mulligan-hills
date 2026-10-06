@@ -454,3 +454,28 @@ func test_authoritative_party_starts_together_and_finishes_after_slowest_member(
 	assert_str(str(finished["kind"])).is_equal("finished")
 	assert_int((finished["customers"] as Array).size()).is_equal(2)
 	assert_int(q.completed.size()).is_equal(2)
+
+
+func test_authoritative_party_advances_across_course_holes_before_finishing() -> void:
+	var q: MHCustomerRoundQueue = MHCustomerRoundQueue.new()
+	var events: Array = [{"kind": "putt", "shot": 1, "strokes": 1, "x0": 0, "y0": 0, "x1": 0, "y1": 0}]
+	var rows: Array = []
+	for serial: int in [20, 21]:
+		rows.append({"serial": serial, "party_id": 20, "hole_slot": 2, "round": {"events": events},
+			"course_round": [
+				{"hole_slot": 2, "round": {"events": events}},
+				{"hole_slot": 5, "round": {"events": events}},
+			]})
+	q.admit(rows, {}, {}, {})
+	var started: Dictionary = q.advance(0.0)
+	assert_str(str(started["kind"])).is_equal("started")
+	assert_int(int((started["customer"] as Dictionary)["hole_slot"])).is_equal(2)
+	var duration: float = MHAIRoundTimeline.total_duration(events) + 0.1
+	var next_hole: Dictionary = q.advance(duration)
+	assert_str(str(next_hole["kind"])).is_equal("hole_started")
+	assert_int(int((next_hole["customer"] as Dictionary)["hole_slot"])).is_equal(5)
+	assert_int(q.completed.size()).is_equal(0)
+	var finished: Dictionary = q.advance(duration * 2.0)
+	assert_str(str(finished["kind"])).is_equal("finished")
+	assert_int(int((finished["customer"] as Dictionary)["hole_slot"])).is_equal(5)
+	assert_int(q.completed.size()).is_equal(2)
