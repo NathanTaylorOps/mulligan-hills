@@ -29,7 +29,18 @@ static func route(start: Vector3, destination: Vector3, serial: int) -> Array:
 	return [start, mid, destination]
 
 
-static func advance(route_points: Array, segment: int, position: Vector3, delta: float) -> Dictionary:
+static func apply_ground_height(position: Vector3, grid: MHHeightGrid) -> Vector3:
+	if grid == null:
+		return position
+	var world_x_mm: int = roundi(position.x * 1000.0)
+	var world_y_mm: int = roundi(position.z * 1000.0)
+	var gx: int = clampi(MHRMath.rdiv(world_x_mm, grid.cell_size_mm), 0, grid.cells_x)
+	var gy: int = clampi(MHRMath.rdiv(world_y_mm, grid.cell_size_mm), 0, grid.cells_y)
+	position.y = float(grid.get_mm(gx, gy)) / 1000.0
+	return position
+
+
+static func advance(route_points: Array, segment: int, position: Vector3, delta: float, grid: MHHeightGrid = null) -> Dictionary:
 	if route_points.is_empty() or segment >= route_points.size():
 		return {"done": true, "segment": segment, "position": position}
 	var target: Vector3 = route_points[segment] as Vector3
@@ -38,5 +49,5 @@ static func advance(route_points: Array, segment: int, position: Vector3, delta:
 	var step: float = WALK_MPS * maxf(delta, 0.0)
 	if d.length() <= maxf(step, ARRIVE_M):
 		var next: int = segment + 1
-		return {"done": next >= route_points.size(), "segment": next, "position": target}
-	return {"done": false, "segment": segment, "position": position + d.normalized() * step}
+		return {"done": next >= route_points.size(), "segment": next, "position": apply_ground_height(target, grid)}
+	return {"done": false, "segment": segment, "position": apply_ground_height(position + d.normalized() * step, grid)}
