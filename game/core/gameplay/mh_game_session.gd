@@ -225,7 +225,7 @@ func advance(delta_us: int, wall_unix: int) -> void:
 		if events[i] != MHGameClock.EV_HOUR:
 			continue
 		var tick: Dictionary = economy.tick_hour()
-		_queue__pending_customers(tick)
+		_queue_pending_customers(tick)
 		_resolve_customer_hour()
 		hourly = true
 		if bool(tick["day_rolled"]):
@@ -242,7 +242,7 @@ func advance(delta_us: int, wall_unix: int) -> void:
 		changed.emit()
 
 
-func _queue__pending_customers(tick: Dictionary) -> void:
+func _queue_pending_customers(tick: Dictionary) -> void:
 	var n: int = maxi(0, int(tick.get("golfers", 0)))
 	if n == 0 or _holes.is_empty():
 		return
@@ -314,7 +314,7 @@ func _resolve_customer_hour() -> void:
 		economy.reputation = clampi(economy.reputation + delta, economy.params.c("rep_floor_permille"), 1000)
 
 
-func take__pending_customers(limit: int = 4) -> Array:
+func take_customer_outcomes(limit: int = 4) -> Array:
 	var count: int = mini(maxi(limit, 0), customer_outcomes.size())
 	var out: Array = []
 	for _i: int in range(count):
@@ -325,7 +325,7 @@ func take__pending_customers(limit: int = 4) -> Array:
 ## Completed visible rounds move reputation slowly. 50/100 is neutral; one customer can move at most 4 permille.
 ## Existing MHEconomy arrivals/membership formulas then turn reputation into future demand.
 ## Customer outcomes are resolved exactly once by _resolve_customer_hour().
-## Presentation receives immutable copies through take_customer_admissions() and has no mutation API.
+## Presentation receives resolved authoritative outcomes through take_customer_outcomes() and has no mutation API.
 
 
 func customer_feedback_average() -> int:
