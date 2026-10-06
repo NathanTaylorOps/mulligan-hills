@@ -535,7 +535,7 @@ func test_progressing_party_reserves_next_tee_ahead_of_new_admission() -> void:
 	q.advance_all(0.0)
 	var duration: float = MHAIRoundTimeline.total_duration(events) + 0.1
 	q.advance_all(duration)
-	assert_int(int(q.tee_reservations.get(5, -1))).is_equal(10)
+	assert_int(int((q.tee_reservations.get(5, []) as Array)[0])).is_equal(10)
 	# A newly admitted group targeting hole 5 must not jump the party already walking there.
 	q.admit([{"serial": 20, "party_id": 20, "hole_slot": 5, "round": {"events": events}}], {}, {}, {})
 	q.advance_all(duration + MHCustomerRoundQueue.TEE_INTERVAL_S)
@@ -544,3 +544,16 @@ func test_progressing_party_reserves_next_tee_ahead_of_new_admission() -> void:
 	assert_str(str(next.get("kind", ""))).is_equal("hole_started")
 	assert_bool(q.tee_reservations.has(5)).is_false()
 	assert_int(int(q.occupied_holes.get(5, -1))).is_equal(10)
+
+
+func test_multiple_progressing_parties_queue_fifo_for_same_next_tee() -> void:
+	var q: MHCustomerRoundQueue = MHCustomerRoundQueue.new()
+	q._reserve_tee(7, 30)
+	q._reserve_tee(7, 20)
+	q._reserve_tee(7, 30)
+	assert_array(q.tee_reservations[7] as Array).is_equal([30, 20])
+	assert_bool(q._tee_reserved_for_other(7, 20)).is_true()
+	q._consume_tee_reservation(7, 30)
+	assert_bool(q._tee_reserved_for_other(7, 20)).is_false()
+	q._consume_tee_reservation(7, 20)
+	assert_bool(q.tee_reservations.has(7)).is_false()
