@@ -34,9 +34,20 @@ static func apply_ground_height(position: Vector3, grid: MHHeightGrid) -> Vector
 		return position
 	var world_x_mm: int = roundi(position.x * 1000.0)
 	var world_y_mm: int = roundi(position.z * 1000.0)
-	var gx: int = clampi(MHRMath.rdiv(world_x_mm, grid.cell_size_mm), 0, grid.cells_x)
-	var gy: int = clampi(MHRMath.rdiv(world_y_mm, grid.cell_size_mm), 0, grid.cells_y)
-	position.y = float(grid.get_h(gx, gy)) / 1000.0
+	var max_x_mm: int = grid.cells_x * grid.cell_size_mm
+	var max_y_mm: int = grid.cells_y * grid.cell_size_mm
+	world_x_mm = clampi(world_x_mm, 0, max_x_mm)
+	world_y_mm = clampi(world_y_mm, 0, max_y_mm)
+	var x0: int = mini(grid.cells_x, world_x_mm / grid.cell_size_mm)
+	var y0: int = mini(grid.cells_y, world_y_mm / grid.cell_size_mm)
+	var x1: int = mini(grid.cells_x, x0 + 1)
+	var y1: int = mini(grid.cells_y, y0 + 1)
+	var fx: int = 0 if x0 == grid.cells_x else world_x_mm - x0 * grid.cell_size_mm
+	var fy: int = 0 if y0 == grid.cells_y else world_y_mm - y0 * grid.cell_size_mm
+	var h0: int = MHRMath.rdiv(grid.get_h(x0, y0) * (grid.cell_size_mm - fx) + grid.get_h(x1, y0) * fx, grid.cell_size_mm)
+	var h1: int = MHRMath.rdiv(grid.get_h(x0, y1) * (grid.cell_size_mm - fx) + grid.get_h(x1, y1) * fx, grid.cell_size_mm)
+	var h: int = MHRMath.rdiv(h0 * (grid.cell_size_mm - fy) + h1 * fy, grid.cell_size_mm)
+	position.y = float(h) / 1000.0
 	return position
 
 
