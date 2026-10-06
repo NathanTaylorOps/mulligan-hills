@@ -484,3 +484,40 @@ func test_authoritative_party_advances_across_course_holes_before_finishing() ->
 	assert_str(str(finished["kind"])).is_equal("finished")
 	assert_int(int((finished["customer"] as Dictionary)["hole_slot"])).is_equal(5)
 	assert_int(q.completed.size()).is_equal(2)
+
+
+func test_separate_parties_can_play_different_holes_concurrently() -> void:
+	var q: MHCustomerRoundQueue = MHCustomerRoundQueue.new()
+	var long_events: Array = [{"kind": "putt", "shot": 1, "strokes": 1, "x0": 0, "y0": 0, "x1": 0, "y1": 0}]
+	q.admit([{"serial": 1, "party_id": 1, "hole_slot": 2, "round": {"events": long_events}}], {}, {}, {})
+	q.admit([{"serial": 2, "party_id": 2, "hole_slot": 5, "round": {"events": long_events}}], {}, {}, {})
+	var first: Array = q.advance_all(0.0)
+	assert_int(first.size()).is_equal(1)
+	assert_int(q.active_parties.size()).is_equal(1)
+	var second: Array = q.advance_all(MHCustomerRoundQueue.TEE_INTERVAL_S)
+	assert_int(second.size()).is_equal(1)
+	assert_str(str((second[0] as Dictionary)["kind"])).is_equal("started")
+	assert_int(q.active_parties.size()).is_equal(2)
+	assert_int(q.occupied_holes.size()).is_equal(2)
+
+
+func test_party_waits_at_occupied_next_tee_until_hole_clears() -> void:
+	var q: MHCustomerRoundQueue = MHCustomerRoundQueue.new()
+	var events: Array = [{"kind": "putt", "shot": 1, "strokes": 1, "x0": 0, "y0": 0, "x1": 0, "y1": 0}]
+	var course: Array = [{"hole_slot": 2, "round": {"events": events}}, {"hole_slot": 5, "round": {"events": events}}]
+	q.admit([{"serial": 10, "party_id": 10, "hole_slot": 2, "round": {"events": events}, "course_round": course}], {}, {}, {})
+	q.admit([{"serial": 20, "party_id": 20, "hole_slot": 5, "round": {"events": events}}], {}, {}, {})
+	q.advance_all(0.0)
+	q.advance_all(MHCustomerRoundQueue.TEE_INTERVAL_S)
+	var duration: float = MHAIRoundTimeline.total_duration(events) + 0.1
+	var transition_events: Array = q.advance_all(duration + MHCustomerRoundQueue.TEE_INTERVAL_S)
+	var saw_transition: bool = false
+	for event_v: Variant in transition_events:
+		if str((event_v as Dictionary).get("kind", "")) == "hole_transition":
+			saw_transition = true
+	assert_bool(saw_transition).is_true()
+	assert_dict(q.begin_next_hole(duration + 20.0, 10)).is_empty()
+	# Party 20 clears hole 5; party 10 can then take that tee.
+	q.advance_all(duration * 2.0 + MHCustomerRoundQueue.TEE_INTERVAL_S)
+	var admitted: Dictionary = q.begin_next_hole(duration * 2.0 + 20.0, 10)
+	assert_str(str(admitted.get("kind", ""))).is_equal("hole_started")
