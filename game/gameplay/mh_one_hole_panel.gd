@@ -21,6 +21,7 @@ var craft_surface: int = MHCraftHole.Surface.FAIRWAY
 var craft_mode: StringName = &"surface"
 var _craft_stroke_open: bool = false
 var _craft_last_tile: Vector2i = Vector2i(-1, -1)
+var _craft_level_height: int = 0
 ## Header only (body hidden). Layout is recomputed by the scene on `layout_changed`.
 var collapsed: bool = false
 signal layout_changed()
@@ -59,12 +60,23 @@ func setup(scene: MHLiveConstruction) -> void:
 	content.add_child(_feedback)
 	var craft_tools: HFlowContainer = MHUIKit.flow(6)
 	content.add_child(craft_tools)
-	_button(craft_tools, "Fairway", func() -> void: craft_surface = MHCraftHole.Surface.FAIRWAY; craft_mode = &"surface"; _describe())
-	_button(craft_tools, "Green", func() -> void: craft_surface = MHCraftHole.Surface.GREEN; craft_mode = &"surface"; _describe())
-	_button(craft_tools, "Bunker", func() -> void: craft_surface = MHCraftHole.Surface.BUNKER; craft_mode = &"surface"; _describe())
-	_button(craft_tools, "Water", func() -> void: craft_surface = MHCraftHole.Surface.WATER; craft_mode = &"surface"; _describe())
+	_surface_button(craft_tools, "Rough", MHCraftHole.Surface.ROUGH)
+	_surface_button(craft_tools, "Fairway", MHCraftHole.Surface.FAIRWAY)
+	_surface_button(craft_tools, "First cut", MHCraftHole.Surface.FIRST_CUT)
+	_surface_button(craft_tools, "Deep rough", MHCraftHole.Surface.DEEP_ROUGH)
+	_surface_button(craft_tools, "Green", MHCraftHole.Surface.GREEN)
+	_surface_button(craft_tools, "Fringe", MHCraftHole.Surface.FRINGE)
+	_surface_button(craft_tools, "Tee grass", MHCraftHole.Surface.TEE)
+	_surface_button(craft_tools, "Bunker", MHCraftHole.Surface.BUNKER)
+	_surface_button(craft_tools, "Waste", MHCraftHole.Surface.WASTE)
+	_surface_button(craft_tools, "Water", MHCraftHole.Surface.WATER)
+	_surface_button(craft_tools, "Out of bounds", MHCraftHole.Surface.OUT_OF_BOUNDS)
+	_surface_button(craft_tools, "Path", MHCraftHole.Surface.PATH)
+	_surface_button(craft_tools, "Dirt", MHCraftHole.Surface.DIRT)
 	_button(craft_tools, "Raise", func() -> void: craft_mode = &"raise"; _describe())
 	_button(craft_tools, "Lower", func() -> void: craft_mode = &"lower"; _describe())
+	_button(craft_tools, "Smooth", func() -> void: craft_mode = &"smooth"; _describe())
+	_button(craft_tools, "Level", func() -> void: craft_mode = &"level"; _describe())
 	_button(craft_tools, "Place tee", func() -> void: craft_mode = &"tee"; _describe())
 	_button(craft_tools, "Place pin", func() -> void: craft_mode = &"pin"; _describe())
 	_button(craft_tools, "Undo craft", _craft_undo)
@@ -132,6 +144,13 @@ func _button(parent: Control, title: String, action: Callable) -> void:
 	var b: MHTapButton = MHUIKit.button(live.shell.ctx, title, &"ChipButton", 110)
 	parent.add_child(b)
 	b.pressed.connect(action)
+
+
+func _surface_button(parent: Control, title: String, surface_id: int) -> void:
+	_button(parent, title, func() -> void:
+		craft_surface = surface_id
+		craft_mode = &"surface"
+		_describe())
 
 func set_canonical_draft(layout: Dictionary) -> bool:
 	var validation: Dictionary = MHRatingEngine.validate_input({"schema": 1, "engine": MHRatingEngine.RATING_VERSION, "hole": layout})
@@ -582,6 +601,10 @@ func _apply_craft_stroke_tile(tile: Vector2i) -> bool:
 	var h: MHCraftHole = live.craft_hole
 	if craft_mode == &"raise" or craft_mode == &"lower":
 		h.raise_disc(tile.x, tile.y, 1, 1 if craft_mode == &"raise" else -1)
+	elif craft_mode == &"smooth":
+		h.smooth_disc(tile.x, tile.y, 1)
+	elif craft_mode == &"level":
+		h.level_disc(tile.x, tile.y, 1, _craft_level_height)
 	elif craft_mode == &"surface":
 		h.paint_disc(tile.x, tile.y, 1, craft_surface)
 	else:
@@ -601,6 +624,8 @@ func craft_stroke_begin_from_screen(pos: Vector2) -> bool:
 		return false
 	_craft_stroke_open = true
 	_craft_last_tile = tile
+	if craft_mode == &"level":
+		_craft_level_height = live.craft_hole.get_height(tile.x, tile.y)
 	_apply_craft_stroke_tile(tile)
 	return true
 
