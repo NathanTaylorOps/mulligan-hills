@@ -353,12 +353,14 @@ func _queue_pending_customers(tick: Dictionary) -> void:
 				var guest: Dictionary = golfer_roster.club_guest_for_member(save_secret, int(anchor["id"]), _customer_serial, economy.day)
 				if not guest.is_empty():
 					group[group.size() - 1] = guest
+		var party_id: int = _customer_serial
+		var party_hole_index: int = posmod(party_id, _holes.size())
 		for identity_v: Variant in group:
 			if remaining <= 0:
 				break
 			var identity: Dictionary = identity_v
-			var hole_index: int = posmod(_customer_serial, _holes.size())
-			_pending_customers.append({"serial": _customer_serial, "identity": identity, "group_size": group_size,
+			var hole_index: int = party_hole_index
+			_pending_customers.append({"serial": _customer_serial, "party_id": party_id, "identity": identity, "group_size": group_size,
 				"paid_fee": fee_each, "ancillary": anc_each, "admitted_day": economy.day, "admitted_hour": economy.hour,
 				"hole_slot": int((_holes[hole_index] as Dictionary)["slot_id"])})
 			_customer_serial += 1
