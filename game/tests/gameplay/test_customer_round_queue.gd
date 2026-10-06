@@ -9,7 +9,7 @@ func _hole() -> Dictionary:
 func test_queue_never_changes_customer_payment_values() -> void:
 	var q: MHCustomerRoundQueue = MHCustomerRoundQueue.new()
 	var paid: Dictionary = {"serial": 7, "paid_fee": 4200, "ancillary": 900, "admitted_day": 1, "admitted_hour": 3, "hole_slot": 0}
-	q.admit([paid], _hole(), {"save_secret": 55, "rating_epoch": 0})
+	q.admit([paid], _hole(), {"B": 700, "F": 700, "I": 700, "elev": 200}, {"save_secret": 55, "rating_epoch": 0})
 	assert_int(q.waiting.size()).is_equal(1)
 	var queued: Dictionary = q.waiting[0]
 	assert_int(int(queued["paid_fee"])).is_equal(4200)
@@ -22,7 +22,7 @@ func test_customer_starts_finishes_and_frees_tee() -> void:
 		{"serial": 0, "paid_fee": 4000, "ancillary": 500},
 		{"serial": 1, "paid_fee": 4000, "ancillary": 500},
 	]
-	q.admit(rows, _hole(), {"save_secret": 123, "rating_epoch": 0})
+	q.admit(rows, _hole(), {"B": 700, "F": 700, "I": 700, "elev": 200}, {"save_secret": 123, "rating_epoch": 0})
 	var started: Dictionary = q.advance(0.0)
 	assert_str(str(started["kind"])).is_equal("started")
 	assert_bool(q.active.is_empty()).is_false()
@@ -45,3 +45,20 @@ func test_satisfaction_reacts_to_penalties_and_pickup() -> void:
 	assert_bool(clean > penalty).is_true()
 	assert_bool(penalty > pickup).is_true()
 	assert_str(MHCustomerRoundQueue.reaction(clean, 0)).contains("play that again")
+
+
+func test_preferences_reward_different_hole_qualities() -> void:
+	var round: Dictionary = {"strokes": 3, "flags": 16}
+	var strategic: Dictionary = {"B": 500, "F": 700, "I": 900, "elev": 100}
+	var scenic: Dictionary = {"B": 900, "F": 700, "I": 500, "elev": 100}
+	assert_bool(MHGolferPreference.bonus(MHGolferPreference.STRATEGIST, strategic, round) >
+		MHGolferPreference.bonus(MHGolferPreference.STRATEGIST, scenic, round)).is_true()
+	assert_bool(MHGolferPreference.bonus(MHGolferPreference.CASUAL, scenic, round) >
+		MHGolferPreference.bonus(MHGolferPreference.CASUAL, strategic, round)).is_true()
+
+
+func test_preference_bonus_is_bounded() -> void:
+	var extreme: Dictionary = {"B": 1000, "F": 1000, "I": 1000, "elev": 1000}
+	for kind: int in range(MHGolferPreference.COUNT):
+		var b: int = MHGolferPreference.bonus(kind, extreme, {"flags": 16})
+		assert_bool(b >= -12 and b <= 12).is_true()
