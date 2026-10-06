@@ -22,7 +22,7 @@ func _fill() -> void:
 	box.add_child(MHUIKit.label(MHStrings.t("management.operations"), &"H2Label"))
 	box.add_child(MHUIKit.label(MHStrings.t("management.staff_payroll", {"staff": int(r.get("head_count", 0)), "payroll": MHFormat.money_compact(int(r.get("payroll_cents", 0)) / 100)}), &"Label"))
 	box.add_child(MHUIKit.label(MHStrings.t("management.condition_service", {"condition": int(r.get("avg_condition", 0)), "service": int(r.get("service", 0))}), &"Label"))
-	box.add_child(MHUIKit.label("Equipment %d/%d   Operating %s   Repairs %s" % [int(r.get("equipment_units", 0)), int(r.get("equipment_capacity", 0)), MHFormat.money_compact(int(r.get("equipment_operating_cost_cents", 0)) / 100), MHFormat.money_compact(int(r.get("equipment_repair_cost_cents", 0)) / 100)], &"MutedLabel"))
+	box.add_child(MHUIKit.label(MHStrings.t("management.equipment_costs", {"units": int(r.get("equipment_units", 0)), "capacity": int(r.get("equipment_capacity", 0)), "operating": MHFormat.money_compact(int(r.get("equipment_operating_cost_cents", 0)) / 100), "repairs": MHFormat.money_compact(int(r.get("equipment_repair_cost_cents", 0)) / 100)}), &"SmallLabel"))
 	var difficulty: HFlowContainer = MHUIKit.flow(8)
 	_body.add_child(difficulty)
 	for mode: String in ["relaxed", "standard", "tycoon"]:
@@ -42,18 +42,18 @@ func _fill() -> void:
 	var sb: VBoxContainer = MHUIKit.card_box(staff_card)
 	_body.add_child(staff_card)
 	sb.add_child(MHUIKit.label(MHStrings.t("management.team"), &"H2Label"))
-	if employees.is_empty(): sb.add_child(MHUIKit.label("No staff hired yet.", &"MutedLabel"))
+	if employees.is_empty(): sb.add_child(MHUIKit.label(MHStrings.t("management.no_staff"), &"SmallLabel"))
 	for value: Variant in employees:
 		var e: Dictionary = value
-		sb.add_child(MHUIKit.label("#%d  %s  •  experience %d days" % [int(e.get("serial", 0)), str(e.get("role", "staff")).replace("_", " ").capitalize(), int(e.get("tenure", 0))], &"Label"))
+		sb.add_child(MHUIKit.label(MHStrings.t("management.employee", {"serial": int(e.get("serial", 0)), "role": str(e.get("role", "staff")).replace("_", " ").capitalize(), "days": int(e.get("tenure", 0))}), &"Label"))
 	var fleet: Array = r.get("equipment", [])
 	var fleet_card: PanelContainer = MHUIKit.card(6)
 	var fb: VBoxContainer = MHUIKit.card_box(fleet_card)
 	_body.add_child(fleet_card)
 	fb.add_child(MHUIKit.label(MHStrings.t("management.equipment"), &"H2Label"))
-	if fleet.is_empty(): fb.add_child(MHUIKit.label("No equipment owned yet.", &"MutedLabel"))
+	if fleet.is_empty(): fb.add_child(MHUIKit.label(MHStrings.t("management.no_equipment"), &"SmallLabel"))
 	for value: Variant in fleet:
 		var unit: Dictionary = value
 		var status: String = MHStrings.t("management.broken") if bool(unit.get("broken", false)) else "%d/1000" % int(unit.get("condition", 0))
 		var operator: int = int(unit.get("assigned_employee", 0))
-		fb.add_child(MHUIKit.label("#%d  %s  •  %s%s" % [int(unit.get("serial", 0)), str(unit.get("type", "equipment")).replace("_", " ").capitalize(), status, "" if operator == 0 else MHStrings.t("management.operator", {"serial": operator})], &"Label"))
+		fb.add_child(MHUIKit.label(MHStrings.t("management.unit", {"serial": int(unit.get("serial", 0)), "type": str(unit.get("type", "equipment")).replace("_", " ").capitalize(), "status": status, "operator": "" if operator == 0 else MHStrings.t("management.operator", {"serial": operator})}), &"Label"))
