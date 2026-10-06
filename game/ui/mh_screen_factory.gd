@@ -25,6 +25,8 @@ static func create(id: String) -> MHScreen:
 			return MHTournamentScreen.new()
 		"achievements":
 			return MHAchievementsScreen.new()
+		"management":
+			return MHManagementScreen.new()
 		"settings":
 			return MHSettingsScreen.new()
 		"consent":
