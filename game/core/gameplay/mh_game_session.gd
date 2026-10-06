@@ -29,6 +29,7 @@ var _customer_serial: int = 0
 var customer_feedback_sum: int = 0
 var customer_feedback_count: int = 0
 var customer_outcomes: Array = [] # immutable authoritative records; presentation never mutates economy/roster
+var customer_playback: MHCustomerRoundQueue = MHCustomerRoundQueue.new() # transient visual scheduling; never authoritative economy
 var golfer_roster: MHGolferRoster = MHGolferRoster.new()
 var building_placements: Dictionary = {} # instance_id -> terrain-aware freeform placement record
 var _next_building_instance_id: int = 1
@@ -414,6 +415,8 @@ func _resolve_customer_hour() -> void:
 		customer["identity"] = golfer_roster.record_visit(int(identity["id"]), economy.day, sat,
 			str(customer["reaction"]), int(customer.get("hole_slot", 0)), int(round.get("flags", 0)))
 		customer_outcomes.append(customer)
+		customer_playback.admit([customer], _holes[int(customer.get("hole_slot", 0))] if int(customer.get("hole_slot", 0)) < _holes.size() else {},
+			rating, {"save_secret": save_secret, "rating_epoch": rating_epoch})
 		customer_feedback_sum += sat
 		customer_feedback_count += 1
 	var count: int = customer_outcomes.size() - start
