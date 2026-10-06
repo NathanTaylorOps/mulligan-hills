@@ -195,3 +195,23 @@ func test_authoritative_party_visual_can_be_replaced_between_holes() -> void:
 	assert_int(golfers.golfer_count()).is_equal(0)
 	golfers.spawn_authoritative_party([customer], Vector2(20, 20), Vector2(20, 40))
 	assert_int(golfers.golfer_count()).is_equal(1)
+
+
+func test_inter_hole_walk_keeps_every_real_party_member_visible() -> void:
+	var golfers: MHSliceGolfers = auto_free(MHSliceGolfers.new())
+	add_child(golfers)
+	golfers.setup(MHArtMaterials.vertex_color())
+	var customers: Array = [
+		{"serial": 101, "party_id": 44, "identity": {"id": 7, "look_seed": 7001}},
+		{"serial": 102, "party_id": 44, "identity": {"id": 8, "look_seed": 8001}},
+		{"serial": 103, "party_id": 44, "identity": {"id": 9, "look_seed": 9001}},
+	]
+	golfers.spawn_walking_party(customers, Vector3.ZERO, Vector3(20, 0, 20))
+	assert_int(golfers.golfer_count()).is_equal(3)
+	golfers.update_walking_party(44, Vector3(5, 0, 5), Vector3(1, 0, 1))
+	for golfer_v: Variant in golfers.golfers:
+		var golfer: Dictionary = golfer_v
+		assert_int(int(golfer["group"])).is_equal(44)
+		assert_bool(bool(golfer["walk_only"])).is_true()
+	golfers.remove_group(44)
+	assert_int(golfers.golfer_count()).is_equal(0)
