@@ -331,3 +331,49 @@ func test_session_membership_acceptance_requires_developed_capacity() -> void:
 	assert_bool(bool(s.submit_course([hole])["ok"])).is_true()
 	assert_bool(s.membership_capacity() > 0).is_true()
 	assert_bool(bool(s.decide_membership_application(id, true)["ok"])).is_true()
+
+
+func test_home_assignment_requires_interest_capacity_and_unique_slots() -> void:
+	var s: MHGameSession = MHGameSession.create()
+	var g: Dictionary = s.golfer_roster.identity_for_admission(555, 1, 1)
+	var id: int = int(g["id"])
+	assert_bool(bool(s.assign_home_to_golfer(id)["ok"])).is_false()
+	for day: int in range(1, 8):
+		s.golfer_roster.record_visit(id, day, 100, "Loved living near the course")
+	assert_bool(bool(s.assign_home_to_golfer(id)["ok"])).is_false()
+	# Buy enough land until a homes parcel is owned.
+	while s.land.home_slot_capacity() == 0:
+		var bought: bool = false
+		for parcel: int in s.land.buyable_parcels():
+			if s.land.kind_of(parcel) == "homes":
+				s.land.buy(parcel)
+				bought = true
+				break
+		if not bought:
+			var next: int = s.land.recommended_next()
+			if next < 0:
+				break
+			s.land.buy(next)
+	assert_bool(s.land.home_slot_capacity() > 0).is_true()
+	var assigned: Dictionary = s.assign_home_to_golfer(id)
+	assert_bool(bool(assigned["ok"])).is_true()
+	assert_int(int(s.golfer_roster.golfers[id]["home_slot"])).is_equal(int(assigned["home_slot"]))
+
+
+func test_only_members_can_generate_club_guests() -> void:
+	var roster: MHGolferRoster = MHGolferRoster.new()
+	var g: Dictionary = roster.identity_for_admission(666, 1, 1)
+	var id: int = int(g["id"])
+	assert_dict(roster.club_guest_for_member(666, id, 1, 1)).is_empty()
+	for day: int in range(1, 6):
+		roster.record_visit(id, day, 100, "Excellent")
+	assert_bool(roster.decide_membership(id, true)).is_true()
+	var found: bool = false
+	for serial: int in range(1, 100):
+		var guest: Dictionary = roster.club_guest_for_member(666, id, serial, 10)
+		if not guest.is_empty():
+			assert_int(int(guest["guest_of"])).is_equal(id)
+			assert_str(str(guest["relationship_role"])).is_equal("guest")
+			found = true
+			break
+	assert_bool(found).is_true()
