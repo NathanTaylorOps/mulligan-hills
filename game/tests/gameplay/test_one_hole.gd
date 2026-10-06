@@ -285,3 +285,27 @@ func test_craft_preview_builds_surface_meshes_and_positioned_trees() -> void:
 	var tree_ground: float = scene.one_hole._ground_height(600, 2000)
 	assert_float(tree_ground).is_equal_approx(float(MHRHole.from_def(scene.canonical_craft_draft()).z_at(600, 2000)) / 1000.0, 0.001)
 	scene._active = false
+
+
+func test_craft_relief_normal_is_not_flat_on_slope() -> void:
+	var scene: MHLiveConstruction = auto_free(MHLiveConstruction.new())
+	scene.store = MHSaveStore.new("user://test_craft_normals")
+	scene.ledger_dir = "user://test_craft_normals_ledgers"
+	add_child(scene)
+	assert_bool(scene._active).is_true()
+	scene.craft_hole.set_height_tile(11, 15, 6)
+	scene._open_craft_hole()
+	var hole: MHRHole = MHRHole.from_def(scene.canonical_craft_draft())
+	var centre: Vector2i = scene.craft_hole.tile_centre_yd(11, 15)
+	var n: Vector3 = scene.one_hole._craft_normal(hole, centre.x * 100, centre.y * 100)
+	assert_bool(n.is_normalized()).is_true()
+	assert_bool(absf(n.x) > 0.001 or absf(n.z) > 0.001).is_true()
+	assert_bool(n.y > 0.0).is_true()
+	scene._active = false
+
+func test_craft_water_material_is_transparent_and_low_roughness() -> void:
+	var panel: MHOneHolePanel = auto_free(MHOneHolePanel.new())
+	var material: StandardMaterial3D = panel._craft_material(MHCraftHole.Surface.WATER)
+	assert_int(material.transparency).is_equal(BaseMaterial3D.TRANSPARENCY_ALPHA)
+	assert_bool(material.albedo_color.a < 1.0).is_true()
+	assert_bool(material.roughness < 0.5).is_true()
