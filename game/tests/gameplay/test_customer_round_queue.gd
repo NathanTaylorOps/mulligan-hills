@@ -146,9 +146,10 @@ func test_social_group_has_shared_group_id_but_distinct_people() -> void:
 
 func test_facility_visit_timer_starts_only_after_physical_arrival() -> void:
 	var q: MHCustomerRoundQueue = MHCustomerRoundQueue.new()
-	var customer: Dictionary = {"serial": 3, "identity": {"id": 1, "group_id": 7}}
+	var customer: Dictionary = {"serial": 3, "hole_slot": 6, "identity": {"id": 1, "group_id": 7}}
 	var queued: Dictionary = q.queue_facility_visit(customer, "restaurant", 10.0)
-	assert_str(str(queued["facility"])).is_equal("restaurant")
+	assert_str(str(queued["facility_instance_id"])).is_equal("restaurant")
+	assert_int(int(queued["hole_slot"])).is_equal(6)
 	assert_int(q.pending_facility_visits.size()).is_equal(1)
 	assert_int(q.active_facility_visits(30.0).size()).is_equal(0)
 	var visit: Dictionary = q.begin_facility_visit(3, 30.0)
