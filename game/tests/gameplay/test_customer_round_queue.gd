@@ -107,17 +107,16 @@ func test_golfer_has_persistent_look_social_taste_and_structured_memories() -> v
 	assert_int(int((restored.golfers[int(g["id"])] as Dictionary)["look_seed"])).is_equal(int(g["look_seed"]))
 
 
-func test_three_strong_visits_can_convert_loyal_golfer_to_member() -> void:
+func test_strong_repeat_visits_create_membership_application_not_auto_membership() -> void:
 	var roster: MHGolferRoster = MHGolferRoster.new()
 	var g: Dictionary = roster.identity_for_admission(1357, 0, 1)
 	var id: int = int(g["id"])
 	var updated: Dictionary = {}
-	for day: int in range(1, 4):
+	for day: int in range(1, 5):
 		updated = roster.record_visit(id, day, 90, "Great round", 0, 0)
-	assert_int(int(updated["visits"])).is_equal(3)
-	assert_bool(bool(updated["member"])).is_true()
-	assert_str(MHGolferBubble.after_round(updated, {"satisfaction": 90})).contains("joining")
-
+	assert_bool(bool(updated["member"])).is_false()
+	assert_str(str(updated["membership_status"])).is_equal("applied")
+	assert_bool(int(updated["membership_interest"]) >= 50).is_true()
 
 func test_memory_log_is_bounded() -> void:
 	var roster: MHGolferRoster = MHGolferRoster.new()
