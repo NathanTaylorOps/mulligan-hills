@@ -16,10 +16,23 @@ static func route_to_ball(start: Vector3, ball: Vector3, serial: int, splat: MHS
 	var safe_ball: Vector3 = _safe_approach(ball, start, splat, grid)
 	var path_points: Array = _path_search(start, safe_ball, splat, grid)
 	if path_points.is_empty():
-		return [MHClubPedestrian.apply_ground_height(start, grid), safe_ball]
+		return _safe_direct_route(start, safe_ball, splat, grid)
 	if (path_points[-1] as Vector3).distance_to(safe_ball) > 0.5:
 		path_points.append(safe_ball)
 	return path_points
+
+static func _safe_direct_route(start: Vector3, goal: Vector3, splat: MHSplatMap, grid: MHHeightGrid) -> Array:
+	var out: Array = [MHClubPedestrian.apply_ground_height(start, grid)]
+	var distance: float = start.distance_to(goal)
+	var steps: int = clampi(ceili(distance / 1.5), 1, 128)
+	for i: int in range(1, steps + 1):
+		var p: Vector3 = MHClubPedestrian.apply_ground_height(start.lerp(goal, float(i) / float(steps)), grid)
+		if not MHCartSurfacePolicy.ai_can_drive(splat, p, grid):
+			# No legal connection exists. Stop before protected/hazard terrain rather than cutting across it.
+			return out
+		if (out[-1] as Vector3).distance_to(p) >= 2.5 or i == steps:
+			out.append(p)
+	return out
 
 static func _safe_approach(ball: Vector3, start: Vector3, splat: MHSplatMap, grid: MHHeightGrid) -> Vector3:
 	var p: Vector3 = MHClubPedestrian.apply_ground_height(ball, grid)
