@@ -696,3 +696,21 @@ func test_customer_resolution_builds_one_authoritative_record_per_course_hole() 
 	assert_int(int(customer["base_satisfaction"])).is_equal(expected_base)
 	assert_int(int(customer["preference_bonus"])).is_equal(expected_bonus)
 	assert_int(s.customer_feedback_count).is_equal(1)
+
+
+func test_playback_pace_adjusts_existing_visit_without_double_counting() -> void:
+	var s: MHGameSession = MHGameSession.create()
+	var identity: Dictionary = s.golfer_roster.identity_for_admission(s.save_secret, 77, s.economy.day)
+	var id: int = int(identity["id"])
+	var recorded: Dictionary = s.golfer_roster.record_visit(id, s.economy.day, 80, "Good round.", 2, 0)
+	var visits_before: int = int(recorded["visits"])
+	var memories_before: int = (recorded["memories"] as Array).size()
+	s.customer_playback.completed_wait_s[77] = 90.0
+	var customer: Dictionary = {"serial": 77, "identity": recorded, "satisfaction": 80, "hole_slot": 2,
+		"round": {"flags": 0}}
+	var adjusted: Dictionary = s.apply_playback_pace_experience(customer)
+	assert_int(int(adjusted.get("pace_penalty", 0))).is_greater(0)
+	var after: Dictionary = s.golfer_roster.golfers[id] as Dictionary
+	assert_int(int(after["visits"])).is_equal(visits_before)
+	assert_int((after["memories"] as Array).size()).is_equal(memories_before)
+	assert_int(int(((after["memories"] as Array)[memories_before - 1] as Dictionary)["satisfaction"])).is_less(80)
