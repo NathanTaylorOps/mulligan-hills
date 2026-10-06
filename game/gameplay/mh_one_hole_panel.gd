@@ -343,6 +343,7 @@ func _draw_craft_terrain(hole: MHCraftHole) -> void:
 		instance.mesh = mesh
 		instance.material_override = material
 		_world.add_child(instance)
+	_draw_surface_edges(hole, relief_hole)
 	for tee: Variant in hole.tees:
 		var t: Vector2i = tee as Vector2i
 		var tc: Vector2i = hole.tile_centre_yd(t.x, t.y)
@@ -365,6 +366,34 @@ func _append_craft_tile(st: SurfaceTool, relief_hole: MHRHole, hole: MHCraftHole
 		st.set_normal(_craft_normal(relief_hole, point.x, point.y))
 		var z: float = float(relief_hole.z_at(point.x, point.y)) / 1000.0
 		st.add_vertex(_position(point.x, point.y, z + lift))
+
+func _draw_surface_edges(hole: MHCraftHole, relief_hole: MHRHole) -> void:
+	# Sparse borders only where high-value golf surfaces meet another surface.
+	for r: int in range(hole.rows):
+		for c: int in range(hole.cols):
+			var s: int = hole.get_surface(c, r)
+			if s != MHCraftHole.Surface.GREEN and s != MHCraftHole.Surface.BUNKER and s != MHCraftHole.Surface.WATER:
+				continue
+			var centre: Vector2i = hole.tile_centre_yd(c, r)
+			for d: Vector2i in [Vector2i(1, 0), Vector2i(0, 1)]:
+				var nc: int = c + d.x
+				var nr: int = r + d.y
+				if hole.in_bounds(nc, nr) and hole.get_surface(nc, nr) == s:
+					continue
+				var half: int = MHCraftHole.TILE_YD * 50
+				var ex: int = centre.x * 100 + (half if d.x != 0 else 0)
+				var ey: int = centre.y * 100 + (half if d.y != 0 else 0)
+				var length_m: float = float(MHCraftHole.TILE_YD) * 0.9144
+				var size: Vector3 = Vector3(0.045, 0.035, length_m) if d.x != 0 else Vector3(length_m, 0.035, 0.045)
+				var z: float = float(relief_hole.z_at(ex, ey)) / 1000.0 + 0.065
+				_box(_position(ex, ey, z), size, _edge_color(s))
+
+func _edge_color(surface_id: int) -> Color:
+	match surface_id:
+		MHCraftHole.Surface.GREEN: return Color(0.66, 0.86, 0.40)
+		MHCraftHole.Surface.BUNKER: return Color(0.83, 0.76, 0.56)
+		MHCraftHole.Surface.WATER: return Color(0.22, 0.55, 0.82)
+		_: return Color.WHITE
 
 func _craft_normal(relief_hole: MHRHole, x: int, y: int) -> Vector3:
 	var sample: int = MHCraftHole.TILE_YD * 100
