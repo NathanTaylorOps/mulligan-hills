@@ -7,6 +7,7 @@ signal sunk()
 signal tipped()
 signal clubs_lost(count: int)
 signal green_violation()
+signal hard_impact(speed_mps: float)
 
 const DRIVE_FORCE: float = 780.0
 const BRAKE_FORCE: float = 1100.0
@@ -28,6 +29,8 @@ var _throttle: float = 0.0
 var _steer: float = 0.0
 var _sink_depth: float = 0.0
 var _wheel_spin: float = 0.0
+var _last_speed: float = 0.0
+var _impact_cooldown_s: float = 0.0
 
 func drive(throttle: float, steer: float) -> void:
 	_throttle = clampf(throttle, -1.0, 1.0)
@@ -57,6 +60,15 @@ func _integrate_forces(state: PhysicsDirectBodyState3D) -> void:
 	apply_torque(Vector3.UP * _steer * TURN_TORQUE * speed_factor * (1.0 if forward_speed >= -0.2 else -1.0))
 
 func _physics_process(delta: float) -> void:
+	_impact_cooldown_s = maxf(0.0, _impact_cooldown_s - delta)
+	var speed: float = linear_velocity.length()
+	var speed_drop: float = _last_speed - speed
+	if _impact_cooldown_s <= 0.0 and _last_speed >= 7.0 and speed_drop >= 4.5:
+		_impact_cooldown_s = 0.8
+		hard_impact.emit(_last_speed)
+		if _last_speed >= 10.0:
+			_shed_clubs()
+	_last_speed = speed
 	var forward: Vector3 = -global_transform.basis.z.normalized()
 	var visual_speed: float = linear_velocity.dot(forward)
 	_wheel_spin = fposmod(_wheel_spin + visual_speed * delta / 0.28, TAU)
