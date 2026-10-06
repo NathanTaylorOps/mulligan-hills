@@ -253,11 +253,14 @@ func _process(delta: float) -> void:
 			_ai_playing = false
 			_draw()
 			var identity: Dictionary = customer.get("identity", {}) as Dictionary
-			_feedback.text = "%s teed off after paying $%.2f%s" % [str(identity.get("name", "Customer #%d" % (_last_customer_serial + 1))),
-				float(int(customer["paid_fee"])) / 100.0, " — returning golfer" if int(identity.get("visits", 0)) > 0 else ""]
+			_feedback.text = "%s teed off after paying $%.2f%s | group of %d" % [str(identity.get("name", "Customer #%d" % (_last_customer_serial + 1))),
+				float(int(customer["paid_fee"])) / 100.0, " — returning golfer" if int(identity.get("visits", 0)) > 0 else "",
+				int(customer.get("group_size", 1))]
 		else:
 			var rep_before: int = live.session.economy.reputation
 			var updated: Dictionary = live.session.record_customer_visit(customer)
+			var facility: String = live.session.choose_post_round_facility(updated)
+			var facility_visit: Dictionary = _customers.queue_facility_visit(customer, facility, _customer_time)
 			var rep_delta: int = live.session.economy.reputation - rep_before
 			var identity: Dictionary = customer.get("identity", {}) as Dictionary
 			var golfer_name: String = str(identity.get("name", "Customer #%d" % (int(customer["serial"]) + 1)))
@@ -270,6 +273,8 @@ func _process(delta: float) -> void:
 				_feedback.text += " | MEMBER"
 			if int(updated.get("group_id", -1)) >= 0:
 				_feedback.text += " | %s group #%d" % [str(updated.get("relationship_role", "friend")), int(updated["group_id"]) + 1]
+			if not facility_visit.is_empty():
+				_feedback.text += " | visiting %s" % facility.replace("_", " ")
 	if not _customers.active.is_empty():
 		_apply_ai_visual(_customers.visual_state(_customer_time))
 		return
