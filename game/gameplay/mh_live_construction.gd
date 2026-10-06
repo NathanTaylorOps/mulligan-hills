@@ -20,6 +20,7 @@ var store: MHSaveStore = MHSaveStore.new(SAVE_DIR)
 var document: Dictionary = {}
 var aim_input: MHPracticeAimInput
 var one_hole: MHOneHolePanel
+var craft_hole: MHCraftHole
 var _status: Label
 ## Responsive layout (MHLiveLayout zones inside the area the HUD leaves free). See docs/phase1/live_construction.md.
 var _dock: Control
@@ -130,11 +131,12 @@ func _ready() -> void:
 	one_hole = MHOneHolePanel.new()
 	_panel_frame.add_child(one_hole)
 	one_hole.setup(self)
+	craft_hole = _default_craft_hole()
 	one_hole.visibility_changed.connect(_on_panel_visibility)
 	one_hole.layout_changed.connect(_relayout)
 	get_viewport().size_changed.connect(_relayout)
 	shell.screen_changed.connect(func(_id: String) -> void: _relayout())
-	play.pressed.connect(one_hole.open)
+	play.pressed.connect(_open_craft_hole)
 	router.register_ui_region(&"live_practice", _button_rect.bind(play))
 	router.register_ui_region(&"live_save", _button_rect.bind(save_button))
 	router.register_ui_region(&"live_back", _button_rect.bind(back))
@@ -372,3 +374,24 @@ func _new_document() -> Dictionary:
 		"sim": {"rating_epoch": 0, "rng_seed": "0000000000000000", "rng_inc": "0000000000000001", "golfer_serial": 0},
 		"ratings": {"rating_version": MHRatingEngine.RATING_VERSION, "computed_day": 0, "course_score": 0, "holes": []},
 		"progress": {"tutorial_step": 0, "achievements": [], "tournaments": {"hosted_levels": [], "cooldown_until_day": 0}}}
+
+
+func _default_craft_hole() -> MHCraftHole:
+	var craft: MHCraftHole = MHCraftHole.new(24, 40)
+	craft.paint_rect(10, 0, 13, 29, MHCraftHole.Surface.FAIRWAY)
+	craft.paint_rect(11, 30, 12, 31, MHCraftHole.Surface.GREEN)
+	craft.add_tee(11, 0)
+	craft.add_pin(11, 30)
+	return craft
+
+func canonical_craft_draft(round_no: int = 0) -> Dictionary:
+	if craft_hole == null:
+		return {}
+	return MHCraftConvert.to_hole_def(craft_hole, 0, round_no, 0)
+
+func _open_craft_hole() -> void:
+	var draft: Dictionary = canonical_craft_draft()
+	if not draft.is_empty() and not one_hole.set_canonical_draft(draft):
+		_status.text = "Craft hole is not valid enough to finalize yet."
+		return
+	one_hole.open()
