@@ -387,3 +387,29 @@ func test_reputation_feedback_respects_economy_floor_and_ceiling() -> void:
 	s.economy.reputation = s.economy.params.c("rep_floor_permille")
 	s.record_customer_feedback(0)
 	assert_int(s.economy.reputation).is_equal(s.economy.params.c("rep_floor_permille"))
+
+
+func test_golfer_identity_history_survives_session_checkpoint() -> void:
+	var scene: MHLiveConstruction = auto_free(MHLiveConstruction.new())
+	scene.store = MHSaveStore.new(DIR)
+	scene.ledger_dir = LEDGERS
+	add_child(scene)
+	scene.session.clock.pause()
+	var identity: Dictionary = scene.session.golfer_roster.identity_for_admission(scene.session.save_secret, 0, 1)
+	scene.session.golfer_roster.record_visit(int(identity["id"]), 1, 90, "Favorite elevated hole")
+	scene.session._customer_serial = 5
+	scene.session.customer_feedback_sum = 90
+	scene.session.customer_feedback_count = 1
+	assert_bool(scene.save_now()).is_true()
+	var loaded: MHSaveResult = scene.store.load_slot(0)
+	assert_bool(loaded.is_ok()).is_true()
+	var saved: MHLoadedSave = loaded.value as MHLoadedSave
+	var ledger: MHSaveResult = MHSessionSave.load_ledger(saved.data, LEDGERS)
+	var restored: MHSaveResult = MHSessionSave.restore(saved.data, ledger.value as MHTokenLedger)
+	assert_bool(restored.is_ok()).is_true()
+	if restored.is_ok():
+		var s: MHGameSession = restored.value
+		assert_dict(s.golfer_roster.to_dict()).is_equal(scene.session.golfer_roster.to_dict())
+		assert_int(s._customer_serial).is_equal(5)
+		assert_int(s.customer_feedback_average()).is_equal(90)
+	scene._active = false
