@@ -126,16 +126,17 @@ func test_problems_stop_a_hole_that_cannot_be_rated() -> void:
 	assert_array(MHCraftConvert.problems(_hole())).is_empty()
 
 
-func test_each_round_uses_the_next_pin_and_tee_box_choice() -> void:
+func test_each_round_uses_the_next_pin() -> void:
 	var h: MHCraftHole = _hole()
-	h.add_tee(11, 2)
 	h.paint_rect(10, 30, 13, 31, MHCraftHole.Surface.GREEN)
 	h.add_pin(13, 31)
 	var a: Dictionary = MHCraftConvert.to_hole_def(h, 0, 0, 0)
-	var b: Dictionary = MHCraftConvert.to_hole_def(h, 0, 1, 1)
+	var b: Dictionary = MHCraftConvert.to_hole_def(h, 0, 0, 1)
+	var c: Dictionary = MHCraftConvert.to_hole_def(h, 0, 0, 2)
 	assert_int(int((a["green"] as Array)[0])).is_not_equal(int((b["green"] as Array)[0]))
-	assert_int(int((a["tee"] as Array)[1])).is_not_equal(int((b["tee"] as Array)[1]))
-	assert_int(MHCraftConvert.length_yd(h, 0, 0)).is_greater(MHCraftConvert.length_yd(h, 1, 0)) # forward tee is shorter
+	assert_bool(a["green"] == c["green"]).is_true() # two pins take turns
+	assert_bool(a["tee"] == b["tee"]).is_true()
+	assert_int(MHCraftConvert.length_yd(h, 0, 1)).is_greater(MHCraftConvert.length_yd(h, 0, 0))
 
 
 func test_the_output_passes_rating_validation_and_is_deterministic() -> void:

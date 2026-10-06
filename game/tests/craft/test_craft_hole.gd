@@ -88,12 +88,10 @@ func test_cancel_rolls_back_and_no_edit_while_undo_blocked() -> void:
 	assert_int(h.undo_count()).is_equal(0)
 
 
-func test_up_to_three_tees_and_four_pins_rotate_by_round() -> void:
+func test_one_tee_and_four_pins_rotate_by_round() -> void:
 	var h: MHCraftHole = MHCraftHole.new(24, 40)
 	assert_int(h.add_tee(11, 0)).is_equal(0)
-	assert_int(h.add_tee(11, 2)).is_equal(1)
-	assert_int(h.add_tee(11, 4)).is_equal(2)
-	assert_int(h.add_tee(11, 6)).is_equal(-1) # only three tee boxes
+	assert_int(h.add_tee(11, 2)).is_equal(-1) # one tee box per hole (DEC-090)
 	assert_int(h.pin_for_round(0)).is_equal(-1) # no pins yet
 	for i: int in range(4):
 		assert_int(h.add_pin(10 + i, 30)).is_equal(i)

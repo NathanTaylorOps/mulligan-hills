@@ -3,7 +3,7 @@ extends RefCounted
 ## One hole as the player paints it (the "craft" terrain designer, DEC-084, docs/phase1/terrain_designer.md).
 ## A grid of square tiles in the hole's local frame: x across (0 is the centre line), y toward the green (0 is the
 ## tee end). One tile is TILE_YD whole yards. Every tile has a surface and a height in whole metres, from
-## HEIGHT_MIN_M to HEIGHT_MAX_M (valleys and high ground, DEC-088). Up to three tee boxes, up to four pin positions
+## HEIGHT_MIN_M to HEIGHT_MAX_M (valleys and high ground, DEC-088). One tee box (DEC-090), up to four pin positions
 ## (the pin used rotates each round), trees as yard points, rock and flower counts.
 ## Pure data and integer maths: no nodes, no randomness. Strokes are undoable (one undo per finger stroke).
 ## NOT YET RUN in Godot.
@@ -18,9 +18,8 @@ const SURFACE_COUNT: int = 13
 const TILE_YD: int = 2
 const HEIGHT_MIN_M: int = -4
 const HEIGHT_MAX_M: int = 16
-const MAX_TEES: int = 3
+const MAX_TEES: int = 1
 const MAX_PINS: int = 4
-const TEE_NAMES: Array = ["front", "middle", "back"]
 const UNDO_LIMIT: int = 100
 
 var cols: int
@@ -226,7 +225,7 @@ func raise_disc(c: int, r: int, radius: int, delta_m: int) -> void:
 
 # ---------------------------------------------------------------- tees, pins, objects (not undoable strokes)
 
-## Adds a tee box tile. Returns its index or -1 when full or out of the grid.
+## Adds the hole's tee box tile. Returns 0, or -1 when the hole already has its tee or the tile is outside the grid.
 func add_tee(c: int, r: int) -> int:
 	if tees.size() >= MAX_TEES or not in_bounds(c, r):
 		return -1
