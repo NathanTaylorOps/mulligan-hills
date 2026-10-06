@@ -472,6 +472,33 @@ func _resolve_customer_hour() -> void:
 		economy.reputation = clampi(economy.reputation + delta, economy.params.c("rep_floor_permille"), 1000)
 
 
+func apply_playback_pace_experience(customer: Dictionary) -> Dictionary:
+	# Playback may discover real congestion after the authoritative admission/round was resolved.
+	# Apply only that newly observed experience to reputation + golfer memory; never cash, fees or admissions.
+	var serial: int = int(customer.get("serial", -1))
+	if serial < 0:
+		return customer
+	var penalty: int = customer_playback.pace_penalty_for_customer(serial, pace_score())
+	if penalty <= 0:
+		return customer
+	var adjusted: Dictionary = customer.duplicate(true)
+	var original_sat: int = int(customer.get("satisfaction", 50))
+	var sat: int = clampi(original_sat - penalty, 0, 100)
+	adjusted["pace_penalty"] = penalty
+	adjusted["satisfaction"] = sat
+	adjusted["reaction"] = "Slow play took the shine off that round." if penalty >= 6 else "A little wait on the course, but still a good day."
+	var identity: Dictionary = customer.get("identity", {}) as Dictionary
+	if not identity.is_empty() and golfer_roster.golfers.has(int(identity.get("id", -1))):
+		adjusted["identity"] = golfer_roster.record_visit(int(identity["id"]), economy.day, sat,
+			str(adjusted["reaction"]), int(customer.get("hole_slot", 0)), int((customer.get("round", {}) as Dictionary).get("flags", 0)))
+	# Initial resolution already applied reputation from original_sat. Apply only the bounded difference here.
+	var old_delta: int = clampi(MHRMath.rdiv(original_sat - 50, 12), -4, 4)
+	var new_delta: int = clampi(MHRMath.rdiv(sat - 50, 12), -4, 4)
+	economy.reputation = clampi(economy.reputation + (new_delta - old_delta), economy.params.c("rep_floor_permille"), 1000)
+	changed.emit()
+	return adjusted
+
+
 func take_customer_outcomes(limit: int = 4) -> Array:
 	var count: int = mini(maxi(limit, 0), customer_outcomes.size())
 	var out: Array = []
