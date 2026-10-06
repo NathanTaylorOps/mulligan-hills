@@ -467,12 +467,14 @@ func _sync_building_collider(instance_id: String, visual: MeshInstance3D, placem
 		return
 	var size_x: float = maxf(1.0, float(int(saved_size[0])))
 	var size_z: float = maxf(1.0, float(int(saved_size[1])))
+	var mesh_bounds: AABB = visual.mesh.get_aabb() if visual.mesh != null else AABB()
+	var height: float = maxf(1.0, mesh_bounds.size.y)
 	var shape: BoxShape3D = BoxShape3D.new()
-	shape.size = Vector3(size_x, 3.0, size_z)
+	shape.size = Vector3(size_x, height, size_z)
 	var collision: CollisionShape3D = body.get_node("Shape") as CollisionShape3D
 	collision.disabled = false
 	collision.shape = shape
-	collision.position.y = 1.5
+	collision.position.y = mesh_bounds.position.y + height * 0.5
 
 
 ## Rect getter for router UI regions that is empty while the button is hidden (dock hidden, panel closed).
