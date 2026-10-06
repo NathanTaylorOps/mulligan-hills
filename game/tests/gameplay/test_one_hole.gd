@@ -203,3 +203,47 @@ func test_reopening_build_play_does_not_replace_finalized_layout_with_default_cr
 	assert_bool(scene.one_hole.canonical_draft.is_empty()).is_true()
 	assert_array(scene.session.hole_definitions()).contains_exactly([finalized])
 	scene._active = false
+
+
+func test_live_craft_controls_mutate_authoritative_hole_and_undo_redo() -> void:
+	var scene: MHLiveConstruction = auto_free(MHLiveConstruction.new())
+	scene.store = MHSaveStore.new("user://test_craft_controls")
+	scene.ledger_dir = "user://test_craft_controls_ledgers"
+	add_child(scene)
+	assert_bool(scene._active).is_true()
+	scene._open_craft_hole()
+	var panel: MHOneHolePanel = scene.one_hole
+	panel.craft_mode = &"surface"
+	panel.craft_surface = MHCraftHole.Surface.BUNKER
+	var before: int = scene.craft_hole.get_surface(8, 12)
+	assert_bool(panel.craft_at_tile(8, 12)).is_true()
+	assert_int(scene.craft_hole.get_surface(8, 12)).is_equal(MHCraftHole.Surface.BUNKER)
+	assert_bool(scene.craft_hole.can_undo()).is_true()
+	panel._craft_undo()
+	assert_int(scene.craft_hole.get_surface(8, 12)).is_equal(before)
+	panel._craft_redo()
+	assert_int(scene.craft_hole.get_surface(8, 12)).is_equal(MHCraftHole.Surface.BUNKER)
+	panel.craft_mode = &"raise"
+	var z: int = scene.craft_hole.get_height(11, 15)
+	assert_bool(panel.craft_at_tile(11, 15)).is_true()
+	assert_int(scene.craft_hole.get_height(11, 15)).is_equal(z + 1)
+	assert_bool(panel.canonical_draft.has("relief")).is_true()
+	scene._active = false
+
+func test_live_craft_tee_and_pin_tools_update_canonical_draft() -> void:
+	var scene: MHLiveConstruction = auto_free(MHLiveConstruction.new())
+	scene.store = MHSaveStore.new("user://test_craft_markers")
+	scene.ledger_dir = "user://test_craft_markers_ledgers"
+	add_child(scene)
+	assert_bool(scene._active).is_true()
+	scene._open_craft_hole()
+	var panel: MHOneHolePanel = scene.one_hole
+	panel.craft_mode = &"tee"
+	assert_bool(panel.craft_at_tile(12, 1)).is_true()
+	assert_array(scene.craft_hole.tees).contains_exactly([Vector2i(12, 1)])
+	panel.craft_mode = &"pin"
+	assert_bool(panel.craft_at_tile(11, 31)).is_true()
+	assert_bool(scene.craft_hole.pins.has(Vector2i(11, 31))).is_true()
+	assert_bool(panel.canonical_draft.is_empty()).is_false()
+	assert_dict(panel.canonical_draft).is_equal(scene.canonical_craft_draft())
+	scene._active = false
