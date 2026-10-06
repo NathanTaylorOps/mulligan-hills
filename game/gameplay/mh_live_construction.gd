@@ -1,7 +1,7 @@
 class_name MHLiveConstruction
 extends Node3D
-## First live connection: real terrain, clock, economy, menus and exact checkpoint. No finalized golf holes yet.
-## Isolated development slot/ledger never overwrite ordinary saves or token balances.
+## First Real Round integration scene: terrain, club simulation, finalized/rated hole, player practice and checkpoint.
+## The development slot/ledger is isolated from ordinary saves and token balances while this path is hardened.
 const SAVE_DIR: String = "user://phase1_live/saves"
 const LEDGER_DIR: String = "user://phase1_live/ledgers"
 const CELLS: int = 128 # Integration surface, not a measured final course/map budget.
@@ -31,12 +31,14 @@ var _layout_key: Array = []
 var _pending_save: bool = false
 var _active: bool = false
 var _last_usec: int = 0
+var _resumed_checkpoint: bool = false
 
 func _ready() -> void:
 	MHOrientation.apply_game() # No-op off mobile; one switch, see MHOrientation.
 	var ledger: MHTokenLedger = MHTokenLedger.new()
 	var loaded: MHSaveResult = store.load_slot(0)
 	if loaded.is_ok():
+		_resumed_checkpoint = true
 		var saved: MHLoadedSave = loaded.value as MHLoadedSave
 		var ledger_result: MHSaveResult = MHSessionSave.load_ledger(saved.data, ledger_dir)
 		if not ledger_result.is_ok():
@@ -116,7 +118,8 @@ func _ready() -> void:
 	save_button.pressed.connect(_request_save)
 	var back: MHTapButton = MHUIKit.button(shell.ctx, "Save & launcher", &"ChipButton", 160)
 	back.pressed.connect(_back)
-	var play: MHTapButton = MHUIKit.button(shell.ctx, "Build / play one hole", &"ChipButton", 180)
+	var play_label: String = "Continue first round" if _resumed_checkpoint and not session.hole_definitions().is_empty() else "Build / play first hole"
+	var play: MHTapButton = MHUIKit.button(shell.ctx, play_label, &"ChipButton", 180)
 	for b: MHTapButton in [save_button, back, play]:
 		_actions.add_child(b)
 		_action_buttons.append(b)
@@ -145,7 +148,7 @@ func _ready() -> void:
 		else: shell.trigger_region(id))
 	# The status label sits in a container with a real width (an autowrap Label directly under a CanvasLayer has
 	# zero width and wraps one character per line) and is limited to MHLiveLayout.STATUS_LINES lines.
-	_status = MHUIKit.label("Live construction: ground edits are separate from the exact Build / play one hole layout.", &"SmallLabel")
+	_status = MHUIKit.label(_first_round_status(), &"SmallLabel")
 	_status.max_lines_visible = MHLiveLayout.STATUS_LINES
 	_status.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 	_status_zone.add_child(_status)
@@ -161,6 +164,15 @@ func _ready() -> void:
 	_last_usec = Time.get_ticks_usec()
 	_request_save()
 	_relayout()
+
+func _first_round_status() -> String:
+	if _resumed_checkpoint:
+		if session.practice != null:
+			return "Checkpoint restored: continue your saved round, or redesign the hole."
+		if not session.hole_definitions().is_empty():
+			return "Checkpoint restored: your rated hole is ready to play."
+		return "Checkpoint restored: continue building your first hole."
+	return "First Real Round: build a hole, finalize its rating, play it, then save and return."
 
 func _pick(pos: Vector2) -> Vector2i:
 	return MHPicking.pick(editor.grid, controller.camera.project_ray_origin(pos), controller.camera.project_ray_normal(pos), 1500.0)
