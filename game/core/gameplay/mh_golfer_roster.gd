@@ -20,6 +20,9 @@ func group_for_admission(save_secret: int, admission_serial: int, day: int, size
 	var out: Array = []
 	var n: int = clampi(size, 1, 4)
 	var anchor: Dictionary = identity_for_admission(save_secret, admission_serial, day)
+	# Party identity is per admission, not part of the persistent social graph.
+	var party_group_id: int = admission_serial
+	anchor["group_id"] = party_group_id
 	out.append(anchor)
 	var used: Dictionary = {int(anchor["id"]): true}
 	for i: int in range(1, n):
@@ -31,7 +34,7 @@ func group_for_admission(save_secret: int, admission_serial: int, day: int, size
 		used[int(g["id"])] = true
 		# A visiting party gets a transient group id. Do not persist it into the golfer record:
 		# the same associate can legitimately appear in a different party next visit.
-		g["group_id"] = int(anchor["group_id"])
+		g["group_id"] = party_group_id
 		g["relationship_role"] = ["friend", "partner", "family"][posmod(int(g["id"]) + i, 3)]
 		link_associates(int(anchor["id"]), int(g["id"]))
 		out.append(g.duplicate(true))
@@ -39,7 +42,6 @@ func group_for_admission(save_secret: int, admission_serial: int, day: int, size
 	if int(anchor.get("visits", 0)) > 0:
 		var social: Array = public_party(int(anchor["id"]), n, admission_serial + day)
 		if social.size() == n:
-			var party_group_id: int = int(anchor["group_id"])
 			for member_v: Variant in social:
 				var member: Dictionary = member_v
 				member["group_id"] = party_group_id
