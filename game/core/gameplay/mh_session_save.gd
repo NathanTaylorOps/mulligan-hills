@@ -112,6 +112,11 @@ static func restore(source: Dictionary, ledger: MHTokenLedger) -> MHSaveResult:
 		return _bad("clock and accounting disagree")
 	s.save_secret = int(rt["save_secret"])
 	s.rating_epoch = int(doc["sim"]["rating_epoch"])
+	# create() seeds the default empty course state; restore_course() intentionally requires
+	# a fresh course container so checkpoint geometry cannot merge with live/default geometry.
+	s._holes.clear()
+	s._ratings.clear()
+	s._course.clear()
 	if not s.restore_course(layouts.value as Array):
 		return _bad("saved course cannot be officially rated")
 	if s.economy.holes != s.hole_scores().size() or s.economy.rating != int(s.course_result().get("course_x10", 0)) / 10 or s.economy.parcels != s.land.owned_count():
