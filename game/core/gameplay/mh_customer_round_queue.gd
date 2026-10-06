@@ -33,13 +33,13 @@ func offscreen_waiting_count() -> int:
 	return maxi(0, waiting.size() - MAX_VISIBLE_WAITING)
 
 
-func queue_facility_visit(customer: Dictionary, facility_id: String, now_s: float) -> Dictionary:
+func queue_facility_visit(customer: Dictionary, facility_instance_id: String, now_s: float) -> Dictionary:
 	# Queuing a destination is not the same as arriving there. The dwell timer begins only
 	# when presentation reports physical arrival through begin_facility_visit().
-	if facility_id == "":
+	if facility_instance_id == "":
 		return {}
 	var visit: Dictionary = {"identity": (customer.get("identity", {}) as Dictionary).duplicate(true),
-		"facility": facility_id, "group_id": int((customer.get("identity", {}) as Dictionary).get("group_id", -1)),
+		"facility_instance_id": facility_instance_id, "group_id": int((customer.get("identity", {}) as Dictionary).get("group_id", -1)),
 		"serial": int(customer.get("serial", 0)), "queued_s": now_s}
 	pending_facility_visits.append(visit)
 	return visit
