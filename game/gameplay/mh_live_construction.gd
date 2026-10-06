@@ -1098,8 +1098,8 @@ func _sync_visible_staff() -> void:
 		if serial <= 0 or areas.is_empty():
 			continue
 		var area_index: int = posmod((session.clock.total_minutes() / 60) + serial, areas.size())
-		var slot: int = int(areas[area_index])
-		var route: Array = _staff_work_route(slot, serial)
+		var parcel: int = int(areas[area_index])
+		var route: Array = _staff_work_route(parcel, serial)
 		if route.size() < 2:
 			continue
 		used[serial] = true
@@ -1152,19 +1152,25 @@ func _sync_staff_work_marker(node: Node3D, assignment: Dictionary, progress: flo
 		existing.text = "Grounds work"
 
 
-func _staff_work_route(slot: int, serial: int) -> Array:
-	var tee: Vector3 = _hole_world_point(slot, "tee")
-	var green: Vector3 = _hole_world_point(slot, "green")
-	if tee == Vector3.INF or green == Vector3.INF:
+func _staff_work_route(parcel: int, serial: int) -> Array:
+	if parcel < 0 or parcel >= 16 or editor == null or editor.grid == null:
 		return []
-	var forward: Vector3 = green - tee
-	forward.y = 0.0
-	if forward.length_squared() < 0.01:
-		return [tee, green]
-	var side: Vector3 = Vector3(-forward.z, 0.0, forward.x).normalized()
-	var offset: float = 3.0 + float(posmod(serial, 3)) * 1.5
-	return [tee, tee.lerp(green, 0.28) + side * offset, tee.lerp(green, 0.55) - side * offset,
-		tee.lerp(green, 0.82) + side * offset * 0.6, green]
+	# Staff areas are authoritative 4x4 land parcels, not hole slots. Route workers inside the assigned parcel.
+	var col: int = parcel % 4
+	var row: int = parcel / 4
+	var world_w: float = float(editor.grid.cells_x * editor.grid.cell_size_mm) / 1000.0
+	var world_h: float = float(editor.grid.cells_y * editor.grid.cell_size_mm) / 1000.0
+	var x0: float = world_w * float(col) / 4.0
+	var x1: float = world_w * float(col + 1) / 4.0
+	var z0: float = world_h * float(row) / 4.0
+	var z1: float = world_h * float(row + 1) / 4.0
+	var margin: float = minf(4.0, minf(x1 - x0, z1 - z0) * 0.18)
+	var phase: float = float(posmod(serial, 5)) * 0.55
+	return [Vector3(x0 + margin, 0.0, z0 + margin + phase),
+		Vector3(x1 - margin, 0.0, z0 + margin + phase),
+		Vector3(x1 - margin, 0.0, z1 - margin - phase),
+		Vector3(x0 + margin, 0.0, z1 - margin - phase),
+		Vector3(x0 + margin, 0.0, z0 + margin + phase)]
 
 
 static func _route_state(route: Array, progress: float) -> Dictionary:
