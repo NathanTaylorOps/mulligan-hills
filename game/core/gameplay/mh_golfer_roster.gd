@@ -138,6 +138,28 @@ func public_party(anchor_id: int, desired_size: int, entropy: int) -> Array:
 	return out
 
 
+
+func club_guest_for_member(save_secret: int, member_id: int, admission_serial: int, day: int) -> Dictionary:
+	if not golfers.has(member_id):
+		return {}
+	var member: Dictionary = golfers[member_id]
+	if not bool(member.get("member", false)):
+		return {}
+	# A member occasionally invites one person from the wider character pool. The invitation
+	# is deterministic from save state/day/serial so replaying a checkpoint cannot reroll it.
+	var chance: int = posmod(MHRMath.h32d(save_secret, member_id, admission_serial, day), 100)
+	if chance >= 30:
+		return {}
+	var guest: Dictionary = identity_for_admission(save_secret, admission_serial + 700001, day)
+	if int(guest.get("id", -1)) == member_id:
+		return {}
+	guest["guest_of"] = member_id
+	guest["relationship_role"] = "guest"
+	guest["group_id"] = admission_serial
+	return guest
+
+
+
 func record_visit(identity_id: int, day: int, satisfaction: int, memory: String, hole_slot: int = 0, flags: int = 0) -> Dictionary:
 	if not golfers.has(identity_id):
 		return {}
