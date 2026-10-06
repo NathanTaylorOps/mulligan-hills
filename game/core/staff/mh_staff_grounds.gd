@@ -97,7 +97,10 @@ func personal_patrol(defs: MHStaffDefs, parcel: int, cells: int, cells_per_parce
 func on_day(defs: MHStaffDefs, roster: MHStaffRoster, day: int, view: Dictionary, secret: int, equipment: MHStaffEquipment = null) -> Dictionary:
 	if day <= last_day:
 		return {"ran": false, "incidents": []}
-	var wc: Dictionary = roster.work_by_parcel(defs, view, equipment)
+	var coordination_pm: int = 1000
+	if defs.has_role("superintendent"):
+		coordination_pm += mini(200, MHStaffMath.idiv(roster.role_work_sum(defs, "superintendent"), 10))
+	var wc: Dictionary = roster.work_by_parcel(defs, view, equipment, coordination_pm)
 	var work: Array = wc["work"]
 	var ctrl: Array = wc["ctrl"]
 	var out: Array = []
