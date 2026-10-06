@@ -252,12 +252,19 @@ func _process(delta: float) -> void:
 			_ai_record = customer["round"] as Dictionary
 			_ai_playing = false
 			_draw()
-			_feedback.text = "Customer #%d teed off after paying $%.2f." % [_last_customer_serial + 1, float(int(customer["paid_fee"])) / 100.0]
+			var identity: Dictionary = customer.get("identity", {}) as Dictionary
+			_feedback.text = "%s teed off after paying $%.2f%s" % [str(identity.get("name", "Customer #%d" % (_last_customer_serial + 1))),
+				float(int(customer["paid_fee"])) / 100.0, " — returning golfer" if int(identity.get("visits", 0)) > 0 else ""]
 		else:
-			var rep_delta: int = live.session.record_customer_feedback(int(customer["satisfaction"]))
-			_feedback.text = "Customer #%d (%s) finished: %d/100 — %s %s | reputation %+d" % [
-				int(customer["serial"]) + 1, MHGolferPreference.name_of(int(customer["preference"])),
-				int(customer["satisfaction"]), str(customer["reaction"]), str(customer["preference_reaction"]), rep_delta]
+			var rep_before: int = live.session.economy.reputation
+			var updated: Dictionary = live.session.record_customer_visit(customer)
+			var rep_delta: int = live.session.economy.reputation - rep_before
+			var identity: Dictionary = customer.get("identity", {}) as Dictionary
+			var golfer_name: String = str(identity.get("name", "Customer #%d" % (int(customer["serial"]) + 1)))
+			_feedback.text = "%s (%s) finished: %d/100 — %s %s | loyalty %d | visit %d | reputation %+d" % [
+				golfer_name, MHGolferPreference.name_of(int(customer["preference"])), int(customer["satisfaction"]),
+				str(customer["reaction"]), str(customer["preference_reaction"]), int(updated.get("loyalty", 50)),
+				int(updated.get("visits", 1)), rep_delta]
 	if not _customers.active.is_empty():
 		_apply_ai_visual(_customers.visual_state(_customer_time))
 		return
