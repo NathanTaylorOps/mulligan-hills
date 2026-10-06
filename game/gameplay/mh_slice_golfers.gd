@@ -112,10 +112,13 @@ func _authoritative_state(events: Array, t: float, member: int, size: int) -> Di
 	if bool(timeline.get("done", false)):
 		return {"done": true, "phase": MHSliceRound.Phase.DONE, "clip": MHGolferPoses.CLIP_IDLE,
 			"clip_t": 0.0, "aim": false, "ball_u": -1.0, "world": Vector2.ZERO}
-	var x0: float = float(int(timeline["x0"])) * 0.009144
-	var y0: float = float(int(timeline["y0"])) * 0.009144
-	var x1: float = float(int(timeline["x1"])) * 0.009144
-	var y1: float = float(int(timeline["y1"])) * 0.009144
+	# Rating traces are centiyards in the same course coordinate frame as hole definitions.
+	# The live course currently maps one authored yard to one world X/Z unit, so divide by
+	# 100 here. Timeline duration separately converts distance to metres for walking speed.
+	var x0: float = float(int(timeline["x0"])) / 100.0
+	var y0: float = float(int(timeline["y0"])) / 100.0
+	var x1: float = float(int(timeline["x1"])) / 100.0
+	var y1: float = float(int(timeline["y1"])) / 100.0
 	var u: float = float(timeline.get("u", 0.0))
 	var phase: String = str(timeline.get("phase", "address"))
 	var world: Vector2 = Vector2(x0, y0)
