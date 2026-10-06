@@ -17,8 +17,14 @@ func group_for_admission(save_secret: int, admission_serial: int, day: int, size
 	var n: int = clampi(size, 1, 4)
 	var anchor: Dictionary = identity_for_admission(save_secret, admission_serial, day)
 	out.append(anchor)
+	var used: Dictionary = {int(anchor["id"]): true}
 	for i: int in range(1, n):
 		var g: Dictionary = identity_for_admission(save_secret, admission_serial + i, day)
+		var salt: int = 1
+		while used.has(int(g["id"])) and salt < MAX_ROSTER:
+			g = identity_for_admission(save_secret, admission_serial + i + salt * 104729, day)
+			salt += 1
+		used[int(g["id"])] = true
 		g["group_id"] = int(anchor["group_id"])
 		g["relationship_role"] = ["friend", "partner", "family"][posmod(int(g["id"]) + i, 3)]
 		if golfers.has(int(g["id"])):
