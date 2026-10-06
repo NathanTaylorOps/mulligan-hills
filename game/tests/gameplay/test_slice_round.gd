@@ -143,3 +143,16 @@ func test_golfer_renderer_uses_authoritative_shot_endpoints() -> void:
 	assert_float(ball_from.y).is_equal_approx(18.288, 0.001)
 	assert_float(ball_to.x).is_equal_approx(18.288, 0.001)
 	assert_float(ball_to.y).is_equal_approx(36.576, 0.001)
+
+
+func test_group_does_not_duplicate_one_authoritative_round_trace() -> void:
+	var golfers: MHSliceGolfers = auto_free(MHSliceGolfers.new())
+	add_child(golfers)
+	golfers.setup(MHArtMaterials.vertex_color())
+	var events: Array = [{"kind": "shot", "shot": 1, "x0": 0, "y0": 0, "x1": 1000, "y1": 1000,
+		"z0": 0, "z1": 0, "penalty": 0, "tree": false}]
+	golfers.spawn_group(10, 3, Vector2.ZERO, Vector2(30.0, 30.0), {"events": events})
+	assert_int(golfers.golfer_count()).is_equal(3)
+	assert_int(((golfers.golfers[0] as Dictionary)["events"] as Array).size()).is_equal(1)
+	assert_int(((golfers.golfers[1] as Dictionary)["events"] as Array).size()).is_equal(0)
+	assert_int(((golfers.golfers[2] as Dictionary)["events"] as Array).size()).is_equal(0)
