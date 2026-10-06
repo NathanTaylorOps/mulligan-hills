@@ -16,6 +16,7 @@ var land: MHLandModel
 var bridge: MHProgressBridge
 var demo: bool = true
 var club_name: String = "Mulligan Hills"
+var management_difficulty: String = "standard" # relaxed | standard | tycoon
 var staff_system: MHStaff
 var save_secret: int = 0
 var rating_epoch: int = 0
@@ -248,7 +249,7 @@ func advance(delta_us: int, wall_unix: int) -> void:
 		_resolve_customer_hour()
 		hourly = true
 		if bool(tick["day_rolled"]):
-			var staff_day: Dictionary = staff_system.on_day(economy.day, staff_view(), save_secret)
+			var staff_day: Dictionary = staff_system.on_day(economy.day, staff_view(), save_secret, management_difficulty)
 			if bool(staff_day.get("ran", false)):
 				var equipment_cost: int = staff_system.equipment_operating_cost_cents() + staff_system.equipment_repair_cost_cents()
 				if equipment_cost > 0:
@@ -268,6 +269,21 @@ func advance(delta_us: int, wall_unix: int) -> void:
 
 
 
+func set_management_difficulty(value: String) -> bool:
+	if not ["relaxed", "standard", "tycoon"].has(value):
+		return false
+	management_difficulty = value
+	changed.emit()
+	return true
+
+
+func management_report() -> Dictionary:
+	var report: Dictionary = staff_system.report(staff_view())
+	report["difficulty"] = management_difficulty
+	report["automation"] = management_difficulty == "relaxed"
+	return report
+
+
 func hire_staff(role_id: String) -> Dictionary:
 	var result: Dictionary = staff_system.hire(role_id, economy.day, staff_view(), economy.cash)
 	if not bool(result.get("ok", false)):
@@ -278,7 +294,7 @@ func hire_staff(role_id: String) -> Dictionary:
 
 
 func buy_staff_equipment(type_id: String) -> Dictionary:
-	var result: Dictionary = staff_system.buy_equipment(type_id, economy.cash)
+	var result: Dictionary = staff_system.buy_equipment(type_id, economy.cash, staff_view())
 	if not bool(result.get("ok", false)):
 		return result
 	economy.spend(int(result["cost"]))
