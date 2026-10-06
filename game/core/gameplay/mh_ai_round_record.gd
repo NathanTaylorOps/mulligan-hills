@@ -23,6 +23,8 @@ static func play(hole_def: Dictionary, ctx: Dictionary, band: int = DEFAULT_BAND
 	var counts: PackedInt32Array = PackedInt32Array([0, 0, 0, 0, 0, 0])
 	counts[band] = golfer_index + 1
 	var seed_value: int = MHRatingEngine.seed_for(hole.slot, ctx)
+	sim.enable_trace = true
+	sim.trace_gid = golfer_index
 	sim.simulate(seed_value, counts)
 	var record_index: int = golfer_index
 	if record_index >= sim.n_golfers or sim.rec_band[record_index] != band:
@@ -32,4 +34,4 @@ static func play(hole_def: Dictionary, ctx: Dictionary, band: int = DEFAULT_BAND
 		"flags": sim.rec_flags[record_index], "time_s": sim.rec_time[record_index],
 		"first_x": sim.rec_fx[record_index], "first_y": sim.rec_fy[record_index],
 		"tee_x": hole.tee_x, "tee_y": hole.tee_y, "green_x": hole.gx, "green_y": hole.gy,
-		"has_relief": hole.has_relief, "content_hash": hole.content_hash()}
+		"has_relief": hole.has_relief, "content_hash": hole.content_hash(), "events": sim.trace_events.duplicate(true)}
