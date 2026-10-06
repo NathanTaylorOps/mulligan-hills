@@ -6,10 +6,25 @@ const FIRST: Array[String] = ["Alex","Ben","Casey","Dana","Eli","Frankie","Grace
 const LAST: Array[String] = ["Adams","Brooks","Carter","Diaz","Evans","Foster","Green","Hayes","Irwin","Jones","Kim","Lane","Miller","Nguyen","Ortiz","Price","Reed","Singh","Turner","Young"]
 const MAX_ROSTER: int = 128
 const MEMORY_LIMIT: int = 8
-const FACILITIES: Array[String] = ["clubhouse","practice","restaurant","pro_shop","spa","homes"]
+const FACILITIES: Array[String] = ["clubhouse","driving_range","restaurant","pro_shop","pool_spa","lodging","homes","landmark"]
 
 var golfers: Dictionary = {}
 var next_id: int = 0
+
+
+func group_for_admission(save_secret: int, admission_serial: int, day: int, size: int) -> Array:
+	var out: Array = []
+	var n: int = clampi(size, 1, 4)
+	var anchor: Dictionary = identity_for_admission(save_secret, admission_serial, day)
+	out.append(anchor)
+	for i: int in range(1, n):
+		var g: Dictionary = identity_for_admission(save_secret, admission_serial + i, day)
+		g["group_id"] = int(anchor["group_id"])
+		g["relationship_role"] = ["friend", "partner", "family"][posmod(int(g["id"]) + i, 3)]
+		if golfers.has(int(g["id"])):
+			golfers[int(g["id"])] = g.duplicate(true)
+		out.append(g)
+	return out
 
 
 func identity_for_admission(save_secret: int, admission_serial: int, day: int) -> Dictionary:
