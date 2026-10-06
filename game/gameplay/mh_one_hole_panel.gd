@@ -323,20 +323,55 @@ func _draw() -> void:
 	_move_aim()
 
 func _draw_craft_terrain(hole: MHCraftHole) -> void:
-	var tile_m: float = float(MHCraftHole.TILE_YD) * 0.9144
+	# Correctness-first smooth preview: shared corner heights are averages of adjacent craft samples.
+	# This removes the block staircase without changing the integer relief consumed by gameplay.
 	for r: int in range(hole.rows):
 		for c: int in range(hole.cols):
-			var centre: Vector2i = hole.tile_centre_yd(c, r)
-			var pos: Vector3 = _position(centre.x * 100, centre.y * 100, float(hole.get_height(c, r)) + 0.08)
-			_box(pos, Vector3(tile_m, 0.12, tile_m), _surface_color(hole.get_surface(c, r)))
+			_craft_tile_mesh(hole, c, r)
 	for tee: Variant in hole.tees:
 		var t: Vector2i = tee as Vector2i
 		var tc: Vector2i = hole.tile_centre_yd(t.x, t.y)
-		_marker_at(_position(tc.x * 100, tc.y * 100, float(hole.get_height(t.x, t.y)) + 0.45), Color(0.95, 0.95, 0.95), 0.28)
+		_marker_at(_position_on_ground(tc.x * 100, tc.y * 100, 0.35), Color(0.95, 0.95, 0.95), 0.28)
 	for pin: Variant in hole.pins:
 		var p: Vector2i = pin as Vector2i
 		var pc: Vector2i = hole.tile_centre_yd(p.x, p.y)
-		_box(_position(pc.x * 100, pc.y * 100, float(hole.get_height(p.x, p.y)) + 0.8), Vector3(0.08, 1.5, 0.08), Color.WHITE)
+		_box(_position_on_ground(pc.x * 100, pc.y * 100, 0.75), Vector3(0.08, 1.5, 0.08), Color.WHITE)
+	for tree: Variant in hole.trees:
+		_draw_craft_tree(tree as Vector2i)
+	_draw_craft_counts(hole)
+
+func _craft_tile_mesh(hole: MHCraftHole, c: int, r: int) -> void:
+	var x0: int = hole.tile_x0_yd(c) * 100
+	var x1: int = (hole.tile_x0_yd(c) + MHCraftHole.TILE_YD) * 100
+	var y0: int = hole.tile_y0_yd(r) * 100
+	var y1: int = (hole.tile_y0_yd(r) + MHCraftHole.TILE_YD) * 100
+	var st: SurfaceTool = SurfaceTool.new()
+	st.begin(Mesh.PRIMITIVE_TRIANGLES)
+	var normal: Vector3 = Vector3.UP
+	for point: Vector2i in [Vector2i(x0, y0), Vector2i(x1, y0), Vector2i(x1, y1),
+			Vector2i(x0, y0), Vector2i(x1, y1), Vector2i(x0, y1)]:
+		st.set_normal(normal)
+		st.add_vertex(_position_on_ground(point.x, point.y, 0.035 if hole.get_surface(c, r) != MHCraftHole.Surface.WATER else 0.015))
+	var mesh: ArrayMesh = st.commit()
+	var material: StandardMaterial3D = StandardMaterial3D.new()
+	material.albedo_color = _surface_color(hole.get_surface(c, r))
+	var instance: MeshInstance3D = MeshInstance3D.new()
+	instance.mesh = mesh
+	instance.material_override = material
+	_world.add_child(instance)
+
+func _draw_craft_tree(point: Vector2i) -> void:
+	var trunk_pos: Vector3 = _position_on_ground(point.x * 100, point.y * 100, 1.0)
+	_box(trunk_pos, Vector3(0.35, 2.0, 0.35), Color(0.34, 0.23, 0.12))
+	_marker_at(_position_on_ground(point.x * 100, point.y * 100, 2.4), Color(0.16, 0.38, 0.14), 1.25)
+
+func _draw_craft_counts(hole: MHCraftHole) -> void:
+	# Craft currently stores rocks/flowers as counts rather than positions. Show deterministic edge clusters
+	# without inventing gameplay coordinates; positioned objects can replace this when the data model gains them.
+	for i: int in range(mini(hole.rocks, 12)):
+		_marker_at(_position_on_ground((-hole.cols + 2 + i * 2) * 100, 300, 0.25), Color(0.42, 0.42, 0.40), 0.35)
+	for i: int in range(mini(hole.flowers, 20)):
+		_marker_at(_position_on_ground((hole.cols - 2 - i % 10) * 100, (4 + i / 10) * 100, 0.18), Color(0.82, 0.55, 0.68), 0.18)
 
 func _surface_color(surface_id: int) -> Color:
 	match surface_id:
