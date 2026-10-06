@@ -79,7 +79,10 @@ func advance(now_s: float) -> Dictionary:
 		var party: Array = [first]
 		while not waiting.is_empty() and int((waiting[0] as Dictionary).get("party_id", (waiting[0] as Dictionary).get("serial", 0))) == party_id:
 			party.append(waiting.pop_front() as Dictionary)
-		active = {"party_id": party_id, "customers": party, "started_s": now_s}
+		active = first.duplicate(true)
+		active["party_id"] = party_id
+		active["customers"] = party
+		active["started_s"] = now_s
 		next_tee_s = now_s + TEE_INTERVAL_S
 		event = {"kind": "started", "customers": party.duplicate(true), "customer": first.duplicate(true)}
 	if not active.is_empty():
