@@ -49,6 +49,7 @@ var _building_mesh_cache: Dictionary = {}
 var _visible_golfers: MHSliceGolfers
 var _facility_walkers: Dictionary = {}
 var _hole_transition_walkers: Dictionary = {}
+var _party_carts: Dictionary = {}
 var _golfer_reactions: Array = []
 var _visible_staff_root: Node3D
 var _visible_staff_nodes: Dictionary = {}
@@ -615,9 +616,12 @@ func _begin_hole_transition(event: Dictionary) -> void:
 	_visible_golfers.remove_group(party_id)
 	var start: Vector3 = MHClubPedestrian.apply_ground_height(from_pos, editor.grid)
 	var customers: Array = event.get("customers", [customer]) as Array
+	var uses_cart: bool = _party_uses_cart(customers, party_id)
 	_visible_golfers.spawn_walking_party(customers, start, to_pos)
+	if uses_cart:
+		_ensure_party_cart(party_id, start)
 	_hole_transition_walkers[party_id] = {"position": start,
-		"route": MHClubPedestrian.route(start, to_pos, party_id), "segment": 1}
+		"route": MHClubPedestrian.route(start, to_pos, party_id), "segment": 1, "uses_cart": uses_cart}
 
 
 func _advance_hole_transition_walkers(delta_s: float) -> void:
@@ -633,6 +637,7 @@ func _advance_hole_transition_walkers(delta_s: float) -> void:
 		walker["position"] = position
 		walker["segment"] = int(step["segment"])
 		_visible_golfers.update_walking_party(party_id, position, position - before)
+		_update_party_cart(party_id, position, position - before, bool(walker.get("uses_cart", false)))
 		if bool(step["done"]):
 			arrived.append(party_id)
 	for party_v: Variant in arrived:
@@ -643,7 +648,49 @@ func _advance_hole_transition_walkers(delta_s: float) -> void:
 			continue
 		_hole_transition_walkers.erase(party_id)
 		_visible_golfers.remove_group(party_id)
+		_remove_party_cart(party_id)
 		_render_customer_hole(event)
+
+
+func _party_uses_cart(customers: Array, party_id: int) -> bool:
+	if customers.size() < 2:
+		return false
+	if MHClubPedestrian.instance_ids_for_type(session, "cart_barn").is_empty():
+		return false
+	return posmod(party_id, 3) != 0
+
+
+func _ensure_party_cart(party_id: int, position: Vector3) -> void:
+	if _party_carts.has(party_id):
+		return
+	var root: Node3D = Node3D.new()
+	root.name = "PartyCart_%d" % party_id
+	var body: MeshInstance3D = MeshInstance3D.new()
+	var mesh: BoxMesh = BoxMesh.new()
+	mesh.size = Vector3(1.25, 0.75, 2.0)
+	body.mesh = mesh
+	body.position.y = 0.5
+	root.add_child(body)
+	add_child(root)
+	root.position = position
+	_party_carts[party_id] = root
+
+
+func _update_party_cart(party_id: int, position: Vector3, direction: Vector3, enabled: bool) -> void:
+	if not enabled:
+		return
+	_ensure_party_cart(party_id, position)
+	var cart: Node3D = _party_carts[party_id] as Node3D
+	cart.position = position
+	if direction.length_squared() > 0.001:
+		cart.rotation.y = atan2(direction.x, direction.z)
+
+
+func _remove_party_cart(party_id: int) -> void:
+	if not _party_carts.has(party_id):
+		return
+	(_party_carts[party_id] as Node3D).queue_free()
+	_party_carts.erase(party_id)
 
 
 func _hole_world_point(slot: int, key: String) -> Vector3:
