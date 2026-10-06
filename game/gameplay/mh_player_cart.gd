@@ -7,8 +7,12 @@ signal sunk()
 signal tipped()
 signal clubs_lost(count: int)
 
-const DRIVE_FORCE: float = 950.0
-const TURN_TORQUE: float = 260.0
+const DRIVE_FORCE: float = 780.0
+const BRAKE_FORCE: float = 1100.0
+const TURN_TORQUE: float = 210.0
+const MAX_FORWARD_MPS: float = 13.0
+const MAX_REVERSE_MPS: float = 5.0
+const LATERAL_GRIP: float = 7.0
 const TIP_UP_DOT: float = 0.38
 const CLUB_SHED_IMPULSE: float = 8.0
 
@@ -18,12 +22,29 @@ var debris_root: Node3D
 var _tip_reported: bool = false
 var _sunk_reported: bool = false
 var _clubs_shed: bool = false
+var _throttle: float = 0.0
+var _steer: float = 0.0
 
 func drive(throttle: float, steer: float) -> void:
+	_throttle = clampf(throttle, -1.0, 1.0)
+	_steer = clampf(steer, -1.0, 1.0)
+
+func _integrate_forces(state: PhysicsDirectBodyState3D) -> void:
 	if _sunk_reported:
+		state.linear_velocity *= 0.96
 		return
-	apply_central_force(-global_transform.basis.z * clampf(throttle, -1.0, 1.0) * DRIVE_FORCE)
-	apply_torque(Vector3.UP * clampf(steer, -1.0, 1.0) * TURN_TORQUE)
+	var forward: Vector3 = -global_transform.basis.z.normalized()
+	var right: Vector3 = global_transform.basis.x.normalized()
+	var forward_speed: float = state.linear_velocity.dot(forward)
+	var lateral_speed: float = state.linear_velocity.dot(right)
+	var limit: float = MAX_FORWARD_MPS if _throttle >= 0.0 else MAX_REVERSE_MPS
+	if absf(forward_speed) < limit or signf(_throttle) != signf(forward_speed):
+		apply_central_force(forward * _throttle * DRIVE_FORCE)
+	if absf(_throttle) < 0.05:
+		apply_central_force(-forward * forward_speed * BRAKE_FORCE * 0.02)
+	apply_central_force(-right * lateral_speed * LATERAL_GRIP * mass)
+	var speed_factor: float = clampf(absf(forward_speed) / 3.0, 0.15, 1.0)
+	apply_torque(Vector3.UP * _steer * TURN_TORQUE * speed_factor * (1.0 if forward_speed >= -0.2 else -1.0))
 
 func _physics_process(_delta: float) -> void:
 	var surface: String = MHCartSurfacePolicy.free_drive_surface(splat, global_position, grid)
