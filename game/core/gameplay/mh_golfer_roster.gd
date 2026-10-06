@@ -167,7 +167,7 @@ func from_dict(raw: Dictionary) -> bool:
 		if not g.has("associates"):
 			g["associates"] = []
 		if not g.has("social_circle_id"):
-			g["social_circle_id"] = id
+			g["social_circle_id"] = int(g["id"])
 		if not g.has("membership_status"):
 			g["membership_status"] = "member" if bool(g.get("member", false)) else "none"
 		if not g.has("home_interest"):
