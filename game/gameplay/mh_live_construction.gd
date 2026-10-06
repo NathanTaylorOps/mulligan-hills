@@ -618,7 +618,7 @@ func _advance_facility_walkers(delta_s: float) -> void:
 		if not positions.has(facility_id):
 			continue
 		var start: Vector3 = Vector3.ZERO
-		var slot: int = int((pending.get("identity", {}) as Dictionary).get("favorite_hole_slot", -1))
+		var slot: int = int(pending.get("hole_slot", -1))
 		for hole_v: Variant in session.hole_definitions():
 			var hole: Dictionary = hole_v
 			if slot >= 0 and int(hole.get("slot_id", -1)) != slot:
