@@ -217,12 +217,13 @@ func _render(states: Array, cam_pos: Vector3) -> void:
 		var pos: Vector3 = positions[i] as Vector3
 		if state == MHSliceVisibility.FIGURE:
 			var look_i: int = int(d2["look"])
-			var fig: MHGolferFigure = _figure_for(look_i)
+			var figure_key: String = "%d:%d" % [int(d2.get("group", 0)), int(d2.get("member", i))]
+			var fig: MHGolferFigure = _figure_for(figure_key, look_i)
 			fig.visible = true
 			fig.position = pos
 			fig.rotation = Vector3(0.0, yaw, 0.0)
 			fig.set_pose(MHGolferPoses.sample(str(st2["clip"]), float(st2["clip_t"])))
-			used_figures[look_i] = true
+			used_figures[figure_key] = true
 		else:
 			var mi: MeshInstance3D = _baked_node(baked_used)
 			baked_used += 1
@@ -256,14 +257,14 @@ func _render(states: Array, cam_pos: Vector3) -> void:
 		(_balls[n] as MeshInstance3D).visible = false
 
 
-func _figure_for(look_index: int) -> MHGolferFigure:
-	if _figures.has(look_index):
-		return _figures[look_index] as MHGolferFigure
+func _figure_for(instance_key: String, look_index: int) -> MHGolferFigure:
+	if _figures.has(instance_key):
+		return _figures[instance_key] as MHGolferFigure
 	var fig: MHGolferFigure = MHGolferFigure.new()
 	fig.auto_advance = false # Posed directly each frame; the joint tree never self-animates.
 	add_child(fig)
 	fig.setup(_looks[look_index] as MHGolferLook, 0, _mat)
-	_figures[look_index] = fig
+	_figures[instance_key] = fig
 	return fig
 
 
