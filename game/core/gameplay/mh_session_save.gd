@@ -53,7 +53,7 @@ static func capture(session: MHGameSession, source: Dictionary) -> MHSaveResult:
 	doc["runtime"] = {"v": 1, "clock": session.clock.to_dict(), "economy": session.economy.to_dict(),
 		"save_secret": session.save_secret, "recent_scores": session.recent_scores.duplicate(),
 		"golfer_roster": session.golfer_roster.to_dict(), "customer_serial": session._customer_serial,
-		"customer_feedback_sum": session.customer_feedback_sum, "customer_feedback_count": session.customer_feedback_count,
+		"customer_feedback_sum": session.customer_feedback_sum, "customer_feedback_count": session.customer_feedback_count, "management_difficulty": session.management_difficulty,
 		"pending_customers": session._pending_customers.duplicate(true), "building_placements": session.building_placements.duplicate(true),
 		"ledger_hash": MHSaveGame.canonical_json(session.ledger.to_dict()).sha256_text(),
 		"terrain_bytes_hash": str((source.get("runtime", {}) as Dictionary).get("terrain_bytes_hash", "0".repeat(64)))}
@@ -160,6 +160,10 @@ static func restore(source: Dictionary, ledger: MHTokenLedger) -> MHSaveResult:
 	s._customer_serial = maxi(0, int(rt.get("customer_serial", 0)))
 	s.customer_feedback_sum = maxi(0, int(rt.get("customer_feedback_sum", 0)))
 	s.customer_feedback_count = maxi(0, int(rt.get("customer_feedback_count", 0)))
+	var difficulty: String = str(rt.get("management_difficulty", "standard"))
+	if not ["relaxed", "standard", "tycoon"].has(difficulty):
+		return _bad("management difficulty invalid")
+	s.management_difficulty = difficulty
 	if typeof(rt.get("pending_customers", [])) != TYPE_ARRAY:
 		return _bad("pending customer checkpoint invalid")
 	s._pending_customers = (rt.get("pending_customers", []) as Array).duplicate(true)
