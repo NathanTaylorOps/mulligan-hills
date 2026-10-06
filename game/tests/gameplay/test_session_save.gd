@@ -264,3 +264,31 @@ func test_camera_follow_and_overview_preserve_gameplay_state() -> void:
 	scene.one_hole._shoot()
 	assert_bool(scene.controller.rig.target == overview).is_true()
 	scene._active = false
+
+
+func test_first_real_round_status_distinguishes_fresh_and_restored_play() -> void:
+	var fresh: MHLiveConstruction = auto_free(MHLiveConstruction.new())
+	fresh.store = MHSaveStore.new(DIR)
+	fresh.ledger_dir = LEDGERS
+	add_child(fresh)
+	assert_bool(fresh._active).is_true()
+	assert_bool(fresh._resumed_checkpoint).is_false()
+	assert_str(fresh._first_round_status()).contains("First Real Round")
+	fresh.session.clock.pause()
+	fresh.one_hole.open()
+	fresh.one_hole._finalize()
+	fresh.one_hole._shoot()
+	assert_bool(fresh.save_now()).is_true()
+	fresh._active = false
+	remove_child(fresh)
+	fresh.queue_free()
+
+	var resumed: MHLiveConstruction = auto_free(MHLiveConstruction.new())
+	resumed.store = MHSaveStore.new(DIR)
+	resumed.ledger_dir = LEDGERS
+	add_child(resumed)
+	assert_bool(resumed._active).is_true()
+	assert_bool(resumed._resumed_checkpoint).is_true()
+	assert_object(resumed.session.practice).is_not_null()
+	assert_str(resumed._first_round_status()).contains("continue your saved round")
+	resumed._active = false
