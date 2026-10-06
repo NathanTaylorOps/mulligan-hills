@@ -27,10 +27,17 @@ var _green_reported: bool = false
 var _throttle: float = 0.0
 var _steer: float = 0.0
 var _sink_depth: float = 0.0
+var _wheel_spin: float = 0.0
 
 func drive(throttle: float, steer: float) -> void:
 	_throttle = clampf(throttle, -1.0, 1.0)
 	_steer = clampf(steer, -1.0, 1.0)
+
+func steering_input() -> float:
+	return _steer
+
+func wheel_spin() -> float:
+	return _wheel_spin
 
 func _integrate_forces(state: PhysicsDirectBodyState3D) -> void:
 	if _sunk_reported:
@@ -50,6 +57,9 @@ func _integrate_forces(state: PhysicsDirectBodyState3D) -> void:
 	apply_torque(Vector3.UP * _steer * TURN_TORQUE * speed_factor * (1.0 if forward_speed >= -0.2 else -1.0))
 
 func _physics_process(delta: float) -> void:
+	var forward: Vector3 = -global_transform.basis.z.normalized()
+	var visual_speed: float = linear_velocity.dot(forward)
+	_wheel_spin = fposmod(_wheel_spin + visual_speed * delta / 0.28, TAU)
 	var surface: String = MHCartSurfacePolicy.free_drive_surface(splat, global_position, grid)
 	if surface == "green":
 		if not _green_reported:
