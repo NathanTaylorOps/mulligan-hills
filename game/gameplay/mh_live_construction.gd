@@ -457,15 +457,20 @@ func _sync_building_collider(instance_id: String, visual: MeshInstance3D, placem
 		_placed_building_colliders[instance_id] = body
 	body.position = visual.position
 	body.rotation = visual.rotation
-	var footprint: Array = placement.get("footprint_mm", []) as Array
-	var size_x: float = 4.0
-	var size_z: float = 4.0
-	if footprint.size() >= 2:
-		size_x = maxf(1.0, float(int(footprint[0])) / 1000.0)
-		size_z = maxf(1.0, float(int(footprint[1])) / 1000.0)
+	var saved_size: Array = placement.get("size_m", []) as Array
+	if saved_size.size() != 2:
+		# Valid placements always carry the authoritative footprint produced by MHBuildingPlacement.validate().
+		# Do not invent a collision footprint if restored/legacy data is incomplete.
+		body.visible = false
+		var missing_shape: CollisionShape3D = body.get_node("Shape") as CollisionShape3D
+		missing_shape.disabled = true
+		return
+	var size_x: float = maxf(1.0, float(int(saved_size[0])))
+	var size_z: float = maxf(1.0, float(int(saved_size[1])))
 	var shape: BoxShape3D = BoxShape3D.new()
 	shape.size = Vector3(size_x, 3.0, size_z)
 	var collision: CollisionShape3D = body.get_node("Shape") as CollisionShape3D
+	collision.disabled = false
 	collision.shape = shape
 	collision.position.y = 1.5
 
