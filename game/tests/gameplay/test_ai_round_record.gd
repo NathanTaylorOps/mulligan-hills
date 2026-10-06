@@ -32,3 +32,30 @@ func test_ai_record_consumes_elevated_relief_hole() -> void:
 	assert_bool(bool(record["has_relief"])).is_true()
 	assert_str(str(record["content_hash"])).is_equal(MHRHole.from_def(h).content_hash())
 	assert_bool(int(record["first_y"]) != 0 or int(record["first_x"]) != 0).is_true()
+
+
+func test_ai_trace_stroke_cost_matches_round_record() -> void:
+	var record: Dictionary = MHAIRoundRecord.play(_hole(true), {"save_secret": 99, "rating_epoch": 2})
+	assert_bool(record.is_empty()).is_false()
+	var events: Array = record["events"]
+	assert_bool(events.is_empty()).is_false()
+	var traced_strokes: int = 0
+	for v: Variant in events:
+		var e: Dictionary = v
+		traced_strokes += int(e["strokes"])
+		assert_bool(e.has("x0") and e.has("y0") and e.has("x1") and e.has("y1")).is_true()
+		assert_bool(e.has("z0") and e.has("z1")).is_true()
+	assert_int(traced_strokes).is_equal(int(record["strokes"]))
+
+
+func test_ai_timeline_uses_trace_endpoints_and_finishes() -> void:
+	var record: Dictionary = MHAIRoundRecord.play(_hole(false), {"save_secret": 77, "rating_epoch": 1})
+	var events: Array = record["events"]
+	var first: Dictionary = events[0]
+	var start: Dictionary = MHAIRoundTimeline.state(events, 0.0)
+	assert_int(int(start["x0"])).is_equal(int(first["x0"]))
+	assert_int(int(start["y0"])).is_equal(int(first["y0"]))
+	assert_int(int(start["x1"])).is_equal(int(first["x1"]))
+	assert_int(int(start["y1"])).is_equal(int(first["y1"]))
+	var done: Dictionary = MHAIRoundTimeline.state(events, MHAIRoundTimeline.total_duration(events) + 1.0)
+	assert_bool(bool(done["done"])).is_true()
