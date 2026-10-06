@@ -87,9 +87,25 @@ func _fill() -> void:
 		employee_row.add_child(MHUIKit.label(MHStrings.t("management.employee", {"serial": int(e.get("serial", 0)),
 			"role": MHStrings.t(str(e.get("name_key", ""))), "days": int(e.get("tenure", 0))}), &"Label"))
 		if str(e.get("kind", "")) != "station":
+			var area_actions: HFlowContainer = MHUIKit.flow(4)
+			sb.add_child(area_actions)
+			for area_v: Variant in r.get("owned_areas", []):
+				var area: int = int(area_v)
+				var current_areas: Array = e.get("areas", [])
+				var next_areas: Array = current_areas.duplicate()
+				if next_areas.has(area):
+					next_areas.erase(area)
+				else:
+					next_areas.append(area)
+					next_areas.sort()
+				var area_button: MHTapButton = MHUIKit.button(ctx, MHStrings.t("management.parcel", {"parcel": area + 1}),
+					&"SelectedButton" if current_areas.has(area) else &"ChipButton", 86.0)
+				area_button.pressed.connect(send.bind(&"assign_staff", {"employee_serial": int(e.get("serial", 0)), "areas": next_areas}))
+				area_actions.add_child(area_button)
 			var clear_button: MHTapButton = MHUIKit.button(ctx, MHStrings.t("management.unassign"), &"ChipButton", 80.0)
+			clear_button.disabled = (e.get("areas", []) as Array).is_empty()
 			clear_button.pressed.connect(send.bind(&"assign_staff", {"employee_serial": int(e.get("serial", 0)), "areas": []}))
-			employee_row.add_child(clear_button)
+			area_actions.add_child(clear_button)
 		var fire_button: MHTapButton = MHUIKit.button(ctx, MHStrings.t("management.fire"), &"ChipButton", 80.0)
 		fire_button.pressed.connect(send.bind(&"fire_staff", {"employee_serial": int(e.get("serial", 0))}))
 		employee_row.add_child(fire_button)
