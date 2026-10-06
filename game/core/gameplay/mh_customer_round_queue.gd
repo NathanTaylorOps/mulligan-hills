@@ -238,6 +238,24 @@ func _sync_active_compat() -> void:
 	active = (active_parties[ids[0]] as Dictionary).duplicate(true)
 
 
+func traffic_state() -> Dictionary:
+	# Read-only presentation/debug view. No economy or simulation authority lives here.
+	var parties: Array = []
+	var ids: Array = active_parties.keys()
+	ids.sort()
+	for party_v: Variant in ids:
+		var party_id: int = int(party_v)
+		var state: Dictionary = active_parties[party_id] as Dictionary
+		var customers: Array = state.get("customers", []) as Array
+		parties.append({"party_id": party_id, "hole_slot": int((customers[0] as Dictionary).get("hole_slot", -1)) if not customers.is_empty() else -1,
+			"transitioning": bool(state.get("transitioning", false)), "size": customers.size()})
+	var reservations: Dictionary = {}
+	for slot_v: Variant in tee_reservations.keys():
+		reservations[int(slot_v)] = (tee_reservations[slot_v] as Array).duplicate()
+	return {"active_parties": parties, "occupied_holes": occupied_holes.duplicate(),
+		"tee_reservations": reservations, "waiting_customers": waiting.size()}
+
+
 func visual_state(now_s: float) -> Dictionary:
 	if active.is_empty():
 		return {"done": true}
