@@ -1,17 +1,20 @@
 extends GdUnitTestSuite
 
 func test_equipment_improves_work_and_degrades_deterministically() -> void:
-	var defs: MHStaffDefs = MHStaffDefs.load_default()
 	var a: MHStaffEquipment = MHStaffEquipment.new()
 	var b: MHStaffEquipment = MHStaffEquipment.new()
-	assert_bool(bool(a.add_unit("greens_mower")["ok"])).is_true()
-	assert_bool(bool(b.add_unit("greens_mower")["ok"])).is_true()
-	assert_bool(a.available_multiplier_permille(MHStaffDefs.KIND_GROUNDS) > 1000).is_true()
+	var a_unit: Dictionary = a.add_unit("greens_mower")
+	var b_unit: Dictionary = b.add_unit("greens_mower")
+	assert_bool(bool(a_unit["ok"])).is_true()
+	assert_bool(bool(b_unit["ok"])).is_true()
+	assert_bool(a.assign_unit(int(a_unit["serial"]), 1, MHStaffDefs.KIND_GROUNDS)).is_true()
+	assert_bool(b.assign_unit(int(b_unit["serial"]), 1, MHStaffDefs.KIND_GROUNDS)).is_true()
+	assert_bool(a.multiplier_for_employee(1, MHStaffDefs.KIND_GROUNDS) > 1000).is_true()
 	for _day: int in range(20):
-		a.on_day(0)
-		b.on_day(0)
+		a.on_day(0, 0, [1])
+		b.on_day(0, 0, [1])
 	assert_dict(a.to_save_block()).is_equal(b.to_save_block())
-	assert_bool(a.available_multiplier_permille(MHStaffDefs.KIND_GROUNDS) < 1250).is_true()
+	assert_bool(a.multiplier_for_employee(1, MHStaffDefs.KIND_GROUNDS) < 1250).is_true()
 
 
 func test_workshop_tier_maintains_equipment_condition() -> void:
