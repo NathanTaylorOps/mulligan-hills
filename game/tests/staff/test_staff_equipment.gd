@@ -39,3 +39,24 @@ func test_equipment_save_round_trip_and_corruption_rejection() -> void:
 	(bad["units"][0] as Dictionary)["condition"] = 1001
 	var c: MHStaffEquipment = MHStaffEquipment.new()
 	assert_bool(c.from_save_block(bad)).is_false()
+
+
+func test_equipment_only_boosts_assigned_compatible_employee() -> void:
+	var defs: MHStaffDefs = MHStaffDefs.load_default()
+	var roster: MHStaffRoster = MHStaffRoster.new()
+	var equipment: MHStaffEquipment = MHStaffEquipment.new()
+	roster.employees = [
+		{"serial": 1, "role": "groundskeeper", "hired_day": 0, "tenure": 0, "areas": [0]},
+		{"serial": 2, "role": "groundskeeper", "hired_day": 0, "tenure": 0, "areas": [1]},
+	]
+	var unit: Dictionary = equipment.add_unit("greens_mower")
+	assert_bool(equipment.assign_unit(int(unit["serial"]), 1, MHStaffDefs.KIND_GROUNDS)).is_true()
+	var view: Dictionary = {"tiers": {"maintenance": 1}, "owned": [0, 1], "kinds": ["golf","golf","golf","golf","golf","golf","golf","golf","golf","golf","golf","golf","golf","golf","golf","golf"]}
+	var wc: Dictionary = roster.work_by_parcel(defs, view, equipment)
+	assert_bool(int(wc["work"][0]) > int(wc["work"][1])).is_true()
+
+
+func test_incompatible_operator_assignment_is_rejected() -> void:
+	var equipment: MHStaffEquipment = MHStaffEquipment.new()
+	var unit: Dictionary = equipment.add_unit("sprayer")
+	assert_bool(equipment.assign_unit(int(unit["serial"]), 7, MHStaffDefs.KIND_GROUNDS)).is_false()
