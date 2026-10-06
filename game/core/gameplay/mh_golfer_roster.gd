@@ -38,8 +38,9 @@ func group_for_admission(save_secret: int, admission_serial: int, day: int, size
 		g["relationship_role"] = ["friend", "partner", "family"][posmod(int(g["id"]) + i, 3)]
 		link_associates(int(anchor["id"]), int(g["id"]))
 		out.append(g.duplicate(true))
-	# Once an anchor has a social graph, vary future public parties among those known associates.
+	# Once an anchor has returned, complete the deterministic friend pool and vary each public party.
 	if int(anchor.get("visits", 0)) > 0:
+		ensure_social_graph(save_secret)
 		var social: Array = public_party(int(anchor["id"]), n, admission_serial + day)
 		if social.size() == n:
 			for member_v: Variant in social:
@@ -88,6 +89,33 @@ func link_associates(a_id: int, b_id: int) -> void:
 				associates.pop_front()
 		g["associates"] = associates
 		golfers[int(pair[0])] = g
+
+
+
+func ensure_social_graph(save_secret: int) -> void:
+	# Once identities exist, give every golfer a deterministic pool of up to eight known people.
+	# This is persistent relationship state; individual visiting parties remain transient subsets.
+	if golfers.size() < 2:
+		return
+	var ids: Array = golfers.keys()
+	ids.sort()
+	for anchor_v: Variant in ids:
+		var anchor_id: int = int(anchor_v)
+		var candidates: Array = []
+		for other_v: Variant in ids:
+			var other_id: int = int(other_v)
+			if other_id == anchor_id:
+				continue
+			var score: int = MHRMath.h32d(save_secret, anchor_id, other_id, 0x534F434C)
+			candidates.append({"id": other_id, "score": score})
+		candidates.sort_custom(func(a: Dictionary, b: Dictionary) -> bool:
+			if int(a["score"]) == int(b["score"]):
+				return int(a["id"]) < int(b["id"])
+			return int(a["score"]) < int(b["score"]))
+		var limit: int = mini(ASSOCIATE_LIMIT, candidates.size())
+		for i: int in range(limit):
+			link_associates(anchor_id, int((candidates[i] as Dictionary)["id"]))
+
 
 
 func public_party(anchor_id: int, desired_size: int, entropy: int) -> Array:
