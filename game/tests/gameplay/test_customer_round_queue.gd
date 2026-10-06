@@ -237,3 +237,10 @@ func test_playback_virtualization_never_drops_authoritative_customers() -> void:
 	assert_int(q.waiting.size()).is_equal(40)
 	assert_int(q.visible_waiting().size()).is_equal(MHCustomerRoundQueue.MAX_VISIBLE_WAITING)
 	assert_int(q.offscreen_waiting_count()).is_equal(16)
+
+
+func test_satisfaction_is_relative_to_hole_par() -> void:
+	assert_int(MHCustomerRoundQueue.satisfaction({"strokes": 4, "flags": 0}, 4)).is_equal(
+		MHCustomerRoundQueue.satisfaction({"strokes": 3, "flags": 0}, 3))
+	assert_bool(MHCustomerRoundQueue.satisfaction({"strokes": 6, "flags": 0}, 5) >
+		MHCustomerRoundQueue.satisfaction({"strokes": 6, "flags": 0}, 3)).is_true()
