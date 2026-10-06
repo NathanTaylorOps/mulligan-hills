@@ -64,3 +64,20 @@ func test_finalized_fairway_rejects_building_even_on_flat_ground() -> void:
 	var r: Dictionary = MHBuildingPlacement.validate(w[0], w[1], w[2], "pro_shop", 1, Vector2i(48000, 50000), [], 0, [hole])
 	assert_bool(bool(r["ok"])).is_false()
 	assert_str(str(r["reason"])).is_equal("golf_feature")
+
+
+func test_tree_or_decor_obstacle_rejects_footprint() -> void:
+	var w: Array = _world()
+	var obstacles: Array = [{"kind": "tree", "x_mm": 48000, "y_mm": 48000, "radius_mm": 1800}]
+	var r: Dictionary = MHBuildingPlacement.validate(w[0], w[1], w[2], "pro_shop", 1,
+		Vector2i(48000, 48000), [], 0, [], obstacles)
+	assert_bool(bool(r["ok"])).is_false()
+	assert_str(str(r["reason"])).is_equal("obstacle")
+
+
+func test_nearby_obstacle_outside_footprint_is_allowed() -> void:
+	var w: Array = _world()
+	var obstacles: Array = [{"kind": "rock", "x_mm": 70000, "y_mm": 70000, "radius_mm": 1000}]
+	var r: Dictionary = MHBuildingPlacement.validate(w[0], w[1], w[2], "pro_shop", 1,
+		Vector2i(48000, 48000), [], 0, [], obstacles)
+	assert_bool(bool(r["ok"])).is_true()
