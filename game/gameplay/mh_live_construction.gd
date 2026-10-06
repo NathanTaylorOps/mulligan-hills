@@ -56,6 +56,7 @@ var _cart_drive_input: MHCartDriveInput
 var _cart_drive_active: bool = false
 var _hud_layer: CanvasLayer
 var _cart_camera: Camera3D
+var _cart_camera_ready: bool = false
 var _golfer_reactions: Array = []
 var _visible_staff_root: Node3D
 var _visible_staff_nodes: Dictionary = {}
@@ -697,6 +698,7 @@ func enter_cart_drive_mode() -> bool:
 		add_child(_cart_camera)
 	_cart_drive_input.show()
 	_cart_drive_active = true
+	_cart_camera_ready = false
 	_cart_camera.current = true
 	router.accept_world_input = false
 	_status.text = "Free drive: stay on paths or cause trouble."
@@ -705,6 +707,7 @@ func enter_cart_drive_mode() -> bool:
 
 func exit_cart_drive_mode() -> void:
 	_cart_drive_active = false
+	_cart_camera_ready = false
 	if router != null:
 		router.accept_world_input = true
 	if _cart_drive_input != null:
@@ -724,7 +727,12 @@ func _update_cart_drive_camera() -> void:
 		return
 	var back: Vector3 = _player_cart.global_transform.basis.z.normalized() * 7.0
 	var target: Vector3 = _player_cart.global_position + Vector3(0.0, 1.0, 0.0)
-	_cart_camera.global_position = target + back + Vector3(0.0, 3.8, 0.0)
+	var desired: Vector3 = target + back + Vector3(0.0, 3.8, 0.0)
+	if not _cart_camera_ready:
+		_cart_camera.global_position = desired
+		_cart_camera_ready = true
+	else:
+		_cart_camera.global_position = _cart_camera.global_position.lerp(desired, 0.16)
 	_cart_camera.look_at(target, Vector3.UP)
 
 
