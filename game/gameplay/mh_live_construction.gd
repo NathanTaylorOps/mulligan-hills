@@ -752,6 +752,10 @@ func enter_cart_drive_mode() -> bool:
 func exit_cart_drive_mode() -> void:
 	_cart_drive_active = false
 	_cart_camera_ready = false
+	if _cart_tree_collision_root != null and is_instance_valid(_cart_tree_collision_root):
+		_cart_tree_collision_root.queue_free()
+	_cart_tree_collision_root = null
+	_cart_tree_collision_anchor = Vector3.INF
 	if router != null:
 		router.accept_world_input = true
 	if _cart_drive_input != null:
