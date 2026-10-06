@@ -474,30 +474,31 @@ func test_multiple_building_instances_keep_distinct_identity() -> void:
 	assert_bool(s.building_placements.has("clubhouse_b")).is_true()
 
 
-func test_maintenance_quality_depends_on_worker_skill_and_facilities() -> void:
+
+func test_staff_roster_round_trips_through_live_session_checkpoint() -> void:
 	var s: MHGameSession = MHGameSession.create()
-	assert_bool(s.set_maintenance_workers([1, 1])).is_true()
-	var low_workers: int = s.maintenance_quality()
-	assert_bool(s.set_maintenance_workers([5, 5])).is_true()
-	var skilled_workers: int = s.maintenance_quality()
-	assert_bool(skilled_workers > low_workers).is_true()
-	var maintenance_index: int = s.economy.params.building_index("maintenance")
-	if maintenance_index >= 0:
-		s.economy.set_tier(maintenance_index, 2)
-	var shed_index: int = s.economy.params.building_index("equipment_shed")
-	if shed_index >= 0:
-		s.economy.set_tier(shed_index, 2)
-	var workshop_index: int = s.economy.params.building_index("maintenance_workshop")
-	if workshop_index >= 0:
-		s.economy.set_tier(workshop_index, 2)
-	assert_bool(s.maintenance_quality() >= skilled_workers).is_true()
+	var view: Dictionary = s.staff_view()
+	var role: String = str(s.staff_system.defs.role_ids()[0])
+	var building: String = s.staff_system.defs.role_building(role)
+	var bi: int = s.economy.params.building_index(building)
+	if bi >= 0:
+		s.economy.set_tier(bi, 1)
+	view = s.staff_view()
+	var hired: Dictionary = s.staff_system.hire(role, s.economy.day, view, 1000000000)
+	assert_bool(bool(hired.get("ok", false))).is_true()
+	var checkpoint: Dictionary = _checkpoint(s)
+	var loaded: MHSaveResult = MHSessionSave.restore(checkpoint, s.ledger)
+	assert_bool(loaded.is_ok()).is_true()
+	var restored: MHGameSession = loaded.value as MHGameSession
+	assert_array(Array(restored.staff_system.state_list())).contains_exactly(Array(s.staff_system.state_list()))
+	assert_dict(restored.staff_system.legacy_counts()).is_equal(s.staff_system.legacy_counts())
 
 
-func test_invalid_maintenance_worker_levels_are_rejected() -> void:
+func test_staff_roster_and_legacy_count_disagreement_is_rejected() -> void:
 	var s: MHGameSession = MHGameSession.create()
-	assert_bool(s.set_maintenance_workers([0])).is_false()
-	assert_bool(s.set_maintenance_workers([6])).is_false()
-	var too_many: Array = []
-	for i: int in range(MHGameSession.MAX_MAINTENANCE_WORKERS + 1):
-		too_many.append(1)
-	assert_bool(s.set_maintenance_workers(too_many)).is_false()
+	var checkpoint: Dictionary = _checkpoint(s)
+	var staff_counts: Dictionary = checkpoint["club"]["staff"] as Dictionary
+	var key: String = str(staff_counts.keys()[0])
+	staff_counts[key] = int(staff_counts[key]) + 1
+	MHSaveGame.seal(checkpoint)
+	assert_bool(MHSessionSave.restore(checkpoint, s.ledger).is_ok()).is_false()
