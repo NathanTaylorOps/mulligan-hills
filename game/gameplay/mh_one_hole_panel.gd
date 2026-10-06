@@ -592,21 +592,54 @@ func blocks_world_tap(pos: Vector2) -> bool:
 			return true
 	return false
 
-func _craft_tile_from_screen(pos: Vector2) -> Vector2i:
-	if live == null or live.craft_hole == null:
-		return Vector2i(-1, -1)
+func _screen_ground_hit(pos: Vector2, layout: Dictionary) -> Dictionary:
 	var camera: Camera3D = live.controller.camera
 	var origin: Vector3 = camera.project_ray_origin(pos)
 	var direction: Vector3 = camera.project_ray_normal(pos)
-	if absf(direction.y) < 0.00001:
+	if direction.y >= -0.00001:
+		return {"ok": false}
+	if not layout.has("relief"):
+		var flat_distance: float = -origin.y / direction.y
+		if flat_distance <= 0.0:
+			return {"ok": false}
+		return {"ok": true, "hit": origin + direction * flat_distance}
+	var relief_hole: MHRHole = MHRHole.from_def(layout)
+	# Bracket the full craft elevation range, then intersect the ray with the
+	# authoritative bilinear heightfield. This keeps screen picking aligned with
+	# visible hills instead of pretending every edit happens on y=0.
+	var low_t: float = 0.0
+	var low_plane: float = float(MHCraftHole.HEIGHT_MIN_M - 2)
+	var high_t: float = (low_plane - origin.y) / direction.y
+	if high_t <= 0.0:
+		return {"ok": false}
+	for _i: int in range(20):
+		var mid_t: float = (low_t + high_t) * 0.5
+		var point: Vector3 = origin + direction * mid_t
+		var local_x_mm: int = roundi(point.x * 1000.0) - int(ORIGIN[0]) * 100
+		var local_y_mm: int = roundi(point.z * 1000.0) - int(ORIGIN[1]) * 100
+		var x_cy: int = MHRMath.rdiv(local_x_mm * 1000, 9144)
+		var y_cy: int = MHRMath.rdiv(local_y_mm * 1000, 9144)
+		var ground: float = float(relief_hole.z_at(x_cy, y_cy)) / 1000.0
+		if point.y > ground:
+			low_t = mid_t
+		else:
+			high_t = mid_t
+	return {"ok": true, "hit": origin + direction * high_t}
+
+
+func _craft_tile_from_screen(pos: Vector2) -> Vector2i:
+	if live == null or live.craft_hole == null:
 		return Vector2i(-1, -1)
-	# Authoring currently intersects the local zero plane. This is exact for a flat
-	# draft and remains deterministic on relief; a relief-aware picker can replace
-	# this boundary later without changing the craft model.
-	var distance: float = -origin.y / direction.y
-	if distance <= 0.0:
+	var layout: Dictionary = _layout()
+	var relief: Dictionary = MHCraftConvert.relief_for(live.craft_hole)
+	if relief.is_empty():
+		layout.erase("relief")
+	else:
+		layout["relief"] = relief
+	var result: Dictionary = _screen_ground_hit(pos, layout)
+	if not bool(result.get("ok", false)):
 		return Vector2i(-1, -1)
-	var hit: Vector3 = origin + direction * distance
+	var hit: Vector3 = result["hit"] as Vector3
 	var local_x_mm: int = roundi(hit.x * 1000.0) - int(ORIGIN[0]) * 100
 	var local_y_mm: int = roundi(hit.z * 1000.0) - int(ORIGIN[1]) * 100
 	var x_yd: int = MHRMath.rdiv(local_x_mm * 1000, 9144)
@@ -690,18 +723,15 @@ func craft_stroke_cancel() -> void:
 	_craft_last_tile = Vector2i(-1, -1)
 
 func aim_from_screen(pos: Vector2) -> bool:
-	var camera: Camera3D = live.controller.camera
-	var origin: Vector3 = camera.project_ray_origin(pos)
-	var direction: Vector3 = camera.project_ray_normal(pos)
-	if absf(direction.y) < 0.00001:
+	var layouts: Array = live.session.hole_definitions()
+	var layout: Dictionary = _layout() if layouts.is_empty() or _preview_draft else layouts[0]
+	var result: Dictionary = _screen_ground_hit(pos, layout)
+	if not bool(result.get("ok", false)):
 		return false
-	var distance: float = -origin.y / direction.y
-	if distance <= 0.0:
-		return false
-	var hit: Vector3 = origin + direction * distance
+	var hit: Vector3 = result["hit"] as Vector3
 	if hit.x < 0.0 or hit.x >= 128.0 or hit.z < 0.0 or hit.z >= 128.0:
 		return false
-	# Only the input/render boundary uses float coordinates; the gameplay aim is integer centiyards.
+	# Only the input/render boundary uses float coordinates; gameplay aim remains integer centiyards.
 	aim_x = MHRMath.rdiv((roundi(hit.x * 1000.0) - int(ORIGIN[0]) * 100) * 1000, 9144)
 	aim_y = MHRMath.rdiv((roundi(hit.z * 1000.0) - int(ORIGIN[1]) * 100) * 1000, 9144)
 	_move_aim()
