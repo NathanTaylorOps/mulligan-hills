@@ -19,7 +19,10 @@ func test_queue_never_changes_customer_payment_values() -> void:
 
 func test_customer_starts_finishes_and_frees_tee() -> void:
 	var q: MHCustomerRoundQueue = MHCustomerRoundQueue.new()
-	var events: Array = [{"t": 0, "x": 0, "y": 0}, {"t": 1, "x": 0, "y": 1}]
+	var events: Array = [
+		{"kind": "shot", "shot": 1, "x0": 0, "y0": 0, "x1": 0, "y1": 7000},
+		{"kind": "shot", "shot": 2, "x0": 0, "y0": 7000, "x1": 0, "y1": 12000},
+	]
 	var rows: Array = [
 		{"serial": 0, "paid_fee": 4000, "ancillary": 500, "round": {"events": events, "strokes": 3, "flags": 0}, "satisfaction": 88},
 		{"serial": 1, "paid_fee": 4000, "ancillary": 500, "round": {"events": events, "strokes": 4, "flags": 0}, "satisfaction": 72},
@@ -112,7 +115,7 @@ func test_strong_repeat_visits_create_membership_application_not_auto_membership
 	var g: Dictionary = roster.identity_for_admission(1357, 0, 1)
 	var id: int = int(g["id"])
 	var updated: Dictionary = {}
-	for day: int in range(1, 5):
+	for day: int in range(1, 7):
 		updated = roster.record_visit(id, day, 90, "Great round", 0, 0)
 	assert_bool(bool(updated["member"])).is_false()
 	assert_str(str(updated["membership_status"])).is_equal("applied")
