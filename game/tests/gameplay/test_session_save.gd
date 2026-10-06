@@ -812,3 +812,19 @@ func test_bad_visit_breaks_home_request_happiness_streak() -> void:
 	g = roster.record_visit(id, 5, 60, "Poor", 0, 0)
 	assert_int(int(g["happy_visit_streak"])).is_equal(0)
 	assert_bool(bool(g["home_request"])).is_false()
+
+
+func test_live_staff_assignments_only_include_real_assigned_work_and_equipment() -> void:
+	var s: MHGameSession = MHGameSession.create()
+	var view: Dictionary = s.staff_view()
+	var hired: Dictionary = s.staff_system.hire("greenkeeper", s.economy.day, view, 100000000)
+	assert_bool(bool(hired["ok"])).is_true()
+	var serial: int = int(hired["serial"])
+	assert_str(s.staff_system.assign(serial, [0], view)).is_equal("")
+	var bought: Dictionary = s.staff_system.buy_equipment("greens_mower", 100000000)
+	assert_bool(bool(bought["ok"])).is_true()
+	assert_bool(s.staff_system.assign_equipment(int(bought["serial"]), serial)).is_true()
+	var live: Array = s.live_staff_assignments()
+	assert_int(live.size()).is_equal(1)
+	assert_int(int((live[0] as Dictionary)["serial"])).is_equal(serial)
+	assert_str(str(((live[0] as Dictionary)["equipment"] as Dictionary)["type"])).is_equal("greens_mower")
