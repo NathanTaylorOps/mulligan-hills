@@ -566,7 +566,7 @@ func _advance_customer_playback(delta_s: float) -> void:
 		for customer_v: Variant in event.get("customers", [event.get("customer", {})]):
 			_queue_finished_customer_facility(customer_v as Dictionary, now_s)
 		return
-	if kind != "started":
+	if kind != "started" and kind != "hole_started":
 		return
 	var customer: Dictionary = event.get("customer", {}) as Dictionary
 	var customers: Array = event.get("customers", [customer]) as Array
