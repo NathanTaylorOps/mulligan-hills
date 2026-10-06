@@ -171,6 +171,27 @@ func live_staff_assignments() -> Array:
 	return out
 
 
+func live_maintenance_state() -> Dictionary:
+	# Presentation projection only: specialists and broken machines remain authoritative in staff_system.
+	if staff_system == null:
+		return {"specialists": [], "broken_equipment": []}
+	var report: Dictionary = staff_system.report(staff_view())
+	var specialists: Array = []
+	for employee_v: Variant in report.get("employees", []):
+		var employee: Dictionary = employee_v as Dictionary
+		var role: String = str(employee.get("role", ""))
+		if role == "superintendent" or role == "equipment_technician":
+			specialists.append(employee.duplicate(true))
+	var broken: Array = []
+	for unit_v: Variant in report.get("equipment", []):
+		var unit: Dictionary = unit_v as Dictionary
+		if bool(unit.get("broken", false)):
+			broken.append(unit.duplicate(true))
+	return {"specialists": specialists, "broken_equipment": broken,
+		"technician_work_pm": staff_system.technician_work_permille(),
+		"maintenance_tier": MHStaffView.tier_of(staff_view(), "maintenance")}
+
+
 func maintenance_quality() -> int:
 	if staff_system == null:
 		return 0
