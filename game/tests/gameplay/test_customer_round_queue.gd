@@ -181,13 +181,15 @@ func test_pedestrian_route_ends_at_exact_building_destination() -> void:
 func test_building_positions_require_purchased_and_player_placed_building() -> void:
 	var s: MHGameSession = MHGameSession.create()
 	s.economy.set_tier(0, 1) # clubhouse purchased, but not placed yet
-	assert_bool(MHClubPedestrian.building_positions(s).has("clubhouse")).is_false()
+	assert_int(MHClubPedestrian.building_positions(s).size()).is_equal(0)
 	var placed: Dictionary = {"ok": true, "center_mm": [30000, 42000], "size_m": [18, 14], "ground_mm": 1250,
 		"rotation_quarters": 0}
 	assert_bool(s.set_building_placement("clubhouse", placed)).is_true()
 	var positions: Dictionary = MHClubPedestrian.building_positions(s)
-	assert_bool(positions.has("clubhouse")).is_true()
-	assert_bool((positions["clubhouse"] as Vector3).is_equal_approx(Vector3(30.0, 1.25, 42.0))).is_true()
+	var ids: Array = MHClubPedestrian.instance_ids_for_type(s, "clubhouse")
+	assert_int(ids.size()).is_equal(1)
+	assert_bool(positions.has(ids[0])).is_true()
+	assert_bool((positions[ids[0]] as Vector3).is_equal_approx(Vector3(30.0, 1.25, 42.0))).is_true()
 
 func test_public_returning_golfer_can_vary_party_from_stable_associates() -> void:
 	var roster: MHGolferRoster = MHGolferRoster.new()
@@ -377,3 +379,14 @@ func test_only_members_can_generate_club_guests() -> void:
 			found = true
 			break
 	assert_bool(found).is_true()
+
+
+func test_facility_visit_is_keyed_by_instance_and_starts_on_arrival() -> void:
+	var q: MHCustomerRoundQueue = MHCustomerRoundQueue.new()
+	var customer: Dictionary = {"serial": 31, "identity": {"id": 7, "group_id": 31}}
+	var queued: Dictionary = q.queue_facility_visit(customer, "building_12", 5.0)
+	assert_str(str(queued["facility_instance_id"])).is_equal("building_12")
+	assert_int(q.facility_visits.size()).is_equal(0)
+	var begun: Dictionary = q.begin_facility_visit(31, 12.0)
+	assert_str(str(begun["facility_instance_id"])).is_equal("building_12")
+	assert_float(float(begun["start_s"])).is_equal(12.0)
