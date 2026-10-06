@@ -157,7 +157,7 @@ func on_day(defs: MHStaffDefs, roster: MHStaffRoster, day: int, view: Dictionary
 		personal_work[i] = 0
 		personal_pest[i] = 0
 	last_day = day
-	return {"ran": true, "incidents": out}
+	return {"ran": true, "incidents": out, "used_employees": (wc.get("used_employees", []) as Array).duplicate()}
 
 
 ## Mean condition over the owned golf parcels (cond_start when none is owned).
