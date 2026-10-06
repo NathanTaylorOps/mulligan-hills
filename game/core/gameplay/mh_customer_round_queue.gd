@@ -8,7 +8,9 @@ const MAX_VISIBLE_WAITING: int = 24
 const MAX_COMPLETED_HISTORY: int = 64
 
 var waiting: Array = []
-var active: Dictionary = {}
+var active: Dictionary = {} # Compatibility view: lowest party id currently active.
+var active_parties: Dictionary = {}
+var occupied_holes: Dictionary = {}
 var completed: Array = []
 var facility_visits: Array = []
 var pending_facility_visits: Array = []
@@ -72,70 +74,134 @@ func active_facility_visits(now_s: float) -> Array:
 
 
 func advance(now_s: float) -> Dictionary:
-	var event: Dictionary = {}
-	if active.is_empty() and not waiting.is_empty() and now_s >= next_tee_s:
-		var first: Dictionary = waiting.pop_front() as Dictionary
-		var party_id: int = int(first.get("party_id", first.get("serial", 0)))
-		var party: Array = [first]
-		while not waiting.is_empty() and int((waiting[0] as Dictionary).get("party_id", (waiting[0] as Dictionary).get("serial", 0))) == party_id:
-			party.append(waiting.pop_front() as Dictionary)
-		active = first.duplicate(true)
-		active["party_id"] = party_id
-		active["customers"] = party
-		active["started_s"] = now_s
-		active["hole_index"] = 0
-		next_tee_s = now_s + TEE_INTERVAL_S
-		event = {"kind": "started", "customers": party.duplicate(true), "customer": first.duplicate(true)}
-	if not active.is_empty() and not bool(active.get("transitioning", false)):
-		var elapsed: float = now_s - float(active["started_s"])
+	var events: Array = advance_all(now_s)
+	return {} if events.is_empty() else events[0] as Dictionary
+
+
+func advance_all(now_s: float) -> Array:
+	var events: Array = []
+	_start_waiting_parties(now_s, events)
+	var ids: Array = active_parties.keys()
+	ids.sort()
+	for party_v: Variant in ids:
+		var party_id: int = int(party_v)
+		if not active_parties.has(party_id):
+			continue
+		var state: Dictionary = active_parties[party_id] as Dictionary
+		if bool(state.get("transitioning", false)):
+			continue
+		var elapsed: float = now_s - float(state["started_s"])
 		var all_done: bool = true
-		var hole_index: int = int(active.get("hole_index", 0))
-		for customer_v: Variant in active.get("customers", []):
+		var hole_index: int = int(state.get("hole_index", 0))
+		for customer_v: Variant in state.get("customers", []):
 			var customer: Dictionary = customer_v
 			var round: Dictionary = _playback_round(customer, hole_index)
-			var state: Dictionary = MHAIRoundTimeline.state(round.get("events", []) as Array, elapsed)
-			if not bool(state.get("done", false)):
+			var timeline: Dictionary = MHAIRoundTimeline.state(round.get("events", []) as Array, elapsed)
+			if not bool(timeline.get("done", false)):
 				all_done = false
 				break
-		if all_done:
-			var party_customers: Array = active.get("customers", []) as Array
-			var next_hole: int = hole_index + 1
-			if _party_has_hole(party_customers, next_hole):
-				var next_party: Array = _party_for_hole(party_customers, next_hole)
-				active["transition_from_hole_slot"] = int((party_customers[0] as Dictionary).get("hole_slot", -1))
-				active["transition_hole_index"] = next_hole
-				active["transition_customers"] = next_party
-				active["transitioning"] = true
-				event = {"kind": "hole_transition", "hole_index": next_hole, "customers": next_party.duplicate(true),
-					"customer": (next_party[0] as Dictionary).duplicate(true)}
-			else:
-				var done_party: Array = _party_for_hole(party_customers, hole_index)
-				for done_v: Variant in done_party:
-					completed.append((done_v as Dictionary).duplicate(true))
-				while completed.size() > MAX_COMPLETED_HISTORY:
-					completed.pop_front()
-				active = {}
-				event = {"kind": "finished", "customers": done_party, "customer": (done_party[0] as Dictionary).duplicate(true)}
-	return event
+		if not all_done:
+			continue
+		var party_customers: Array = state.get("customers", []) as Array
+		var current_slot: int = int((party_customers[0] as Dictionary).get("hole_slot", -1))
+		occupied_holes.erase(current_slot)
+		var next_hole: int = hole_index + 1
+		if _party_has_hole(party_customers, next_hole):
+			var next_party: Array = _party_for_hole(party_customers, next_hole)
+			state["transition_from_hole_slot"] = current_slot
+			state["transition_hole_index"] = next_hole
+			state["transition_customers"] = next_party
+			state["transitioning"] = true
+			active_parties[party_id] = state
+			events.append({"kind": "hole_transition", "party_id": party_id, "hole_index": next_hole,
+				"customers": next_party.duplicate(true), "customer": (next_party[0] as Dictionary).duplicate(true)})
+		else:
+			var done_party: Array = _party_for_hole(party_customers, hole_index)
+			for done_v: Variant in done_party:
+				completed.append((done_v as Dictionary).duplicate(true))
+			while completed.size() > MAX_COMPLETED_HISTORY:
+				completed.pop_front()
+			active_parties.erase(party_id)
+			events.append({"kind": "finished", "party_id": party_id, "customers": done_party,
+				"customer": (done_party[0] as Dictionary).duplicate(true)})
+	_sync_active_compat()
+	_start_waiting_parties(now_s, events)
+	_sync_active_compat()
+	return events
 
 
-func begin_next_hole(now_s: float) -> Dictionary:
-	if active.is_empty() or not bool(active.get("transitioning", false)):
+func _start_waiting_parties(now_s: float, events: Array) -> void:
+	if waiting.is_empty() or now_s < next_tee_s:
+		return
+	var cursor: int = 0
+	while cursor < waiting.size():
+		var first: Dictionary = waiting[cursor] as Dictionary
+		var party_id: int = int(first.get("party_id", first.get("serial", 0)))
+		var party: Array = []
+		var end: int = cursor
+		while end < waiting.size() and int((waiting[end] as Dictionary).get("party_id", (waiting[end] as Dictionary).get("serial", 0))) == party_id:
+			party.append(waiting[end] as Dictionary)
+			end += 1
+		var slot: int = int(first.get("hole_slot", -1))
+		if not occupied_holes.has(slot):
+			for _i: int in range(end - cursor):
+				waiting.remove_at(cursor)
+			var state: Dictionary = first.duplicate(true)
+			state["party_id"] = party_id
+			state["customers"] = party
+			state["started_s"] = now_s
+			state["hole_index"] = 0
+			active_parties[party_id] = state
+			occupied_holes[slot] = party_id
+			events.append({"kind": "started", "party_id": party_id, "customers": party.duplicate(true), "customer": first.duplicate(true)})
+			next_tee_s = now_s + TEE_INTERVAL_S
+			return # Global tee cadence: at most one new party starts per interval.
+		cursor = end
+
+
+func begin_next_hole(now_s: float, party_id: int = -1) -> Dictionary:
+	if party_id < 0:
+		party_id = int(active.get("party_id", -1))
+	if not active_parties.has(party_id):
 		return {}
-	var next_hole: int = int(active.get("transition_hole_index", -1))
-	var next_party: Array = active.get("transition_customers", []) as Array
+	var state: Dictionary = active_parties[party_id] as Dictionary
+	if not bool(state.get("transitioning", false)):
+		return {}
+	var next_hole: int = int(state.get("transition_hole_index", -1))
+	var next_party: Array = state.get("transition_customers", []) as Array
 	if next_hole < 0 or next_party.is_empty():
 		return {}
-	active["hole_index"] = next_hole
-	active["started_s"] = now_s
-	active["customers"] = next_party
-	active["transitioning"] = false
-	active.erase("transition_from_hole_slot")
-	active.erase("transition_hole_index")
-	active.erase("transition_customers")
-	active.merge((next_party[0] as Dictionary), false)
-	return {"kind": "hole_started", "hole_index": next_hole, "customers": next_party.duplicate(true),
-		"customer": (next_party[0] as Dictionary).duplicate(true)}
+	var slot: int = int((next_party[0] as Dictionary).get("hole_slot", -1))
+	if occupied_holes.has(slot):
+		return {} # Tee congestion: wait until the party ahead clears this hole.
+	state["hole_index"] = next_hole
+	state["started_s"] = now_s
+	state["customers"] = next_party
+	state["transitioning"] = false
+	state.erase("transition_from_hole_slot")
+	state.erase("transition_hole_index")
+	state.erase("transition_customers")
+	state.merge((next_party[0] as Dictionary), false)
+	active_parties[party_id] = state
+	occupied_holes[slot] = party_id
+	_sync_active_compat()
+	return {"kind": "hole_started", "party_id": party_id, "hole_index": next_hole,
+		"customers": next_party.duplicate(true), "customer": (next_party[0] as Dictionary).duplicate(true)}
+
+
+func transition_from_hole(party_id: int) -> int:
+	if not active_parties.has(party_id):
+		return -1
+	return int((active_parties[party_id] as Dictionary).get("transition_from_hole_slot", -1))
+
+
+func _sync_active_compat() -> void:
+	if active_parties.is_empty():
+		active = {}
+		return
+	var ids: Array = active_parties.keys()
+	ids.sort()
+	active = (active_parties[ids[0]] as Dictionary).duplicate(true)
 
 
 func visual_state(now_s: float) -> Dictionary:
