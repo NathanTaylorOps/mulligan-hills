@@ -265,6 +265,10 @@ func _process(delta: float) -> void:
 				golfer_name, MHGolferPreference.name_of(int(customer["preference"])), int(customer["satisfaction"]),
 				str(customer["reaction"]), str(customer["preference_reaction"]), int(updated.get("loyalty", 50)),
 				int(updated.get("visits", 1)), rep_delta]
+			if bool(updated.get("member", false)):
+				_feedback.text += " | MEMBER"
+			if int(updated.get("group_id", -1)) >= 0:
+				_feedback.text += " | %s group #%d" % [str(updated.get("relationship_role", "friend")), int(updated["group_id"]) + 1]
 	if not _customers.active.is_empty():
 		_apply_ai_visual(_customers.visual_state(_customer_time))
 		return
@@ -402,7 +406,7 @@ func _draw() -> void:
 	_ai_golfer = MHGolferFigure.new()
 	_ai_golfer.auto_advance = false
 	_world.add_child(_ai_golfer)
-	_ai_golfer.setup(MHGolferLook.from_seed(4242), 0, MHArtMaterials.vertex_color())
+	_ai_golfer.setup(MHGolferLook.from_seed(int((_customers.active.get("identity", {}) as Dictionary).get("look_seed", 4242))), 0, MHArtMaterials.vertex_color())
 	_ai_golfer.visible = false
 	_move_aim()
 	if _ai_playing and not _ai_record.is_empty():
