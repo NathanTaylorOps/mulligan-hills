@@ -685,4 +685,14 @@ func test_customer_resolution_builds_one_authoritative_record_per_course_hole() 
 	assert_int(int((course_round[0] as Dictionary)["hole_slot"])).is_equal(2)
 	assert_int(int((course_round[1] as Dictionary)["hole_slot"])).is_equal(5)
 	assert_dict(customer["round"] as Dictionary).is_equal((course_round[0] as Dictionary)["round"] as Dictionary)
+	var expected_base: int = 0
+	var expected_bonus: int = 0
+	for hole_v: Variant in course_round:
+		var played: Dictionary = hole_v
+		expected_base += MHCustomerRoundQueue.satisfaction(played["round"] as Dictionary, int((played["rating"] as Dictionary).get("par", 3)))
+		expected_bonus += MHGolferPreference.bonus(int(customer["preference"]), played["rating"] as Dictionary, played["round"] as Dictionary)
+	expected_base = MHRMath.rdiv(expected_base, course_round.size())
+	expected_bonus = MHRMath.rdiv(expected_bonus, course_round.size())
+	assert_int(int(customer["base_satisfaction"])).is_equal(expected_base)
+	assert_int(int(customer["preference_bonus"])).is_equal(expected_bonus)
 	assert_int(s.customer_feedback_count).is_equal(1)
