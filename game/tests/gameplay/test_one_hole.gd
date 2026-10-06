@@ -167,3 +167,21 @@ func test_live_panel_finalizes_exact_canonical_craft_relief_layout() -> void:
 	if decoded.is_ok():
 		assert_array(decoded.value as Array).contains_exactly([layout])
 	scene._active = false
+
+
+func test_live_build_play_entry_uses_owned_canonical_craft_draft() -> void:
+	var scene: MHLiveConstruction = auto_free(MHLiveConstruction.new())
+	scene.store = MHSaveStore.new("user://test_one_hole_entry")
+	scene.ledger_dir = "user://test_one_hole_entry_ledgers"
+	add_child(scene)
+	assert_bool(scene._active).is_true()
+	assert_object(scene.craft_hole).is_not_null()
+	scene.craft_hole.set_height_tile(11, 15, 6)
+	var expected: Dictionary = scene.canonical_craft_draft()
+	assert_bool(expected.has("relief")).is_true()
+	scene._open_craft_hole()
+	assert_bool(scene.one_hole.visible).is_true()
+	assert_dict(scene.one_hole.canonical_draft).is_equal(expected)
+	scene.one_hole._finalize()
+	assert_array(scene.session.hole_definitions()).contains_exactly([expected])
+	scene._active = false
