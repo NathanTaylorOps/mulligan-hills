@@ -736,3 +736,11 @@ func test_live_reaction_text_prioritizes_real_pace_and_extreme_rounds() -> void:
 	assert_str(MHLiveConstruction._reaction_text({"satisfaction": 90, "pace_penalty": 8})).is_equal("That was slow...")
 	assert_str(MHLiveConstruction._reaction_text({"satisfaction": 70, "pace_penalty": 2})).is_equal("Bit of a wait.")
 	assert_str(MHLiveConstruction._reaction_text({"satisfaction": 70})).is_equal("")
+
+
+func test_hole_reactions_only_surface_notable_authoritative_scores() -> void:
+	assert_str(MHLiveConstruction._hole_reaction_text({"strokes": 2}, 4)).is_equal("What a hole!")
+	assert_str(MHLiveConstruction._hole_reaction_text({"strokes": 3}, 4)).is_equal("Birdie!")
+	assert_str(MHLiveConstruction._hole_reaction_text({"strokes": 4}, 4)).is_equal("")
+	assert_str(MHLiveConstruction._hole_reaction_text({"strokes": 5}, 4)).is_equal("")
+	assert_str(MHLiveConstruction._hole_reaction_text({"strokes": 7}, 4)).is_equal("Forget that one...")
