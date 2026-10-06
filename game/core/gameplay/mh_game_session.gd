@@ -482,16 +482,21 @@ func first_building_instance_id(building_id: String) -> String:
 	return ""
 
 
-func building_position(building_id: String) -> Vector3:
-	var instance_id: String = first_building_instance_id(building_id)
-	if instance_id.is_empty():
+func building_instance_position(instance_id: String) -> Vector3:
+	if not building_placements.has(instance_id):
 		return Vector3.INF
 	var placement: Dictionary = building_placements[instance_id] as Dictionary
-	if not _valid_building_placement_record(building_id, placement):
+	var building_id: String = str(placement.get("building_id", ""))
+	if building_id.is_empty() or not _valid_building_placement_record(building_id, placement):
 		return Vector3.INF
 	var center: Array = placement["center_mm"] as Array
 	return Vector3(float(int(center[0])) / 1000.0, float(int(placement["ground_mm"])) / 1000.0,
 		float(int(center[1])) / 1000.0)
+
+
+func building_position(building_id: String) -> Vector3:
+	# Compatibility helper only. New routing/gameplay code must retain permanent instance identity.
+	return building_instance_position(first_building_instance_id(building_id))
 
 
 func restore_building_placements(raw: Variant) -> bool:
