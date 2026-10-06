@@ -267,11 +267,21 @@ func report(view: Dictionary) -> Dictionary:
 		"service": service_avg(view), "demand_permille": demand_permille(view), "pace_points": pace_points(),
 		"satisfaction_penalty_permille": condition_penalty_permille(view), "equipment_units": equipment.units.size(), "equipment_capacity": equipment_capacity(view),
 		"equipment_operating_cost_cents": equipment_operating_cost_cents(), "equipment_repair_cost_cents": equipment_repair_cost_cents(),
-		"employees": roster.employees.duplicate(true), "equipment": equipment.units.duplicate(true),
+		"employees": _employee_management_rows(), "equipment": equipment.units.duplicate(true),
 		"hire_options": hires, "equipment_catalog": equipment_catalog,
 		"warnings": management_warnings(view),
 		"beauty_delta_pm": int(ov["beauty_delta_pm"]), "fairness_delta_pm": int(ov["fairness_delta_pm"]),
 	}
+
+
+func _employee_management_rows() -> Array:
+	var out: Array = []
+	for value: Variant in roster.employees:
+		var employee: Dictionary = (value as Dictionary).duplicate(true)
+		employee["kind"] = defs.role_kind(str(employee["role"]))
+		employee["name_key"] = str(defs.role(str(employee["role"])).get("name_key", ""))
+		out.append(employee)
+	return out
 
 
 # ------------------------------------------------------------------ save
