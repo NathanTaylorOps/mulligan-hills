@@ -43,7 +43,7 @@ func setup(scene: MHLiveConstruction) -> void:
 	title.clip_text = true
 	title.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 	head.add_child(title)
-	_toggle = MHUIKit.button(live.shell.ctx, "Hide", &"ChipButton", 96)
+	_toggle = MHUIKit.button(live.shell.ctx, "Collapse", &"ChipButton", 112)
 	_toggle.pressed.connect(toggle_collapsed)
 	head.add_child(_toggle)
 	_scroll = MHScrollBox.new()
@@ -111,7 +111,7 @@ func set_collapsed(value: bool) -> void:
 	if _scroll != null:
 		_scroll.visible = not collapsed
 	if _toggle != null:
-		_toggle.text = "Show" if collapsed else "Hide"
+		_toggle.text = "Expand" if collapsed else "Collapse"
 	layout_changed.emit()
 
 func toggle_collapsed() -> void:
@@ -716,8 +716,11 @@ func _refresh_path() -> void:
 	_path = Node3D.new()
 	_world.add_child(_path)
 	var r: MHPracticeRound = live.session.practice
-	if r == null or _preview_draft:
-		_feedback.text = "Draft preview. Finalize before practice; tap sets the target only."
+	if _preview_draft:
+		_feedback.text = "Edit hole: choose a tool, then click or drag on the course. Desktop: right-drag rotate, middle-drag pan, wheel zoom. Touch: one finger edits; two fingers move the camera."
+		return
+	if r == null:
+		_feedback.text = "Finalize the hole to begin practice."
 		return
 	var preview: Dictionary = r.aim_preview(aim_x, aim_y)
 	if not bool(preview.get("ok", false)):
