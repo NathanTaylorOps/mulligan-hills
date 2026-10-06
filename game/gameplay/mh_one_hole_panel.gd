@@ -323,11 +323,27 @@ func _draw() -> void:
 	_move_aim()
 
 func _draw_craft_terrain(hole: MHCraftHole) -> void:
-	# Correctness-first smooth preview: shared corner heights are averages of adjacent craft samples.
-	# This removes the block staircase without changing the integer relief consumed by gameplay.
+	var layout: Dictionary = _layout()
+	var relief_hole: MHRHole = MHRHole.from_def(layout)
+	var builders: Dictionary = {}
+	for surface_id: int in range(MHCraftHole.SURFACE_COUNT):
+		var st: SurfaceTool = SurfaceTool.new()
+		st.begin(Mesh.PRIMITIVE_TRIANGLES)
+		builders[surface_id] = st
 	for r: int in range(hole.rows):
 		for c: int in range(hole.cols):
-			_craft_tile_mesh(hole, c, r)
+			_append_craft_tile(builders[hole.get_surface(c, r)] as SurfaceTool, relief_hole, hole, c, r)
+	for surface_id: int in range(MHCraftHole.SURFACE_COUNT):
+		var st: SurfaceTool = builders[surface_id] as SurfaceTool
+		var mesh: ArrayMesh = st.commit()
+		if mesh == null or mesh.get_surface_count() == 0:
+			continue
+		var material: StandardMaterial3D = StandardMaterial3D.new()
+		material.albedo_color = _surface_color(surface_id)
+		var instance: MeshInstance3D = MeshInstance3D.new()
+		instance.mesh = mesh
+		instance.material_override = material
+		_world.add_child(instance)
 	for tee: Variant in hole.tees:
 		var t: Vector2i = tee as Vector2i
 		var tc: Vector2i = hole.tile_centre_yd(t.x, t.y)
@@ -339,28 +355,17 @@ func _draw_craft_terrain(hole: MHCraftHole) -> void:
 	for tree: Variant in hole.trees:
 		_draw_craft_tree(tree as Vector2i)
 
-func _craft_tile_mesh(hole: MHCraftHole, c: int, r: int) -> void:
-	var layout: Dictionary = _layout()
-	var relief_hole: MHRHole = MHRHole.from_def(layout)
+func _append_craft_tile(st: SurfaceTool, relief_hole: MHRHole, hole: MHCraftHole, c: int, r: int) -> void:
 	var x0: int = hole.tile_x0_yd(c) * 100
 	var x1: int = (hole.tile_x0_yd(c) + MHCraftHole.TILE_YD) * 100
 	var y0: int = hole.tile_y0_yd(r) * 100
 	var y1: int = (hole.tile_y0_yd(r) + MHCraftHole.TILE_YD) * 100
-	var st: SurfaceTool = SurfaceTool.new()
-	st.begin(Mesh.PRIMITIVE_TRIANGLES)
-	var normal: Vector3 = Vector3.UP
+	var lift: float = 0.015 if hole.get_surface(c, r) == MHCraftHole.Surface.WATER else 0.035
 	for point: Vector2i in [Vector2i(x0, y0), Vector2i(x1, y0), Vector2i(x1, y1),
 			Vector2i(x0, y0), Vector2i(x1, y1), Vector2i(x0, y1)]:
-		st.set_normal(normal)
+		st.set_normal(Vector3.UP)
 		var z: float = float(relief_hole.z_at(point.x, point.y)) / 1000.0
-		st.add_vertex(_position(point.x, point.y, z + (0.035 if hole.get_surface(c, r) != MHCraftHole.Surface.WATER else 0.015)))
-	var mesh: ArrayMesh = st.commit()
-	var material: StandardMaterial3D = StandardMaterial3D.new()
-	material.albedo_color = _surface_color(hole.get_surface(c, r))
-	var instance: MeshInstance3D = MeshInstance3D.new()
-	instance.mesh = mesh
-	instance.material_override = material
-	_world.add_child(instance)
+		st.add_vertex(_position(point.x, point.y, z + lift))
 
 func _draw_craft_tree(point: Vector2i) -> void:
 	var trunk_pos: Vector3 = _position_on_ground(point.x * 100, point.y * 100, 1.0)
