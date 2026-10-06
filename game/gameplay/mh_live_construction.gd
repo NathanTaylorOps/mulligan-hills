@@ -177,6 +177,24 @@ func _first_round_status() -> String:
 func _pick(pos: Vector2) -> Vector2i:
 	return MHPicking.pick(editor.grid, controller.camera.project_ray_origin(pos), controller.camera.project_ray_normal(pos), 1500.0)
 
+
+func validate_building_placement(building_id: String, tier: int, world_m: Vector2) -> Dictionary:
+	var existing: Array = []
+	for v: Variant in session.building_placements.values():
+		existing.append((v as Dictionary).duplicate(true))
+	return MHBuildingPlacement.validate(editor.grid, editor.splat, session.land, building_id, tier,
+		Vector2i(roundi(world_m.x * 1000.0), roundi(world_m.y * 1000.0)), existing)
+
+
+func place_building(building_id: String, tier: int, world_m: Vector2) -> Dictionary:
+	var result: Dictionary = validate_building_placement(building_id, tier, world_m)
+	if not bool(result.get("ok", false)):
+		return result
+	if not session.set_building_placement(building_id, result):
+		return {"ok": false, "reason": "building"}
+	_request_save()
+	return result
+
 ## Rect getter for router UI regions that is empty while the button is hidden (dock hidden, panel closed).
 func _button_rect(b: Control) -> Rect2:
 	if b == null or not is_instance_valid(b) or not b.is_visible_in_tree():
