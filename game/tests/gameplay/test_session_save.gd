@@ -502,3 +502,17 @@ func test_staff_roster_and_legacy_count_disagreement_is_rejected() -> void:
 	staff_counts[key] = int(staff_counts[key]) + 1
 	MHSaveGame.seal(checkpoint)
 	assert_bool(MHSessionSave.restore(checkpoint, s.ledger).is_ok()).is_false()
+
+
+func test_customer_resolution_does_not_replay_pending_admissions() -> void:
+	var s: MHGameSession = MHGameSession.create()
+	s._holes = [{"par": 3}]
+	s._ratings = [{"par": 3}]
+	s._pending_customers = [{"serial": 1, "identity": s.golfer_roster.identity_for_admission(s.save_secret, 1, 0), "hole_slot": 0}]
+	s._resolve_customer_hour()
+	var outcomes: int = s.customer_outcomes.size()
+	var feedback: int = s.customer_feedback_count
+	s._resolve_customer_hour()
+	assert_int(s.customer_outcomes.size()).is_equal(outcomes)
+	assert_int(s.customer_feedback_count).is_equal(feedback)
+	assert_int(s._pending_customers.size()).is_equal(0)
