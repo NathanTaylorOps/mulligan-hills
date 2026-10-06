@@ -82,7 +82,7 @@ func setup(scene: MHLiveConstruction) -> void:
 	_button(shots, "Course overview", _overview)
 	_button(shots, "Play shot", _shoot)
 	_button(shots, "New practice round", _restart)
-	_button(shots, "Close", func() -> void: hide(); _world.hide(); live.chunks.show())
+	_button(shots, "Close", close_preview)
 	_world = Node3D.new()
 	live.add_child(_world)
 	_world.hide()
@@ -105,6 +105,16 @@ func set_collapsed(value: bool) -> void:
 
 func toggle_collapsed() -> void:
 	set_collapsed(not collapsed)
+
+func close_preview() -> void:
+	if live != null and live.aim_input != null:
+		live.aim_input.cancel_all()
+	hide()
+	if _world != null:
+		_world.hide()
+	if live != null and live.chunks != null:
+		live.chunks.show()
+
 
 func open() -> void:
 	set_collapsed(false)
