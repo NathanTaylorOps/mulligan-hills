@@ -212,6 +212,9 @@ func _render(states: Array, cam_pos: Vector3) -> void:
 		dist2.append(p3.distance_squared_to(cam_pos))
 		looks.append(int(d["look"]))
 	var vis: PackedInt32Array = MHSliceVisibility.classify(dist2, looks, near_cap, total_cap)
+	for i: int in range(golfers.size()):
+		if bool((golfers[i] as Dictionary).get("transport_hidden", false)):
+			vis[i] = MHSliceVisibility.HIDDEN
 	last_figures = MHSliceVisibility.count_state(vis, MHSliceVisibility.FIGURE)
 	last_baked = MHSliceVisibility.count_state(vis, MHSliceVisibility.BAKED)
 	last_hidden = MHSliceVisibility.count_state(vis, MHSliceVisibility.HIDDEN)
