@@ -247,3 +247,21 @@ func test_live_craft_tee_and_pin_tools_update_canonical_draft() -> void:
 	assert_bool(panel.canonical_draft.is_empty()).is_false()
 	assert_dict(panel.canonical_draft).is_equal(scene.canonical_craft_draft())
 	scene._active = false
+
+
+func test_live_preview_ground_height_matches_rating_relief() -> void:
+	var scene: MHLiveConstruction = auto_free(MHLiveConstruction.new())
+	scene.store = MHSaveStore.new("user://test_craft_relief_render")
+	scene.ledger_dir = "user://test_craft_relief_render_ledgers"
+	add_child(scene)
+	assert_bool(scene._active).is_true()
+	scene.craft_hole.set_height_tile(11, 15, 6)
+	scene._open_craft_hole()
+	var layout: Dictionary = scene.canonical_craft_draft()
+	var hole: MHRHole = MHRHole.from_def(layout)
+	var centre: Vector2i = scene.craft_hole.tile_centre_yd(11, 15)
+	var cx: int = centre.x * 100
+	var cy: int = centre.y * 100
+	assert_float(scene.one_hole._ground_height(cx, cy)).is_equal_approx(float(hole.z_at(cx, cy)) / 1000.0, 0.001)
+	assert_float(scene.one_hole._ground_height(cx, cy)).is_equal_approx(6.0, 0.001)
+	scene._active = false
