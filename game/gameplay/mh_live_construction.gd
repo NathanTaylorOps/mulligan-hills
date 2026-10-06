@@ -613,11 +613,13 @@ func _advance_hole_transition_walkers(delta_s: float) -> void:
 			arrived.append(party_id)
 	for party_v: Variant in arrived:
 		var party_id: int = int(party_v)
+		var event: Dictionary = session.customer_playback.begin_next_hole(float(session.clock.total_minutes()) * 60.0, party_id)
+		if event.is_empty():
+			# The next tee is occupied. Keep the real party waiting visibly at the tee and retry next frame.
+			continue
 		_hole_transition_walkers.erase(party_id)
 		_visible_golfers.remove_group(party_id)
-		var event: Dictionary = session.customer_playback.begin_next_hole(float(session.clock.total_minutes()) * 60.0, party_id)
-		if not event.is_empty():
-			_render_customer_hole(event)
+		_render_customer_hole(event)
 
 
 func _hole_world_point(slot: int, key: String) -> Vector3:
