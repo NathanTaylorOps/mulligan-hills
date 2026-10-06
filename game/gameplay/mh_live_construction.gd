@@ -585,10 +585,14 @@ func _advance_customer_playback(delta_s: float) -> void:
 		var event: Dictionary = event_v
 		var kind: String = str(event.get("kind", ""))
 		if kind == "finished":
-			for customer_v: Variant in event.get("customers", [event.get("customer", {})]):
+			var finished_customers: Array = event.get("customers", [event.get("customer", {})]) as Array
+			for customer_v: Variant in finished_customers:
 				var customer: Dictionary = session.apply_playback_pace_experience(customer_v as Dictionary)
 				_show_golfer_reaction(customer)
 				_queue_finished_customer_facility(customer, now_s)
+			if not finished_customers.is_empty():
+				var finished_customer: Dictionary = finished_customers[0] as Dictionary
+				_remove_party_cart(int(finished_customer.get("party_id", finished_customer.get("serial", -1))))
 		elif kind == "hole_transition":
 			for customer_v: Variant in event.get("customers", [event.get("customer", {})]):
 				_show_hole_reaction(customer_v as Dictionary)
@@ -791,6 +795,21 @@ func _render_customer_hole(event: Dictionary) -> void:
 	var origin_dm: Array = MHCourseLayout.origin_for_slot(course, slot)
 	var world_origin: Vector2 = Vector2(float(origin_dm[0]) / 10.0, float(origin_dm[1]) / 10.0)
 	_visible_golfers.spawn_authoritative_party(customers, tee, green, world_origin)
+	_sync_star_cart_for_hole(customers, slot)
+
+
+func _sync_star_cart_for_hole(customers: Array, hole_slot: int) -> void:
+	if customers.is_empty() or not session.carts_allowed_now() or not _party_has_star(customers):
+		return
+	var customer: Dictionary = customers[0] as Dictionary
+	var party_id: int = int(customer.get("party_id", customer.get("serial", -1)))
+	if party_id < 0:
+		return
+	var tee: Vector3 = _hole_world_point(hole_slot, "tee")
+	if tee == Vector3.INF:
+		return
+	_ensure_party_cart(party_id, tee, customers.size(), _star_cart_style(customers))
+	_park_star_cart(party_id, hole_slot)
 
 
 func _sync_visible_staff() -> void:
