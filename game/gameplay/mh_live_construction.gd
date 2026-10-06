@@ -722,10 +722,37 @@ func _sync_visible_staff() -> void:
 		var direction: Vector3 = state["direction"] as Vector3
 		if direction.length_squared() > 0.001:
 			node.rotation.y = atan2(direction.x, direction.z)
+		_sync_staff_work_marker(node, assignment, progress)
 	for serial_v: Variant in _visible_staff_nodes.keys():
 		if not used.has(serial_v):
 			(_visible_staff_nodes[serial_v] as Node3D).queue_free()
 			_visible_staff_nodes.erase(serial_v)
+
+
+func _sync_staff_work_marker(node: Node3D, assignment: Dictionary, progress: float) -> void:
+	var existing: Label3D = node.get_node_or_null("WorkState") as Label3D
+	var equipment: Dictionary = assignment.get("equipment", {}) as Dictionary
+	var broken: bool = bool(equipment.get("broken", false))
+	var active: bool = fmod(progress * 100.0, 20.0) < 7.0
+	if not active:
+		if existing != null:
+			existing.visible = false
+		return
+	if existing == null:
+		existing = Label3D.new()
+		existing.name = "WorkState"
+		existing.font_size = 15
+		existing.outline_size = 4
+		existing.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+		existing.position = Vector3(0.0, 2.15, 0.0)
+		node.add_child(existing)
+	existing.visible = true
+	if not equipment.is_empty() and not broken:
+		existing.text = "Mowing" if str(equipment.get("kind", "")) == "grounds" else "Working"
+	elif broken:
+		existing.text = "Manual work"
+	else:
+		existing.text = "Grounds work"
 
 
 func _staff_work_route(slot: int, serial: int) -> Array:
