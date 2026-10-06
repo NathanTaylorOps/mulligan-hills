@@ -149,6 +149,11 @@ func staff_view() -> Dictionary:
 	return MHStaffView.make(tiers(), land.owned_ids(), MHStaffView.kinds_from_defs(defs))
 
 
+func carts_allowed_now() -> bool:
+	# Hosted tournament play is walking-only. Course lock is the authoritative active-event boundary.
+	return bridge == null or bridge.tournaments == null or not bridge.tournaments.course_locked()
+
+
 func live_staff_assignments() -> Array:
 	# Presentation-only projection of authoritative staff/equipment assignments.
 	if staff_system == null:
