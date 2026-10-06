@@ -68,7 +68,7 @@ func spawn_group(serial: int, size: int, tee: Vector2, green: Vector2, round: Di
 			"events": (round.get("events", []) as Array).duplicate(true) if member == 0 else []})
 
 
-func spawn_authoritative_party(customers: Array, tee: Vector2, green: Vector2) -> void:
+func spawn_authoritative_party(customers: Array, tee: Vector2, green: Vector2, world_origin: Vector2 = Vector2.ZERO) -> void:
 	for i: int in range(customers.size()):
 		var customer: Dictionary = customers[i] as Dictionary
 		var round: Dictionary = customer.get("round", {}) as Dictionary
@@ -77,7 +77,7 @@ func spawn_authoritative_party(customers: Array, tee: Vector2, green: Vector2) -
 		var dir: Vector2 = Vector2(0.0, 1.0) if length < 0.001 else delta / length
 		golfers.append({"group": int(customer.get("party_id", customer.get("serial", 0))), "member": i,
 			"size": customers.size(), "look": MHSliceSchedule.look_index(int(customer.get("serial", 0)), 0, LOOK_POOL),
-			"t": 0.0, "tee": tee, "dir": dir, "len": length, "green": green,
+			"t": 0.0, "tee": tee, "dir": dir, "len": length, "green": green, "world_origin": world_origin,
 			"events": (round.get("events", []) as Array).duplicate(true)})
 
 
@@ -112,13 +112,12 @@ func _authoritative_state(events: Array, t: float, member: int, size: int) -> Di
 	if bool(timeline.get("done", false)):
 		return {"done": true, "phase": MHSliceRound.Phase.DONE, "clip": MHGolferPoses.CLIP_IDLE,
 			"clip_t": 0.0, "aim": false, "ball_u": -1.0, "world": Vector2.ZERO}
-	# Rating traces are centiyards in the same course coordinate frame as hole definitions.
-	# The live course currently maps one authored yard to one world X/Z unit, so divide by
-	# 100 here. Timeline duration separately converts distance to metres for walking speed.
-	var x0: float = float(int(timeline["x0"])) / 100.0
-	var y0: float = float(int(timeline["y0"])) / 100.0
-	var x1: float = float(int(timeline["x1"])) / 100.0
-	var y1: float = float(int(timeline["y1"])) / 100.0
+	# Rating traces are hole-local centiyards. Convert them to local metres here;
+	# the saved hole world origin is applied by the renderer.
+	var x0: float = float(int(timeline["x0"])) * 0.009144
+	var y0: float = float(int(timeline["y0"])) * 0.009144
+	var x1: float = float(int(timeline["x1"])) * 0.009144
+	var y1: float = float(int(timeline["y1"])) * 0.009144
 	var u: float = float(timeline.get("u", 0.0))
 	var phase: String = str(timeline.get("phase", "address"))
 	var world: Vector2 = Vector2(x0, y0)
@@ -145,7 +144,7 @@ func _render(states: Array, cam_pos: Vector3) -> void:
 		var st: Dictionary = states[i]
 		var p2: Vector2
 		if st.has("world"):
-			p2 = st["world"] as Vector2
+			p2 = (st["world"] as Vector2) + (d.get("world_origin", Vector2.ZERO) as Vector2)
 		else:
 			p2 = MHSliceRound.ground_point(d["tee"] as Vector2, d["dir"] as Vector2, float(st["along"]),
 				int(d["member"]), int(d["size"]))
@@ -194,6 +193,10 @@ func _render(states: Array, cam_pos: Vector3) -> void:
 			balls_used += 1
 			var tee: Vector2 = st2.get("ball_from", d2["tee"]) as Vector2
 			var green: Vector2 = st2.get("ball_to", d2["green"]) as Vector2
+			if st2.has("ball_from"):
+				var origin: Vector2 = d2.get("world_origin", Vector2.ZERO) as Vector2
+				tee += origin
+				green += origin
 			b.position = MHSliceRound.ball_point(tee, green, u)
 			var ground: Vector3 = MHClubPedestrian.apply_ground_height(Vector3(b.position.x, 0.0, b.position.z), terrain_grid)
 			b.position.y += ground.y
