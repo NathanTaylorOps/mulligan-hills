@@ -90,10 +90,7 @@ func setup(scene: MHLiveConstruction) -> void:
 	_world.hide()
 	var layouts: Array = live.session.hole_definitions()
 	if not layouts.is_empty():
-		var h: Dictionary = layouts[0]
-		length_yd = int(h["green"][1])
-		half_width_yd = int(h["features"][0]["rect"][2])
-		water = (h["features"] as Array).size() > 1
+		_sync_legacy_controls(layouts[0] as Dictionary)
 	_describe()
 	hide()
 
