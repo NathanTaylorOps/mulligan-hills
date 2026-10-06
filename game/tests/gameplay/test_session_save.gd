@@ -571,3 +571,18 @@ func test_full_management_state_round_trips_through_checkpoint() -> void:
 		assert_int(int(report["equipment_units"])).is_equal(1)
 		assert_array((report["employees"][0] as Dictionary)["areas"] as Array).contains_exactly([5, 6, 9])
 		assert_int(int((report["equipment"][0] as Dictionary)["assigned_employee"])).is_equal(employee)
+
+
+func test_live_scene_consumes_authoritative_customer_outcome_into_visible_golfers() -> void:
+	var scene: MHLiveConstruction = auto_free(MHLiveConstruction.new())
+	scene.store = MHSaveStore.new(DIR)
+	scene.ledger_dir = LEDGERS
+	add_child(scene)
+	assert_bool(scene._active).is_true()
+	scene.session._holes = [{"slot_id": 0, "tee": [10, 20], "green": [40, 80, 5]}]
+	scene.session.customer_outcomes = [{"serial": 77, "hole_slot": 0, "group_size": 3}]
+	assert_int(scene._visible_golfers.golfer_count()).is_equal(0)
+	scene._spawn_resolved_customer_groups()
+	assert_int(scene._visible_golfers.golfer_count()).is_equal(3)
+	assert_int(scene.session.customer_outcomes.size()).is_equal(0)
+	scene._active = false
