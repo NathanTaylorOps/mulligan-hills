@@ -15,6 +15,7 @@ const TYPES: Dictionary = {
 }
 var units: Array = []
 var next_serial: int = 1
+var operating_cost_cents: int = 0
 
 func add_unit(type_id: String) -> Dictionary:
 	if not TYPES.has(type_id) or units.size() >= MAX_UNITS:
@@ -22,21 +23,41 @@ func add_unit(type_id: String) -> Dictionary:
 	var d: Dictionary = TYPES[type_id]
 	var serial: int = next_serial
 	next_serial += 1
-	units.append({"serial": serial, "type": type_id, "condition": 1000, "broken": false})
+	units.append({"serial": serial, "type": type_id, "condition": 1000, "broken": false, "assigned_employee": 0})
 	return {"ok": true, "serial": serial, "price": int(d["price"])}
 
-func available_multiplier_permille(kind: String) -> int:
+func assign_unit(serial: int, employee_serial: int, employee_kind: String) -> bool:
+	for v: Variant in units:
+		var u: Dictionary = v
+		if int(u["serial"]) != serial:
+			continue
+		var d: Dictionary = TYPES[str(u["type"])]
+		operating_cost_cents += 75 + int(d["wear"]) * 5
+		if str(d["kind"]) != employee_kind or bool(u["broken"]):
+			return false
+		u["assigned_employee"] = employee_serial
+		return true
+	return false
+
+
+func multiplier_for_employee(employee_serial: int, kind: String) -> int:
 	var best: int = 1000
 	for v: Variant in units:
 		var u: Dictionary = v
-		if bool(u["broken"]) or str((TYPES[str(u["type"])] as Dictionary)["kind"]) != kind:
+		if int(u.get("assigned_employee", 0)) != employee_serial or bool(u["broken"]):
 			continue
-		var condition_pm: int = int(u["condition"])
-		var work_pm: int = int((TYPES[str(u["type"])] as Dictionary)["work_pm"])
-		best = maxi(best, MHStaffMath.idiv(work_pm * condition_pm, 1000))
+		var d: Dictionary = TYPES[str(u["type"])]
+		if str(d["kind"]) != kind:
+			continue
+		best = maxi(best, MHStaffMath.idiv(int(d["work_pm"]) * int(u["condition"]), 1000))
 	return best
 
+
+func operating_cost_for_day() -> int:
+	return operating_cost_cents
+
 func on_day(maintenance_tier: int) -> void:
+	operating_cost_cents = 0
 	for v: Variant in units:
 		var u: Dictionary = v
 		var d: Dictionary = TYPES[str(u["type"])]
@@ -53,12 +74,15 @@ func on_day(maintenance_tier: int) -> void:
 			u["condition"] = mini(1000, int(u["condition"]) + maintenance_tier * 6)
 
 func to_save_block() -> Dictionary:
-	return {"v": SAVE_VERSION, "next_serial": next_serial, "units": units.duplicate(true)}
+	return {"v": SAVE_VERSION, "next_serial": next_serial, "operating_cost_cents": operating_cost_cents, "units": units.duplicate(true)}
 
 func from_save_block(block: Dictionary) -> bool:
 	if int(block.get("v", 0)) != SAVE_VERSION or not MHRValidate.is_int_value(block.get("next_serial", null)):
 		return false
 	var ns: int = int(block["next_serial"])
+	var saved_cost: int = int(block.get("operating_cost_cents", 0))
+	if saved_cost < 0:
+		return false
 	if ns < 1 or typeof(block.get("units", null)) != TYPE_ARRAY:
 		return false
 	var src: Array = block["units"]
@@ -75,8 +99,12 @@ func from_save_block(block: Dictionary) -> bool:
 		var condition: int = int(u.get("condition", -1))
 		if serial <= last or serial >= ns or not TYPES.has(type_id) or condition < 0 or condition > 1000 or typeof(u.get("broken", null)) != TYPE_BOOL:
 			return false
-		cleaned.append({"serial": serial, "type": type_id, "condition": condition, "broken": bool(u["broken"])})
+		var assigned: int = int(u.get("assigned_employee", 0))
+		if assigned < 0:
+			return false
+		cleaned.append({"serial": serial, "type": type_id, "condition": condition, "broken": bool(u["broken"]), "assigned_employee": assigned})
 		last = serial
 	units = cleaned
 	next_serial = ns
+	operating_cost_cents = saved_cost
 	return true
