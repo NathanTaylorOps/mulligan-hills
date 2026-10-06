@@ -1535,9 +1535,15 @@ func _notification(what: int) -> void:
 
 func _exit_tree() -> void:
 	_cart_drive_active = false
+	if _player_cart != null and is_instance_valid(_player_cart):
+		_player_cart.drive(0.0, 0.0)
 	if _cart_drive_input != null:
 		_cart_drive_input.reset_controls()
 		_cart_drive_input.hide()
+	if _cart_tree_collision_root != null and is_instance_valid(_cart_tree_collision_root):
+		_cart_tree_collision_root.queue_free()
+	_cart_tree_collision_root = null
+	_cart_tree_collision_anchor = Vector3.INF
 	MHOrientation.restore_default()
 
 func _back() -> void:
