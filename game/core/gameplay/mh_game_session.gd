@@ -277,7 +277,7 @@ func _resolve_customer_hour() -> void:
 		if round.is_empty():
 			continue
 		var pref: int = int(identity.get("preference", MHGolferPreference.CASUAL))
-		var base: int = MHCustomerRoundQueue.satisfaction(round)
+		var base: int = MHCustomerRoundQueue.satisfaction(round, int(rating.get("par", 3)))
 		var bonus: int = MHGolferPreference.bonus(pref, rating, round)
 		var sat: int = clampi(base + bonus, 0, 100)
 		customer["round"] = round
