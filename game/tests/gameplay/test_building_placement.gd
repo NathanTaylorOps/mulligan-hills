@@ -60,7 +60,7 @@ func test_finalized_fairway_rejects_building_even_on_flat_ground() -> void:
 	var w: Array = _world()
 	var hole: Dictionary = {"slot_id": 0, "tee": [0, 0], "green": [0, 60, 5],
 		"features": [{"t": "fairway", "rect": [-8, 0, 8, 60]}]}
-	# First Real Round origin is around 48m,34m; this footprint intersects its fairway.
+	# Missing world origin must fail closed rather than silently applying the old First Real Round origin.
 	var r: Dictionary = MHBuildingPlacement.validate(w[0], w[1], w[2], "pro_shop", 1, Vector2i(48000, 50000), [], 0, [hole])
 	assert_bool(bool(r["ok"])).is_false()
 	assert_str(str(r["reason"])).is_equal("golf_feature")
@@ -92,3 +92,13 @@ func test_golf_exclusion_uses_saved_hole_world_origin() -> void:
 		Vector2i(70000, 50000), [], 0, [hole], [], course)
 	assert_bool(bool(result["ok"])).is_false()
 	assert_str(str(result["reason"])).is_equal("golf_feature")
+
+
+func test_land_world_mapping_uses_configured_grid_dimensions() -> void:
+	var w: Array = _world()
+	var land: MHLandModel = w[2]
+	assert_int(land.grid_cols()).is_equal(4)
+	assert_int(land.grid_rows()).is_equal(4)
+	assert_int(land.parcel_id_at_world_mm(1000, 1000, 128000, 128000)).is_equal(0)
+	assert_int(land.parcel_id_at_world_mm(127999, 127999, 128000, 128000)).is_equal(15)
+	assert_int(land.parcel_id_at_world_mm(-1, 1000, 128000, 128000)).is_equal(-1)
