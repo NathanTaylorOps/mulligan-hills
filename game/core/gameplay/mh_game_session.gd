@@ -134,9 +134,11 @@ func gate_view() -> MHGateView:
 
 
 func pace_score() -> int:
-	# Same course pace statistic used by the rating engine, converted to a 0..100 score.
-	# Until the authoritative pace-to-entry conversion exists, zero keeps the gate honest.
-	return 0
+	# Course-flow simulation is not authoritative yet, so do not invent one here. The existing staff model
+	# deliberately defines a small 0..100 pace contribution for marshals/caddies; expose that real investment.
+	if staff_system == null:
+		return 0
+	return clampi(staff_system.pace_points(), 0, 100)
 
 
 
