@@ -253,6 +253,167 @@
               "maximum": 200
             }
           }
+        },
+        "staff_roster": {
+          "description": "OPTIONAL (additive, save_version unchanged): the staff module's state, docs/spec/staff.md section 13. The legacy club.staff counts stay and are derived from it.",
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "v",
+            "next_serial",
+            "last_day",
+            "employees",
+            "condition",
+            "pest",
+            "personal_work",
+            "personal_pest",
+            "stats"
+          ],
+          "properties": {
+            "v": {
+              "const": 1
+            },
+            "next_serial": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 1000000000
+            },
+            "last_day": {
+              "type": "integer",
+              "minimum": -1,
+              "maximum": 1000000
+            },
+            "employees": {
+              "type": "array",
+              "maxItems": 120,
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "serial",
+                  "role",
+                  "hired_day",
+                  "tenure",
+                  "areas"
+                ],
+                "properties": {
+                  "serial": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 1000000000
+                  },
+                  "role": {
+                    "type": "string",
+                    "pattern": "^[a-z][a-z0-9_]{0,31}$"
+                  },
+                  "hired_day": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 1000000
+                  },
+                  "tenure": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 1000000
+                  },
+                  "areas": {
+                    "type": "array",
+                    "maxItems": 6,
+                    "uniqueItems": true,
+                    "items": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 15
+                    }
+                  }
+                }
+              }
+            },
+            "condition": {
+              "type": "array",
+              "minItems": 16,
+              "maxItems": 16,
+              "items": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 1000
+              }
+            },
+            "pest": {
+              "type": "array",
+              "minItems": 16,
+              "maxItems": 16,
+              "items": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 1000
+              }
+            },
+            "personal_work": {
+              "type": "array",
+              "minItems": 16,
+              "maxItems": 16,
+              "items": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 1000
+              }
+            },
+            "personal_pest": {
+              "type": "array",
+              "minItems": 16,
+              "maxItems": 16,
+              "items": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 1000
+              }
+            },
+            "stats": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "hires",
+                "fires",
+                "wages_cents",
+                "incidents_hit",
+                "incidents_handled",
+                "sightings"
+              ],
+              "properties": {
+                "hires": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 1000000000000
+                },
+                "fires": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 1000000000000
+                },
+                "wages_cents": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 1000000000000
+                },
+                "incidents_hit": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 1000000000000
+                },
+                "incidents_handled": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 1000000000000
+                },
+                "sightings": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 1000000000000
+                }
+              }
+            }
+          }
         }
       }
     },

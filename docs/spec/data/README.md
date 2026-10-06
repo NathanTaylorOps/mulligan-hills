@@ -15,6 +15,7 @@ Check everything: `python3 docs/spec/data/validate.py` (needs `jsonschema` 4.18+
 | analytics_catalog.json, analytics_event.* | Privacy-safe event catalogue and envelope |
 | strings.* and LOCALIZATION.md | String table format, key rules, length limits. Runtime table is `MHStrings.TABLE` (code) until `game/data/strings/en.json` exists |
 | achievements, progression, daily_challenges (+ schemas) | Achievement catalogue, club levels and streak numbers, daily challenge templates |
+| staff.json (+ schema) | 11 staff roles over the 10 buildings, 3 grades, wages in cents, grounds condition and pest parameters, incident kinds. Numbers are PARAMETERS, NOT FINAL. Spec: docs/spec/staff.md. The save gains an optional club.staff_roster block (save_version unchanged) |
 
 ## Global data rules
 1. No floats in any data that touches the sim, ratings, saves or shared payloads. Integers only, each within +/-2^53 (Godot parses JSON numbers as float64, so larger ints lose bits). 64-bit values (RNG state) are 16-char lowercase hex strings. Loaders must convert with a check that the float is integral and in range, and reject otherwise.

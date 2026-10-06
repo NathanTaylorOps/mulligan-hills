@@ -1,0 +1,623 @@
+class_name MHVerticalSlice
+extends Node3D
+## First playable vertical-slice loop (res://gameplay/mh_vertical_slice.tscn).
+##
+## What it shows: a flat 128 m course on the 4x4 parcel grid with an in-memory MHGameSession. Bought buildings
+## appear as procedural meshes on their parcels at the right tier, nature is scattered by seed around the
+## course, visual golfer groups tee off on the built holes and walk them, and a HUD shows cash, clock, rating
+## and income per hour with a buy/upgrade menu, a build-hole button and a buy-land button.
+##
+## Rules kept: the sim stays integer and deterministic. Rendering code (this file's _sync_* and
+## MHSliceGolfers) only READS the session. The session changes only through its public player paths
+## (handle_intent, submit_course), triggered by buttons. Nothing is saved: the session lives in memory and
+## nothing is written to user://, so ordinary saves and the live construction slot are untouched.
+## No terrain editing here. NOT YET RUN in Godot (see docs/phase1/vertical_slice.md).
+@warning_ignore_start("integer_division")
+
+const SCENE_PATH: String = "res://gameplay/mh_vertical_slice.tscn"
+const NATURE_SEED: int = 20261005
+const NATURE_COUNT: int = 90
+const HUD_REFRESH_S: float = 0.2
+## Holes built on entry, so the first minutes are not an empty course (each is paid for through submit_course).
+const STARTER_HOLES: int = 2
+## Development only: turns the in-memory session's demo flag off so all ten buildings can be bought and shown
+## (the demo caps six of them at tier 0). Never persisted. Set false to test the demo limits.
+const UNLOCK_FULL_GAME: bool = true
+const TIERS_ORDER: Array = ["low", "medium", "high"]
+
+var session: MHGameSession
+var view: MHLiveGameStateView
+var controller: MHCameraController
+var golfers: MHSliceGolfers
+var schedule: MHSliceSchedule
+var tier_name: String = "low"
+var nature_seed: int = NATURE_SEED
+## building id -> MeshInstance3D / tier currently drawn / slot (see MHSliceLayout).
+var building_nodes: Dictionary = {}
+var building_tiers: Dictionary = {}
+var slots: Dictionary = {}
+## Hole slots built so far and their world points, refreshed when the course changes.
+var built_slots: Array = []
+var hole_points: Array = []
+var nature_group_count: int = 0
+var starter_hole_error: String = ""
+
+var _mat: StandardMaterial3D
+var _ready_ok: bool = false
+var _last_usec: int = 0
+var _last_hour: int = 0
+var _sig: int = -1
+var _course_sig: String = ""
+var _hud_timer: float = 0.0
+var _mesh_cache: Dictionary = {}
+var _bounds_cache: Dictionary = {}
+var _buildings_root: Node3D
+var _course_root: Node3D
+var _ground: MeshInstance3D
+var _hud_line: Label
+var _detail_line: Label
+var _status: Label
+var _menu_panel: PanelContainer
+var _menu_rows: Dictionary = {}
+var _pause_button: MHTapButton
+var _speed_button: MHTapButton
+var _hole_button: MHTapButton
+var _land_button: MHTapButton
+var _quality_button: MHTapButton
+var _touches: Dictionary = {}
+var _pinch_ref: float = 0.0
+var _menu_dirty: bool = true
+
+
+func _ready() -> void:
+	session = MHGameSession.create()
+	if session == null:
+		_fail("Game data could not load.")
+		return
+	session.demo = not UNLOCK_FULL_GAME
+	view = MHLiveGameStateView.new(session)
+	_mat = MHArtMaterials.vertex_color()
+	MHSkySetup.apply(self, false)
+	_build_camera()
+	_build_nature()
+	_ground = MeshInstance3D.new()
+	add_child(_ground)
+	_course_root = Node3D.new()
+	add_child(_course_root)
+	_buildings_root = Node3D.new()
+	add_child(_buildings_root)
+	golfers = MHSliceGolfers.new()
+	add_child(golfers)
+	golfers.setup(_mat)
+	_apply_quality()
+	schedule = MHSliceSchedule.from_economy(session.economy)
+	_last_hour = _absolute_hour()
+	_build_hud()
+	# Starter setup, through the same player paths a button uses: one hole, and the economy's own fee suggestion.
+	for i: int in range(STARTER_HOLES):
+		starter_hole_error = build_next_hole()
+		if starter_hole_error != "":
+			break
+	session.handle_intent(&"set_green_fee", {"cents": session.economy.suggest_fee()})
+	session.changed.connect(_on_session_changed)
+	_sync_world(true)
+	_refresh_hud()
+	_ready_ok = true
+	_last_usec = Time.get_ticks_usec()
+
+
+func _process(delta: float) -> void:
+	if not _ready_ok:
+		return
+	var now: int = Time.get_ticks_usec()
+	var elapsed: int = maxi(0, now - _last_usec)
+	_last_usec = now
+	tick(elapsed, int(Time.get_unix_time_from_system()), delta)
+
+
+## One frame of the slice. Public so tests can drive it without engine frames.
+## elapsed_us / wall_unix go to the session exactly as the live construction scene does; delta is the frame
+## time in seconds and only drives the cosmetic golfer animation.
+func tick(elapsed_us: int, wall_unix: int, delta: float) -> void:
+	session.advance(elapsed_us, wall_unix)
+	_poll_arrivals()
+	var visual_dt: float = 0.0
+	if not session.clock.is_paused():
+		visual_dt = delta * float(mini(session.clock.speed(), 2))
+	golfers.advance(visual_dt, _camera_position())
+	_sync_world(false)
+	_hud_timer += delta
+	if _hud_timer >= HUD_REFRESH_S:
+		_hud_timer = 0.0
+		_refresh_hud()
+
+
+# ---------------------------------------------------------------- player actions (the only session writers)
+
+## Builds the next free hole slot through MHGameSession.submit_course (cost, caps and rating are the session's).
+## Returns "" on success or a short reason.
+func build_next_hole() -> String:
+	var defs: Array = session.hole_definitions()
+	var taken: Array = []
+	for d: Variant in defs:
+		taken.append(int((d as Dictionary)["slot_id"]))
+	var slot: int = MHSliceLayout.next_hole_slot(taken, session.land.owned_ids())
+	if slot < 0:
+		return "no free hole site, buy more land"
+	defs.append(MHSliceLayout.hole_template(slot))
+	var result: Dictionary = session.submit_course(defs)
+	if bool(result.get("ok", false)):
+		return ""
+	return str(result.get("reason", "failed"))
+
+
+func buy_next_tier(building_id: String) -> String:
+	var row: Dictionary = MHBuildMenuModel.row(view, building_id)
+	if row.is_empty() or bool(row["maxed"]):
+		return "nothing to buy"
+	var result: Dictionary = session.handle_intent(&"buy_tier", {"building": building_id, "tier": int(row["next_tier"])})
+	if bool(result.get("ok", false)):
+		return ""
+	return str(result.get("reason", "failed"))
+
+
+func buy_next_parcel() -> String:
+	var parcel: int = session.land.recommended_next()
+	if parcel < 0:
+		return "all land owned"
+	var result: Dictionary = session.handle_intent(&"buy_parcel", {"parcel": parcel})
+	if bool(result.get("ok", false)):
+		return ""
+	return str(result.get("reason", "failed"))
+
+
+func _real_cost_dollars(building_id: String, tier: int) -> int:
+	var index: int = session.economy.params.building_index(building_id)
+	return session.economy.price_cents(index, tier) / 100
+
+
+# ---------------------------------------------------------------- arrivals (read only)
+
+func _absolute_hour() -> int:
+	return session.economy.day * MHEconomy.HOURS_PER_DAY + session.economy.hour
+
+
+func _poll_arrivals() -> void:
+	var abs_hour: int = _absolute_hour()
+	if abs_hour < _last_hour:
+		_last_hour = abs_hour
+	while _last_hour < abs_hour:
+		var hour_index: int = _last_hour % MHEconomy.HOURS_PER_DAY
+		schedule.add_hour(MHSliceSchedule.hour_golfers_expected_milli(session.economy, hour_index))
+		_last_hour += 1
+	for g: Variant in schedule.release(session.clock.total_minutes()):
+		_spawn_group(g as Dictionary)
+
+
+func _spawn_group(g: Dictionary) -> void:
+	if hole_points.is_empty():
+		return
+	var serial: int = int(g["serial"])
+	var pts: Dictionary = hole_points[serial % hole_points.size()] as Dictionary
+	golfers.spawn_group(serial, int(g["size"]), pts["tee"] as Vector2, pts["green"] as Vector2)
+
+
+func _camera_position() -> Vector3:
+	if controller == null or controller.camera == null:
+		return Vector3(64.0, 80.0, 160.0)
+	return controller.camera.global_position
+
+
+func _on_session_changed() -> void:
+	_menu_dirty = true
+
+
+# ---------------------------------------------------------------- world (read only)
+
+## Cheap integer fingerprint of what the world draws: holes, owned parcel count (land is never sold, so the count
+## identifies the set), and the ten tiers (each below 8).
+func _world_signature() -> int:
+	var h: int = session.economy.holes
+	h = h * 32 + session.land.owned_count()
+	for t: int in session.economy.tiers:
+		h = h * 8 + t
+	return h
+
+
+func _sync_world(force: bool) -> void:
+	var sig: int = _world_signature()
+	if sig == _sig and not force:
+		return
+	_sig = sig
+	var owned: PackedInt32Array = session.land.owned_ids()
+	var course_sig: String = "%s|%d" % [str(owned), session.economy.holes]
+	if course_sig != _course_sig or force:
+		_course_sig = course_sig
+		_rebuild_course(owned)
+	var tiers: Dictionary = session.tiers()
+	slots = MHSliceLayout.assign_slots(tiers, owned, slots)
+	for id: Variant in MHSliceLayout.ORDER:
+		_sync_building(str(id), int(tiers.get(str(id), 0)))
+	_menu_dirty = true
+
+
+func _sync_building(id: String, tier: int) -> void:
+	if tier <= 0 or not slots.has(id):
+		if building_nodes.has(id):
+			(building_nodes[id] as Node3D).queue_free()
+			building_nodes.erase(id)
+			building_tiers.erase(id)
+		return
+	var node: MeshInstance3D
+	if building_nodes.has(id):
+		node = building_nodes[id] as MeshInstance3D
+	else:
+		node = MHArtMaterials.make_instance(null, _mat, false)
+		_buildings_root.add_child(node)
+		building_nodes[id] = node
+		building_tiers[id] = 0
+	if int(building_tiers[id]) != tier or node.mesh == null:
+		var key: String = "%s:%d" % [id, tier]
+		if not _mesh_cache.has(key):
+			_mesh_cache[key] = MHBuildingMeshes.build(id, tier, "a")
+		node.mesh = _mesh_cache[key] as Mesh
+		building_tiers[id] = tier
+	if not _bounds_cache.has(id):
+		_bounds_cache[id] = MHBuildingMeshes.bounds(id, MHBuildingMeshes.TIER_COUNT, "a")
+	node.transform = MHSliceLayout.building_transform(int(slots[id]), _bounds_cache[id] as AABB)
+
+
+func _rebuild_course(owned: PackedInt32Array) -> void:
+	for child: Node in _course_root.get_children():
+		_course_root.remove_child(child)
+		child.queue_free()
+	var b: MHMeshBuilder = MHMeshBuilder.new()
+	MHBuildingParts.flat(b, Vector3(MHSliceLayout.MAP_M * 0.5, -0.1, MHSliceLayout.MAP_M * 0.5 + 20.0),
+		MHSliceLayout.MAP_M + 240.0, MHSliceLayout.MAP_M + 280.0, MHPalette.shade(MHPalette.ROUGH, 0.85))
+	for parcel: int in range(MHSliceLayout.PARCEL_COUNT):
+		var o: Vector2 = MHSliceLayout.parcel_origin_m(parcel)
+		var col: Color = MHPalette.GRASS if owned.has(parcel) else MHPalette.shade(MHPalette.ROUGH, 0.7)
+		if (parcel % MHSliceLayout.COLS + parcel / MHSliceLayout.COLS) % 2 == 1:
+			col = MHPalette.shade(col, 0.95)
+		MHBuildingParts.flat(b, Vector3(o.x + MHSliceLayout.PARCEL_M * 0.5, 0.0, o.y + MHSliceLayout.PARCEL_M * 0.5),
+			MHSliceLayout.PARCEL_M, MHSliceLayout.PARCEL_M, col)
+	built_slots = []
+	hole_points = []
+	var flag_xf: Array = []
+	var tree_xf: Array = []
+	for d: Variant in session.hole_definitions():
+		var def: Dictionary = d
+		var slot: int = int(def["slot_id"])
+		built_slots.append(slot)
+		hole_points.append(MHSliceLayout.hole_points_m(def))
+		_add_hole_geometry(b, slot, def, flag_xf, tree_xf)
+	_ground.mesh = b.to_mesh()
+	_ground.material_override = _mat
+	_ground.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	if not flag_xf.is_empty():
+		_course_root.add_child(MHArtMaterials.make_multimesh(MHPropMeshes.build(MHPropMeshes.KIND_FLAG, 0, 0), _mat, flag_xf))
+	if not tree_xf.is_empty():
+		_course_root.add_child(MHArtMaterials.make_multimesh(MHNatureMeshes.build("pine", 0, 0), _mat, tree_xf))
+
+
+func _add_hole_geometry(b: MHMeshBuilder, slot: int, def: Dictionary, flag_xf: Array, tree_xf: Array) -> void:
+	var pts: Dictionary = MHSliceLayout.hole_points_m(def)
+	var tee: Vector2 = pts["tee"] as Vector2
+	var green: Vector2 = pts["green"] as Vector2
+	for f: Variant in def["features"]:
+		var feat: Dictionary = f
+		var kind: String = str(feat["t"])
+		if kind == "fairway":
+			_flat_rect(b, MHSliceLayout.feature_rect_m(slot, feat["rect"] as Array), 0.08, MHPalette.GRASS_LIGHT)
+		elif kind == "bunker":
+			_flat_rect(b, MHSliceLayout.feature_rect_m(slot, feat["rect"] as Array), 0.16, MHPalette.SAND)
+		elif kind == "water":
+			_flat_rect(b, MHSliceLayout.feature_rect_m(slot, feat["rect"] as Array), 0.16, MHPalette.WATER)
+		elif kind == "tree":
+			for t: Variant in feat["at"]:
+				var p: Vector2 = MHSliceLayout.hole_point_m(slot, int((t as Array)[0]), int((t as Array)[1]))
+				tree_xf.append(Transform3D(Basis.from_scale(Vector3(1.0, 1.0, 1.0)), Vector3(p.x, 0.0, p.y)))
+	b.disc(Vector3(green.x, 0.24, green.y), float(pts["green_radius_m"]), 14, MHPalette.GRASS_DARK)
+	_flat_rect(b, Rect2(tee.x - 1.5, tee.y - 1.0, 3.0, 2.0), 0.16, MHPalette.PATH_STONE)
+	flag_xf.append(Transform3D(Basis.from_scale(Vector3(1.0, 1.0, 1.0)), Vector3(green.x, 0.24, green.y)))
+
+
+func _flat_rect(b: MHMeshBuilder, r: Rect2, y: float, col: Color) -> void:
+	MHBuildingParts.flat(b, Vector3(r.position.x + r.size.x * 0.5, y, r.position.y + r.size.y * 0.5), r.size.x, r.size.y, col)
+
+
+func _build_nature() -> void:
+	var root: Node3D = Node3D.new()
+	root.name = "Nature"
+	add_child(root)
+	var groups: Dictionary = MHSliceNature.group(MHSliceNature.scatter(nature_seed, NATURE_COUNT))
+	nature_group_count = groups.size()
+	for key: Variant in groups.keys():
+		var parts: PackedStringArray = str(key).split("|")
+		var items: Array = groups[key] as Array
+		var xf: Array = []
+		for it: Variant in items:
+			var d: Dictionary = it
+			var s: float = float(d["scale"])
+			var basis: Basis = Basis(Vector3.UP, float(d["yaw"])) * Basis.from_scale(Vector3(s, s, s))
+			xf.append(Transform3D(basis, Vector3(float(d["x"]), 0.0, float(d["z"]))))
+		var mm: MultiMeshInstance3D = MHArtMaterials.make_multimesh(
+			MHNatureMeshes.build(parts[0], int(parts[1]), int(parts[2])), _mat, xf)
+		mm.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		root.add_child(mm)
+
+
+func _build_camera() -> void:
+	var cfg: MHCameraConfig = MHCameraConfig.new()
+	cfg.min_distance = 20.0
+	cfg.max_distance = 260.0
+	cfg.start_distance = 150.0
+	controller = MHCameraController.new()
+	controller.config = cfg
+	add_child(controller)
+	controller.rig.target = Vector3(64.0, 0.0, 70.0)
+	controller.desktop_pan(Vector2.ZERO)
+	controller.camera.near = 0.5
+	controller.camera.far = 900.0
+
+
+func _apply_quality() -> void:
+	var caps: Dictionary = MHSliceVisibility.caps_for_tier(tier_name)
+	golfers.set_caps(int(caps["near"]), int(caps["total"]))
+
+
+# ---------------------------------------------------------------- HUD
+
+func _build_hud() -> void:
+	var layer: CanvasLayer = CanvasLayer.new()
+	add_child(layer)
+	var root: Control = Control.new()
+	root.set_anchors_preset(Control.PRESET_FULL_RECT)
+	root.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	root.theme = MHTheme.build(100)
+	layer.add_child(root)
+	add_child(MHTouchBridge.new()) # Raw touches to MHTapButton and MHScrollBox (emulate_mouse_from_touch is off).
+	var margin: MarginContainer = MarginContainer.new()
+	margin.set_anchors_preset(Control.PRESET_FULL_RECT)
+	margin.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	for side: String in ["left", "right", "top", "bottom"]:
+		margin.add_theme_constant_override("margin_" + side, 12)
+	root.add_child(margin)
+	var columns: HBoxContainer = MHUIKit.hbox(12)
+	margin.add_child(columns)
+	var left: VBoxContainer = MHUIKit.vbox(8)
+	left.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	columns.add_child(left)
+
+	var chip: PanelContainer = MHUIKit.panel(&"HudChip")
+	chip.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
+	var lines: VBoxContainer = MHUIKit.vbox(2)
+	chip.add_child(lines)
+	_hud_line = MHUIKit.label("", &"HudLabel", false)
+	_detail_line = MHUIKit.label("", &"SmallLabel", false)
+	_status = MHUIKit.label("Slice: in-memory club, nothing is saved.", &"SmallLabel", false)
+	lines.add_child(_hud_line)
+	lines.add_child(_detail_line)
+	lines.add_child(_status)
+	left.add_child(chip)
+
+	var bar: HFlowContainer = MHUIKit.flow(6)
+	left.add_child(bar)
+	_pause_button = _chip_button(bar, "Pause", _on_pause)
+	_speed_button = _chip_button(bar, "Speed x1", _on_speed)
+	_chip_button(bar, "Fee -$1", _on_fee.bind(-100))
+	_chip_button(bar, "Fee +$1", _on_fee.bind(100))
+	_hole_button = _chip_button(bar, "Build hole", _on_build_hole)
+	_land_button = _chip_button(bar, "Buy land", _on_buy_land)
+	_chip_button(bar, "Buildings", _on_toggle_menu)
+	_chip_button(bar, "Zoom +", func() -> void: controller.desktop_zoom(1))
+	_chip_button(bar, "Zoom -", func() -> void: controller.desktop_zoom(-1))
+	_chip_button(bar, "Rotate", func() -> void: controller.desktop_rotate(Vector2(60.0, 0.0)))
+	_quality_button = _chip_button(bar, "Quality: " + tier_name, _on_quality)
+	_chip_button(bar, "Back", _on_back)
+
+	_menu_panel = MHUIKit.panel(&"CardPanel")
+	_menu_panel.mouse_filter = Control.MOUSE_FILTER_STOP
+	_menu_panel.custom_minimum_size = Vector2(540.0, 0.0)
+	_menu_panel.visible = false
+	var menu_box: VBoxContainer = MHUIKit.vbox(6)
+	_menu_panel.add_child(menu_box)
+	menu_box.add_child(MHUIKit.label("Buildings (buy or upgrade)", &"H2Label", false))
+	var scroll: MHScrollBox = MHScrollBox.new()
+	scroll.custom_minimum_size = Vector2(0.0, 420.0)
+	menu_box.add_child(scroll)
+	var list: VBoxContainer = MHUIKit.vbox(6)
+	list.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	scroll.add_child(list)
+	for id: Variant in MHSliceLayout.ORDER:
+		var bid: String = str(id)
+		var row: HBoxContainer = MHUIKit.hbox(8)
+		list.add_child(row)
+		var label: Label = MHUIKit.label("", &"SmallLabel", true)
+		label.custom_minimum_size = Vector2(300.0, 0.0)
+		row.add_child(label)
+		var button: MHTapButton = MHTapButton.make("-", &"GreenButton", 150.0, 56.0)
+		button.pressed.connect(_on_buy.bind(bid))
+		row.add_child(button)
+		_menu_rows[bid] = {"label": label, "button": button}
+	columns.add_child(_menu_panel)
+
+
+func _chip_button(parent: Control, text_value: String, action: Callable) -> MHTapButton:
+	var b: MHTapButton = MHTapButton.make(text_value, &"ChipButton", 110.0, 52.0)
+	b.pressed.connect(action)
+	parent.add_child(b)
+	return b
+
+
+func _set_status(text_value: String) -> void:
+	if _status != null:
+		_status.text = text_value
+
+
+func _on_pause() -> void:
+	session.handle_intent(&"toggle_pause", {})
+	_refresh_hud()
+
+
+func _on_speed() -> void:
+	var next: int = 1
+	match session.clock.speed():
+		1:
+			next = 2
+		2:
+			next = 4
+		4:
+			next = 8
+		_:
+			next = 1
+	var result: Dictionary = session.handle_intent(&"set_speed", {"speed": next})
+	if not bool(result.get("ok", false)):
+		_set_status("Speed x%d needs tokens; staying at x%d." % [next, session.clock.speed()])
+	_refresh_hud()
+
+
+func _on_fee(delta_cents: int) -> void:
+	session.handle_intent(&"set_green_fee", {"cents": session.economy.fee + delta_cents})
+	_refresh_hud()
+
+
+func _on_build_hole() -> void:
+	var err: String = build_next_hole()
+	_set_status("Hole built." if err == "" else "Cannot build hole: " + err)
+	_sync_world(false)
+	_refresh_hud()
+
+
+func _on_buy_land() -> void:
+	var err: String = buy_next_parcel()
+	_set_status("Land bought." if err == "" else "Cannot buy land: " + err)
+	_sync_world(false)
+	_refresh_hud()
+
+
+func _on_toggle_menu() -> void:
+	_menu_panel.visible = not _menu_panel.visible
+	_menu_dirty = true
+	_refresh_hud()
+
+
+func _on_buy(id: String) -> void:
+	var err: String = buy_next_tier(id)
+	_set_status("Bought %s." % MHSliceText.building_title(id) if err == "" else "Cannot buy: " + err)
+	_sync_world(false)
+	_refresh_hud()
+
+
+func _on_quality() -> void:
+	var i: int = TIERS_ORDER.find(tier_name)
+	tier_name = str(TIERS_ORDER[(i + 1) % TIERS_ORDER.size()])
+	_apply_quality()
+	_quality_button.text = "Quality: " + tier_name
+
+
+func _on_back() -> void:
+	get_tree().change_scene_to_file(MHLauncher.LAUNCHER_PATH)
+
+
+func _refresh_hud() -> void:
+	if _hud_line == null:
+		return
+	var e: MHEconomy = session.economy
+	var est: Dictionary = e.estimate_day()
+	_hud_line.text = MHSliceText.hud_line(view.cash(), session.clock.day(), session.clock.minute_of_day(),
+		view.course_score_x10(), MHSliceText.income_per_hour_dollars(int(est["revenue"])), golfers.golfer_count())
+	_detail_line.text = MHSliceText.detail_line(e.fee / 100, int(est["net"]) / 100, e.holes, e.members())
+	_pause_button.text = "Resume" if session.clock.is_paused() else "Pause"
+	_speed_button.text = "Speed x%d" % session.clock.speed()
+	var slot: int = MHSliceLayout.next_hole_slot(built_slots, session.land.owned_ids())
+	if slot < 0:
+		_hole_button.text = "No hole site"
+		_hole_button.disabled = true
+	else:
+		_hole_button.text = "Build hole %s" % MHFormat.money(e.hole_cost_cents() / 100)
+		_hole_button.disabled = false
+	if session.land.recommended_next() < 0:
+		_land_button.text = "All land owned"
+		_land_button.disabled = true
+	else:
+		_land_button.text = "Buy land %s" % MHFormat.money(session.land.next_price())
+		_land_button.disabled = false
+	if _menu_panel.visible and _menu_dirty:
+		_menu_dirty = false
+		_refresh_menu()
+
+
+func _refresh_menu() -> void:
+	for id: Variant in MHSliceLayout.ORDER:
+		var bid: String = str(id)
+		var refs: Dictionary = _menu_rows[bid] as Dictionary
+		var row: Dictionary = MHBuildMenuModel.row(view, bid)
+		var label: Label = refs["label"] as Label
+		var button: MHTapButton = refs["button"] as MHTapButton
+		label.text = MHSliceText.row_summary(row)
+		if row.is_empty() or bool(row["maxed"]) or bool(row["demo_locked"]) or not bool(row["met"]):
+			button.text = MHSliceText.buy_label(row, 0)
+			button.disabled = true
+			continue
+		var cost: int = _real_cost_dollars(bid, int(row["next_tier"]))
+		button.text = MHSliceText.buy_label(row, cost)
+		button.disabled = not session.economy.can_afford(cost * 100)
+
+
+# ---------------------------------------------------------------- camera input (world area only)
+
+func _unhandled_input(event: InputEvent) -> void:
+	if controller == null:
+		return
+	if event is InputEventMouseMotion:
+		var mm: InputEventMouseMotion = event
+		if (mm.button_mask & MOUSE_BUTTON_MASK_LEFT) != 0:
+			controller.desktop_pan(mm.relative)
+	elif event is InputEventMouseButton:
+		var mb: InputEventMouseButton = event
+		if mb.pressed and mb.button_index == MOUSE_BUTTON_WHEEL_UP:
+			controller.desktop_zoom(1)
+		elif mb.pressed and mb.button_index == MOUSE_BUTTON_WHEEL_DOWN:
+			controller.desktop_zoom(-1)
+	elif event is InputEventScreenTouch:
+		var st: InputEventScreenTouch = event
+		if st.pressed:
+			_touches[st.index] = st.position
+		else:
+			_touches.erase(st.index)
+		_pinch_ref = 0.0
+	elif event is InputEventScreenDrag:
+		var sd: InputEventScreenDrag = event
+		if not _touches.has(sd.index):
+			return
+		_touches[sd.index] = sd.position
+		if _touches.size() == 1:
+			controller.desktop_pan(sd.relative)
+		elif _touches.size() == 2:
+			var keys: Array = _touches.keys()
+			var dist: float = (_touches[keys[0]] as Vector2).distance_to(_touches[keys[1]] as Vector2)
+			if _pinch_ref <= 0.0:
+				_pinch_ref = dist
+			elif dist > _pinch_ref * 1.06:
+				controller.desktop_zoom(1)
+				_pinch_ref = dist
+			elif dist < _pinch_ref * 0.94:
+				controller.desktop_zoom(-1)
+				_pinch_ref = dist
+
+
+func _fail(message: String) -> void:
+	var layer: CanvasLayer = CanvasLayer.new()
+	add_child(layer)
+	var box: VBoxContainer = VBoxContainer.new()
+	layer.add_child(box)
+	var l: Label = Label.new()
+	l.text = message
+	box.add_child(l)
+	var back: MHTapButton = MHTapButton.new()
+	back.text = "Back to launcher"
+	back.custom_minimum_size = Vector2(200.0, 64.0)
+	back.pressed.connect(_on_back)
+	box.add_child(back)
+	box.add_child(MHTouchBridge.new())

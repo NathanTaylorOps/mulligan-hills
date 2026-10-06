@@ -1,0 +1,19 @@
+staff economy check: 20 runs per cell, casual fee habit, 260 days, casual and competent skill
+T5 = day all ten buildings reach tier 5 (with 18 holes). Baseline policy 'none' assumes the staff gate is met.
+casual    none        T5 day p10/p50/p90 120/126/131 (20/20) | staff at end med 0 payroll/day med $0 | demand avg med 1000 | cond avg med 0 | wages total med $0 | net/day d100 med $11884 | bankrupt 0
+casual    minimal     T5 day p10/p50/p90 127/134/139 (20/20) | staff at end med 14 payroll/day med $408 | demand avg med 948 | cond avg med 328 | wages total med $61067 | net/day d100 med $10553 | bankrupt 0
+casual    personal    T5 day p10/p50/p90 120/125/130 (20/20) | staff at end med 14 payroll/day med $408 | demand avg med 1036 | cond avg med 999 | wages total med $62990 | net/day d100 med $12199 | bankrupt 0
+casual    grounds     T5 day p10/p50/p90 126/133/137 (20/20) | staff at end med 14 payroll/day med $460 | demand avg med 991 | cond avg med 771 | wages total med $79313 | net/day d100 med $10874 | bankrupt 0
+casual    full        T5 day p10/p50/p90 130/136/141 (20/20) | staff at end med 25 payroll/day med $837 | demand avg med 1038 | cond avg med 768 | wages total med $188487 | net/day d100 med $9925 | bankrupt 0
+competent none        T5 day p10/p50/p90 105/109/114 (20/20) | staff at end med 0 payroll/day med $0 | demand avg med 1000 | cond avg med 0 | wages total med $0 | net/day d100 med $17129 | bankrupt 0
+competent minimal     T5 day p10/p50/p90 109/113/119 (20/20) | staff at end med 14 payroll/day med $408 | demand avg med 952 | cond avg med 352 | wages total med $65015 | net/day d100 med $15365 | bankrupt 0
+competent personal    T5 day p10/p50/p90 103/108/113 (20/20) | staff at end med 14 payroll/day med $408 | demand avg med 1037 | cond avg med 999 | wages total med $66410 | net/day d100 med $17125 | bankrupt 0
+competent grounds     T5 day p10/p50/p90 108/112/118 (20/20) | staff at end med 14 payroll/day med $460 | demand avg med 994 | cond avg med 781 | wages total med $82511 | net/day d100 med $15632 | bankrupt 0
+competent full        T5 day p10/p50/p90 110/116/120 (20/20) | staff at end med 25 payroll/day med $837 | demand avg med 1039 | cond avg med 778 | wages total med $190551 | net/day d100 med $15800 | bankrupt 0
+
+-- pacing window (DEC-069/071): non-novice population, skill weights casual 45 / competent 30 / expert 10, habit weights as sim.py, 10 runs per cell
+none      in days 100-150:  83.7%  by day 150:  91.4%  pooled finish day p10/p50/p90 97/124/164
+minimal   in days 100-150:  83.4%  by day 150:  86.9%  pooled finish day p10/p50/p90 101/129/167
+personal  in days 100-150:  83.2%  by day 150:  91.1%  pooled finish day p10/p50/p90 96/125/164
+grounds   in days 100-150:  82.4%  by day 150:  85.7%  pooled finish day p10/p50/p90 101/129/168
+full      in days 100-150:  79.9%  by day 150:  83.0%  pooled finish day p10/p50/p90 103/135/186

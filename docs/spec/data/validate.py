@@ -20,7 +20,7 @@ def bad(msg): fails.append(msg); print("FAIL", msg)
 def ok(msg): print("ok  ", msg)
 
 SCHEMAS = ["course","save","buildings","tournaments","commission_templates","event_cards","remote_config","analytics_catalog","analytics_event","strings",
-           "achievements","daily_challenges","progression"]
+           "achievements","daily_challenges","progression","staff"]
 schemas = {s: load(s + ".schema.json") for s in SCHEMAS}
 reg = Registry()
 for s in schemas.values():
@@ -47,7 +47,7 @@ docs = {"one_hole_save.example.json": "save", "live_save.example.json": "save", 
         "remote_config.example.json": "remote_config", "analytics_catalog.json": "analytics_catalog",
         "analytics_event.example.json": "analytics_event", "strings.example.en.json": "strings",
         "event_cards.json": "event_cards", "achievements.json": "achievements", "daily_challenges.json": "daily_challenges",
-        "progression.json": "progression"}
+        "progression.json": "progression", "staff.json": "staff"}
 loaded = {}
 for f, s in docs.items():
     d = load(f); loaded[f] = d; check(s, d, f); no_floats(d, f)
@@ -286,9 +286,45 @@ for c in EC["cards"]:
         elif len(ECS[k]["text"]) > {"title": 28, "body": 300}.get(k.rsplit(".", 1)[1], 160 if k.endswith("_out") else 40): bad(f"event string {k}: {len(ECS[k]['text'])} chars is over the localization limit")
 ok(f"event_cards.json: {len(ids)} cards, unique ids, known effect ops, every text key has a draft string within the length limits")
 
+# --- semantic + negative: staff (docs/spec/staff.md)
+ST = loaded["staff.json"]
+if {r["building"] for r in ST["roles"]} != {b["id"] for b in B["buildings"]}: bad("staff: roles must cover all 10 buildings")
+if len({r["id"] for r in ST["roles"]}) != len(ST["roles"]): bad("staff: duplicate role ids")
+if ST["grid"] != B["land"]["grid"] and (ST["grid"]["cols"], ST["grid"]["rows"]) != (B["land"]["grid"]["cols"], B["land"]["grid"]["rows"]): bad("staff: grid differs from the buildings land grid")
+for r in ST["roles"]:
+    if r["caps_by_tier"] != sorted(r["caps_by_tier"]): bad(f"staff: {r['id']} caps must not decrease with tier")
+    if r["daily_wage_cents"] <= 0: bad(f"staff: {r['id']} wage must be positive")
+T = loaded["tournaments.json"]
+need_staff = max(l["entry"]["min_staff"] for l in T["levels"])
+reach = sum(max(r["caps_by_tier"]) for r in ST["roles"])
+if reach < need_staff: bad(f"staff: caps sum {reach} cannot reach the highest tournament min_staff {need_staff} (DEC-027 no circular gate)")
+tg = [g["min_tenure_days"] for g in ST["grades"]]
+if tg != sorted(set(tg)) or tg[0] != 0: bad("staff: grade tenure must rise strictly from 0")
+if not (0 < ST["params"]["tenure_gate_days"] <= 30): bad("staff: tenure_gate_days out of range")
+SS = json.load(open(os.path.join(HERE, "..", "..", "..", "game", "core", "staff", "staff_strings_en.json"), encoding="utf-8"))["strings"]
+keys = [g["name_key"] for g in ST["grades"]] + [r["name_key"] for r in ST["roles"]] + [k["name_key"] for k in ST["incident_kinds"] + ST["sighting_kinds"] if "name_key" in k]
+for k in keys:
+    if k not in SS: bad(f"staff: no draft string for {k}")
+    elif "\u2014" in SS[k]["text"]: bad(f"staff string {k} contains an em dash")
+sv = copy.deepcopy(loaded["save.example.json"])
+if "staff_roster" in sv["club"]: bad("save.example.json should stay a legacy save without staff_roster (proves the field is optional)")
+sr = {"v": 1, "next_serial": 3, "last_day": 4, "employees": [{"serial": 1, "role": "groundskeeper", "hired_day": 0, "tenure": 4, "areas": [5, 6]}],
+      "condition": [600]*16, "pest": [0]*16, "personal_work": [0]*16, "personal_pest": [0]*16,
+      "stats": {"hires": 1, "fires": 0, "wages_cents": 8800, "incidents_hit": 0, "incidents_handled": 0, "sightings": 0}}
+sv["club"]["staff_roster"] = copy.deepcopy(sr); check("save", sv, "save.example.json with a staff_roster block")
+sv2 = copy.deepcopy(sv); sv2["club"]["staff_roster"]["condition"] = [600]*15; must_reject("save", sv2, "staff_roster with 15 parcels")
+sv2 = copy.deepcopy(sv); sv2["club"]["staff_roster"]["employees"][0]["areas"] = [5, 5]; must_reject("save", sv2, "staff_roster duplicate areas")
+sv2 = copy.deepcopy(sv); sv2["club"]["staff_roster"]["pest"][0] = 1001; must_reject("save", sv2, "staff_roster pest over 1000")
+sv2 = copy.deepcopy(sv); sv2["club"]["staff_roster"]["employees"][0]["wage"] = 1; must_reject("save", sv2, "staff_roster employee with an extra key")
+sv2 = copy.deepcopy(sv); sv2["club"]["staff_roster"]["stats"]["wages_cents"] = 1.5; must_reject("save", sv2, "staff_roster float stat")
+d = copy.deepcopy(ST); d["roles"][0]["daily_wage_cents"] = 22.5; must_reject("staff", d, "staff.json float wage")
+d = copy.deepcopy(ST); d["roles"][0]["building"] = "casino"; must_reject("staff", d, "staff.json unknown building")
+d = copy.deepcopy(ST); d["params"]["rating_bonus"] = 5; must_reject("staff", d, "staff.json rating parameter")
+ok("staff.json: roles cover the ten buildings, caps rise, tournament gate reachable, strings drafted, optional roster block validated")
+
 # --- runtime copies shipped in the game (docs/ is not exported)
 GAME_DATA = os.path.join(HERE, "..", "..", "..", "game", "data")
-for fn in ("tournaments.json", "daily_challenges.json", "achievements.json", "progression.json", "event_cards.json", "economy_params.json"):
+for fn in ("tournaments.json", "daily_challenges.json", "achievements.json", "progression.json", "event_cards.json", "economy_params.json", "staff.json"):
     p = os.path.join(GAME_DATA, fn)
     if not os.path.exists(p): bad(f"game/data/{fn} (runtime copy) missing"); continue
     with open(p, encoding="utf-8") as f1, open(os.path.join(HERE, fn), encoding="utf-8") as f2:

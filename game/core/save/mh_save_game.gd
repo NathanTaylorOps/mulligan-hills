@@ -376,9 +376,28 @@ static func _validate_club(d: Dictionary, strict: bool, errs: Array) -> void:
 		if ds.has("style_id") and not _matches(ID_PATTERN, ds["style_id"]):
 			errs.append("$.club.design_style.style_id malformed")
 		_int_in(ds, "points", 0, 1000000, "$.club.design_style", errs, false)
+	if club.has("staff_roster"):
+		_validate_staff_roster(club, errs)
 	if strict:
 		_only_keys(club, ["name_preset_id", "cash", "lifetime_earned", "green_fee", "members", "reputation",
-			"prestige", "design_style", "staff"], "$.club", errs)
+			"prestige", "design_style", "staff", "staff_roster"], "$.club", errs)
+
+
+## club.staff_roster is optional (a save without it means no employees; save_version stays 1). Structure only here:
+## MHStaff.from_save_block does the full check when the staff module loads it.
+static func _validate_staff_roster(club: Dictionary, errs: Array) -> void:
+	var sr: Dictionary = _dict_at(club, "staff_roster", "$.club", errs, false)
+	if typeof(club["staff_roster"]) != TYPE_DICTIONARY:
+		return
+	_int_in(sr, "v", 1, 1, "$.club.staff_roster", errs)
+	_int_in(sr, "next_serial", 1, 1000000000, "$.club.staff_roster", errs)
+	_int_in(sr, "last_day", -1, 1000000, "$.club.staff_roster", errs)
+	_array_at(sr, "employees", 120, "$.club.staff_roster", errs)
+	for key in ["condition", "pest", "personal_work", "personal_pest"]:
+		var arr: Array = _array_at(sr, key, 16, "$.club.staff_roster", errs)
+		if arr.size() != 16:
+			errs.append("$.club.staff_roster." + key + " must have 16 entries")
+	_dict_at(sr, "stats", "$.club.staff_roster", errs)
 
 
 static func _validate_buildings(d: Dictionary, errs: Array) -> void:

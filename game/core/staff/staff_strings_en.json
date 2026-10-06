@@ -1,0 +1,85 @@
+{
+  "note": "DRAFT English strings for staff.json role, grade, incident and sighting names. The owner of game/data/strings/en.json decides which wording wins.",
+  "strings": {
+    "staff.grade.trainee": {
+      "text": "Trainee",
+      "status": "draft"
+    },
+    "staff.grade.regular": {
+      "text": "Regular",
+      "status": "draft"
+    },
+    "staff.grade.veteran": {
+      "text": "Veteran",
+      "status": "draft"
+    },
+    "staff.role.groundskeeper": {
+      "text": "Groundskeeper",
+      "status": "draft"
+    },
+    "staff.role.wildlife_ranger": {
+      "text": "Wildlife ranger",
+      "status": "draft"
+    },
+    "staff.role.marshal": {
+      "text": "Marshal",
+      "status": "draft"
+    },
+    "staff.role.caddie": {
+      "text": "Caddie",
+      "status": "draft"
+    },
+    "staff.role.pro_shop_assistant": {
+      "text": "Pro shop assistant",
+      "status": "draft"
+    },
+    "staff.role.range_attendant": {
+      "text": "Range attendant",
+      "status": "draft"
+    },
+    "staff.role.server": {
+      "text": "Server",
+      "status": "draft"
+    },
+    "staff.role.spa_attendant": {
+      "text": "Spa attendant",
+      "status": "draft"
+    },
+    "staff.role.housekeeper": {
+      "text": "Housekeeper",
+      "status": "draft"
+    },
+    "staff.role.concierge": {
+      "text": "Concierge",
+      "status": "draft"
+    },
+    "staff.role.guide": {
+      "text": "Landmark guide",
+      "status": "draft"
+    },
+    "staff.incident.burrowers": {
+      "text": "Burrowing critters",
+      "status": "draft"
+    },
+    "staff.incident.goose_flock": {
+      "text": "Goose flock",
+      "status": "draft"
+    },
+    "staff.incident.insect_swarm": {
+      "text": "Insect swarm",
+      "status": "draft"
+    },
+    "staff.sighting.deer": {
+      "text": "A deer at dawn",
+      "status": "draft"
+    },
+    "staff.sighting.heron": {
+      "text": "A heron on the pond",
+      "status": "draft"
+    },
+    "staff.sighting.fox": {
+      "text": "A fox on the fairway",
+      "status": "draft"
+    }
+  }
+}

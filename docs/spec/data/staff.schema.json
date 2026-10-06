@@ -1,0 +1,529 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.mulliganhills.example/staff.schema.json",
+  "title": "Mulligan Hills staff data v1",
+  "description": "Roles matched to the ten buildings, grades, wages (integer cents), work rates, grounds condition and pest parameters, incident kinds. Numbers are PARAMETERS, NOT FINAL (DEC-073 asked for the system; tuning is tools/reference/staff/staff_sim.py).",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "schema_version",
+    "status",
+    "grid",
+    "grades",
+    "params",
+    "decay_by_parcel_kind",
+    "roles",
+    "incident_kinds",
+    "sighting_kinds"
+  ],
+  "properties": {
+    "schema": {
+      "const": "mh.staff"
+    },
+    "schema_version": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 1
+    },
+    "status": {
+      "type": "string"
+    },
+    "grid": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "cols",
+        "rows"
+      ],
+      "properties": {
+        "cols": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 16
+        },
+        "rows": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 16
+        }
+      }
+    },
+    "grades": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 5,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "name_key",
+          "min_tenure_days",
+          "wage_permille",
+          "work_permille"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9_]{1,39}$"
+          },
+          "name_key": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9_.]{2,79}$"
+          },
+          "min_tenure_days": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 100000
+          },
+          "wage_permille": {
+            "type": "integer",
+            "minimum": 100,
+            "maximum": 10000
+          },
+          "work_permille": {
+            "type": "integer",
+            "minimum": 100,
+            "maximum": 10000
+          }
+        }
+      }
+    },
+    "params": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "max_employees",
+        "max_areas_per_employee",
+        "auto_assign_span",
+        "tenure_gate_days",
+        "hire_cost_days",
+        "hire_reserve_days",
+        "cond_start",
+        "cond_untended_floor",
+        "cond_hard_floor",
+        "pest_start",
+        "keeper_work",
+        "ranger_control",
+        "pest_growth_base",
+        "pest_growth_cond_div",
+        "pest_natural_cap",
+        "pest_decline_above_cap",
+        "pest_damage_div",
+        "incident_chance_div",
+        "incident_max_per_day",
+        "handled_min_control",
+        "handled_damage_pct",
+        "sighting_chance_permille",
+        "sighting_ranger_bonus_permille",
+        "sighting_max_pest",
+        "sighting_min_cond",
+        "personal_pass_gain",
+        "personal_daily_cap",
+        "personal_patrol_gain",
+        "personal_patrol_cap",
+        "demand_min",
+        "demand_max",
+        "cond_neutral",
+        "cond_k_permille",
+        "pest_k_permille",
+        "service_neutral",
+        "service_k_permille",
+        "sat_cond_floor",
+        "sat_pen_max",
+        "sat_pen_span",
+        "overlay_beauty_k",
+        "overlay_fairness_k",
+        "service_rec_by_tier"
+      ],
+      "properties": {
+        "max_employees": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 200
+        },
+        "max_areas_per_employee": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 16
+        },
+        "auto_assign_span": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 1000000
+        },
+        "tenure_gate_days": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 1000000
+        },
+        "hire_cost_days": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 1000000
+        },
+        "hire_reserve_days": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 1000000
+        },
+        "cond_start": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 1000
+        },
+        "cond_untended_floor": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 1000
+        },
+        "cond_hard_floor": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 1000
+        },
+        "pest_start": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 1000
+        },
+        "keeper_work": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 1000000
+        },
+        "ranger_control": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 1000000
+        },
+        "pest_growth_base": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 1000000
+        },
+        "pest_growth_cond_div": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 1000000
+        },
+        "pest_natural_cap": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 1000
+        },
+        "pest_decline_above_cap": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 1000000
+        },
+        "pest_damage_div": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 1000000
+        },
+        "incident_chance_div": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 1000000
+        },
+        "incident_max_per_day": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 1000000
+        },
+        "handled_min_control": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 1000000
+        },
+        "handled_damage_pct": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 100
+        },
+        "sighting_chance_permille": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 1000000
+        },
+        "sighting_ranger_bonus_permille": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 1000000
+        },
+        "sighting_max_pest": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 1000000
+        },
+        "sighting_min_cond": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 1000000
+        },
+        "personal_pass_gain": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 1000000
+        },
+        "personal_daily_cap": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 1000000
+        },
+        "personal_patrol_gain": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 1000000
+        },
+        "personal_patrol_cap": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 1000000
+        },
+        "demand_min": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 1000
+        },
+        "demand_max": {
+          "type": "integer",
+          "minimum": 1000,
+          "maximum": 3000
+        },
+        "cond_neutral": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 1000000
+        },
+        "cond_k_permille": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 1000000
+        },
+        "pest_k_permille": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 1000000
+        },
+        "service_neutral": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 1000000
+        },
+        "service_k_permille": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 1000000
+        },
+        "sat_cond_floor": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 1000000
+        },
+        "sat_pen_max": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 1000000
+        },
+        "sat_pen_span": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 1000000
+        },
+        "overlay_beauty_k": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 1000000
+        },
+        "overlay_fairness_k": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 1000000
+        },
+        "service_rec_by_tier": {
+          "type": "array",
+          "minItems": 5,
+          "maxItems": 5,
+          "items": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 100
+          }
+        }
+      }
+    },
+    "decay_by_parcel_kind": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "golf",
+        "facility",
+        "homes"
+      ],
+      "properties": {
+        "golf": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 1000
+        },
+        "facility": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 1000
+        },
+        "homes": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 1000
+        }
+      }
+    },
+    "roles": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 32,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "name_key",
+          "building",
+          "kind",
+          "legacy",
+          "daily_wage_cents",
+          "caps_by_tier",
+          "pace_each",
+          "pace_max"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9_]{1,39}$"
+          },
+          "name_key": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9_.]{2,79}$"
+          },
+          "building": {
+            "enum": [
+              "clubhouse",
+              "pro_shop",
+              "driving_range",
+              "restaurant",
+              "pool_spa",
+              "cart_barn",
+              "maintenance",
+              "lodging",
+              "homes",
+              "landmark"
+            ]
+          },
+          "kind": {
+            "enum": [
+              "grounds",
+              "pest",
+              "station"
+            ]
+          },
+          "legacy": {
+            "enum": [
+              "greenkeepers",
+              "marshals",
+              "pro_shop_staff",
+              "caterers"
+            ]
+          },
+          "daily_wage_cents": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 1000000,
+            "description": "Trainee wage per game day in cents."
+          },
+          "caps_by_tier": {
+            "type": "array",
+            "minItems": 5,
+            "maxItems": 5,
+            "items": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 100
+            },
+            "description": "Maximum employees of this role at tier 1..5 of its building. Must not fall as the tier rises."
+          },
+          "pace_each": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 100
+          },
+          "pace_max": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 100
+          }
+        }
+      }
+    },
+    "incident_kinds": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 16,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "name_key",
+          "cond_damage",
+          "pest_add"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9_]{1,39}$"
+          },
+          "name_key": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9_.]{2,79}$"
+          },
+          "cond_damage": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 1000
+          },
+          "pest_add": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 1000
+          }
+        }
+      }
+    },
+    "sighting_kinds": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 16,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "name_key"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9_]{1,39}$"
+          },
+          "name_key": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9_.]{2,79}$"
+          }
+        }
+      }
+    }
+  }
+}

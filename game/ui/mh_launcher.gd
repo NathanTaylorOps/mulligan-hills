@@ -12,6 +12,7 @@ const LAUNCHER_PATH: String = "res://ui/mh_launcher.tscn"
 
 ## [label, path]. Order is display order. Missing scenes are hidden.
 const SCENES: Array = [
+	["Vertical slice (buildings, golfers, HUD)", "res://gameplay/mh_vertical_slice.tscn"],
 	["Live construction (ground, club, saves)", "res://gameplay/mh_live_construction.tscn"],
 	["Bench (forest + terrain)", "res://bench/bench_scene.tscn"],
 	["Gesture sandbox", "res://input/mh_gesture_sandbox.tscn"],
