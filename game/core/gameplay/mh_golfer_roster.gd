@@ -317,7 +317,17 @@ func from_dict(raw: Dictionary) -> bool:
 		if not g.has("membership_interest"):
 			g["membership_interest"] = 0
 		var id: int = int(g["id"])
-		if id < 0 or restored.has(id) or int(g["preference"]) < 0 or int(g["preference"]) >= MHGolferPreference.COUNT 				or int(g["skill_band"]) < 1 or int(g["skill_band"]) > 4 or int(g["loyalty"]) < 0 or int(g["loyalty"]) > 100 \
+		var membership_status: String = str(g["membership_status"])
+		var home_status: String = str(g["home_status"])
+		var home_slot: int = int(g["home_slot"])
+		if id < 0 or restored.has(id) or int(g["preference"]) < 0 or int(g["preference"]) >= MHGolferPreference.COUNT \
+				or int(g["skill_band"]) < 1 or int(g["skill_band"]) > 4 or int(g["loyalty"]) < 0 or int(g["loyalty"]) > 100 \
+				or int(g["membership_interest"]) < 0 or int(g["membership_interest"]) > 100 \
+				or int(g["home_interest"]) < 0 or int(g["home_interest"]) > 100 \
+				or not ["none", "interested", "applied", "member", "declined"].has(membership_status) \
+				or bool(g["member"]) != (membership_status == "member") \
+				or not ["none", "resident"].has(home_status) \
+				or (home_status == "none" and home_slot != -1) or (home_status == "resident" and home_slot < 0) \
 				or typeof(g["memories"]) != TYPE_ARRAY or (g["memories"] as Array).size() > MEMORY_LIMIT:
 			return false
 		restored[id] = g.duplicate(true)
@@ -339,6 +349,20 @@ func from_dict(raw: Dictionary) -> bool:
 			if associate_id == id or not restored.has(associate_id) or seen_associates.has(associate_id):
 				return false
 			seen_associates[associate_id] = true
+		# Relationships are stored as a friendship graph, so a restored edge must be reciprocal.
+		for associate_v: Variant in associates:
+			var other: Dictionary = restored[int(associate_v)] as Dictionary
+			if not (other.get("associates", []) as Array).has(id):
+				return false
+	var occupied_home_slots: Dictionary = {}
+	for g_v: Variant in restored.values():
+		var resident: Dictionary = g_v
+		if str(resident.get("home_status", "none")) != "resident":
+			continue
+		var slot: int = int(resident["home_slot"])
+		if occupied_home_slots.has(slot):
+			return false
+		occupied_home_slots[slot] = true
 	var ni: int = int(raw.get("next_id", 0))
 	# next_id is the next never-issued identity, so it must be strictly above every restored id.
 	# Accepting a lower value would let the next new admission overwrite an existing golfer.
