@@ -22,6 +22,7 @@ var save_secret: int = 0
 var rating_epoch: int = 0
 var unix_now: int = 0
 var recent_scores: Array = []
+var grounds_events: Array = []
 var practice: MHPracticeRound = null
 ## Transient presentation queue. Economy remains authoritative for admission and payment; this only exposes paid arrivals.
 var _pending_customers: Array = [] # authoritative paid customers awaiting hourly outcome resolution
@@ -171,6 +172,12 @@ func live_staff_assignments() -> Array:
 	return out
 
 
+func take_grounds_events() -> Array:
+	var out: Array = grounds_events.duplicate(true)
+	grounds_events.clear()
+	return out
+
+
 func live_course_condition() -> Dictionary:
 	if staff_system == null:
 		return {"condition": [], "pest": []}
@@ -304,6 +311,12 @@ func advance(delta_us: int, wall_unix: int) -> void:
 		if bool(tick["day_rolled"]):
 			var staff_day: Dictionary = staff_system.on_day(economy.day, staff_view(), save_secret, management_difficulty)
 			if bool(staff_day.get("ran", false)):
+				for incident_v: Variant in staff_day.get("incidents", []):
+					var incident: Dictionary = (incident_v as Dictionary).duplicate(true)
+					incident["day"] = economy.day
+					grounds_events.append(incident)
+				while grounds_events.size() > 24:
+					grounds_events.pop_front()
 				var equipment_cost: int = staff_system.equipment_operating_cost_cents() + staff_system.equipment_repair_cost_cents()
 				if equipment_cost > 0:
 					economy.incur_loss(equipment_cost)
