@@ -589,3 +589,20 @@ func test_real_tee_wait_creates_bounded_pace_penalty_and_staff_relief() -> void:
 	assert_int(no_staff).is_greater(0)
 	assert_int(strong_staff).is_less(no_staff)
 	assert_int(no_staff).is_less_equal(20)
+
+
+func test_worst_bottleneck_uses_resolved_average_wait_per_hole() -> void:
+	var q: MHCustomerRoundQueue = MHCustomerRoundQueue.new()
+	q.hole_wait_s = {2: 120.0, 5: 100.0}
+	q.hole_wait_count = {2: 3, 5: 1}
+	var bottleneck: Dictionary = q.worst_bottleneck()
+	assert_int(int(bottleneck["hole_slot"])).is_equal(5)
+	assert_float(float(bottleneck["average_wait_s"])).is_equal(100.0)
+	assert_int(int(bottleneck["waited_parties"])).is_equal(1)
+
+
+func test_bottleneck_tie_break_is_deterministic_by_hole_slot() -> void:
+	var q: MHCustomerRoundQueue = MHCustomerRoundQueue.new()
+	q.hole_wait_s = {8: 60.0, 3: 60.0}
+	q.hole_wait_count = {8: 1, 3: 1}
+	assert_int(int(q.worst_bottleneck()["hole_slot"])).is_equal(3)
