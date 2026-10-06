@@ -616,13 +616,14 @@ func _begin_hole_transition(event: Dictionary) -> void:
 	_visible_golfers.remove_group(party_id)
 	var start: Vector3 = MHClubPedestrian.apply_ground_height(from_pos, editor.grid)
 	var customers: Array = event.get("customers", [customer]) as Array
+	var star_cart: bool = _party_has_star(customers) and session.carts_allowed_now()
 	var uses_cart: bool = _party_uses_cart(customers, party_id)
 	_visible_golfers.spawn_walking_party(customers, start, to_pos)
 	_visible_golfers.set_walking_party_hidden(party_id, uses_cart)
 	if uses_cart:
-		_ensure_party_cart(party_id, start, customers.size())
+		_ensure_party_cart(party_id, start, customers.size(), _star_cart_style(customers))
 	_hole_transition_walkers[party_id] = {"position": start,
-		"route": MHClubPedestrian.route(start, to_pos, party_id), "segment": 1, "uses_cart": uses_cart}
+		"route": MHClubPedestrian.route(start, to_pos, party_id), "segment": 1, "uses_cart": uses_cart, "star_cart": star_cart}
 
 
 func _advance_hole_transition_walkers(delta_s: float) -> void:
@@ -649,7 +650,10 @@ func _advance_hole_transition_walkers(delta_s: float) -> void:
 			continue
 		_hole_transition_walkers.erase(party_id)
 		_visible_golfers.remove_group(party_id)
-		_remove_party_cart(party_id)
+		if not bool(walker.get("star_cart", false)):
+			_remove_party_cart(party_id)
+		else:
+			_park_star_cart(party_id, int((event.get("customer", {}) as Dictionary).get("hole_slot", -1)))
 		_render_customer_hole(event)
 
 
@@ -675,11 +679,12 @@ static func _party_has_star(customers: Array) -> bool:
 	return false
 
 
-func _ensure_party_cart(party_id: int, position: Vector3, riders: int = 2) -> void:
+func _ensure_party_cart(party_id: int, position: Vector3, riders: int = 2, style: String = "standard") -> void:
 	if _party_carts.has(party_id):
 		return
 	var root: Node3D = Node3D.new()
 	root.name = "PartyCart_%d" % party_id
+	root.set_meta("cart_style", style)
 	var body: MeshInstance3D = MeshInstance3D.new()
 	var mesh: BoxMesh = BoxMesh.new()
 	mesh.size = Vector3(1.25, 0.75, 2.0)
@@ -698,6 +703,25 @@ func _ensure_party_cart(party_id: int, position: Vector3, riders: int = 2) -> vo
 	add_child(root)
 	root.position = position
 	_party_carts[party_id] = root
+
+
+static func _star_cart_style(customers: Array) -> String:
+	for customer_v: Variant in customers:
+		var identity: Dictionary = (customer_v as Dictionary).get("identity", {}) as Dictionary
+		var identity_type: String = str(identity.get("identity_type", "ordinary"))
+		if identity_type == "celebrity" or identity_type == "pro":
+			return str(identity.get("cart_skin", identity.get("parody_id", identity_type)))
+	return "standard"
+
+
+func _park_star_cart(party_id: int, hole_slot: int) -> void:
+	if not _party_carts.has(party_id):
+		return
+	var tee: Vector3 = _hole_world_point(hole_slot, "tee")
+	if tee == Vector3.INF:
+		return
+	var cart: Node3D = _party_carts[party_id] as Node3D
+	cart.position = MHClubPedestrian.apply_ground_height(tee + Vector3(3.5, 0.0, 2.0), editor.grid)
 
 
 func _update_party_cart(party_id: int, position: Vector3, direction: Vector3, enabled: bool) -> void:
