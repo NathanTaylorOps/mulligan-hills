@@ -5,6 +5,7 @@ extends RefCounted
 
 const MAX_SLOPE_PER_MILLE: int = 180 # ~10 degrees across a footprint edge.
 const MAX_RELIEF_MM: int = 1200
+const MAX_LOCAL_STEP_MM: int = 350
 const CLEARANCE_MM: int = 750
 const HAZARD_WEIGHT_MIN: int = 128
 const SAMPLE_STEP_CELLS: int = 2
@@ -72,6 +73,11 @@ static func validate(grid: MHHeightGrid, splat: MHSplatMap, land: MHLandModel, b
 			var sx: int = clampi(gx, 0, grid.samples_x - 1)
 			var sy: int = clampi(gy, 0, grid.samples_y - 1)
 			var h: int = grid.get_h(sx, sy)
+			# A foundation can follow a broad grade, but not bridge a sharp ridge/step.
+			if sx < gx1 and absi(grid.get_h(clampi(sx + 1, 0, grid.samples_x - 1), sy) - h) > MAX_LOCAL_STEP_MM:
+				return _bad("terrain_step")
+			if sy < gy1 and absi(grid.get_h(sx, clampi(sy + 1, 0, grid.samples_y - 1)) - h) > MAX_LOCAL_STEP_MM:
+				return _bad("terrain_step")
 			min_h = mini(min_h, h)
 			max_h = maxi(max_h, h)
 			sum_h += h
