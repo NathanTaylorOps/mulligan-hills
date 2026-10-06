@@ -580,6 +580,8 @@ func _advance_customer_playback(delta_s: float) -> void:
 			_begin_hole_transition(event)
 		elif kind == "started" or kind == "hole_started":
 			_render_customer_hole(event)
+			if kind == "started":
+				_show_arrival_identity(event)
 
 
 func _begin_hole_transition(event: Dictionary) -> void:
@@ -672,6 +674,31 @@ func _render_customer_hole(event: Dictionary) -> void:
 	var origin_dm: Array = MHCourseLayout.origin_for_slot(course, slot)
 	var world_origin: Vector2 = Vector2(float(origin_dm[0]) / 10.0, float(origin_dm[1]) / 10.0)
 	_visible_golfers.spawn_authoritative_party(customers, tee, green, world_origin)
+
+
+func _show_arrival_identity(event: Dictionary) -> void:
+	var customer: Dictionary = event.get("customer", {}) as Dictionary
+	var identity: Dictionary = customer.get("identity", {}) as Dictionary
+	var text: String = _arrival_identity_text(identity)
+	if text.is_empty():
+		return
+	var position: Vector3 = _hole_world_point(int(customer.get("hole_slot", -1)), "tee")
+	if position != Vector3.INF:
+		_spawn_reaction_label(text, position)
+
+
+static func _arrival_identity_text(identity: Dictionary) -> String:
+	var name: String = str(identity.get("name", ""))
+	if name.is_empty():
+		return ""
+	if bool(identity.get("member", false)):
+		return "%s • Member" % name
+	var visits: int = int(identity.get("visits", 0))
+	if visits >= 5:
+		return "%s • Club regular" % name
+	if visits >= 2:
+		return "%s • Returning golfer" % name
+	return ""
 
 
 func _show_hole_reaction(customer: Dictionary) -> void:
