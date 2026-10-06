@@ -396,12 +396,20 @@ func _resolve_customer_hour() -> void:
 		var pref: int = int(identity.get("preference", MHGolferPreference.CASUAL))
 		var base: int = MHCustomerRoundQueue.satisfaction(round, int(rating.get("par", 3)))
 		var bonus: int = MHGolferPreference.bonus(pref, rating, round)
-		var sat: int = clampi(base + bonus, 0, 100)
+		# Maintenance and staffed facilities should be felt by the golfer who is actually here, not only
+		# by tomorrow's demand curve. Keep this bounded and separate from the official geometry rating.
+		var condition_penalty: int = MHRMath.rdiv(staff_system.condition_penalty_permille(staff_view()), 10)
+		var service_bonus: int = 0
+		if MHStaffEffects.has_station(staff_system.defs, staff_view()):
+			service_bonus = clampi(MHRMath.rdiv(staff_system.service_avg(staff_view()) - 500, 100), -5, 5)
+		var sat: int = clampi(base + bonus - condition_penalty + service_bonus, 0, 100)
 		customer["round"] = round
 		customer["rating"] = rating.duplicate(true)
 		customer["preference"] = pref
 		customer["base_satisfaction"] = base
 		customer["preference_bonus"] = bonus
+		customer["condition_penalty"] = condition_penalty
+		customer["service_bonus"] = service_bonus
 		customer["satisfaction"] = sat
 		customer["reaction"] = MHCustomerRoundQueue.reaction(sat, int(round.get("flags", 0)))
 		customer["preference_reaction"] = MHGolferPreference.describe(pref, bonus)
