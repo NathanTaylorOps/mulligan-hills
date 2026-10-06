@@ -223,7 +223,7 @@ func member_count() -> int:
 	return count
 
 
-func home_candidates(min_interest: int = 50) -> Array:
+func home_candidates(min_interest: int = 0) -> Array:
 	var out: Array = []
 	var ids: Array = golfers.keys()
 	ids.sort()
@@ -252,7 +252,7 @@ func assign_home(identity_id: int, slot: int) -> bool:
 	if not golfers.has(identity_id) or slot < 0:
 		return false
 	var g: Dictionary = golfers[identity_id]
-	if str(g.get("home_status", "none")) == "resident" or not bool(g.get("home_request", false)) or int(g.get("home_interest", 0)) < 50:
+	if str(g.get("home_status", "none")) == "resident" or not bool(g.get("home_request", false)):
 		return false
 	for other_v: Variant in golfers.values():
 		var other: Dictionary = other_v
