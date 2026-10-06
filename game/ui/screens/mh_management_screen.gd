@@ -38,7 +38,10 @@ func _fill() -> void:
 		_body.add_child(warning_card)
 		wb.add_child(MHUIKit.label(MHStrings.t("management.attention"), &"H2Label"))
 		for warning: Variant in warnings:
-			wb.add_child(MHUIKit.label(MHStrings.t("management.warning", {"warning": str(warning).replace("_", " ").capitalize()}), &"AccentLabel"))
+			if str(warning) == "pace_bottleneck":
+				wb.add_child(MHUIKit.label(MHStrings.t("management.pace_bottleneck", {"hole": int(r.get("pace_bottleneck_hole", 0))}), &"AccentLabel"))
+			else:
+				wb.add_child(MHUIKit.label(MHStrings.t("management.warning", {"warning": str(warning).replace("_", " ").capitalize()}), &"AccentLabel"))
 	var hire_options: Array = r.get("hire_options", [])
 	var hire_card: PanelContainer = MHUIKit.card(6)
 	var hb: VBoxContainer = MHUIKit.card_box(hire_card)
