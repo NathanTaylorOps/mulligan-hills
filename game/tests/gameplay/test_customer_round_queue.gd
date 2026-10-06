@@ -125,3 +125,25 @@ func test_memory_log_is_bounded() -> void:
 	var saved: Dictionary = roster.golfers[int(g["id"])]
 	assert_int((saved["memories"] as Array).size()).is_equal(MHGolferRoster.MEMORY_LIMIT)
 	assert_int(int(((saved["memories"] as Array)[0] as Dictionary)["day"])).is_equal(20 - MHGolferRoster.MEMORY_LIMIT)
+
+
+func test_social_group_has_shared_group_id_but_distinct_people() -> void:
+	var roster: MHGolferRoster = MHGolferRoster.new()
+	var group: Array = roster.group_for_admission(333, 1, 2, 4)
+	assert_int(group.size()).is_equal(4)
+	var anchor_group: int = int((group[0] as Dictionary)["group_id"])
+	var ids: Dictionary = {}
+	for v: Variant in group:
+		var g: Dictionary = v
+		assert_int(int(g["group_id"])).is_equal(anchor_group)
+		ids[int(g["id"])] = true
+	assert_int(ids.size()).is_equal(4)
+
+
+func test_facility_visit_is_timed_and_expires() -> void:
+	var q: MHCustomerRoundQueue = MHCustomerRoundQueue.new()
+	var customer: Dictionary = {"serial": 3, "identity": {"id": 1, "group_id": 7}}
+	var visit: Dictionary = q.queue_facility_visit(customer, "restaurant", 10.0)
+	assert_str(str(visit["facility"])).is_equal("restaurant")
+	assert_int(q.active_facility_visits(11.0).size()).is_equal(1)
+	assert_int(q.active_facility_visits(float(visit["end_s"]) + 0.1).size()).is_equal(0)
