@@ -338,8 +338,7 @@ func _draw_craft_terrain(hole: MHCraftHole) -> void:
 		var mesh: ArrayMesh = st.commit()
 		if mesh == null or mesh.get_surface_count() == 0:
 			continue
-		var material: StandardMaterial3D = StandardMaterial3D.new()
-		material.albedo_color = _surface_color(surface_id)
+		var material: StandardMaterial3D = _craft_material(surface_id)
 		var instance: MeshInstance3D = MeshInstance3D.new()
 		instance.mesh = mesh
 		instance.material_override = material
@@ -363,9 +362,39 @@ func _append_craft_tile(st: SurfaceTool, relief_hole: MHRHole, hole: MHCraftHole
 	var lift: float = 0.015 if hole.get_surface(c, r) == MHCraftHole.Surface.WATER else 0.035
 	for point: Vector2i in [Vector2i(x0, y0), Vector2i(x1, y0), Vector2i(x1, y1),
 			Vector2i(x0, y0), Vector2i(x1, y1), Vector2i(x0, y1)]:
-		st.set_normal(Vector3.UP)
+		st.set_normal(_craft_normal(relief_hole, point.x, point.y))
 		var z: float = float(relief_hole.z_at(point.x, point.y)) / 1000.0
 		st.add_vertex(_position(point.x, point.y, z + lift))
+
+func _craft_normal(relief_hole: MHRHole, x: int, y: int) -> Vector3:
+	var sample: int = MHCraftHole.TILE_YD * 100
+	var left: float = float(relief_hole.z_at(x - sample, y)) / 1000.0
+	var right: float = float(relief_hole.z_at(x + sample, y)) / 1000.0
+	var down: float = float(relief_hole.z_at(x, y - sample)) / 1000.0
+	var up: float = float(relief_hole.z_at(x, y + sample)) / 1000.0
+	var run: float = float(sample) * 0.009144
+	return Vector3(left - right, run * 2.0, down - up).normalized()
+
+func _craft_material(surface_id: int) -> StandardMaterial3D:
+	var material: StandardMaterial3D = StandardMaterial3D.new()
+	material.albedo_color = _surface_color(surface_id)
+	material.roughness = 0.92
+	match surface_id:
+		MHCraftHole.Surface.GREEN:
+			material.roughness = 0.72
+		MHCraftHole.Surface.BUNKER, MHCraftHole.Surface.WASTE:
+			material.roughness = 1.0
+		MHCraftHole.Surface.WATER:
+			material.roughness = 0.18
+			material.metallic = 0.08
+			material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+			var water: Color = material.albedo_color
+			water.a = 0.82
+			material.albedo_color = water
+			material.cull_mode = BaseMaterial3D.CULL_DISABLED
+		MHCraftHole.Surface.PATH:
+			material.roughness = 0.86
+	return material
 
 func _draw_craft_tree(point: Vector2i) -> void:
 	var trunk_pos: Vector3 = _position_on_ground(point.x * 100, point.y * 100, 1.0)
