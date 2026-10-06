@@ -113,7 +113,46 @@ func _layout() -> Dictionary:
 	var features: Array = [{"t": "fairway", "rect": [-half_width_yd, 0, half_width_yd, length_yd]}]
 	if water:
 		features.append({"t": "water", "rect": [10, 20, 14, 30]})
-	return {"slot_id": 0, "tee": [0, 0], "green": [0, length_yd, 5], "features": features}
+	var out: Dictionary = {"slot_id": 0, "tee": [0, 0], "green": [0, length_yd, 5], "features": features}
+	var relief: Dictionary = _terrain_relief(out)
+	if not relief.is_empty():
+		out["relief"] = relief
+	return out
+
+
+## Samples the authoritative terrain under this exact hole into the rating engine's optional relief grid.
+## A completely flat sample returns {}, preserving the pre-elevation deterministic path byte-for-byte.
+func _terrain_relief(layout: Dictionary) -> Dictionary:
+	if live == null or live.editor == null or live.editor.grid == null:
+		return {}
+	var grid: MHHeightGrid = live.editor.grid
+	var step_yd: int = 4
+	var x0_yd: int = -16
+	var x1_yd: int = 16
+	var y0_yd: int = 0
+	var y1_yd: int = int((layout["green"] as Array)[1]) + 8
+	var cols: int = (x1_yd - x0_yd) / step_yd + 1
+	var rows: int = (y1_yd - y0_yd) / step_yd + 1
+	var zs: Array = []
+	var first_z: int = 0
+	var any_difference: bool = false
+	for r: int in range(rows):
+		for col: int in range(cols):
+			var local_x_cy: int = (x0_yd + col * step_yd) * 100
+			var local_y_cy: int = (y0_yd + r * step_yd) * 100
+			var world_x_mm: int = MHCourseLayout.world_mm(int(ORIGIN[0]), local_x_cy)
+			var world_y_mm: int = MHCourseLayout.world_mm(int(ORIGIN[1]), local_y_cy)
+			var sx: int = clampi(MHRMath.rdiv(world_x_mm, grid.cell_size_mm), 0, grid.samples_x - 1)
+			var sy: int = clampi(MHRMath.rdiv(world_y_mm, grid.cell_size_mm), 0, grid.samples_y - 1)
+			var z: int = grid.get_h(sx, sy)
+			if zs.is_empty():
+				first_z = z
+			elif z != first_z:
+				any_difference = true
+			zs.append(z)
+	if not any_difference:
+		return {}
+	return {"x0": x0_yd, "y0": y0_yd, "step": step_yd, "cols": cols, "rows": rows, "z": zs}
 
 func _draft_changed() -> void:
 	_preview_draft = true
@@ -273,6 +312,8 @@ static func supported(course: Dictionary) -> bool:
 		return false
 	var h: Dictionary = row["layout"]
 	if int(h["slot_id"]) != 0 or h["tee"] != [0, 0] or h.has("tee_z_mm") or h.has("green_z_mm"):
+		return false
+	if h.has("relief") and not bool(MHRatingEngine.validate_input({"schema": 1, "engine": MHRatingEngine.RATING_VERSION, "hole": h})["ok"]):
 		return false
 	var g: Array = h["green"]
 	if int(g[0]) != 0 or int(g[1]) < 60 or int(g[1]) > 62 or int(g[2]) != 5:
