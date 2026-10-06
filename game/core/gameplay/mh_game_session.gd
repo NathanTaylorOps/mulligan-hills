@@ -246,12 +246,17 @@ func _queue_customer_admissions(tick: Dictionary) -> void:
 	var ancillary: int = maxi(0, int(tick.get("ancillary", 0)))
 	var fee_each: int = fees / n
 	var anc_each: int = ancillary / n
-	for i: int in range(n):
-		var identity: Dictionary = golfer_roster.identity_for_admission(save_secret, _customer_serial, economy.day)
-		customer_admissions.append({"serial": _customer_serial, "identity": identity, "paid_fee": fee_each,
-			"ancillary": anc_each, "admitted_day": economy.day, "admitted_hour": economy.hour,
-			"hole_slot": int((_holes[0] as Dictionary)["slot_id"])})
-		_customer_serial += 1
+	var remaining: int = n
+	while remaining > 0:
+		var group_size: int = mini(remaining, 1 + posmod(_customer_serial + economy.day, 4))
+		var group: Array = golfer_roster.group_for_admission(save_secret, _customer_serial, economy.day, group_size)
+		for identity_v: Variant in group:
+			var identity: Dictionary = identity_v
+			customer_admissions.append({"serial": _customer_serial, "identity": identity, "group_size": group_size,
+				"paid_fee": fee_each, "ancillary": anc_each, "admitted_day": economy.day, "admitted_hour": economy.hour,
+				"hole_slot": int((_holes[0] as Dictionary)["slot_id"])})
+			_customer_serial += 1
+			remaining -= 1
 
 
 func take_customer_admissions(limit: int = 4) -> Array:
