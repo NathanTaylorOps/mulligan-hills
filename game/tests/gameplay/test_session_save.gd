@@ -857,3 +857,16 @@ func test_live_maintenance_state_separates_specialists_and_broken_fleet() -> voi
 	var live: Dictionary = s.live_maintenance_state()
 	assert_int((live["broken_equipment"] as Array).size()).is_equal(1)
 	assert_int(int(((live["broken_equipment"] as Array)[0] as Dictionary)["serial"])).is_equal(unit_serial)
+
+
+func test_live_course_condition_is_read_only_copy_of_authoritative_grounds() -> void:
+	var s: MHGameSession = MHGameSession.create()
+	s.staff_system.grounds.condition[0] = 321
+	s.staff_system.grounds.pest[0] = 654
+	var live: Dictionary = s.live_course_condition()
+	assert_int(int((live["condition"] as Array)[0])).is_equal(321)
+	assert_int(int((live["pest"] as Array)[0])).is_equal(654)
+	(live["condition"] as Array)[0] = 999
+	(live["pest"] as Array)[0] = 999
+	assert_int(s.staff_system.condition_of(0)).is_equal(321)
+	assert_int(s.staff_system.pest_of(0)).is_equal(654)
