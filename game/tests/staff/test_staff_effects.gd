@@ -117,3 +117,23 @@ func test_economy_hooks_wage_and_demand() -> void:
 	eco.set_demand_modifier(_staff.demand_permille(v))
 	assert_int(eco.ext_permille).is_equal(_staff.demand_permille(v))
 	assert_int(_staff.demand_permille(v)).is_between(900, 1080)
+
+
+func test_management_report_exposes_authoritative_purchase_options() -> void:
+	var v: Dictionary = MHStaffFixture.view({"maintenance": 2, "clubhouse": 1}, MHStaffFixture.start_owned())
+	var r: Dictionary = _staff.report(v)
+	var hires: Array = r["hire_options"]
+	var grounds: Dictionary = {}
+	var superintendent: Dictionary = {}
+	for value: Variant in hires:
+		var option: Dictionary = value
+		if str(option["role"]) == "groundskeeper":
+			grounds = option
+		elif str(option["role"]) == "superintendent":
+			superintendent = option
+	assert_int(int(grounds["cap"])).is_equal(3)
+	assert_int(int(grounds["current"])).is_equal(0)
+	assert_bool(bool(grounds["available"])).is_true()
+	assert_int(int(superintendent["cap"])).is_equal(1)
+	assert_int((r["equipment_catalog"] as Array).size()).is_equal(MHStaffEquipment.TYPES.size())
+	assert_int(int(r["equipment_capacity"])).is_equal(6)
