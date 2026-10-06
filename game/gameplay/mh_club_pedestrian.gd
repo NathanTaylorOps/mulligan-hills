@@ -8,10 +8,14 @@ const ARRIVE_M: float = 0.35
 
 static func building_positions(session: MHGameSession) -> Dictionary:
 	var out: Dictionary = {}
-	for id: Variant in session.building_placements.keys():
-		var p: Vector3 = session.building_position(str(id))
+	for instance_v: Variant in session.building_placements.keys():
+		var placement: Dictionary = session.building_placements[instance_v] as Dictionary
+		var building_id: String = str(placement.get("building_id", ""))
+		if building_id.is_empty() or out.has(building_id):
+			continue
+		var p: Vector3 = session.building_position(building_id)
 		if p != Vector3.INF:
-			out[str(id)] = p
+			out[building_id] = p
 	return out
 
 
