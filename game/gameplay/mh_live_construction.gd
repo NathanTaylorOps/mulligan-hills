@@ -1017,7 +1017,8 @@ func _update_party_cart(party_id: int, position: Vector3, direction: Vector3, en
 	var cart: Node3D = _party_carts[party_id] as Node3D
 	cart.position = position
 	if direction.length_squared() > 0.001:
-		cart.rotation.y = atan2(direction.x, direction.z)
+		var target_yaw: float = atan2(direction.x, direction.z)
+		cart.rotation.y = lerp_angle(cart.rotation.y, target_yaw, 0.28)
 
 
 func _remove_party_cart(party_id: int) -> void:
