@@ -893,3 +893,14 @@ func test_cart_transport_hidden_golfers_remain_in_party_state() -> void:
 	assert_bool(bool((golfers.golfers[1] as Dictionary).get("transport_hidden", false))).is_true()
 	golfers.remove_group(44)
 	assert_int(golfers.golfer_count()).is_equal(0)
+
+
+func test_star_cart_identity_and_skin_are_content_driven() -> void:
+	var ordinary: Array = [{"identity": {"identity_type": "ordinary", "id": 1}}]
+	assert_bool(MHLiveConstruction._party_has_star(ordinary)).is_false()
+	var star: Array = [{"identity": {"identity_type": "celebrity", "parody_id": "lion_woods", "cart_skin": "lion_black_suv"}}]
+	assert_bool(MHLiveConstruction._party_has_star(star)).is_true()
+	assert_str(MHLiveConstruction._star_cart_style(star)).is_equal("lion_black_suv")
+	var pro: Array = [{"identity": {"identity_type": "pro", "parody_id": "tour_pro"}}]
+	assert_bool(MHLiveConstruction._party_has_star(pro)).is_true()
+	assert_str(MHLiveConstruction._star_cart_style(pro)).is_equal("tour_pro")
