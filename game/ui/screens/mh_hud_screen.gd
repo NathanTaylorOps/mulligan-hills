@@ -71,8 +71,8 @@ func _build() -> void:
 
 	var nav: HBoxContainer = MHUIKit.hbox(8)
 	root.add_child(nav)
-	var ids: Array = [MHScreenIds.BUILD, MHScreenIds.LAND, MHScreenIds.EDITOR, MHScreenIds.RATING, MHScreenIds.SETTINGS]
-	var keys: Array = ["hud.nav.build", "hud.nav.land", "hud.nav.editor", "hud.nav.rating", "hud.nav.menu"]
+	var ids: Array = [MHScreenIds.BUILD, MHScreenIds.LAND, MHScreenIds.EDITOR, MHScreenIds.RATING, MHScreenIds.MANAGEMENT, MHScreenIds.SETTINGS]
+	var keys: Array = ["hud.nav.build", "hud.nav.land", "hud.nav.editor", "hud.nav.rating", "Management", "hud.nav.menu"]
 	for i: int in range(ids.size()):
 		var variant: StringName = &"PrimaryButton" if str(ids[i]) == MHScreenIds.EDITOR else &"GreenButton"
 		var nb: MHTapButton = MHUIKit.button(ctx, MHStrings.t(str(keys[i])), variant, 120.0)
