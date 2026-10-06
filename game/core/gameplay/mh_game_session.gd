@@ -22,6 +22,9 @@ var rating_epoch: int = 0
 var unix_now: int = 0
 var recent_scores: Array = []
 var practice: MHPracticeRound = null
+## Transient presentation queue. Economy remains authoritative for admission and payment; this only exposes paid arrivals.
+var customer_admissions: Array = []
+var _customer_serial: int = 0
 var _holes: Array = []
 var _ratings: Array = []
 var _course: Dictionary = {}
@@ -216,6 +219,7 @@ func advance(delta_us: int, wall_unix: int) -> void:
 		if events[i] != MHGameClock.EV_HOUR:
 			continue
 		var tick: Dictionary = economy.tick_hour()
+		_queue_customer_admissions(tick)
 		hourly = true
 		if bool(tick["day_rolled"]):
 			recent_scores.append(int(_course.get("course_x10", 0)) / 10)
@@ -229,6 +233,29 @@ func advance(delta_us: int, wall_unix: int) -> void:
 		autosave_requested.emit()
 	if before != clock.total_minutes() or old_tokens != ledger.earned or old_day != unix_now / 86400 or not events.is_empty():
 		changed.emit()
+
+
+func _queue_customer_admissions(tick: Dictionary) -> void:
+	var n: int = maxi(0, int(tick.get("golfers", 0)))
+	if n == 0 or _holes.is_empty():
+		return
+	var fees: int = maxi(0, int(tick.get("fees", 0)))
+	var ancillary: int = maxi(0, int(tick.get("ancillary", 0)))
+	var fee_each: int = fees / n
+	var anc_each: int = ancillary / n
+	for i: int in range(n):
+		customer_admissions.append({"serial": _customer_serial, "paid_fee": fee_each,
+			"ancillary": anc_each, "admitted_day": economy.day, "admitted_hour": economy.hour,
+			"hole_slot": int((_holes[0] as Dictionary)["slot_id"])})
+		_customer_serial += 1
+
+
+func take_customer_admissions(limit: int = 4) -> Array:
+	var count: int = mini(maxi(limit, 0), customer_admissions.size())
+	var out: Array = []
+	for _i: int in range(count):
+		out.append(customer_admissions.pop_front())
+	return out
 
 
 func handle_intent(id: StringName, args: Dictionary) -> Dictionary:
