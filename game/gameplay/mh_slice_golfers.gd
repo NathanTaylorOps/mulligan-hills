@@ -57,14 +57,15 @@ func set_caps(near: int, total: int) -> void:
 
 
 ## Adds one group that teed off just now. tee and green are world x,z in metres.
-func spawn_group(serial: int, size: int, tee: Vector2, green: Vector2) -> void:
+func spawn_group(serial: int, size: int, tee: Vector2, green: Vector2, round: Dictionary = {}) -> void:
 	var delta: Vector2 = green - tee
 	var length: float = delta.length()
 	var dir: Vector2 = Vector2(0.0, 1.0) if length < 0.001 else delta / length
 	for member: int in range(size):
 		golfers.append({"group": serial, "member": member, "size": size,
 			"look": MHSliceSchedule.look_index(serial, member, LOOK_POOL), "t": 0.0,
-			"tee": tee, "dir": dir, "len": length, "green": green})
+			"tee": tee, "dir": dir, "len": length, "green": green,
+			"events": (round.get("events", []) as Array).duplicate(true)})
 
 
 func golfer_count() -> int:
@@ -78,13 +79,45 @@ func advance(dt: float, cam_pos: Vector3) -> void:
 	for g: Variant in golfers:
 		var d: Dictionary = g
 		d["t"] = float(d["t"]) + maxf(dt, 0.0)
-		var st: Dictionary = MHSliceRound.state(float(d["t"]), int(d["member"]), int(d["size"]), float(d["len"]))
-		if int(st["phase"]) == MHSliceRound.Phase.DONE:
+		var st: Dictionary
+		var events: Array = d.get("events", []) as Array
+		if not events.is_empty():
+			st = _authoritative_state(events, float(d["t"]), int(d["member"]), int(d["size"]))
+		else:
+			st = MHSliceRound.state(float(d["t"]), int(d["member"]), int(d["size"]), float(d["len"]))
+		if bool(st.get("done", false)) or int(st.get("phase", -1)) == MHSliceRound.Phase.DONE:
 			continue
 		live.append(d)
 		states.append(st)
 	golfers = live
 	_render(states, cam_pos)
+
+
+func _authoritative_state(events: Array, t: float, member: int, size: int) -> Dictionary:
+	var stagger: float = float(member) * 0.35
+	var timeline: Dictionary = MHAIRoundTimeline.state(events, maxf(0.0, t - stagger))
+	if bool(timeline.get("done", false)):
+		return {"done": true, "phase": MHSliceRound.Phase.DONE, "clip": MHGolferPoses.CLIP_IDLE,
+			"clip_t": 0.0, "aim": false, "ball_u": -1.0, "world": Vector2.ZERO}
+	var x0: float = float(int(timeline["x0"])) * 0.009144
+	var y0: float = float(int(timeline["y0"])) * 0.009144
+	var x1: float = float(int(timeline["x1"])) * 0.009144
+	var y1: float = float(int(timeline["y1"])) * 0.009144
+	var u: float = float(timeline.get("u", 0.0))
+	var phase: String = str(timeline.get("phase", "address"))
+	var world: Vector2 = Vector2(x0, y0)
+	if phase == "walk" or phase == "putt":
+		world = Vector2(x0, y0).lerp(Vector2(x1, y1), u)
+	var clip: String = MHGolferPoses.CLIP_IDLE
+	if phase == "swing":
+		clip = MHGolferPoses.CLIP_SWING
+	elif phase == "walk":
+		clip = MHGolferPoses.CLIP_WALK
+	elif phase == "putt":
+		clip = MHGolferPoses.CLIP_PUTT
+	return {"done": false, "phase": MHSliceRound.Phase.WALK, "clip": clip, "clip_t": t,
+		"aim": phase != "walk", "ball_u": u if phase == "flight" else -1.0, "world": world,
+		"ball_from": Vector2(x0, y0), "ball_to": Vector2(x1, y1)}
 
 
 func _render(states: Array, cam_pos: Vector3) -> void:
@@ -94,8 +127,12 @@ func _render(states: Array, cam_pos: Vector3) -> void:
 	for i: int in range(golfers.size()):
 		var d: Dictionary = golfers[i]
 		var st: Dictionary = states[i]
-		var p2: Vector2 = MHSliceRound.ground_point(d["tee"] as Vector2, d["dir"] as Vector2, float(st["along"]),
-			int(d["member"]), int(d["size"]))
+		var p2: Vector2
+		if st.has("world"):
+			p2 = st["world"] as Vector2
+		else:
+			p2 = MHSliceRound.ground_point(d["tee"] as Vector2, d["dir"] as Vector2, float(st["along"]),
+				int(d["member"]), int(d["size"]))
 		var p3: Vector3 = Vector3(p2.x, 0.0, p2.y)
 		p3 = MHClubPedestrian.apply_ground_height(p3, terrain_grid)
 		positions.append(p3)
@@ -139,8 +176,8 @@ func _render(states: Array, cam_pos: Vector3) -> void:
 		if u >= 0.0 and balls_used < _balls.size():
 			var b: MeshInstance3D = _balls[balls_used] as MeshInstance3D
 			balls_used += 1
-			var tee: Vector2 = d2["tee"] as Vector2
-			var green: Vector2 = d2["green"] as Vector2
+			var tee: Vector2 = st2.get("ball_from", d2["tee"]) as Vector2
+			var green: Vector2 = st2.get("ball_to", d2["green"]) as Vector2
 			b.position = MHSliceRound.ball_point(tee, green, u)
 			var ground: Vector3 = MHClubPedestrian.apply_ground_height(Vector3(b.position.x, 0.0, b.position.z), terrain_grid)
 			b.position.y += ground.y
