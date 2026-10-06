@@ -68,6 +68,8 @@ var _visible_staff_nodes: Dictionary = {}
 var _maintenance_visuals: Dictionary = {}
 var _last_condition_signature: int = -1
 var _staff_work_effects: Dictionary = {}
+var _operations_refresh_s: float = 0.0
+const OPERATIONS_REFRESH_INTERVAL_S: float = 0.35
 const MAX_GOLFER_REACTIONS: int = 6
 const GOLFER_REACTION_LIFETIME_S: float = 5.0
 
@@ -619,10 +621,13 @@ func _process(_delta: float) -> void:
 	_advance_hole_transition_walkers(float(elapsed) / 1000000.0)
 	_advance_facility_walkers(float(elapsed) / 1000000.0)
 	_advance_golfer_reactions(float(elapsed) / 1000000.0)
-	_sync_visible_staff()
-	_sync_maintenance_visuals()
-	_sync_course_condition_overlay()
-	_show_new_grounds_events()
+	_operations_refresh_s -= float(elapsed) / 1000000.0
+	if _operations_refresh_s <= 0.0:
+		_operations_refresh_s = OPERATIONS_REFRESH_INTERVAL_S
+		_sync_visible_staff()
+		_sync_maintenance_visuals()
+		_sync_course_condition_overlay()
+		_show_new_grounds_events()
 	_update_cart_drive_camera()
 	_update_player_cart_wheels()
 	_sync_cart_tree_collisions()
