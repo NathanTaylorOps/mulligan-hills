@@ -69,9 +69,36 @@ const HOLE_LENGTH_YD: int = 66
 ## the course roll-up (rating spec 7) multiplies the score of a hole by 0.4 when it is a near copy of an earlier
 ## one, which is what held the old identical-hole course at rating 20 to 23 while each hole alone scored 42.
 ## Fields: length, half_width (fairway), green_r, trees [[x, y]], water [[x0, y0, x1, y1]], bunkers [[...]].
-## Checked with tools/reference/rating (seed 0, slot k, calm): see docs/phase1/vertical_slice.md.
+## Checked with tools/reference/rating (seed 0, slot k, calm): hole scores 49, 42, 47, 49, 46, 49, 49; courses of 3 to 7 holes roll up to 44 to 47.
 const HOLE_DESIGNS: Array = [
-@@DESIGNS@@
+	{"length": 65, "half_width": 6, "green_r": 6,
+		"trees": [[-8, 1], [8, 1], [-8, 5], [8, 5], [-8, 9], [8, 9], [-8, 33], [8, 33], [-8, 37], [8, 37], [-8, 41], [8, 41]],
+		"water": [[6, 34, 8, 43]],
+		"bunkers": [[-8, 51, -4, 57]]},
+	{"length": 66, "half_width": 7, "green_r": 6,
+		"trees": [[-8, 12], [8, 12], [-8, 15], [8, 15], [-8, 18], [8, 18], [-8, 21], [8, 21], [-8, 23], [8, 23], [-8, 26], [8, 26], [-8, 29], [8, 29], [-8, 32], [8, 32], [-8, 34], [8, 34], [-8, 37], [8, 37], [-8, 40], [8, 40], [-8, 43], [8, 43], [-8, 45], [-8, 48], [-8, 51], [-8, 54]],
+		"water": [[-8, 14, -7, 20]],
+		"bunkers": [[5, 54, 8, 58], [4, 55, 7, 60]]},
+	{"length": 63, "half_width": 6, "green_r": 5,
+		"trees": [[-8, 11], [8, 11], [-8, 15], [8, 15], [-8, 19], [8, 19], [-8, 32], [8, 32], [-8, 36], [8, 36], [-8, 40], [8, 40], [-8, 43], [8, 43], [-8, 47], [8, 47], [-8, 51], [8, 51], [-8, 53], [-8, 57], [-8, 61]],
+		"water": [[-8, 21, -7, 32]],
+		"bunkers": [[-7, 44, -4, 49]]},
+	{"length": 65, "half_width": 7, "green_r": 6,
+		"trees": [[-8, 22], [8, 22], [-8, 25], [8, 25], [-8, 28], [8, 28], [-8, 31], [8, 31], [8, 44], [8, 47], [8, 50], [8, 53]],
+		"water": [[-8, 31, -7, 38]],
+		"bunkers": [[-8, 45, -4, 48]]},
+	{"length": 64, "half_width": 7, "green_r": 6,
+		"trees": [[-8, 1], [8, 1], [-8, 4], [8, 4], [-8, 7], [8, 7], [-8, 11], [-8, 14], [-8, 17], [-8, 20], [-8, 43], [8, 43], [-8, 46], [8, 46], [-8, 49], [8, 49], [-8, 52], [8, 52]],
+		"water": [[-8, 30, -8, 39]],
+		"bunkers": [[-8, 44, -5, 47], [5, 50, 8, 55]]},
+	{"length": 64, "half_width": 6, "green_r": 6,
+		"trees": [[-8, 11], [-8, 15], [-8, 19], [-8, 22], [8, 22], [-8, 26], [8, 26], [-8, 30], [8, 30], [-8, 33], [8, 33], [-8, 37], [8, 37], [-8, 41], [8, 41]],
+		"water": [[-8, 15, -6, 22]],
+		"bunkers": [[3, 53, 7, 58], [3, 48, 6, 54]]},
+	{"length": 63, "half_width": 7, "green_r": 6,
+		"trees": [[-8, 1], [-8, 4], [-8, 7], [-8, 32], [8, 32], [-8, 35], [8, 35], [-8, 38], [8, 38], [-8, 41], [8, 41], [-8, 43], [8, 43], [-8, 46], [8, 46], [-8, 49], [8, 49]],
+		"water": [[8, 15, 8, 21]],
+		"bunkers": [[5, 55, 9, 61]]},
 ]
 
 
