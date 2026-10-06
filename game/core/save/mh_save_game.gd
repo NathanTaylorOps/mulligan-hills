@@ -398,6 +398,13 @@ static func _validate_staff_roster(club: Dictionary, errs: Array) -> void:
 		if arr.size() != 16:
 			errs.append("$.club.staff_roster." + key + " must have 16 entries")
 	_dict_at(sr, "stats", "$.club.staff_roster", errs)
+	if sr.has("equipment"):
+		var eq: Dictionary = _dict_at(sr, "equipment", "$.club.staff_roster", errs, false)
+		_int_in(eq, "v", 1, 1, "$.club.staff_roster.equipment", errs)
+		_int_in(eq, "next_serial", 1, 1000000000, "$.club.staff_roster.equipment", errs)
+		_int_in(eq, "operating_cost_cents", 0, MAX_INT, "$.club.staff_roster.equipment", errs, false)
+		_int_in(eq, "repair_cost_cents", 0, MAX_INT, "$.club.staff_roster.equipment", errs, false)
+		_array_at(eq, "units", 64, "$.club.staff_roster.equipment", errs)
 
 
 static func _validate_buildings(d: Dictionary, errs: Array) -> void:
