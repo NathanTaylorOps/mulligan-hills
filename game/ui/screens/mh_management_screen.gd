@@ -36,7 +36,7 @@ func _fill() -> void:
 		_body.add_child(warning_card)
 		wb.add_child(MHUIKit.label(MHStrings.t("management.attention"), &"H2Label"))
 		for warning: Variant in warnings:
-			wb.add_child(MHUIKit.label("• " + str(warning).replace("_", " ").capitalize(), &"AccentLabel"))
+			wb.add_child(MHUIKit.label(MHStrings.t("management.warning", {"warning": str(warning).replace("_", " ").capitalize()}), &"AccentLabel"))
 	var hire_options: Array = r.get("hire_options", [])
 	var hire_card: PanelContainer = MHUIKit.card(6)
 	var hb: VBoxContainer = MHUIKit.card_box(hire_card)
@@ -129,7 +129,7 @@ func _fill() -> void:
 			var employee: Dictionary = employee_v
 			if str(employee.get("kind", "")) != str(unit.get("kind", "")):
 				continue
-			var assign_button: MHTapButton = MHUIKit.button(ctx, "#%d" % int(employee.get("serial", 0)), &"ChipButton", 72.0)
+			var assign_button: MHTapButton = MHUIKit.button(ctx, MHStrings.t("management.staff_number", {"serial": int(employee.get("serial", 0))}), &"ChipButton", 72.0)
 			assign_button.disabled = bool(unit.get("broken", false)) or operator == int(employee.get("serial", 0))
 			assign_button.pressed.connect(send.bind(&"assign_staff_equipment", {"equipment_serial": int(unit.get("serial", 0)),
 				"employee_serial": int(employee.get("serial", 0))}))
