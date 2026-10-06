@@ -567,7 +567,8 @@ func _advance_customer_playback(delta_s: float) -> void:
 		var kind: String = str(event.get("kind", ""))
 		if kind == "finished":
 			for customer_v: Variant in event.get("customers", [event.get("customer", {})]):
-				_queue_finished_customer_facility(customer_v as Dictionary, now_s)
+				var customer: Dictionary = session.apply_playback_pace_experience(customer_v as Dictionary)
+				_queue_finished_customer_facility(customer, now_s)
 		elif kind == "hole_transition":
 			_begin_hole_transition(event)
 		elif kind == "started" or kind == "hole_started":
