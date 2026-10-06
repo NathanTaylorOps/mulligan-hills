@@ -585,7 +585,9 @@ func _begin_hole_transition(event: Dictionary) -> void:
 	var from_pos: Vector3 = _hole_world_point(previous_slot, "green")
 	var to_pos: Vector3 = _hole_world_point(next_slot, "tee")
 	if from_pos == Vector3.INF or to_pos == Vector3.INF:
-		session.customer_playback.begin_next_hole(float(session.clock.total_minutes()) * 60.0)
+		var fallback_event: Dictionary = session.customer_playback.begin_next_hole(float(session.clock.total_minutes()) * 60.0)
+		if not fallback_event.is_empty():
+			_render_customer_hole(fallback_event)
 		return
 	_visible_golfers.remove_group(party_id)
 	var node: Node3D = Node3D.new()
