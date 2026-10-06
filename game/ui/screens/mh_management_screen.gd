@@ -82,7 +82,17 @@ func _fill() -> void:
 	if employees.is_empty(): sb.add_child(MHUIKit.label(MHStrings.t("management.no_staff"), &"SmallLabel"))
 	for value: Variant in employees:
 		var e: Dictionary = value
-		sb.add_child(MHUIKit.label(MHStrings.t("management.employee", {"serial": int(e.get("serial", 0)), "role": str(e.get("role", "staff")).replace("_", " ").capitalize(), "days": int(e.get("tenure", 0))}), &"Label"))
+		var employee_row: HBoxContainer = MHUIKit.hbox(6)
+		sb.add_child(employee_row)
+		employee_row.add_child(MHUIKit.label(MHStrings.t("management.employee", {"serial": int(e.get("serial", 0)),
+			"role": MHStrings.t(str(e.get("name_key", ""))), "days": int(e.get("tenure", 0))}), &"Label"))
+		if str(e.get("kind", "")) != "station":
+			var clear_button: MHTapButton = MHUIKit.button(ctx, MHStrings.t("management.unassign"), &"ChipButton", 80.0)
+			clear_button.pressed.connect(send.bind(&"assign_staff", {"employee_serial": int(e.get("serial", 0)), "areas": []}))
+			employee_row.add_child(clear_button)
+		var fire_button: MHTapButton = MHUIKit.button(ctx, MHStrings.t("management.fire"), &"ChipButton", 80.0)
+		fire_button.pressed.connect(send.bind(&"fire_staff", {"employee_serial": int(e.get("serial", 0))}))
+		employee_row.add_child(fire_button)
 	var fleet: Array = r.get("equipment", [])
 	var fleet_card: PanelContainer = MHUIKit.card(6)
 	var fb: VBoxContainer = MHUIKit.card_box(fleet_card)
@@ -93,4 +103,21 @@ func _fill() -> void:
 		var unit: Dictionary = value
 		var status: String = MHStrings.t("management.broken") if bool(unit.get("broken", false)) else "%d/1000" % int(unit.get("condition", 0))
 		var operator: int = int(unit.get("assigned_employee", 0))
-		fb.add_child(MHUIKit.label(MHStrings.t("management.unit", {"serial": int(unit.get("serial", 0)), "type": str(unit.get("type", "equipment")).replace("_", " ").capitalize(), "status": status, "operator": "" if operator == 0 else MHStrings.t("management.operator", {"serial": operator})}), &"Label"))
+		fb.add_child(MHUIKit.label(MHStrings.t("management.unit", {"serial": int(unit.get("serial", 0)),
+			"type": str(unit.get("type", "equipment")).replace("_", " ").capitalize(), "status": status,
+			"operator": "" if operator == 0 else MHStrings.t("management.operator", {"serial": operator})}), &"Label"))
+		var actions: HFlowContainer = MHUIKit.flow(6)
+		fb.add_child(actions)
+		for employee_v: Variant in employees:
+			var employee: Dictionary = employee_v
+			if str(employee.get("kind", "")) != str(unit.get("kind", "")):
+				continue
+			var assign_button: MHTapButton = MHUIKit.button(ctx, "#%d" % int(employee.get("serial", 0)), &"ChipButton", 72.0)
+			assign_button.disabled = bool(unit.get("broken", false)) or operator == int(employee.get("serial", 0))
+			assign_button.pressed.connect(send.bind(&"assign_staff_equipment", {"equipment_serial": int(unit.get("serial", 0)),
+				"employee_serial": int(employee.get("serial", 0))}))
+			actions.add_child(assign_button)
+		var sell_button: MHTapButton = MHUIKit.button(ctx, MHStrings.t("management.sell",
+			{"value": MHFormat.money_compact(int(unit.get("sale_value_cents", 0)) / 100)}), &"ChipButton", 110.0)
+		sell_button.pressed.connect(send.bind(&"sell_staff_equipment", {"equipment_serial": int(unit.get("serial", 0))}))
+		actions.add_child(sell_button)
