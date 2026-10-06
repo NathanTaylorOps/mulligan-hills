@@ -228,6 +228,7 @@ func _split_over_areas(ed: Dictionary, total: int, view: Dictionary, acc: Array)
 func work_by_parcel(defs: MHStaffDefs, view: Dictionary, equipment: MHStaffEquipment = null, coordination_pm: int = 1000) -> Dictionary:
 	var work: Array = []
 	var ctrl: Array = []
+	var used_employees: Array = []
 	for _i: int in range(MHStaffDefs.NPARCELS):
 		work.append(0)
 		ctrl.append(0)
@@ -241,9 +242,13 @@ func work_by_parcel(defs: MHStaffDefs, view: Dictionary, equipment: MHStaffEquip
 			wp = MHStaffMath.idiv(wp * equipment.multiplier_for_employee(int(ed["serial"]), kind), 1000)
 		if kind == MHStaffDefs.KIND_GROUNDS:
 			_split_over_areas(ed, MHStaffMath.idiv(defs.param("keeper_work") * wp, 1000), view, work)
+			if not (ed["areas"] as Array).is_empty():
+				used_employees.append(int(ed["serial"]))
 		elif kind == MHStaffDefs.KIND_PEST:
 			_split_over_areas(ed, MHStaffMath.idiv(defs.param("ranger_control") * wp, 1000), view, ctrl)
-	return {"work": work, "ctrl": ctrl}
+			if not (ed["areas"] as Array).is_empty():
+				used_employees.append(int(ed["serial"]))
+	return {"work": work, "ctrl": ctrl, "used_employees": used_employees}
 
 
 ## Every employee is one day older.
