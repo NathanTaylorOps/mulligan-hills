@@ -216,6 +216,8 @@ func from_save_block(block: Dictionary) -> bool:
 		return false
 	if not MHDataJson.is_int_in(b.get("last_day", null), -1, MAX_DAY):
 		return false
+	if b.has("equipment") and typeof(b["equipment"]) != TYPE_DICTIONARY:
+		return false
 	var emps: Array = []
 	if typeof(b.get("employees", null)) != TYPE_ARRAY:
 		return false
