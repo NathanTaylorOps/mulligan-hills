@@ -102,6 +102,7 @@ func advance(now_s: float) -> Dictionary:
 			var next_hole: int = hole_index + 1
 			if _party_has_hole(party_customers, next_hole):
 				var next_party: Array = _party_for_hole(party_customers, next_hole)
+				active["transition_from_hole_slot"] = int((party_customers[0] as Dictionary).get("hole_slot", -1))
 				active["transition_hole_index"] = next_hole
 				active["transition_customers"] = next_party
 				active["transitioning"] = true
@@ -129,6 +130,7 @@ func begin_next_hole(now_s: float) -> Dictionary:
 	active["started_s"] = now_s
 	active["customers"] = next_party
 	active["transitioning"] = false
+	active.erase("transition_from_hole_slot")
 	active.erase("transition_hole_index")
 	active.erase("transition_customers")
 	active.merge((next_party[0] as Dictionary), false)
