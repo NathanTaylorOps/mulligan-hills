@@ -39,6 +39,9 @@ var _placement_rotation: int = 0
 var _placement_ghost: MeshInstance3D
 var _placement_status: Label
 var _placement_last: Dictionary = {}
+var _placement_controls: HFlowContainer
+var _ghost_valid_mat: StandardMaterial3D
+var _ghost_invalid_mat: StandardMaterial3D
 
 func _ready() -> void:
 	MHOrientation.apply_game() # No-op off mobile; one switch, see MHOrientation.
@@ -149,6 +152,22 @@ func _ready() -> void:
 	_actions.add_child(build)
 	_action_buttons.append(build)
 	build.pressed.connect(_begin_first_owned_building)
+	_placement_controls = MHUIKit.flow(6)
+	_status_zone.add_child(_placement_controls)
+	var rotate_b: MHTapButton = MHUIKit.button(shell.ctx, "Rotate", &"ChipButton", 105)
+	var confirm_b: MHTapButton = MHUIKit.button(shell.ctx, "Confirm", &"ChipButton", 105)
+	var cancel_b: MHTapButton = MHUIKit.button(shell.ctx, "Cancel", &"ChipButton", 105)
+	_placement_controls.add_child(rotate_b); _placement_controls.add_child(confirm_b); _placement_controls.add_child(cancel_b)
+	rotate_b.pressed.connect(rotate_building_preview)
+	confirm_b.pressed.connect(confirm_building_preview)
+	cancel_b.pressed.connect(cancel_building_preview)
+	_placement_controls.hide()
+	_ghost_valid_mat = StandardMaterial3D.new()
+	_ghost_valid_mat.albedo_color = Color(0.2, 1.0, 0.3, 0.45)
+	_ghost_valid_mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	_ghost_invalid_mat = StandardMaterial3D.new()
+	_ghost_invalid_mat.albedo_color = Color(1.0, 0.2, 0.2, 0.45)
+	_ghost_invalid_mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
 	router.register_ui_region(&"live_practice", _button_rect.bind(play))
 	router.register_ui_region(&"live_save", _button_rect.bind(save_button))
 	router.register_ui_region(&"live_back", _button_rect.bind(back))
@@ -212,7 +231,8 @@ func _begin_building_placement(building_id: String, tier: int) -> void:
 		_placement_ghost = MeshInstance3D.new()
 		add_child(_placement_ghost)
 	_update_ghost_mesh()
-	_status.text = "Placing %s: move pointer over terrain. R rotates; click/tap confirms." % building_id.replace("_", " ")
+	_status.text = "Placing %s: move over terrain, rotate, then confirm." % building_id.replace("_", " ")
+	_placement_controls.show()
 
 
 func _update_ghost_mesh() -> void:
@@ -224,6 +244,7 @@ func _update_ghost_mesh() -> void:
 	var box: BoxMesh = BoxMesh.new()
 	box.size = Vector3(float(size.x), 2.0, float(size.y))
 	_placement_ghost.mesh = box
+	_placement_ghost.rotation.y = float(_placement_rotation) * PI * 0.5
 
 
 func _placement_preview(world_m: Vector2) -> void:
@@ -233,6 +254,7 @@ func _placement_preview(world_m: Vector2) -> void:
 	if _placement_ghost != null:
 		var ground: float = float(int(_placement_last.get("ground_mm", 0))) / 1000.0
 		_placement_ghost.position = Vector3(world_m.x, ground + 1.0, world_m.y)
+		_placement_ghost.material_override = _ghost_valid_mat if bool(_placement_last.get("ok", false)) else _ghost_invalid_mat
 	_placement_status.text = "VALID — click/tap to build" if bool(_placement_last.get("ok", false)) else "INVALID — " + _placement_reason(str(_placement_last.get("reason", "")))
 
 
@@ -240,7 +262,7 @@ func _placement_reason(reason: String) -> String:
 	var labels: Dictionary = {"world_edge": "outside world", "unowned_land": "footprint crosses unowned land",
 		"building_overlap": "too close to another building", "hazard": "natural/man-made hazard under footprint",
 		"terrain_relief": "site is too uneven", "terrain_slope": "site is too steep", "golf_feature": "overlaps playable golf area",
-		"unsupported": "unsupported site"}
+		"unsupported": "unsupported site", "obstacle": "tree, rock or placed object blocks footprint"}
 	return str(labels.get(reason, reason))
 
 
@@ -249,6 +271,18 @@ func rotate_building_preview() -> void:
 		return
 	_placement_rotation = posmod(_placement_rotation + 1, 4)
 	_update_ghost_mesh()
+
+
+func cancel_building_preview() -> void:
+	_placement_id = ""
+	_placement_last = {}
+	if _placement_ghost != null:
+		_placement_ghost.queue_free()
+		_placement_ghost = null
+	if _placement_controls != null:
+		_placement_controls.hide()
+	_placement_status.text = ""
+	_status.text = _first_round_status()
 
 
 func confirm_building_preview() -> Dictionary:
@@ -263,6 +297,7 @@ func confirm_building_preview() -> Dictionary:
 		_placement_ghost.queue_free()
 		_placement_ghost = null
 	_placement_status.text = ""
+	_placement_controls.hide()
 	_request_save()
 	return result
 
@@ -272,7 +307,7 @@ func validate_building_placement(building_id: String, tier: int, world_m: Vector
 	for v: Variant in session.building_placements.values():
 		existing.append((v as Dictionary).duplicate(true))
 	return MHBuildingPlacement.validate(editor.grid, editor.splat, session.land, building_id, tier,
-		Vector2i(roundi(world_m.x * 1000.0), roundi(world_m.y * 1000.0)), existing, rotation_quarters, session.hole_definitions())
+		Vector2i(roundi(world_m.x * 1000.0), roundi(world_m.y * 1000.0)), existing, rotation_quarters, session.hole_definitions(), _placement_obstacles())
 
 
 func place_building(building_id: String, tier: int, world_m: Vector2) -> Dictionary:
@@ -491,3 +526,18 @@ func _new_document() -> Dictionary:
 		"sim": {"rating_epoch": 0, "rng_seed": "0000000000000000", "rng_inc": "0000000000000001", "golfer_serial": 0},
 		"ratings": {"rating_version": MHRatingEngine.RATING_VERSION, "computed_day": 0, "course_score": 0, "holes": []},
 		"progress": {"tutorial_step": 0, "achievements": [], "tournaments": {"hosted_levels": [], "cooldown_until_day": 0}}}
+
+
+func _placement_obstacles() -> Array:
+	var out: Array = []
+	# Render forest placement is deterministic integer-mm data; treat trunks/canopies as natural obstacles.
+	var forest_nodes: Array[Node] = find_children("*", "MHForest", true, false)
+	for n: Node in forest_nodes:
+		var forest: MHForest = n as MHForest
+		if forest.placement.is_empty():
+			forest.build()
+		for i: int in range(forest.placed_tree_count()):
+			var o: int = i * MHTreePlacement.STRIDE
+			var wp: Vector3 = MHForest.world_pos_of(forest.placement[o], forest.placement[o + 1])
+			out.append({"kind": "tree", "x_mm": roundi(wp.x * 1000.0), "y_mm": roundi(wp.z * 1000.0), "radius_mm": 2200})
+	return out
