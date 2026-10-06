@@ -328,6 +328,38 @@ func take_customer_outcomes(limit: int = 4) -> Array:
 ## Presentation receives resolved authoritative outcomes through take_customer_outcomes() and has no mutation API.
 
 
+
+func membership_capacity() -> int:
+	# Membership must be supported by the actual developed club. This is deliberately derived
+	# from course/facility state instead of an arbitrary global constant.
+	var clubhouse_tier: int = economy.tier_of(economy.params.building_index("clubhouse"))
+	if clubhouse_tier <= 0 or gate_view().holes <= 0:
+		return 0
+	return mini(MHGolferRoster.MAX_ROSTER, gate_view().holes * 12 + clubhouse_tier * 8)
+
+
+func decide_membership_application(identity_id: int, accept: bool) -> Dictionary:
+	if not golfer_roster.golfers.has(identity_id):
+		return _result(false, "golfer")
+	var g: Dictionary = golfer_roster.golfers[identity_id] as Dictionary
+	if str(g.get("membership_status", "none")) != "applied":
+		return _result(false, "not_applied")
+	if accept:
+		if golfer_roster.member_count() >= membership_capacity():
+			return _result(false, "membership_capacity")
+		if int(g.get("loyalty", 0)) < 70 or int(g.get("membership_interest", 0)) < 50:
+			return _result(false, "eligibility")
+	if not golfer_roster.decide_membership(identity_id, accept):
+		return _result(false, "decision")
+	changed.emit()
+	return _result(true)
+
+
+func available_home_slots() -> int:
+	return maxi(0, land.home_slot_capacity())
+
+
+
 func customer_feedback_average() -> int:
 	if customer_feedback_count <= 0:
 		return 0
