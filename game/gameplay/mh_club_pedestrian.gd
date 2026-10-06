@@ -36,7 +36,7 @@ static func apply_ground_height(position: Vector3, grid: MHHeightGrid) -> Vector
 	var world_y_mm: int = roundi(position.z * 1000.0)
 	var gx: int = clampi(MHRMath.rdiv(world_x_mm, grid.cell_size_mm), 0, grid.cells_x)
 	var gy: int = clampi(MHRMath.rdiv(world_y_mm, grid.cell_size_mm), 0, grid.cells_y)
-	position.y = float(grid.get_mm(gx, gy)) / 1000.0
+	position.y = float(grid.get_h(gx, gy)) / 1000.0
 	return position
 
 
