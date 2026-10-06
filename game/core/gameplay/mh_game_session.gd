@@ -294,8 +294,9 @@ func management_report() -> Dictionary:
 	report["worst_bottleneck"] = bottleneck
 	if float(bottleneck.get("average_wait_s", 0.0)) >= 45.0 and int(bottleneck.get("waited_parties", 0)) >= 2:
 		var warnings: Array = report.get("warnings", []) as Array
-		warnings.append("pace_bottleneck_hole_%d" % (int(bottleneck.get("hole_slot", -1)) + 1))
+		warnings.append("pace_bottleneck")
 		report["warnings"] = warnings
+		report["pace_bottleneck_hole"] = int(bottleneck.get("hole_slot", -1)) + 1
 	var current_staff_view: Dictionary = staff_view()
 	for option_v: Variant in report.get("hire_options", []):
 		var option: Dictionary = option_v
