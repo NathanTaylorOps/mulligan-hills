@@ -176,3 +176,30 @@ func test_equipment_restore_rejects_duplicate_operator_assignment() -> void:
 	(bad["units"][0] as Dictionary)["assigned_employee"] = 4
 	(bad["units"][1] as Dictionary)["assigned_employee"] = 4
 	assert_bool(MHStaffEquipment.new().from_save_block(bad)).is_false()
+
+
+func test_relaxed_auto_assignment_is_compatible_deterministic_and_one_to_one() -> void:
+	var a: MHStaffEquipment = MHStaffEquipment.new()
+	var b: MHStaffEquipment = MHStaffEquipment.new()
+	for fleet: MHStaffEquipment in [a, b]:
+		fleet.add_unit("greens_mower")
+		fleet.add_unit("utility_vehicle")
+		fleet.add_unit("sprayer")
+	var employees: Array = [
+		{"serial": 2, "role": "groundskeeper", "areas": [0]},
+		{"serial": 3, "role": "groundskeeper", "areas": [1]},
+		{"serial": 4, "role": "pest_controller", "areas": [2]},
+		{"serial": 5, "role": "groundskeeper", "areas": []},
+	]
+	var kind_of: Callable = func(role_id: String) -> String:
+		return MHStaffDefs.KIND_PEST if role_id == "pest_controller" else MHStaffDefs.KIND_GROUNDS
+	assert_int(a.auto_assign(employees, kind_of)).is_equal(3)
+	assert_int(b.auto_assign(employees, kind_of)).is_equal(3)
+	assert_dict(a.to_save_block()).is_equal(b.to_save_block())
+	var seen: Dictionary = {}
+	for unit_v: Variant in a.units:
+		var operator: int = int((unit_v as Dictionary)["assigned_employee"])
+		assert_bool(operator != 0).is_true()
+		assert_bool(not seen.has(operator)).is_true()
+		seen[operator] = true
+	assert_bool(not seen.has(5)).is_true()
