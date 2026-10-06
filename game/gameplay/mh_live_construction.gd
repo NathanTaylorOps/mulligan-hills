@@ -316,7 +316,7 @@ func validate_building_placement(building_id: String, tier: int, world_m: Vector
 	for v: Variant in session.building_placements.values():
 		existing.append((v as Dictionary).duplicate(true))
 	return MHBuildingPlacement.validate(editor.grid, editor.splat, session.land, building_id, tier,
-		Vector2i(roundi(world_m.x * 1000.0), roundi(world_m.y * 1000.0)), existing, rotation_quarters, session.hole_definitions(), _placement_obstacles())
+		Vector2i(roundi(world_m.x * 1000.0), roundi(world_m.y * 1000.0)), existing, rotation_quarters, session.hole_definitions(), _placement_obstacles(), document.get("course", {}) as Dictionary)
 
 
 func place_building(building_id: String, tier: int, world_m: Vector2) -> Dictionary:
