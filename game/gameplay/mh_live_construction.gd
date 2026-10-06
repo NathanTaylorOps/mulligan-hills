@@ -781,8 +781,13 @@ func _sync_maintenance_visuals() -> void:
 		var key: String = "machine:%d" % serial
 		used[key] = true
 		var machine: Node3D = _maintenance_visuals.get(key, null) as Node3D
-		if machine == null:
-			machine = _make_broken_machine_visual(unit)
+		var repair_active: bool = int(state.get("technician_work_pm", 0)) > 0 and int(state.get("maintenance_tier", 0)) >= 2
+		var status_key: String = "repairing" if repair_active else "waiting"
+		if machine == null or str(machine.get_meta("status_key", "")) != status_key:
+			if machine != null:
+				machine.queue_free()
+			machine = _make_broken_machine_visual(unit, repair_active)
+			machine.set_meta("status_key", status_key)
 			_visible_staff_root.add_child(machine)
 			_maintenance_visuals[key] = machine
 		var index: int = posmod(serial, 5)
@@ -799,7 +804,7 @@ func _clear_maintenance_visuals() -> void:
 	_maintenance_visuals.clear()
 
 
-func _make_broken_machine_visual(unit: Dictionary) -> Node3D:
+func _make_broken_machine_visual(unit: Dictionary, repair_active: bool) -> Node3D:
 	var root: Node3D = Node3D.new()
 	root.name = "BrokenMachine_%d" % int(unit.get("serial", 0))
 	var machine: MeshInstance3D = MeshInstance3D.new()
@@ -809,7 +814,7 @@ func _make_broken_machine_visual(unit: Dictionary) -> Node3D:
 	machine.position.y = 0.35
 	root.add_child(machine)
 	var status: Label3D = Label3D.new()
-	status.text = "Repairing" if session.live_maintenance_state().get("technician_work_pm", 0) > 0 else "Awaiting technician"
+	status.text = "Repairing" if repair_active else "Awaiting technician"
 	status.font_size = 18
 	status.outline_size = 5
 	status.billboard = BaseMaterial3D.BILLBOARD_ENABLED
