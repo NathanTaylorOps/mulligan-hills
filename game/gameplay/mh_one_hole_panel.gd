@@ -507,33 +507,31 @@ func _mesh(mesh_value: Mesh, pos: Vector3, color: Color) -> MeshInstance3D:
 
 ## The save codec supports more shapes than this small authoring/view prototype does.
 static func supported(course: Dictionary) -> bool:
+	# This development view still supports one hole at its fixed world origin, but
+	# it must not reject canonical geometry merely because it contains relief or a
+	# richer set of rating rectangles. MHCourseLayout + MHRatingEngine are the
+	# authority for whether the saved hole is valid; the panel is only a viewer/
+	# authoring surface.
 	var decoded: MHSaveResult = MHCourseLayout.decode(course)
 	if not decoded.is_ok():
 		return false
-	var rows: Array = course["holes"]
+	var rows: Array = course.get("holes", []) as Array
 	if rows.is_empty():
 		return true
-	if rows.size() != 1:
+	if rows.size() != 1 or typeof(rows[0]) != TYPE_DICTIONARY:
 		return false
-	var row: Dictionary = rows[0]
-	if row["origin_dm"] != ORIGIN:
+	var row: Dictionary = rows[0] as Dictionary
+	if row.get("origin_dm", []) != ORIGIN or typeof(row.get("layout", null)) != TYPE_DICTIONARY:
 		return false
-	var h: Dictionary = row["layout"]
-	if int(h["slot_id"]) != 0 or h["tee"] != [0, 0] or h.has("tee_z_mm") or h.has("green_z_mm") or h.has("relief"):
+	var h: Dictionary = row["layout"] as Dictionary
+	if int(h.get("slot_id", -1)) != 0:
 		return false
-	var g: Array = h["green"]
-	if int(g[0]) != 0 or int(g[1]) < 60 or int(g[1]) > 62 or int(g[2]) != 5:
-		return false
-	var fs: Array = h["features"]
-	if fs.size() < 1 or fs.size() > 2:
-		return false
-	var f: Dictionary = fs[0]
-	if str(f["t"]) != "fairway" or not f.has("rect"):
-		return false
-	var rect: Array = f["rect"]
-	if int(rect[2]) < 6 or int(rect[2]) > 14 or rect != [-int(rect[2]), 0, int(rect[2]), int(g[1])]:
-		return false
-	return fs.size() == 1 or fs[1] == {"t": "water", "rect": [10, 20, 14, 30]}
+	var validation: Dictionary = MHRatingEngine.validate_input({
+		"schema": 1,
+		"engine": MHRatingEngine.RATING_VERSION,
+		"hole": h,
+	})
+	return bool(validation.get("ok", false))
 
 
 func blocks_world_tap(pos: Vector2) -> bool:
