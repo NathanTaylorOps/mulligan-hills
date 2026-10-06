@@ -53,6 +53,7 @@ var _golfer_reactions: Array = []
 var _visible_staff_root: Node3D
 var _visible_staff_nodes: Dictionary = {}
 var _maintenance_visuals: Dictionary = {}
+var _last_condition_signature: int = -1
 const MAX_GOLFER_REACTIONS: int = 6
 const GOLFER_REACTION_LIFETIME_S: float = 5.0
 
@@ -97,6 +98,7 @@ func _ready() -> void:
 	chunks = MHTerrainChunks.new()
 	add_child(chunks)
 	chunks.setup(editor.grid, editor.splat, 32)
+	_sync_course_condition_overlay()
 	_placed_buildings_root = Node3D.new()
 	_placed_buildings_root.name = "PlacedBuildings"
 	add_child(_placed_buildings_root)
@@ -562,6 +564,7 @@ func _process(_delta: float) -> void:
 	_advance_golfer_reactions(float(elapsed) / 1000000.0)
 	_sync_visible_staff()
 	_sync_maintenance_visuals()
+	_sync_course_condition_overlay()
 	_visible_golfers.advance(float(elapsed) / 1000000.0, controller.rig.global_position)
 	chunks.flush(editor.dirty)
 	_relayout()
@@ -747,6 +750,19 @@ static func _route_state(route: Array, progress: float) -> Dictionary:
 	var a: Vector3 = route[segment] as Vector3
 	var b: Vector3 = route[segment + 1] as Vector3
 	return {"position": a.lerp(b, t), "direction": b - a}
+
+
+func _sync_course_condition_overlay() -> void:
+	if chunks == null or session == null:
+		return
+	var state: Dictionary = session.live_course_condition()
+	var condition: Array = state.get("condition", []) as Array
+	var pest: Array = state.get("pest", []) as Array
+	var signature: int = hash([condition, pest])
+	if signature == _last_condition_signature:
+		return
+	_last_condition_signature = signature
+	chunks.set_condition_overlay(condition, pest)
 
 
 func _sync_maintenance_visuals() -> void:
