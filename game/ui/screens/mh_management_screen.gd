@@ -70,7 +70,7 @@ func _fill() -> void:
 		row.add_child(MHUIKit.label(MHStrings.t("management.buy_row", {"type": str(item.get("type", "")).replace("_", " ").capitalize(),
 			"price": MHFormat.money_compact(int(item.get("price_cents", 0)) / 100)}), &"Label"))
 		var buy_button: MHTapButton = MHUIKit.button(ctx, MHStrings.t("management.buy_button"), &"ChipButton", 90.0)
-		buy_button.disabled = fleet_full
+		buy_button.disabled = fleet_full or not bool(item.get("available", false))
 		buy_button.pressed.connect(send.bind(&"buy_staff_equipment", {"type": str(item.get("type", ""))}))
 		row.add_child(buy_button)
 
