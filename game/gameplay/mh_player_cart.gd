@@ -29,8 +29,13 @@ var _throttle: float = 0.0
 var _steer: float = 0.0
 var _sink_depth: float = 0.0
 var _wheel_spin: float = 0.0
-var _last_speed: float = 0.0
 var _impact_cooldown_s: float = 0.0
+var _contact_monitor_ready: bool = false
+
+func _ready() -> void:
+	contact_monitor = true
+	max_contacts_reported = 6
+	_contact_monitor_ready = true
 
 func drive(throttle: float, steer: float) -> void:
 	_throttle = clampf(throttle, -1.0, 1.0)
@@ -62,13 +67,12 @@ func _integrate_forces(state: PhysicsDirectBodyState3D) -> void:
 func _physics_process(delta: float) -> void:
 	_impact_cooldown_s = maxf(0.0, _impact_cooldown_s - delta)
 	var speed: float = linear_velocity.length()
-	var speed_drop: float = _last_speed - speed
-	if _impact_cooldown_s <= 0.0 and _last_speed >= 7.0 and speed_drop >= 4.5:
+	# Require a reported rigid-body contact: braking or a steep slope alone must not count as a crash.
+	if _contact_monitor_ready and _impact_cooldown_s <= 0.0 and speed >= 7.0 and get_contact_count() > 0:
 		_impact_cooldown_s = 0.8
-		hard_impact.emit(_last_speed)
-		if _last_speed >= 10.0:
+		hard_impact.emit(speed)
+		if speed >= 10.0:
 			_shed_clubs()
-	_last_speed = speed
 	var forward: Vector3 = -global_transform.basis.z.normalized()
 	var visual_speed: float = linear_velocity.dot(forward)
 	_wheel_spin = fposmod(_wheel_spin + visual_speed * delta / 0.28, TAU)
