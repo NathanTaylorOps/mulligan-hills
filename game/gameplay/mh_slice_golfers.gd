@@ -65,7 +65,7 @@ func spawn_group(serial: int, size: int, tee: Vector2, green: Vector2, round: Di
 		golfers.append({"group": serial, "member": member, "size": size,
 			"look": MHSliceSchedule.look_index(serial, member, LOOK_POOL), "t": 0.0,
 			"tee": tee, "dir": dir, "len": length, "green": green,
-			"events": (round.get("events", []) as Array).duplicate(true)})
+			"events": (round.get("events", []) as Array).duplicate(true) if member == 0 else []})
 
 
 func golfer_count() -> int:
