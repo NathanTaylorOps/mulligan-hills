@@ -345,6 +345,9 @@ func from_dict(raw: Dictionary) -> bool:
 				or int(g["skill_band"]) < 1 or int(g["skill_band"]) > 4 or int(g["loyalty"]) < 0 or int(g["loyalty"]) > 100 \
 				or int(g["membership_interest"]) < 0 or int(g["membership_interest"]) > 100 \
 				or int(g["home_interest"]) < 0 or int(g["home_interest"]) > 100 \
+				or int(g["happy_visit_streak"]) < 0 or int(g["happy_visit_streak"]) > int(g["visits"]) \
+				or int(g["happy_rounds_as_regular"]) < 0 or int(g["happy_rounds_as_regular"]) > maxi(0, int(g["visits"]) - REGULAR_VISITS) \
+				or typeof(g["home_request"]) != TYPE_BOOL \
 				or not ["none", "interested", "applied", "member", "declined"].has(membership_status) \
 				or bool(g["member"]) != (membership_status == "member") \
 				or not ["none", "resident"].has(home_status) \
