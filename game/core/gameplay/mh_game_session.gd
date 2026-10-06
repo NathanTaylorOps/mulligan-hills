@@ -415,8 +415,13 @@ func _resolve_customer_hour() -> void:
 		customer["identity"] = golfer_roster.record_visit(int(identity["id"]), economy.day, sat,
 			str(customer["reaction"]), int(customer.get("hole_slot", 0)), int(round.get("flags", 0)))
 		customer_outcomes.append(customer)
-		customer_playback.admit([customer], _holes[int(customer.get("hole_slot", 0))] if int(customer.get("hole_slot", 0)) < _holes.size() else {},
-			rating, {"save_secret": save_secret, "rating_epoch": rating_epoch})
+		var playback_hole: Dictionary = {}
+		for hole_v: Variant in _holes:
+			var hole_def: Dictionary = hole_v
+			if int(hole_def.get("slot_id", -1)) == int(customer.get("hole_slot", -1)):
+				playback_hole = hole_def
+				break
+		customer_playback.admit([customer], playback_hole, rating, {"save_secret": save_secret, "rating_epoch": rating_epoch})
 		customer_feedback_sum += sat
 		customer_feedback_count += 1
 	var count: int = customer_outcomes.size() - start
