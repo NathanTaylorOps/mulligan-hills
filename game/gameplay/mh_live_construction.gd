@@ -701,7 +701,11 @@ func _advance_hole_transition_walkers(delta_s: float) -> void:
 		var party_id: int = int(party_v)
 		var walker: Dictionary = _hole_transition_walkers[party_id]
 		var before: Vector3 = walker["position"] as Vector3
-		var step: Dictionary = MHClubPedestrian.advance(walker["route"] as Array, int(walker["segment"]), before, delta_s, editor.grid)
+		var step: Dictionary
+		if bool(walker.get("uses_cart", false)):
+			step = MHCartRoute.advance(walker["route"] as Array, int(walker["segment"]), before, delta_s, editor.grid)
+		else:
+			step = MHClubPedestrian.advance(walker["route"] as Array, int(walker["segment"]), before, delta_s, editor.grid)
 		var position: Vector3 = step["position"] as Vector3
 		walker["position"] = position
 		walker["segment"] = int(step["segment"])
