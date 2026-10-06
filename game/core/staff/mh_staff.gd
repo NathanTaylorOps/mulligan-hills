@@ -213,6 +213,10 @@ func on_day(day: int, view: Dictionary, secret: int, difficulty: String = "stand
 	return res
 
 
+func damage_turf(parcel: int, amount: int, view: Dictionary) -> int:
+	return grounds.damage_condition(parcel, amount, view)
+
+
 func condition_of(parcel: int) -> int:
 	if parcel < 0 or parcel >= MHStaffDefs.NPARCELS:
 		return 0
