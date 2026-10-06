@@ -22,8 +22,9 @@ func _unhandled_input(event: InputEvent) -> void:
 		get_viewport().set_input_as_handled()
 		return
 	if event is InputEventScreenTouch and event.pressed:
+		# Touch-down only moves the preview. Construction is committed exclusively by the Confirm control.
+		# This prevents an imprecise first finger contact on mobile from spending/building immediately.
 		_preview(event.position)
-		live.confirm_building_preview()
 		get_viewport().set_input_as_handled()
 
 
