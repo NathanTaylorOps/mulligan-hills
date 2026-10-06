@@ -62,8 +62,8 @@ func identity_for_admission(save_secret: int, admission_serial: int, day: int) -
 		"preference": MHGolferPreference.archetype(h >> 16), "skill_band": 1 + posmod(h >> 20, 4),
 		"look_seed": MHRMath.h32d(save_secret, id, 0x4C4F4F4B, 1), "identity_type": "ordinary",
 		"favorite_facility": FACILITIES[posmod(h >> 24, FACILITIES.size())], "favorite_hole_slot": -1,
-		"group_id": id / 3, "relationship_role": ["friend","partner","family"][posmod(h >> 12, 3)],
-		"member": false, "associates": [], "home_interest": 0, "membership_interest": 0, "visits": 0, "loyalty": 50, "best_satisfaction": -1, "worst_satisfaction": 101,
+		"social_circle_id": id, "group_id": -1, "relationship_role": ["friend","partner","family"][posmod(h >> 12, 3)],
+		"member": false, "membership_status": "none", "associates": [], "home_interest": 0, "membership_interest": 0, "visits": 0, "loyalty": 50, "best_satisfaction": -1, "worst_satisfaction": 101,
 		"last_satisfaction": 50, "last_day": -1, "favorite_memory": "", "worst_memory": "", "memories": []}
 	golfers[id] = g
 	return g.duplicate(true)
@@ -125,8 +125,14 @@ func record_visit(identity_id: int, day: int, satisfaction: int, memory: String,
 	if sat < int(g["worst_satisfaction"]):
 		g["worst_satisfaction"] = sat
 		g["worst_memory"] = memory
-	if not bool(g.get("member", false)) and int(g["visits"]) >= 3 and int(g["loyalty"]) >= 72 and sat >= 70:
-		g["member"] = true
+	# Strong repeat visits create interest/application intent; membership itself is a club decision.
+	var interest: int = clampi(int(g.get("membership_interest", 0)) + maxi(0, sat - 60) / 4, 0, 100)
+	g["membership_interest"] = interest
+	if str(g.get("membership_status", "none")) == "none" and int(g["visits"]) >= 3 and int(g["loyalty"]) >= 72 and interest >= 35:
+		g["membership_status"] = "interested"
+	if str(g.get("membership_status", "none")) == "interested" and int(g["visits"]) >= 4 and interest >= 50:
+		g["membership_status"] = "applied"
+	g["member"] = str(g.get("membership_status", "none")) == "member"
 	golfers[identity_id] = g
 	return g.duplicate(true)
 
@@ -160,6 +166,10 @@ func from_dict(raw: Dictionary) -> bool:
 				return false
 		if not g.has("associates"):
 			g["associates"] = []
+		if not g.has("social_circle_id"):
+			g["social_circle_id"] = id
+		if not g.has("membership_status"):
+			g["membership_status"] = "member" if bool(g.get("member", false)) else "none"
 		if not g.has("home_interest"):
 			g["home_interest"] = 0
 		if not g.has("membership_interest"):
