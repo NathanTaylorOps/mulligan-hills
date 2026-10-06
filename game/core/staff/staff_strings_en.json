@@ -80,6 +80,14 @@
     "staff.sighting.fox": {
       "text": "A fox on the fairway",
       "status": "draft"
+    },
+    "staff.role.superintendent": {
+      "text": "Superintendent",
+      "status": "draft"
+    },
+    "staff.role.equipment_technician": {
+      "text": "Equipment technician",
+      "status": "draft"
     }
   }
 }
