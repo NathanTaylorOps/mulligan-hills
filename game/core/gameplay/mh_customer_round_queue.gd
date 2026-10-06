@@ -4,7 +4,8 @@ extends RefCounted
 ## Admission/payment happen in MHEconomy. This class never changes cash or simulation outcomes.
 
 const TEE_INTERVAL_S: float = 12.0
-const MAX_WAITING: int = 24
+const MAX_VISIBLE_WAITING: int = 24
+const MAX_COMPLETED_HISTORY: int = 64
 
 var waiting: Array = []
 var active: Dictionary = {}
@@ -15,14 +16,20 @@ var next_tee_s: float = 0.0
 
 func admit(rows: Array, hole_def: Dictionary, rating: Dictionary, ctx: Dictionary) -> void:
 	for v: Variant in rows:
-		if waiting.size() >= MAX_WAITING:
-			break
 		var customer: Dictionary = (v as Dictionary).duplicate(true)
 		# Authoritative session already resolved the round and customer outcome.
 		# This queue only schedules playback; never re-simulate or mutate satisfaction/economy.
 		var round: Dictionary = customer.get("round", {}) as Dictionary
 		if not round.is_empty():
 			waiting.append(customer)
+
+
+func visible_waiting() -> Array:
+	return waiting.slice(0, mini(waiting.size(), MAX_VISIBLE_WAITING)).duplicate(true)
+
+
+func offscreen_waiting_count() -> int:
+	return maxi(0, waiting.size() - MAX_VISIBLE_WAITING)
 
 
 func queue_facility_visit(customer: Dictionary, facility_id: String, now_s: float) -> Dictionary:
@@ -61,6 +68,8 @@ func advance(now_s: float) -> Dictionary:
 		if bool(state.get("done", false)):
 			var done: Dictionary = active.duplicate(true)
 			completed.append(done)
+			while completed.size() > MAX_COMPLETED_HISTORY:
+				completed.pop_front()
 			active = {}
 			event = {"kind": "finished", "customer": done}
 	return event
