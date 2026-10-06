@@ -76,9 +76,43 @@ func spawn_authoritative_party(customers: Array, tee: Vector2, green: Vector2, w
 		var length: float = delta.length()
 		var dir: Vector2 = Vector2(0.0, 1.0) if length < 0.001 else delta / length
 		golfers.append({"group": int(customer.get("party_id", customer.get("serial", 0))), "member": i,
-			"size": customers.size(), "look": MHSliceSchedule.look_index(int(customer.get("serial", 0)), 0, LOOK_POOL),
+			"size": customers.size(), "look": _look_for_customer(customer),
 			"t": 0.0, "tee": tee, "dir": dir, "len": length, "green": green, "world_origin": world_origin,
 			"events": (round.get("events", []) as Array).duplicate(true)})
+
+
+func spawn_walking_party(customers: Array, from: Vector3, to: Vector3) -> void:
+	var start: Vector2 = Vector2(from.x, from.z)
+	var finish: Vector2 = Vector2(to.x, to.z)
+	var delta: Vector2 = finish - start
+	var length: float = delta.length()
+	var dir: Vector2 = Vector2(0.0, 1.0) if length < 0.001 else delta / length
+	for i: int in range(customers.size()):
+		var customer: Dictionary = customers[i] as Dictionary
+		golfers.append({"group": int(customer.get("party_id", customer.get("serial", 0))), "member": i,
+			"size": customers.size(), "look": _look_for_customer(customer), "t": 0.0, "tee": start,
+			"dir": dir, "len": length, "green": finish, "walk_only": true})
+
+
+func update_walking_party(group_id: int, center: Vector3, direction: Vector3) -> void:
+	var dir2: Vector2 = Vector2(direction.x, direction.z).normalized()
+	if dir2.length_squared() < 0.001:
+		dir2 = Vector2(0.0, 1.0)
+	var center2: Vector2 = Vector2(center.x, center.z)
+	for golfer_v: Variant in golfers:
+		var golfer: Dictionary = golfer_v
+		if int(golfer.get("group", -1)) != group_id or not bool(golfer.get("walk_only", false)):
+			continue
+		golfer["tee"] = center2
+		golfer["green"] = center2 + dir2
+		golfer["dir"] = dir2
+		golfer["len"] = 1.0
+
+
+static func _look_for_customer(customer: Dictionary) -> int:
+	var identity: Dictionary = customer.get("identity", {}) as Dictionary
+	var seed: int = int(identity.get("look_seed", identity.get("id", customer.get("serial", 0))))
+	return MHSliceSchedule.look_index(seed, 0, LOOK_POOL)
 
 
 func remove_group(group_id: int) -> void:
@@ -103,7 +137,10 @@ func advance(dt: float, cam_pos: Vector3) -> void:
 		d["t"] = float(d["t"]) + maxf(dt, 0.0)
 		var st: Dictionary
 		var events: Array = d.get("events", []) as Array
-		if not events.is_empty():
+		if bool(d.get("walk_only", false)):
+			st = {"done": false, "phase": MHSliceRound.Phase.WALK, "clip": MHGolferPoses.CLIP_WALK,
+				"clip_t": float(d["t"]), "aim": false, "ball_u": -1.0, "along": 0.0}
+		elif not events.is_empty():
 			st = _authoritative_state(events, float(d["t"]), int(d["member"]), int(d["size"]))
 		else:
 			st = MHSliceRound.state(float(d["t"]), int(d["member"]), int(d["size"]), float(d["len"]))
