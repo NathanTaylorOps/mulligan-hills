@@ -191,10 +191,20 @@ func personal_patrol(parcel: int, cells: int, cells_per_parcel: int, view: Dicti
 
 ## One game day: grounds update with the incident rolls, then every employee gets one day of tenure. Idempotent per day.
 ## Returns {"ran": bool, "incidents": Array of {parcel, kind, positive, handled}}.
-func on_day(day: int, view: Dictionary, secret: int) -> Dictionary:
+func on_day(day: int, view: Dictionary, secret: int, difficulty: String = "standard") -> Dictionary:
 	var res: Dictionary = grounds.on_day(defs, roster, day, view, secret, equipment)
 	if bool(res["ran"]):
-		equipment.on_day(MHStaffView.tier_of(view, "maintenance"), technician_work_permille(), res.get("used_employees", []) as Array)
+		var pressure_pm: int = 1000
+		var service_pm: int = 1000
+		match difficulty:
+			"relaxed":
+				pressure_pm = 650
+				service_pm = 1350
+			"tycoon":
+				pressure_pm = 1350
+				service_pm = 850
+		equipment.on_day(MHStaffView.tier_of(view, "maintenance"), technician_work_permille(),
+			res.get("used_employees", []) as Array, pressure_pm, service_pm)
 	if bool(res["ran"]):
 		roster.age_one_day()
 	return res
