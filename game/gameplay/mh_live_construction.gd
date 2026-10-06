@@ -390,6 +390,11 @@ func canonical_craft_draft(round_no: int = 0) -> Dictionary:
 	return MHCraftConvert.to_hole_def(craft_hole, 0, round_no, 0)
 
 func _open_craft_hole() -> void:
+	# A loaded finalized hole remains authoritative. Until an inverse layout->craft codec exists,
+	# never replace it merely because the player opened the practice panel.
+	if not session.hole_definitions().is_empty():
+		one_hole.open()
+		return
 	var draft: Dictionary = canonical_craft_draft()
 	if not draft.is_empty() and not one_hole.set_canonical_draft(draft):
 		_status.text = "Craft hole is not valid enough to finalize yet."
