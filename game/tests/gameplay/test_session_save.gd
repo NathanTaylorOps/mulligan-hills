@@ -350,9 +350,10 @@ func test_paid_customer_admissions_are_presentation_only_and_do_not_charge_again
 	assert_bool(bool(submitted["ok"])).is_true()
 	var cash_before: int = s.economy.cash
 	var tick: Dictionary = s.economy.tick_hour()
-	s._queue_customer_admissions(tick)
+	s._queue__pending_customers(tick)
+	s._resolve_customer_hour()
 	var cash_after_tick: int = s.economy.cash
-	var admissions: Array = s.take_customer_admissions(999)
+	var admissions: Array = s.take__pending_customers(999)
 	assert_int(s.economy.cash).is_equal(cash_after_tick)
 	assert_bool(cash_after_tick != cash_before or int(tick["golfers"]) == 0).is_true()
 	assert_int(admissions.size()).is_equal(int(tick["golfers"]))
@@ -405,8 +406,9 @@ func test_grouped_admissions_never_exceed_paid_golfer_count() -> void:
 		"features": [{"t": "fairway", "rect": [-8, 0, 8, 60]}]}
 	assert_bool(bool(s.submit_course([hole])["ok"])).is_true()
 	var tick: Dictionary = s.economy.tick_hour()
-	s._queue_customer_admissions(tick)
-	var admissions: Array = s.take_customer_admissions(999)
+	s._queue__pending_customers(tick)
+	s._resolve_customer_hour()
+	var admissions: Array = s.take__pending_customers(999)
 	assert_int(admissions.size()).is_equal(int(tick["golfers"]))
 	for v: Variant in admissions:
 		var customer: Dictionary = v
