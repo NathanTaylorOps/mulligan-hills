@@ -413,3 +413,29 @@ func test_golfer_identity_history_survives_session_checkpoint() -> void:
 		assert_int(s._customer_serial).is_equal(5)
 		assert_int(s.customer_feedback_average()).is_equal(90)
 	scene._active = false
+
+
+func test_post_round_facility_choice_requires_owned_building() -> void:
+	var s: MHGameSession = MHGameSession.create()
+	assert_object(s).is_not_null()
+	var identity: Dictionary = {"favorite_facility": "restaurant"}
+	# Fresh economy has no purchased facility tier.
+	assert_str(s.choose_post_round_facility(identity)).is_equal("")
+	s.economy.set_tier(0, 1) # clubhouse
+	assert_str(s.choose_post_round_facility(identity)).is_equal("clubhouse")
+	s.economy.set_tier(3, 1) # restaurant
+	assert_str(s.choose_post_round_facility(identity)).is_equal("restaurant")
+
+
+func test_grouped_admissions_never_exceed_paid_golfer_count() -> void:
+	var s: MHGameSession = MHGameSession.create()
+	var hole: Dictionary = {"slot_id": 0, "tee": [0, 0], "green": [0, 60, 5],
+		"features": [{"t": "fairway", "rect": [-8, 0, 8, 60]}]}
+	assert_bool(bool(s.submit_course([hole])["ok"])).is_true()
+	var tick: Dictionary = s.economy.tick_hour()
+	s._queue_customer_admissions(tick)
+	var admissions: Array = s.take_customer_admissions(999)
+	assert_int(admissions.size()).is_equal(int(tick["golfers"]))
+	for v: Variant in admissions:
+		var customer: Dictionary = v
+		assert_bool(int(customer.get("group_size", 0)) >= 1 and int(customer.get("group_size", 0)) <= 4).is_true()
