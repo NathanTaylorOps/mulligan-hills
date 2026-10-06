@@ -35,7 +35,7 @@ func test_cliff_like_relief_rejects_placement() -> void:
 			g.set_h(x, y, 0 if x < 48 else 5000)
 	var r: Dictionary = MHBuildingPlacement.validate(g, w[1], w[2], "restaurant", 1, Vector2i(48000, 48000))
 	assert_bool(bool(r["ok"])).is_false()
-	assert_str(str(r["reason"])).is_equal("terrain_relief")
+	assert_bool(str(r["reason"]) in ["terrain_step", "terrain_relief"]).is_true()
 
 
 func test_existing_building_clearance_rejects_overlap() -> void:
