@@ -267,11 +267,21 @@ func report(view: Dictionary) -> Dictionary:
 		"service": service_avg(view), "demand_permille": demand_permille(view), "pace_points": pace_points(),
 		"satisfaction_penalty_permille": condition_penalty_permille(view), "equipment_units": equipment.units.size(), "equipment_capacity": equipment_capacity(view),
 		"equipment_operating_cost_cents": equipment_operating_cost_cents(), "equipment_repair_cost_cents": equipment_repair_cost_cents(),
-		"employees": _employee_management_rows(), "equipment": equipment.units.duplicate(true),
+		"employees": _employee_management_rows(), "equipment": _equipment_management_rows(),
 		"hire_options": hires, "equipment_catalog": equipment_catalog,
 		"warnings": management_warnings(view),
 		"beauty_delta_pm": int(ov["beauty_delta_pm"]), "fairness_delta_pm": int(ov["fairness_delta_pm"]),
 	}
+
+
+func _equipment_management_rows() -> Array:
+	var out: Array = []
+	for value: Variant in equipment.units:
+		var unit: Dictionary = (value as Dictionary).duplicate(true)
+		unit["sale_value_cents"] = equipment.sale_value(int(unit["serial"]))
+		unit["kind"] = str((MHStaffEquipment.TYPES[str(unit["type"])] as Dictionary)["kind"])
+		out.append(unit)
+	return out
 
 
 func _employee_management_rows() -> Array:
