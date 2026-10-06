@@ -14,7 +14,7 @@ func _build() -> void:
 func _fill() -> void:
 	var r: Dictionary = view.management_report()
 	if r.is_empty():
-		_body.add_child(MHUIKit.label("Management data unavailable.", &"MutedLabel"))
+		_body.add_child(MHUIKit.label("Management data unavailable.", &"SmallLabel"))
 		return
 	var summary: PanelContainer = MHUIKit.card(8)
 	var box: VBoxContainer = MHUIKit.card_box(summary)
@@ -36,7 +36,7 @@ func _fill() -> void:
 		_body.add_child(warning_card)
 		wb.add_child(MHUIKit.label("Needs attention", &"H2Label"))
 		for warning: Variant in warnings:
-			wb.add_child(MHUIKit.label("• " + str(warning).replace("_", " ").capitalize(), &"WarnLabel"))
+			wb.add_child(MHUIKit.label("• " + str(warning).replace("_", " ").capitalize(), &"AccentLabel"))
 	var employees: Array = r.get("employees", [])
 	var staff_card: PanelContainer = MHUIKit.card(6)
 	var sb: VBoxContainer = MHUIKit.card_box(staff_card)
