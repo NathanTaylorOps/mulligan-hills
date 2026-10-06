@@ -32,6 +32,11 @@ func setup(p_view: MHGameStateView, p_ctx: MHUIContext, p_args: Dictionary = {})
 	ctx = p_ctx
 	args = p_args
 	set_anchors_preset(Control.PRESET_FULL_RECT)
+	# Screens are children of the shell's MarginContainer. Anchors alone are not
+	# sufficient when a Control is managed by a Container; explicitly opt into
+	# filling the allocated rect so overlay spacers receive the real viewport area.
+	size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	size_flags_vertical = Control.SIZE_EXPAND_FILL
 	mouse_filter = Control.MOUSE_FILTER_IGNORE if is_overlay else Control.MOUSE_FILTER_STOP
 	_build()
 	refresh()
@@ -74,6 +79,8 @@ func _build_page(show_back: bool = true) -> void:
 		margin.add_theme_constant_override("margin_" + side, MHTheme.GUTTER + 4)
 	add_child(margin)
 	_page = MHUIKit.vbox(12)
+	_page.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_page.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	margin.add_child(_page)
 	var head: HBoxContainer = MHUIKit.hbox(12)
 	_page.add_child(head)
