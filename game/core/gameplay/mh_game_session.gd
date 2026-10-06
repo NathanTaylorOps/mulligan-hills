@@ -27,6 +27,7 @@ var customer_admissions: Array = []
 var _customer_serial: int = 0
 var customer_feedback_sum: int = 0
 var customer_feedback_count: int = 0
+var customer_outcomes: Array = [] # immutable authoritative records; presentation never mutates economy/roster
 var golfer_roster: MHGolferRoster = MHGolferRoster.new()
 var building_placements: Dictionary = {} # id -> terrain-aware freeform placement record
 var _holes: Array = []
@@ -224,6 +225,7 @@ func advance(delta_us: int, wall_unix: int) -> void:
 			continue
 		var tick: Dictionary = economy.tick_hour()
 		_queue_customer_admissions(tick)
+		_resolve_customer_hour()
 		hourly = true
 		if bool(tick["day_rolled"]):
 			recent_scores.append(int(_course.get("course_x10", 0)) / 10)
@@ -260,11 +262,51 @@ func _queue_customer_admissions(tick: Dictionary) -> void:
 			remaining -= 1
 
 
+func _resolve_customer_hour() -> void:
+	if customer_admissions.is_empty() or _holes.is_empty() or _ratings.is_empty():
+		return
+	var start: int = customer_outcomes.size()
+	for admission_v: Variant in customer_admissions:
+		var customer: Dictionary = (admission_v as Dictionary).duplicate(true)
+		var identity: Dictionary = customer.get("identity", {}) as Dictionary
+		var band: int = int(identity.get("skill_band", 1))
+		var hole: Dictionary = _holes[0] as Dictionary
+		var rating: Dictionary = _ratings[0] as Dictionary
+		var round: Dictionary = MHAIRoundRecord.play(hole, {"save_secret": save_secret, "rating_epoch": rating_epoch}, band, 0)
+		if round.is_empty():
+			continue
+		var pref: int = int(identity.get("preference", MHGolferPreference.CASUAL))
+		var base: int = MHCustomerRoundQueue.satisfaction(round)
+		var bonus: int = MHGolferPreference.bonus(pref, rating, round)
+		var sat: int = clampi(base + bonus, 0, 100)
+		customer["round"] = round
+		customer["rating"] = rating.duplicate(true)
+		customer["preference"] = pref
+		customer["base_satisfaction"] = base
+		customer["preference_bonus"] = bonus
+		customer["satisfaction"] = sat
+		customer["reaction"] = MHCustomerRoundQueue.reaction(sat, int(round.get("flags", 0)))
+		customer["preference_reaction"] = MHGolferPreference.describe(pref, bonus)
+		customer["identity"] = golfer_roster.record_visit(int(identity["id"]), economy.day, sat,
+			str(customer["reaction"]), int(customer.get("hole_slot", 0)), int(round.get("flags", 0)))
+		customer_outcomes.append(customer)
+		customer_feedback_sum += sat
+		customer_feedback_count += 1
+	var count: int = customer_outcomes.size() - start
+	if count > 0:
+		var total: int = 0
+		for i: int in range(start, customer_outcomes.size()):
+			total += int((customer_outcomes[i] as Dictionary)["satisfaction"])
+		var avg: int = MHRMath.rdiv(total, count)
+		var delta: int = clampi(MHRMath.rdiv(avg - 50, 12), -4, 4)
+		economy.reputation = clampi(economy.reputation + delta, economy.params.c("rep_floor_permille"), 1000)
+
+
 func take_customer_admissions(limit: int = 4) -> Array:
-	var count: int = mini(maxi(limit, 0), customer_admissions.size())
+	var count: int = mini(maxi(limit, 0), customer_outcomes.size())
 	var out: Array = []
 	for _i: int in range(count):
-		out.append(customer_admissions.pop_front())
+		out.append(customer_outcomes.pop_front())
 	return out
 
 
@@ -279,7 +321,7 @@ func record_customer_visit(customer: Dictionary) -> Dictionary:
 	var round: Dictionary = customer.get("round", {}) as Dictionary
 	var updated: Dictionary = golfer_roster.record_visit(int(identity["id"]), economy.day, sat, memory,
 		int(customer.get("hole_slot", 0)), int(round.get("flags", 0)))
-	record_customer_feedback(sat)
+	# Legacy/UI callers may request the roster record, but authoritative hourly resolution already applies feedback.
 	return updated
 
 
