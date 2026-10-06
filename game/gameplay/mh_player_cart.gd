@@ -70,6 +70,9 @@ func _shed_clubs() -> void:
 	if _clubs_shed or debris_root == null:
 		return
 	_clubs_shed = true
+	var bag: Node = get_node_or_null("GolfBag")
+	if bag != null:
+		bag.hide()
 	var count: int = 4
 	for i: int in range(count):
 		var club: RigidBody3D = RigidBody3D.new()
