@@ -618,8 +618,9 @@ func _begin_hole_transition(event: Dictionary) -> void:
 	var customers: Array = event.get("customers", [customer]) as Array
 	var uses_cart: bool = _party_uses_cart(customers, party_id)
 	_visible_golfers.spawn_walking_party(customers, start, to_pos)
+	_visible_golfers.set_walking_party_hidden(party_id, uses_cart)
 	if uses_cart:
-		_ensure_party_cart(party_id, start)
+		_ensure_party_cart(party_id, start, customers.size())
 	_hole_transition_walkers[party_id] = {"position": start,
 		"route": MHClubPedestrian.route(start, to_pos, party_id), "segment": 1, "uses_cart": uses_cart}
 
@@ -660,7 +661,7 @@ func _party_uses_cart(customers: Array, party_id: int) -> bool:
 	return posmod(party_id, 3) != 0
 
 
-func _ensure_party_cart(party_id: int, position: Vector3) -> void:
+func _ensure_party_cart(party_id: int, position: Vector3, riders: int = 2) -> void:
 	if _party_carts.has(party_id):
 		return
 	var root: Node3D = Node3D.new()
@@ -671,6 +672,15 @@ func _ensure_party_cart(party_id: int, position: Vector3) -> void:
 	body.mesh = mesh
 	body.position.y = 0.5
 	root.add_child(body)
+	var rider_count: int = mini(4, maxi(1, riders))
+	for i: int in range(rider_count):
+		var rider: MeshInstance3D = MeshInstance3D.new()
+		var rider_mesh: CapsuleMesh = CapsuleMesh.new()
+		rider_mesh.radius = 0.22
+		rider_mesh.height = 0.85
+		rider.mesh = rider_mesh
+		rider.position = Vector3(-0.32 if i % 2 == 0 else 0.32, 1.05, -0.28 if i < 2 else 0.35)
+		root.add_child(rider)
 	add_child(root)
 	root.position = position
 	_party_carts[party_id] = root
@@ -679,7 +689,7 @@ func _ensure_party_cart(party_id: int, position: Vector3) -> void:
 func _update_party_cart(party_id: int, position: Vector3, direction: Vector3, enabled: bool) -> void:
 	if not enabled:
 		return
-	_ensure_party_cart(party_id, position)
+	_ensure_party_cart(party_id, position, 2)
 	var cart: Node3D = _party_carts[party_id] as Node3D
 	cart.position = position
 	if direction.length_squared() > 0.001:
