@@ -44,3 +44,23 @@ func test_existing_building_clearance_rejects_overlap() -> void:
 	var r: Dictionary = MHBuildingPlacement.validate(w[0], w[1], w[2], "pro_shop", 1, Vector2i(52000, 48000), existing)
 	assert_bool(bool(r["ok"])).is_false()
 	assert_str(str(r["reason"])).is_equal("building_overlap")
+
+
+func test_rotation_swaps_rectangular_footprint() -> void:
+	var w: Array = _world()
+	var a: Dictionary = MHBuildingPlacement.validate(w[0], w[1], w[2], "clubhouse", 1, Vector2i(48000, 48000), [], 0)
+	var b: Dictionary = MHBuildingPlacement.validate(w[0], w[1], w[2], "clubhouse", 1, Vector2i(48000, 48000), [], 1)
+	assert_bool(bool(a["ok"])).is_true()
+	assert_bool(bool(b["ok"])).is_true()
+	assert_array(a["size_m"]).is_equal([18, 14])
+	assert_array(b["size_m"]).is_equal([14, 18])
+
+
+func test_finalized_fairway_rejects_building_even_on_flat_ground() -> void:
+	var w: Array = _world()
+	var hole: Dictionary = {"slot_id": 0, "tee": [0, 0], "green": [0, 60, 5],
+		"features": [{"t": "fairway", "rect": [-8, 0, 8, 60]}]}
+	# First Real Round origin is around 48m,34m; this footprint intersects its fairway.
+	var r: Dictionary = MHBuildingPlacement.validate(w[0], w[1], w[2], "pro_shop", 1, Vector2i(48000, 50000), [], 0, [hole])
+	assert_bool(bool(r["ok"])).is_false()
+	assert_str(str(r["reason"])).is_equal("golf_feature")
