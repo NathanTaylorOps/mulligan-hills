@@ -103,40 +103,6 @@
       "pace_max": 0
     },
     {
-      "id": "superintendent",
-      "name_key": "staff.role.superintendent",
-      "building": "maintenance",
-      "kind": "station",
-      "legacy": "greenkeepers",
-      "daily_wage_cents": 5200,
-      "caps_by_tier": [
-        0,
-        1,
-        1,
-        1,
-        1
-      ],
-      "pace_each": 0,
-      "pace_max": 0
-    },
-    {
-      "id": "equipment_technician",
-      "name_key": "staff.role.equipment_technician",
-      "building": "maintenance",
-      "kind": "station",
-      "legacy": "greenkeepers",
-      "daily_wage_cents": 4200,
-      "caps_by_tier": [
-        0,
-        1,
-        1,
-        2,
-        2
-      ],
-      "pace_each": 0,
-      "pace_max": 0
-    },
-    {
       "id": "wildlife_ranger",
       "name_key": "staff.role.wildlife_ranger",
       "building": "maintenance",
@@ -300,6 +266,40 @@
         1,
         1,
         2,
+        2,
+        2
+      ],
+      "pace_each": 0,
+      "pace_max": 0
+    },
+    {
+      "id": "superintendent",
+      "name_key": "staff.role.superintendent",
+      "building": "maintenance",
+      "kind": "station",
+      "legacy": "greenkeepers",
+      "daily_wage_cents": 5200,
+      "caps_by_tier": [
+        0,
+        1,
+        1,
+        1,
+        1
+      ],
+      "pace_each": 0,
+      "pace_max": 0
+    },
+    {
+      "id": "equipment_technician",
+      "name_key": "staff.role.equipment_technician",
+      "building": "maintenance",
+      "kind": "station",
+      "legacy": "greenkeepers",
+      "daily_wage_cents": 4200,
+      "caps_by_tier": [
+        0,
+        1,
+        1,
         2,
         2
       ],
