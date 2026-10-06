@@ -162,6 +162,12 @@ func record_visit(identity_id: int, day: int, satisfaction: int, memory: String,
 	# Strong repeat visits create interest/application intent; membership itself is a club decision.
 	var interest: int = clampi(int(g.get("membership_interest", 0)) + maxi(0, sat - 60) / 4, 0, 100)
 	g["membership_interest"] = interest
+	# Home demand is separate from membership. Repeated excellent visits can create housing
+	# interest, but actual allocation is constrained by the club's owned homes capacity.
+	var home_gain: int = maxi(0, sat - 70) / 5
+	if str(g.get("favorite_facility", "")) == "homes":
+		home_gain += 2
+	g["home_interest"] = clampi(int(g.get("home_interest", 0)) + home_gain, 0, 100)
 	if str(g.get("membership_status", "none")) == "none" and int(g["visits"]) >= 3 and int(g["loyalty"]) >= 72 and interest >= 35:
 		g["membership_status"] = "interested"
 	if str(g.get("membership_status", "none")) == "interested" and int(g["visits"]) >= 4 and interest >= 50:
@@ -169,6 +175,31 @@ func record_visit(identity_id: int, day: int, satisfaction: int, memory: String,
 	g["member"] = str(g.get("membership_status", "none")) == "member"
 	golfers[identity_id] = g
 	return g.duplicate(true)
+
+
+
+
+func member_count() -> int:
+	var count: int = 0
+	for g_v: Variant in golfers.values():
+		if bool((g_v as Dictionary).get("member", false)):
+			count += 1
+	return count
+
+
+func home_candidates(min_interest: int = 50) -> Array:
+	var out: Array = []
+	var ids: Array = golfers.keys()
+	ids.sort()
+	for id_v: Variant in ids:
+		var g: Dictionary = golfers[id_v] as Dictionary
+		if int(g.get("home_interest", 0)) >= min_interest:
+			out.append(g.duplicate(true))
+	out.sort_custom(func(a: Dictionary, b: Dictionary) -> bool:
+		if int(a.get("home_interest", 0)) == int(b.get("home_interest", 0)):
+			return int(a["id"]) < int(b["id"])
+		return int(a.get("home_interest", 0)) > int(b.get("home_interest", 0)))
+	return out
 
 
 
