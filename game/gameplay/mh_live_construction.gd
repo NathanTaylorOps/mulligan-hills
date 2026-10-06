@@ -172,7 +172,9 @@ func _ready() -> void:
 	back.pressed.connect(_back)
 	var play_label: String = "Continue first round" if _resumed_checkpoint and not session.hole_definitions().is_empty() else "Build / play first hole"
 	var play: MHTapButton = MHUIKit.button(shell.ctx, play_label, &"ChipButton", 180)
-	for b: MHTapButton in [save_button, back, play]:
+	var drive_cart: MHTapButton = MHUIKit.button(shell.ctx, "Drive cart", &"ChipButton", 120)
+	drive_cart.pressed.connect(enter_cart_drive_mode)
+	for b: MHTapButton in [save_button, back, play, drive_cart]:
 		_actions.add_child(b)
 		_action_buttons.append(b)
 	_status_zone = MHUIKit.panel(&"HudChip")
@@ -211,12 +213,14 @@ func _ready() -> void:
 	_ghost_invalid_mat.albedo_color = Color(1.0, 0.2, 0.2, 0.45)
 	_ghost_invalid_mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
 	router.register_ui_region(&"live_practice", _button_rect.bind(play))
+	router.register_ui_region(&"live_drive_cart", _button_rect.bind(drive_cart))
 	router.register_ui_region(&"live_save", _button_rect.bind(save_button))
 	router.register_ui_region(&"live_back", _button_rect.bind(back))
 	router.ui_tapped.connect(func(id: StringName) -> void:
 		if id == &"live_save": save_button.pressed.emit()
 		elif id == &"live_back": back.pressed.emit()
 		elif id == &"live_practice": play.pressed.emit()
+		elif id == &"live_drive_cart": drive_cart.pressed.emit()
 		else: shell.trigger_region(id))
 	# The status label sits in a container with a real width (an autowrap Label directly under a CanvasLayer has
 	# zero width and wraps one character per line) and is limited to MHLiveLayout.STATUS_LINES lines.
