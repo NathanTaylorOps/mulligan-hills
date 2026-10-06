@@ -6,6 +6,7 @@ extends RigidBody3D
 signal sunk()
 signal tipped()
 signal clubs_lost(count: int)
+signal green_violation()
 
 const DRIVE_FORCE: float = 780.0
 const BRAKE_FORCE: float = 1100.0
@@ -22,6 +23,7 @@ var debris_root: Node3D
 var _tip_reported: bool = false
 var _sunk_reported: bool = false
 var _clubs_shed: bool = false
+var _green_reported: bool = false
 var _throttle: float = 0.0
 var _steer: float = 0.0
 
@@ -48,6 +50,12 @@ func _integrate_forces(state: PhysicsDirectBodyState3D) -> void:
 
 func _physics_process(_delta: float) -> void:
 	var surface: String = MHCartSurfacePolicy.free_drive_surface(splat, global_position, grid)
+	if surface == "green":
+		if not _green_reported:
+			_green_reported = true
+			green_violation.emit()
+	else:
+		_green_reported = false
 	if surface == "water" and not _sunk_reported:
 		_sunk_reported = true
 		gravity_scale = 0.35
