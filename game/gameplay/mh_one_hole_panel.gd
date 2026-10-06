@@ -375,14 +375,14 @@ func _draw_surface_edges(hole: MHCraftHole, relief_hole: MHRHole) -> void:
 			if s != MHCraftHole.Surface.GREEN and s != MHCraftHole.Surface.BUNKER and s != MHCraftHole.Surface.WATER:
 				continue
 			var centre: Vector2i = hole.tile_centre_yd(c, r)
-			for d: Vector2i in [Vector2i(1, 0), Vector2i(0, 1)]:
+			for d: Vector2i in [Vector2i(-1, 0), Vector2i(1, 0), Vector2i(0, -1), Vector2i(0, 1)]:
 				var nc: int = c + d.x
 				var nr: int = r + d.y
 				if hole.in_bounds(nc, nr) and hole.get_surface(nc, nr) == s:
 					continue
 				var half: int = MHCraftHole.TILE_YD * 50
-				var ex: int = centre.x * 100 + (half if d.x != 0 else 0)
-				var ey: int = centre.y * 100 + (half if d.y != 0 else 0)
+				var ex: int = centre.x * 100 + d.x * half
+				var ey: int = centre.y * 100 + d.y * half
 				var length_m: float = float(MHCraftHole.TILE_YD) * 0.9144
 				var size: Vector3 = Vector3(0.045, 0.035, length_m) if d.x != 0 else Vector3(length_m, 0.035, 0.045)
 				var z: float = float(relief_hole.z_at(ex, ey)) / 1000.0 + 0.065
