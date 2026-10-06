@@ -229,7 +229,7 @@ func home_candidates(min_interest: int = 50) -> Array:
 	ids.sort()
 	for id_v: Variant in ids:
 		var g: Dictionary = golfers[id_v] as Dictionary
-		if int(g.get("home_interest", 0)) >= min_interest:
+		if bool(g.get("home_request", false)) and int(g.get("home_interest", 0)) >= min_interest:
 			out.append(g.duplicate(true))
 	out.sort_custom(func(a: Dictionary, b: Dictionary) -> bool:
 		if int(a.get("home_interest", 0)) == int(b.get("home_interest", 0)):
@@ -252,7 +252,7 @@ func assign_home(identity_id: int, slot: int) -> bool:
 	if not golfers.has(identity_id) or slot < 0:
 		return false
 	var g: Dictionary = golfers[identity_id]
-	if str(g.get("home_status", "none")) == "resident" or int(g.get("home_interest", 0)) < 50:
+	if str(g.get("home_status", "none")) == "resident" or not bool(g.get("home_request", false)) or int(g.get("home_interest", 0)) < 50:
 		return false
 	for other_v: Variant in golfers.values():
 		var other: Dictionary = other_v
@@ -260,6 +260,7 @@ func assign_home(identity_id: int, slot: int) -> bool:
 			return false
 	g["home_status"] = "resident"
 	g["home_slot"] = slot
+	g["home_request"] = false
 	golfers[identity_id] = g
 	return true
 
