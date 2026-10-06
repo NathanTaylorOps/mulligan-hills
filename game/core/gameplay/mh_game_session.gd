@@ -250,7 +250,7 @@ func advance(delta_us: int, wall_unix: int) -> void:
 		if bool(tick["day_rolled"]):
 			var staff_day: Dictionary = staff_system.on_day(economy.day, staff_view(), save_secret)
 			if bool(staff_day.get("ran", false)):
-				var equipment_cost: int = staff_system.equipment_operating_cost_cents()
+				var equipment_cost: int = staff_system.equipment_operating_cost_cents() + staff_system.equipment_repair_cost_cents()
 				if equipment_cost > 0:
 					economy.incur_loss(equipment_cost)
 			economy.set_demand_modifier(staff_system.demand_permille(staff_view()))
