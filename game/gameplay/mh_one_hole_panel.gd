@@ -265,6 +265,7 @@ func _process(delta: float) -> void:
 				golfer_name, MHGolferPreference.name_of(int(customer["preference"])), int(customer["satisfaction"]),
 				str(customer["reaction"]), str(customer["preference_reaction"]), int(updated.get("loyalty", 50)),
 				int(updated.get("visits", 1)), rep_delta]
+			_feedback.text += "\n" + MHGolferBubble.after_round(updated, customer)
 			if bool(updated.get("member", false)):
 				_feedback.text += " | MEMBER"
 			if int(updated.get("group_id", -1)) >= 0:
