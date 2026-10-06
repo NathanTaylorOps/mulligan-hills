@@ -325,33 +325,59 @@ func _draw() -> void:
 		_world.remove_child(child)
 		child.queue_free()
 	_box(Vector3(64, -0.1, 64), Vector3(128, 0.1, 128), Color(0.27, 0.44, 0.21))
-	if live != null and live.craft_hole != null and (_preview_draft or live.session.hole_definitions().is_empty()):
-		_draw_craft_terrain(live.craft_hole)
 	var layouts: Array = live.session.hole_definitions()
+	var drawing_craft: bool = live != null and live.craft_hole != null and (_preview_draft or layouts.is_empty())
 	var h: Dictionary = _layout() if layouts.is_empty() or _preview_draft else layouts[0]
-	for row: Variant in h["features"]:
-		var f: Dictionary = row
-		if not f.has("rect"):
-			continue
-		var rect: Array = f["rect"]
-		var a: Vector3 = _position(int(rect[0]) * 100, int(rect[1]) * 100, 0.02)
-		var b: Vector3 = _position(int(rect[2]) * 100, int(rect[3]) * 100, 0.02)
-		_box((a + b) / 2.0, Vector3(b.x - a.x, 0.03, b.z - a.z), Color(0.12, 0.4, 0.7) if str(f["t"]) == "water" else Color(0.36, 0.64, 0.23))
-	var g: Array = h["green"]
-	var circle: CylinderMesh = CylinderMesh.new()
-	circle.top_radius = float(g[2]) * 0.9144
-	circle.bottom_radius = circle.top_radius
-	circle.height = 0.03
-	_mesh(circle, _position(int(g[0]) * 100, int(g[1]) * 100, 0.06), Color(0.5, 0.78, 0.3))
-	_box(_position(int(g[0]) * 100, int(g[1]) * 100, 1.0), Vector3(0.12, 2, 0.12), Color.WHITE)
+	if drawing_craft:
+		# The craft mesh already owns every painted surface and marker. Do not draw
+		# the legacy rectangle proxy over it; that hid invalid/intermediate edits
+		# behind a stale fallback fairway.
+		_draw_craft_terrain(live.craft_hole)
+	else:
+		for row: Variant in h["features"]:
+			var feature: Dictionary = row
+			if not feature.has("rect"):
+				continue
+			var rect: Array = feature["rect"]
+			var cx: int = (int(rect[0]) + int(rect[2])) * 50
+			var cy: int = (int(rect[1]) + int(rect[3])) * 50
+			var a: Vector3 = _position(int(rect[0]) * 100, int(rect[1]) * 100, 0.02)
+			var b: Vector3 = _position(int(rect[2]) * 100, int(rect[3]) * 100, 0.02)
+			var centre: Vector3 = (a + b) / 2.0
+			centre.y = _ground_height(cx, cy) + 0.02
+			_box(centre, Vector3(absf(b.x - a.x), 0.03, absf(b.z - a.z)),
+				Color(0.12, 0.4, 0.7) if str(feature["t"]) == "water" else Color(0.36, 0.64, 0.23))
+		var g: Array = h["green"]
+		var circle: CylinderMesh = CylinderMesh.new()
+		circle.top_radius = float(g[2]) * 0.9144
+		circle.bottom_radius = circle.top_radius
+		circle.height = 0.03
+		_mesh(circle, _position_on_ground(int(g[0]) * 100, int(g[1]) * 100, 0.06), Color(0.5, 0.78, 0.3))
+		_box(_position_on_ground(int(g[0]) * 100, int(g[1]) * 100, 1.0), Vector3(0.12, 2, 0.12), Color.WHITE)
 	_ball = _marker(Color.WHITE, 0.35)
 	var r: MHPracticeRound = live.session.practice
-	_ball.position = _position_on_ground(r.x if r != null and not _preview_draft else 0, r.y if r != null and not _preview_draft else 0, 0.45)
+	if r != null and not _preview_draft:
+		_ball.position = _position_on_ground(r.x, r.y, 0.45)
+	elif drawing_craft and not live.craft_hole.tees.is_empty():
+		var tee_tile: Vector2i = live.craft_hole.tees[0] as Vector2i
+		var tee_centre: Vector2i = live.craft_hole.tile_centre_yd(tee_tile.x, tee_tile.y)
+		_ball.position = _position_on_ground(tee_centre.x * 100, tee_centre.y * 100, 0.45)
+	else:
+		var tee: Array = h["tee"]
+		_ball.position = _position_on_ground(int(tee[0]) * 100, int(tee[1]) * 100, 0.45)
 	_aim = _marker(Color(1, 0.8, 0.1), 0.55)
+	_aim.visible = not drawing_craft
 	_move_aim()
 
 func _draw_craft_terrain(hole: MHCraftHole) -> void:
+	# Height preview must follow the editable grid even while the draft is
+	# temporarily invalid (for example while moving a pin off a green).
 	var layout: Dictionary = _layout()
+	var relief: Dictionary = MHCraftConvert.relief_for(hole)
+	if relief.is_empty():
+		layout.erase("relief")
+	else:
+		layout["relief"] = relief
 	var relief_hole: MHRHole = MHRHole.from_def(layout)
 	var builders: Dictionary = {}
 	for surface_id: int in range(MHCraftHole.SURFACE_COUNT):
