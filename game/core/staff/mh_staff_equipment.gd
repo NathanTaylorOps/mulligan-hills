@@ -126,16 +126,23 @@ func to_save_block() -> Dictionary:
 	return {"v": SAVE_VERSION, "next_serial": next_serial, "operating_cost_cents": operating_cost_cents, "repair_cost_cents": repair_cost_cents, "units": units.duplicate(true)}
 
 func from_save_block(block: Dictionary) -> bool:
-	if int(block.get("v", 0)) != SAVE_VERSION or not MHRValidate.is_int_value(block.get("next_serial", null)):
+	var errs: Array = []
+	var norm: Variant = MHDataJson.normalize(block, errs, "$")
+	if not errs.is_empty() or typeof(norm) != TYPE_DICTIONARY:
 		return false
-	var ns: int = int(block["next_serial"])
-	var saved_cost: int = int(block.get("operating_cost_cents", 0))
-	var saved_repair: int = int(block.get("repair_cost_cents", 0))
-	if saved_cost < 0 or saved_repair < 0:
+	var b: Dictionary = norm
+	if b.size() != 5 or not MHDataJson.is_int_in(b.get("v", null), SAVE_VERSION, SAVE_VERSION):
 		return false
-	if ns < 1 or typeof(block.get("units", null)) != TYPE_ARRAY:
+	if not MHDataJson.is_int_in(b.get("next_serial", null), 1, 1000000000):
 		return false
-	var src: Array = block["units"]
+	if not MHDataJson.is_int_in(b.get("operating_cost_cents", null), 0, 1000000000):
+		return false
+	if not MHDataJson.is_int_in(b.get("repair_cost_cents", null), 0, 1000000000):
+		return false
+	if typeof(b.get("units", null)) != TYPE_ARRAY:
+		return false
+	var ns: int = int(b["next_serial"])
+	var src: Array = b["units"]
 	if src.size() > MAX_UNITS:
 		return false
 	var cleaned: Array = []
@@ -144,18 +151,30 @@ func from_save_block(block: Dictionary) -> bool:
 		if typeof(v) != TYPE_DICTIONARY:
 			return false
 		var u: Dictionary = v
-		var serial: int = int(u.get("serial", 0))
-		var type_id: String = str(u.get("type", ""))
-		var condition: int = int(u.get("condition", -1))
-		if serial <= last or serial >= ns or not TYPES.has(type_id) or condition < 0 or condition > 1000 or typeof(u.get("broken", null)) != TYPE_BOOL:
+		if u.size() != 5:
 			return false
-		var assigned: int = int(u.get("assigned_employee", 0))
-		if assigned < 0:
+		if not MHDataJson.is_int_in(u.get("serial", null), last + 1, ns - 1):
 			return false
-		cleaned.append({"serial": serial, "type": type_id, "condition": condition, "broken": bool(u["broken"]), "assigned_employee": assigned})
+		if typeof(u.get("type", null)) != TYPE_STRING or not TYPES.has(str(u["type"])):
+			return false
+		if not MHDataJson.is_int_in(u.get("condition", null), 0, 1000):
+			return false
+		if typeof(u.get("broken", null)) != TYPE_BOOL:
+			return false
+		if not MHDataJson.is_int_in(u.get("assigned_employee", null), 0, 1000000000):
+			return false
+		var serial: int = int(u["serial"])
+		var condition: int = int(u["condition"])
+		var broken: bool = bool(u["broken"])
+		# Runtime only marks a machine broken once it falls below 150, and repairs clear it at 400.
+		# Reject impossible restored combinations rather than allowing save edits to manufacture state.
+		if broken and condition >= 400:
+			return false
+		cleaned.append({"serial": serial, "type": str(u["type"]), "condition": condition,
+			"broken": broken, "assigned_employee": int(u["assigned_employee"])})
 		last = serial
 	units = cleaned
 	next_serial = ns
-	operating_cost_cents = saved_cost
-	repair_cost_cents = saved_repair
+	operating_cost_cents = int(b["operating_cost_cents"])
+	repair_cost_cents = int(b["repair_cost_cents"])
 	return true
