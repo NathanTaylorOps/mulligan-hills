@@ -714,3 +714,16 @@ func test_playback_pace_adjusts_existing_visit_without_double_counting() -> void
 	assert_int(int(after["visits"])).is_equal(visits_before)
 	assert_int((after["memories"] as Array).size()).is_equal(memories_before)
 	assert_int(int(((after["memories"] as Array)[memories_before - 1] as Dictionary)["satisfaction"])).is_less(80)
+
+
+func test_management_warns_only_after_repeated_sustained_hole_congestion() -> void:
+	var s: MHGameSession = MHGameSession.create()
+	s.customer_playback.hole_wait_s = {4: 100.0}
+	s.customer_playback.hole_wait_count = {4: 2}
+	var report: Dictionary = s.management_report()
+	assert_bool((report["warnings"] as Array).has("pace_bottleneck_hole_5")).is_true()
+	assert_int(int((report["worst_bottleneck"] as Dictionary)["hole_slot"])).is_equal(4)
+	var clean: MHGameSession = MHGameSession.create()
+	clean.customer_playback.hole_wait_s = {4: 44.0}
+	clean.customer_playback.hole_wait_count = {4: 3}
+	assert_bool((clean.management_report()["warnings"] as Array).has("pace_bottleneck_hole_5")).is_false()
