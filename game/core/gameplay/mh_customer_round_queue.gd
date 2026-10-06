@@ -18,8 +18,9 @@ func admit(rows: Array, hole_def: Dictionary, rating: Dictionary, ctx: Dictionar
 			break
 		var customer: Dictionary = (v as Dictionary).duplicate(true)
 		var serial: int = int(customer.get("serial", 0))
-		var band: int = 1 + (serial % 4)
-		customer["preference"] = MHGolferPreference.archetype(serial)
+		var identity: Dictionary = customer.get("identity", {}) as Dictionary
+		var band: int = int(identity.get("skill_band", 1 + (serial % 4)))
+		customer["preference"] = int(identity.get("preference", MHGolferPreference.archetype(serial)))
 		customer["rating"] = rating.duplicate(true)
 		customer["round"] = MHAIRoundRecord.play(hole_def, ctx, band, 0)
 		if not (customer["round"] as Dictionary).is_empty():
