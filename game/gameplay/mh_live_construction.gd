@@ -575,6 +575,7 @@ func _process(_delta: float) -> void:
 	_sync_maintenance_visuals()
 	_sync_course_condition_overlay()
 	_show_new_grounds_events()
+	_update_cart_drive_camera()
 	_visible_golfers.advance(float(elapsed) / 1000000.0, controller.rig.global_position)
 	chunks.flush(editor.dirty)
 	_relayout()
@@ -709,6 +710,53 @@ func exit_player_cart() -> void:
 		controller.desktop_pan(Vector2.ZERO)
 	router.world_input_allowed = func() -> bool: return _placement_id == "" and shell.current_screen_id() == MHScreenIds.EDITOR and shell.modal_id() == "" and (one_hole == null or not one_hole.visible)
 	_status.text = "Exited cart."
+
+
+func enter_cart_drive_mode() -> bool:
+	if not session.carts_allowed_now():
+		_status.text = "Carts are not allowed during tournaments."
+		return false
+	if _player_cart == null or not is_instance_valid(_player_cart):
+		if not respawn_player_cart():
+			_status.text = "Build a clubhouse before using free-drive carts."
+			return false
+	if _cart_drive_input == null:
+		_cart_drive_input = MHCartDriveInput.new()
+		_hud_layer.add_child(_cart_drive_input)
+		_cart_drive_input.drive_changed.connect(func(throttle: float, steer: float) -> void: drive_player_cart(throttle, steer))
+		_cart_drive_input.exit_requested.connect(exit_cart_drive_mode)
+		_cart_drive_input.respawn_requested.connect(func() -> void: respawn_player_cart())
+	if _cart_camera == null:
+		_cart_camera = Camera3D.new()
+		add_child(_cart_camera)
+	_cart_drive_input.show()
+	_cart_drive_active = true
+	_cart_camera.current = true
+	router.accept_world_input = false
+	_status.text = "Free drive: stay on paths or cause trouble."
+	return true
+
+
+func exit_cart_drive_mode() -> void:
+	_cart_drive_active = false
+	if _cart_drive_input != null:
+		_cart_drive_input.hide()
+	if _cart_camera != null:
+		_cart_camera.current = false
+	if controller != null and controller.rig != null:
+		var main_camera: Camera3D = controller.rig.get_node_or_null("Camera3D") as Camera3D
+		if main_camera != null:
+			main_camera.current = true
+	_status.text = "Returned to course management."
+
+
+func _update_cart_drive_camera() -> void:
+	if not _cart_drive_active or _cart_camera == null or _player_cart == null or not is_instance_valid(_player_cart):
+		return
+	var back: Vector3 = _player_cart.global_transform.basis.z.normalized() * 7.0
+	var target: Vector3 = _player_cart.global_position + Vector3(0.0, 1.0, 0.0)
+	_cart_camera.global_position = target + back + Vector3(0.0, 3.8, 0.0)
+	_cart_camera.look_at(target, Vector3.UP)
 
 
 func respawn_player_cart() -> bool:
