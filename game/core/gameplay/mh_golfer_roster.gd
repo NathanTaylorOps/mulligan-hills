@@ -169,8 +169,31 @@ func from_dict(raw: Dictionary) -> bool:
 				or typeof(g["memories"]) != TYPE_ARRAY or (g["memories"] as Array).size() > MEMORY_LIMIT:
 			return false
 		restored[id] = g.duplicate(true)
+	# Validate the social graph only after every golfer id is known. Saves may never restore
+	# self-links, duplicate links, dangling golfer ids, or more relationships than the model allows.
+	for id_v: Variant in restored.keys():
+		var id: int = int(id_v)
+		var g: Dictionary = restored[id]
+		if typeof(g.get("associates", null)) != TYPE_ARRAY:
+			return false
+		var associates: Array = g["associates"] as Array
+		if associates.size() > ASSOCIATE_LIMIT:
+			return false
+		var seen_associates: Dictionary = {}
+		for associate_v: Variant in associates:
+			if not MHRValidate.is_int_value(associate_v):
+				return false
+			var associate_id: int = int(associate_v)
+			if associate_id == id or not restored.has(associate_id) or seen_associates.has(associate_id):
+				return false
+			seen_associates[associate_id] = true
 	var ni: int = int(raw.get("next_id", 0))
-	if ni < 0:
+	# next_id is the next never-issued identity, so it must be strictly above every restored id.
+	# Accepting a lower value would let the next new admission overwrite an existing golfer.
+	var max_id: int = -1
+	for id_v: Variant in restored.keys():
+		max_id = maxi(max_id, int(id_v))
+	if ni < 0 or ni <= max_id or ni > MAX_ROSTER:
 		return false
 	golfers = restored
 	next_id = ni
