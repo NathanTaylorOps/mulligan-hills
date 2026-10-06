@@ -217,6 +217,34 @@ func test_live_scene_finalization_can_save_and_reload_practice() -> void:
 	scene._active = false
 
 
+func test_elevated_live_scene_cold_reopen_accepts_saved_relief() -> void:
+	var scene: MHLiveConstruction = MHLiveConstruction.new()
+	scene.store = MHSaveStore.new(DIR)
+	scene.ledger_dir = LEDGERS
+	add_child(scene)
+	assert_bool(scene._active).is_true()
+	scene.craft_hole.set_height_tile(11, 15, 6)
+	var expected: Dictionary = scene.canonical_craft_draft()
+	assert_bool(expected.has("relief")).is_true()
+	assert_bool(scene.one_hole.set_canonical_draft(expected)).is_true()
+	scene.one_hole._finalize()
+	assert_bool(scene.save_now()).is_true()
+	scene._active = false
+	scene.queue_free()
+	await get_tree().process_frame
+
+	var reopened: MHLiveConstruction = auto_free(MHLiveConstruction.new())
+	reopened.store = MHSaveStore.new(DIR)
+	reopened.ledger_dir = LEDGERS
+	add_child(reopened)
+	assert_bool(reopened._active).is_true()
+	assert_array(reopened.session.hole_definitions()).contains_exactly([expected])
+	assert_bool(MHOneHolePanel.supported(reopened.document["course"] as Dictionary)).is_true()
+	reopened._open_craft_hole()
+	assert_bool(reopened.one_hole.visible).is_true()
+	reopened._active = false
+
+
 func test_screen_aim_projection_sets_target_without_playing_or_charging() -> void:
 	var scene: MHLiveConstruction = auto_free(MHLiveConstruction.new())
 	scene.store = MHSaveStore.new(DIR)
