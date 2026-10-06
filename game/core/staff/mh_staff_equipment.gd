@@ -35,6 +35,9 @@ func assign_unit(serial: int, employee_serial: int, employee_kind: String) -> bo
 		var d: Dictionary = TYPES[str(u["type"])]
 		if str(d["kind"]) != employee_kind or bool(u["broken"]):
 			return false
+		# The current work model has one active machine per worker. Moving an operator to
+		# another compatible unit must release the old machine or both units would wear/cost.
+		unassign_employee(employee_serial)
 		u["assigned_employee"] = employee_serial
 		return true
 	return false
@@ -146,6 +149,7 @@ func from_save_block(block: Dictionary) -> bool:
 	if src.size() > MAX_UNITS:
 		return false
 	var cleaned: Array = []
+	var assigned_employees: Dictionary = {}
 	var last: int = 0
 	for v: Variant in src:
 		if typeof(v) != TYPE_DICTIONARY:
@@ -170,8 +174,13 @@ func from_save_block(block: Dictionary) -> bool:
 		# Reject impossible restored combinations rather than allowing save edits to manufacture state.
 		if broken and condition >= 400:
 			return false
+		var assigned_employee: int = int(u["assigned_employee"])
+		if assigned_employee != 0:
+			if assigned_employees.has(assigned_employee):
+				return false
+			assigned_employees[assigned_employee] = true
 		cleaned.append({"serial": serial, "type": str(u["type"]), "condition": condition,
-			"broken": broken, "assigned_employee": int(u["assigned_employee"])})
+			"broken": broken, "assigned_employee": assigned_employee})
 		last = serial
 	units = cleaned
 	next_serial = ns
