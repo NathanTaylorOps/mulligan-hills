@@ -16,6 +16,7 @@ const TYPES: Dictionary = {
 var units: Array = []
 var next_serial: int = 1
 var operating_cost_cents: int = 0
+var repair_cost_cents: int = 0
 
 func add_unit(type_id: String) -> Dictionary:
 	if not TYPES.has(type_id) or units.size() >= MAX_UNITS:
@@ -56,32 +57,42 @@ func multiplier_for_employee(employee_serial: int, kind: String) -> int:
 func operating_cost_for_day() -> int:
 	return operating_cost_cents
 
-func on_day(maintenance_tier: int) -> void:
+
+func repair_cost_for_day() -> int:
+	return repair_cost_cents
+
+func on_day(maintenance_tier: int, technician_work_pm: int = 0) -> void:
 	operating_cost_cents = 0
+	repair_cost_cents = 0
 	for v: Variant in units:
 		var u: Dictionary = v
 		var d: Dictionary = TYPES[str(u["type"])]
 		if bool(u["broken"]):
-			if maintenance_tier >= 2:
-				u["condition"] = mini(1000, int(u["condition"]) + maintenance_tier * 80)
+			if maintenance_tier >= 2 and technician_work_pm > 0:
+				var repair_gain: int = MHStaffMath.idiv(maintenance_tier * 80 * technician_work_pm, 1000)
+				u["condition"] = mini(1000, int(u["condition"]) + repair_gain)
+				repair_cost_cents += repair_gain * 8
 				if int(u["condition"]) >= 400:
 					u["broken"] = false
 			continue
 		u["condition"] = maxi(0, int(u["condition"]) - int(d["wear"]))
 		if int(u["condition"]) < 150:
 			u["broken"] = true
-		elif maintenance_tier > 0:
-			u["condition"] = mini(1000, int(u["condition"]) + maintenance_tier * 6)
+		elif maintenance_tier > 0 and technician_work_pm > 0:
+			var service_gain: int = MHStaffMath.idiv(maintenance_tier * 6 * technician_work_pm, 1000)
+			u["condition"] = mini(1000, int(u["condition"]) + service_gain)
+			repair_cost_cents += service_gain * 3
 
 func to_save_block() -> Dictionary:
-	return {"v": SAVE_VERSION, "next_serial": next_serial, "operating_cost_cents": operating_cost_cents, "units": units.duplicate(true)}
+	return {"v": SAVE_VERSION, "next_serial": next_serial, "operating_cost_cents": operating_cost_cents, "repair_cost_cents": repair_cost_cents, "units": units.duplicate(true)}
 
 func from_save_block(block: Dictionary) -> bool:
 	if int(block.get("v", 0)) != SAVE_VERSION or not MHRValidate.is_int_value(block.get("next_serial", null)):
 		return false
 	var ns: int = int(block["next_serial"])
 	var saved_cost: int = int(block.get("operating_cost_cents", 0))
-	if saved_cost < 0:
+	var saved_repair: int = int(block.get("repair_cost_cents", 0))
+	if saved_cost < 0 or saved_repair < 0:
 		return false
 	if ns < 1 or typeof(block.get("units", null)) != TYPE_ARRAY:
 		return false
@@ -107,4 +118,5 @@ func from_save_block(block: Dictionary) -> bool:
 	units = cleaned
 	next_serial = ns
 	operating_cost_cents = saved_cost
+	repair_cost_cents = saved_repair
 	return true
