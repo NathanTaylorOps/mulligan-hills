@@ -71,6 +71,10 @@ var _quality_button: MHTapButton
 var _touches: Dictionary = {}
 var _pinch_ref: float = 0.0
 var _menu_dirty: bool = true
+var _tab_rows: Dictionary = {}
+var _active_tab: String = "course"
+var _readout: Label
+var _readout_hole: int = 0
 
 
 func _ready() -> void:
@@ -208,6 +212,7 @@ func _spawn_group(g: Dictionary) -> void:
 	var serial: int = int(g["serial"])
 	var pts: Dictionary = hole_points[serial % hole_points.size()] as Dictionary
 	golfers.spawn_group(serial, int(g["size"]), pts["tee"] as Vector2, pts["green"] as Vector2)
+	_readout_hole = serial % hole_points.size()
 
 
 func _camera_position() -> Vector3:
@@ -330,6 +335,19 @@ func _add_hole_geometry(b: MHMeshBuilder, slot: int, def: Dictionary, flag_xf: A
 	b.disc(Vector3(green.x, 0.24, green.y), float(pts["green_radius_m"]), 14, MHPalette.GRASS_DARK)
 	_flat_rect(b, Rect2(tee.x - 1.5, tee.y - 1.0, 3.0, 2.0), 0.16, MHPalette.PATH_STONE)
 	flag_xf.append(Transform3D(Basis.from_scale(Vector3(1.0, 1.0, 1.0)), Vector3(green.x, 0.24, green.y)))
+	# SimGolf pattern: a thin white line from the tee to the green and a floating hole label over the tee.
+	_flat_rect(b, Rect2(minf(tee.x, green.x) - 0.12, minf(tee.y, green.y), absf(green.x - tee.x) + 0.24, absf(green.y - tee.y)),
+		0.26, Color(1.0, 1.0, 1.0))
+	var tag: Label3D = Label3D.new()
+	tag.text = MHSliceBar.hole_label(slot, MHSliceLayout.hole_length_yd(slot))
+	tag.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+	tag.pixel_size = 0.03
+	tag.font_size = 36
+	tag.outline_size = 10
+	tag.modulate = Color(1.0, 1.0, 1.0)
+	tag.outline_modulate = Color(0.1, 0.12, 0.1)
+	tag.position = Vector3(tee.x, 3.2, tee.y)
+	_course_root.add_child(tag)
 
 
 func _flat_rect(b: MHMeshBuilder, r: Rect2, y: float, col: Color) -> void:
@@ -387,11 +405,12 @@ func _build_hud() -> void:
 	for side: String in ["left", "right", "top", "bottom"]:
 		margin.add_theme_constant_override("margin_" + side, 12)
 	root.add_child(margin)
-	var columns: HBoxContainer = MHUIKit.hbox(12)
-	margin.add_child(columns)
-	var left: VBoxContainer = MHUIKit.vbox(8)
-	left.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	columns.add_child(left)
+	var page: VBoxContainer = MHUIKit.vbox(8)
+	page.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	margin.add_child(page)
+	var top: HBoxContainer = MHUIKit.hbox(12)
+	top.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	page.add_child(top)
 
 	var chip: PanelContainer = MHUIKit.panel(&"HudChip")
 	chip.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
@@ -403,23 +422,11 @@ func _build_hud() -> void:
 	lines.add_child(_hud_line)
 	lines.add_child(_detail_line)
 	lines.add_child(_status)
-	left.add_child(chip)
-
-	var bar: HFlowContainer = MHUIKit.flow(6)
-	left.add_child(bar)
-	_pause_button = _chip_button(bar, "Pause", _on_pause)
-	_speed_button = _chip_button(bar, "Speed x1", _on_speed)
-	_chip_button(bar, "Fee -$1", _on_fee.bind(-100))
-	_chip_button(bar, "Fee +$1", _on_fee.bind(100))
-	_hole_button = _chip_button(bar, "Build hole", _on_build_hole)
-	_land_button = _chip_button(bar, "Buy land", _on_buy_land)
-	_chip_button(bar, "Buildings", _on_toggle_menu)
-	_chip_button(bar, "Zoom +", func() -> void: controller.desktop_zoom(1))
-	_chip_button(bar, "Zoom -", func() -> void: controller.desktop_zoom(-1))
-	_chip_button(bar, "Turn <", func() -> void: controller.rotate_step(-1))
-	_chip_button(bar, "Turn >", func() -> void: controller.rotate_step(1))
-	_quality_button = _chip_button(bar, "Quality: " + tier_name, _on_quality)
-	_chip_button(bar, "Back", _on_back)
+	top.add_child(chip)
+	var gap: Control = MHUIKit.spacer()
+	gap.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	gap.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	top.add_child(gap)
 
 	_menu_panel = MHUIKit.panel(&"CardPanel")
 	_menu_panel.mouse_filter = Control.MOUSE_FILTER_STOP
@@ -429,7 +436,7 @@ func _build_hud() -> void:
 	_menu_panel.add_child(menu_box)
 	menu_box.add_child(MHUIKit.label("Buildings (buy or upgrade)", &"H2Label", false))
 	var scroll: MHScrollBox = MHScrollBox.new()
-	scroll.custom_minimum_size = Vector2(0.0, 420.0)
+	scroll.custom_minimum_size = Vector2(0.0, 360.0)
 	menu_box.add_child(scroll)
 	var list: VBoxContainer = MHUIKit.vbox(6)
 	list.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -445,7 +452,86 @@ func _build_hud() -> void:
 		button.pressed.connect(_on_buy.bind(bid))
 		row.add_child(button)
 		_menu_rows[bid] = {"label": label, "button": button}
-	columns.add_child(_menu_panel)
+	top.add_child(_menu_panel)
+
+	var world_gap: Control = MHUIKit.spacer()
+	world_gap.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	world_gap.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	page.add_child(world_gap)
+	page.add_child(_build_bar())
+
+
+## The bottom mode bar: tab buttons on the left, the active tab's buttons in the middle, the hole readout on the right.
+func _build_bar() -> PanelContainer:
+	var bar: PanelContainer = MHUIKit.panel(&"CardPanel")
+	bar.mouse_filter = Control.MOUSE_FILTER_STOP
+	var row: HBoxContainer = MHUIKit.hbox(12)
+	bar.add_child(row)
+	var tabs: VBoxContainer = MHUIKit.vbox(6)
+	row.add_child(tabs)
+	var content: VBoxContainer = MHUIKit.vbox(6)
+	content.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	row.add_child(content)
+	for t: Variant in MHSliceBar.TABS:
+		var tab_id: String = str((t as Array)[0])
+		var tab_button: MHTapButton = MHTapButton.make(str((t as Array)[1]), &"ChipButton", 110.0, 48.0)
+		tab_button.pressed.connect(_on_tab.bind(tab_id))
+		tabs.add_child(tab_button)
+		var flow: HFlowContainer = MHUIKit.flow(6)
+		flow.visible = tab_id == _active_tab
+		content.add_child(flow)
+		_tab_rows[tab_id] = flow
+		for bid: Variant in (t as Array)[2]:
+			_make_bar_button(flow, str(bid))
+	_readout = MHUIKit.label("", &"SmallLabel", true)
+	_readout.custom_minimum_size = Vector2(300.0, 0.0)
+	row.add_child(_readout)
+	return bar
+
+
+func _make_bar_button(parent: Control, bid: String) -> void:
+	match bid:
+		"build_hole":
+			_hole_button = _chip_button(parent, "Build hole", _on_build_hole)
+		"buy_land":
+			_land_button = _chip_button(parent, "Buy land", _on_buy_land)
+		"buildings":
+			_chip_button(parent, "Buildings", _on_toggle_menu)
+		"pause":
+			_pause_button = _chip_button(parent, "Pause", _on_pause)
+		"speed":
+			_speed_button = _chip_button(parent, "Speed x1", _on_speed)
+		"fee_down":
+			_chip_button(parent, "Fee -$1", _on_fee.bind(-100))
+		"fee_up":
+			_chip_button(parent, "Fee +$1", _on_fee.bind(100))
+		"zoom_in":
+			_chip_button(parent, "Zoom +", func() -> void: controller.desktop_zoom(1))
+		"zoom_out":
+			_chip_button(parent, "Zoom -", func() -> void: controller.desktop_zoom(-1))
+		"turn_left":
+			_chip_button(parent, "Turn <", func() -> void: controller.rotate_step(-1))
+		"turn_right":
+			_chip_button(parent, "Turn >", func() -> void: controller.rotate_step(1))
+		"quality":
+			_quality_button = _chip_button(parent, "Quality: " + tier_name, _on_quality)
+		"back":
+			_chip_button(parent, "Back", _on_back)
+
+
+func _on_tab(tab_id: String) -> void:
+	_active_tab = tab_id
+	for k: Variant in _tab_rows.keys():
+		(_tab_rows[k] as Control).visible = str(k) == tab_id
+
+
+func _update_readout() -> void:
+	if _readout == null or built_slots.is_empty():
+		return
+	var slot: int = int(built_slots[_readout_hole % built_slots.size()])
+	var d: Dictionary = MHSliceLayout.HOLE_DESIGNS[clampi(slot, 0, MHSliceLayout.HOLE_DESIGNS.size() - 1)] as Dictionary
+	_readout.text = MHSliceBar.readout(slot, MHSliceLayout.hole_length_yd(slot), not (d["water"] as Array).is_empty(),
+		not (d["trees"] as Array).is_empty())
 
 
 func _chip_button(parent: Control, text_value: String, action: Callable) -> MHTapButton:
@@ -534,6 +620,7 @@ func _on_back() -> void:
 func _refresh_hud() -> void:
 	if _hud_line == null:
 		return
+	_update_readout()
 	var e: MHEconomy = session.economy
 	var est: Dictionary = e.estimate_day()
 	_hud_line.text = MHSliceText.hud_line(view.cash(), session.clock.day(), session.clock.minute_of_day(),
