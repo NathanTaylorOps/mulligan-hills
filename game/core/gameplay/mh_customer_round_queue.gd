@@ -114,8 +114,8 @@ func advance_all(now_s: float) -> Array:
 			state["transition_customers"] = next_party
 			state["transitioning"] = true
 			var next_slot: int = int((next_party[0] as Dictionary).get("hole_slot", -1))
-			if next_slot >= 0 and not tee_reservations.has(next_slot):
-				tee_reservations[next_slot] = party_id
+			if next_slot >= 0:
+				_reserve_tee(next_slot, party_id)
 			active_parties[party_id] = state
 			events.append({"kind": "hole_transition", "party_id": party_id, "hole_index": next_hole,
 				"customers": next_party.duplicate(true), "customer": (next_party[0] as Dictionary).duplicate(true)})
@@ -161,6 +161,35 @@ func _start_waiting_parties(now_s: float, events: Array) -> void:
 		cursor = end
 
 
+func _reserve_tee(slot: int, party_id: int) -> void:
+	if not tee_reservations.has(slot):
+		tee_reservations[slot] = [party_id]
+		return
+	var queue: Array = tee_reservations[slot] as Array
+	if not queue.has(party_id):
+		queue.append(party_id)
+
+
+func _tee_reserved_for_other(slot: int, party_id: int) -> bool:
+	if not tee_reservations.has(slot):
+		return false
+	var queue: Array = tee_reservations[slot] as Array
+	return not queue.is_empty() and int(queue[0]) != party_id
+
+
+func _consume_tee_reservation(slot: int, party_id: int) -> void:
+	if not tee_reservations.has(slot):
+		return
+	var queue: Array = tee_reservations[slot] as Array
+	if not queue.is_empty() and int(queue[0]) == party_id:
+		queue.pop_front()
+	else:
+		queue.erase(party_id)
+	if queue.is_empty():
+		tee_reservations.erase(slot)
+
+
+
 func begin_next_hole(now_s: float, party_id: int = -1) -> Dictionary:
 	if party_id < 0:
 		party_id = int(active.get("party_id", -1))
@@ -176,8 +205,8 @@ func begin_next_hole(now_s: float, party_id: int = -1) -> Dictionary:
 	var slot: int = int((next_party[0] as Dictionary).get("hole_slot", -1))
 	if occupied_holes.has(slot):
 		return {} # Tee congestion: wait until the party ahead clears this hole.
-	if tee_reservations.has(slot) and int(tee_reservations[slot]) != party_id:
-		return {} # A progressing party already reached this tee first.
+	if _tee_reserved_for_other(slot, party_id):
+		return {} # Another progressing party reached this tee first.
 	state["hole_index"] = next_hole
 	state["started_s"] = now_s
 	state["customers"] = next_party
@@ -187,7 +216,7 @@ func begin_next_hole(now_s: float, party_id: int = -1) -> Dictionary:
 	state.erase("transition_customers")
 	state.merge((next_party[0] as Dictionary), false)
 	active_parties[party_id] = state
-	tee_reservations.erase(slot)
+	_consume_tee_reservation(slot, party_id)
 	occupied_holes[slot] = party_id
 	_sync_active_compat()
 	return {"kind": "hole_started", "party_id": party_id, "hole_index": next_hole,
