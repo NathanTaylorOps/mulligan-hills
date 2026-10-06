@@ -50,6 +50,10 @@ func _physics_process(_delta: float) -> void:
 	var surface: String = MHCartSurfacePolicy.free_drive_surface(splat, global_position, grid)
 	if surface == "water" and not _sunk_reported:
 		_sunk_reported = true
+		gravity_scale = 0.35
+		linear_damp = 3.5
+		angular_damp = 4.0
+		_shed_clubs()
 		sunk.emit()
 	var upright: float = global_transform.basis.y.dot(Vector3.UP)
 	if upright < TIP_UP_DOT and not _tip_reported:
@@ -57,6 +61,9 @@ func _physics_process(_delta: float) -> void:
 		tipped.emit()
 		_shed_clubs()
 	if linear_velocity.length() > 12.0 and absf(angular_velocity.y) > 2.2:
+		_shed_clubs()
+	# Severe airborne/sideways motion can also dump the bag before a full rollover.
+	if absf(linear_velocity.y) > 5.5 and linear_velocity.length() > 9.0:
 		_shed_clubs()
 
 func _shed_clubs() -> void:
