@@ -223,6 +223,41 @@ func raise_disc(c: int, r: int, radius: int, delta_m: int) -> void:
 				set_height_tile(c + dc, r + dr, get_height(c + dc, r + dr) + delta_m)
 
 
+func level_disc(c: int, r: int, radius: int, target_m: int) -> void:
+	var rad: int = maxi(0, radius)
+	var target: int = clampi(target_m, HEIGHT_MIN_M, HEIGHT_MAX_M)
+	for dr: int in range(-rad, rad + 1):
+		for dc: int in range(-rad, rad + 1):
+			if dc * dc + dr * dr <= rad * rad and in_bounds(c + dc, r + dr):
+				set_height_tile(c + dc, r + dr, target)
+
+
+func smooth_disc(c: int, r: int, radius: int) -> void:
+	var rad: int = maxi(0, radius)
+	var updates: Dictionary = {}
+	# Compute from the pre-dab grid so iteration order cannot change the result.
+	for dr: int in range(-rad, rad + 1):
+		for dc: int in range(-rad, rad + 1):
+			if dc * dc + dr * dr > rad * rad:
+				continue
+			var tc: int = c + dc
+			var tr: int = r + dr
+			if not in_bounds(tc, tr):
+				continue
+			var total: int = 0
+			var count: int = 0
+			for nr: int in range(maxi(0, tr - 1), mini(rows - 1, tr + 1) + 1):
+				for nc: int in range(maxi(0, tc - 1), mini(cols - 1, tc + 1) + 1):
+					total += get_height(nc, nr)
+					count += 1
+			updates[index_of(tc, tr)] = roundi(float(total) / float(maxi(1, count)))
+	for key: Variant in updates.keys():
+		var idx: int = int(key)
+		var tc2: int = idx % cols
+		var tr2: int = idx / cols
+		set_height_tile(tc2, tr2, int(updates[key]))
+
+
 # ---------------------------------------------------------------- tees, pins, objects (not undoable strokes)
 
 ## Adds the hole's tee box tile. Returns 0, or -1 when the hole already has its tee or the tile is outside the grid.
