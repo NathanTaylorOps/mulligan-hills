@@ -94,6 +94,13 @@ func spawn_walking_party(customers: Array, from: Vector3, to: Vector3) -> void:
 			"dir": dir, "len": length, "green": finish, "walk_only": true})
 
 
+func set_walking_party_hidden(group_id: int, hidden: bool) -> void:
+	for golfer_v: Variant in golfers:
+		var golfer: Dictionary = golfer_v
+		if int(golfer.get("group", -1)) == group_id and bool(golfer.get("walk_only", false)):
+			golfer["transport_hidden"] = hidden
+
+
 func update_walking_party(group_id: int, center: Vector3, direction: Vector3) -> void:
 	var dir2: Vector2 = Vector2(direction.x, direction.z).normalized()
 	if dir2.length_squared() < 0.001:
@@ -188,6 +195,11 @@ func _render(states: Array, cam_pos: Vector3) -> void:
 	for i: int in range(golfers.size()):
 		var d: Dictionary = golfers[i]
 		var st: Dictionary = states[i]
+		if bool(d.get("transport_hidden", false)):
+			positions.append(Vector3.ZERO)
+			dist2.append(INF)
+			looks.append(int(d["look"]))
+			continue
 		var p2: Vector2
 		if st.has("world"):
 			p2 = (st["world"] as Vector2) + (d.get("world_origin", Vector2.ZERO) as Vector2)
