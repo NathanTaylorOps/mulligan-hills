@@ -581,7 +581,7 @@ func _advance_customer_playback(delta_s: float) -> void:
 	var green: Vector2 = Vector2(float(green_v[0]), float(green_v[1]))
 	var identity: Dictionary = customer.get("identity", {}) as Dictionary
 	var size: int = clampi(int(identity.get("party_size", customer.get("group_size", 1))), 1, 4)
-	_visible_golfers.spawn_group(int(customer.get("serial", 0)), size, tee, green)
+	_visible_golfers.spawn_group(int(customer.get("serial", 0)), size, tee, green, customer.get("round", {}) as Dictionary)
 
 func _advance_facility_walkers(delta_s: float) -> void:
 	var now_s: float = float(session.clock.total_minutes()) * 60.0
