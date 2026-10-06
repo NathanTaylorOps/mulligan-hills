@@ -97,15 +97,9 @@ func personal_patrol(defs: MHStaffDefs, parcel: int, cells: int, cells_per_parce
 func on_day(defs: MHStaffDefs, roster: MHStaffRoster, day: int, view: Dictionary, secret: int, equipment: MHStaffEquipment = null) -> Dictionary:
 	if day <= last_day:
 		return {"ran": false, "incidents": []}
-	var wc: Dictionary = roster.work_by_parcel(defs, view)
+	var wc: Dictionary = roster.work_by_parcel(defs, view, equipment)
 	var work: Array = wc["work"]
 	var ctrl: Array = wc["ctrl"]
-	if equipment != null:
-		var grounds_pm: int = equipment.available_multiplier_permille(MHStaffDefs.KIND_GROUNDS)
-		var pest_pm: int = equipment.available_multiplier_permille(MHStaffDefs.KIND_PEST)
-		for wi: int in range(work.size()):
-			work[wi] = MHStaffMath.idiv(int(work[wi]) * grounds_pm, 1000)
-			ctrl[wi] = MHStaffMath.idiv(int(ctrl[wi]) * pest_pm, 1000)
 	var out: Array = []
 	var hit: int = 0
 	var cap: int = defs.param("pest_natural_cap")
