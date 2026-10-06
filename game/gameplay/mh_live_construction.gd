@@ -19,6 +19,7 @@ var controller: MHCameraController
 var store: MHSaveStore = MHSaveStore.new(SAVE_DIR)
 var document: Dictionary = {}
 var aim_input: MHPracticeAimInput
+var building_input: MHBuildingPlacementInput
 var one_hole: MHOneHolePanel
 var _status: Label
 ## Responsive layout (MHLiveLayout zones inside the area the HUD leaves free). See docs/phase1/live_construction.md.
@@ -109,7 +110,7 @@ func _ready() -> void:
 	var settings: MHUISettings = MHUISettings.new()
 	settings.load_from()
 	shell.setup(view, settings)
-	router.world_input_allowed = func() -> bool: return shell.current_screen_id() == MHScreenIds.EDITOR and shell.modal_id() == "" and (one_hole == null or not one_hole.visible)
+	router.world_input_allowed = func() -> bool: return _placement_id == "" and shell.current_screen_id() == MHScreenIds.EDITOR and shell.modal_id() == "" and (one_hole == null or not one_hole.visible)
 	shell.intent.connect(_on_intent)
 	shell.screen_changed.connect(_screen_changed)
 	shell.show_root(MHScreenIds.HUD)
@@ -172,6 +173,9 @@ func _ready() -> void:
 	aim_input = MHPracticeAimInput.new()
 	aim_input.panel = one_hole
 	add_child(aim_input) # Last sibling sees input before the UI bridge; UI contacts remain unconsumed.
+	building_input = MHBuildingPlacementInput.new()
+	building_input.live = self
+	add_child(building_input)
 	_active = true
 	_last_usec = Time.get_ticks_usec()
 	_request_save()
@@ -416,7 +420,7 @@ func _process(_delta: float) -> void:
 	session.advance(elapsed, int(Time.get_unix_time_from_system()))
 	chunks.flush(editor.dirty)
 	_relayout()
-	router.accept_world_input = shell.current_screen_id() == MHScreenIds.EDITOR and shell.modal_id() == "" and (one_hole == null or not one_hole.visible)
+	router.accept_world_input = _placement_id == "" and shell.current_screen_id() == MHScreenIds.EDITOR and shell.modal_id() == "" and (one_hole == null or not one_hole.visible)
 	if not router.accept_world_input:
 		router.cancel_world_input()
 	if _pending_save and not editor.is_stroke_open():
