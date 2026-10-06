@@ -68,6 +68,19 @@ func spawn_group(serial: int, size: int, tee: Vector2, green: Vector2, round: Di
 			"events": (round.get("events", []) as Array).duplicate(true) if member == 0 else []})
 
 
+func spawn_authoritative_party(customers: Array, tee: Vector2, green: Vector2) -> void:
+	for i: int in range(customers.size()):
+		var customer: Dictionary = customers[i] as Dictionary
+		var round: Dictionary = customer.get("round", {}) as Dictionary
+		var delta: Vector2 = green - tee
+		var length: float = delta.length()
+		var dir: Vector2 = Vector2(0.0, 1.0) if length < 0.001 else delta / length
+		golfers.append({"group": int(customer.get("party_id", customer.get("serial", 0))), "member": i,
+			"size": customers.size(), "look": MHSliceSchedule.look_index(int(customer.get("serial", 0)), 0, LOOK_POOL),
+			"t": 0.0, "tee": tee, "dir": dir, "len": length, "green": green,
+			"events": (round.get("events", []) as Array).duplicate(true)})
+
+
 func golfer_count() -> int:
 	return golfers.size()
 
