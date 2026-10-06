@@ -239,11 +239,21 @@ func advance(delta_us: int, wall_unix: int) -> void:
 	for i: int in range(0, events.size(), MHGameClock.EVENT_STRIDE):
 		if events[i] != MHGameClock.EV_HOUR:
 			continue
+		var hour_index: int = maxi(0, clock.hour - 1)
+		var wage: int = staff_system.pay_hour(hour_index)
+		if wage > 0:
+			economy.incur_loss(wage)
 		var tick: Dictionary = economy.tick_hour()
 		_queue_pending_customers(tick)
 		_resolve_customer_hour()
 		hourly = true
 		if bool(tick["day_rolled"]):
+			var staff_day: Dictionary = staff_system.on_day(economy.day, staff_view(), save_secret)
+			if bool(staff_day.get("ran", false)):
+				var equipment_cost: int = staff_system.equipment_operating_cost_cents()
+				if equipment_cost > 0:
+					economy.incur_loss(equipment_cost)
+			economy.set_demand_modifier(staff_system.demand_permille(staff_view()))
 			recent_scores.append(int(_course.get("course_x10", 0)) / 10)
 			if recent_scores.size() > 14:
 				recent_scores.remove_at(0)
@@ -255,6 +265,26 @@ func advance(delta_us: int, wall_unix: int) -> void:
 		autosave_requested.emit()
 	if before != clock.total_minutes() or old_tokens != ledger.earned or old_day != unix_now / 86400 or not events.is_empty():
 		changed.emit()
+
+
+
+func hire_staff(role_id: String) -> Dictionary:
+	var result: Dictionary = staff_system.hire(role_id, economy.day, staff_view(), economy.cash)
+	if not bool(result.get("ok", false)):
+		return result
+	economy.spend(int(result["cost"]))
+	changed.emit()
+	return result
+
+
+func buy_staff_equipment(type_id: String) -> Dictionary:
+	var result: Dictionary = staff_system.buy_equipment(type_id, economy.cash)
+	if not bool(result.get("ok", false)):
+		return result
+	economy.spend(int(result["cost"]))
+	changed.emit()
+	return result
+
 
 
 func _queue_pending_customers(tick: Dictionary) -> void:
