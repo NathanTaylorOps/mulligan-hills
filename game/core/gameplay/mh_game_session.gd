@@ -291,7 +291,6 @@ func hire_staff(role_id: String) -> Dictionary:
 	if not bool(result.get("ok", false)):
 		return result
 	economy.spend(int(result["cost"]))
-	changed.emit()
 	return result
 
 
@@ -300,30 +299,21 @@ func buy_staff_equipment(type_id: String) -> Dictionary:
 	if not bool(result.get("ok", false)):
 		return result
 	economy.spend(int(result["cost"]))
-	changed.emit()
 	return result
 
 
 func fire_staff(employee_serial: int) -> bool:
-	if not staff_system.fire(employee_serial):
-		return false
-	changed.emit()
-	return true
+	return staff_system.fire(employee_serial)
 
 
 func assign_staff(employee_serial: int, areas: Array) -> Dictionary:
 	var reason: String = staff_system.assign(employee_serial, areas, staff_view())
 	var ok: bool = reason.is_empty()
-	if ok:
-		changed.emit()
 	return {"ok": ok, "reason": reason}
 
 
 func assign_staff_equipment(equipment_serial: int, employee_serial: int) -> bool:
-	if not staff_system.assign_equipment(equipment_serial, employee_serial):
-		return false
-	changed.emit()
-	return true
+	return staff_system.assign_equipment(equipment_serial, employee_serial)
 
 
 func sell_staff_equipment(equipment_serial: int) -> Dictionary:
@@ -331,7 +321,6 @@ func sell_staff_equipment(equipment_serial: int) -> Dictionary:
 	if not bool(result.get("ok", false)):
 		return result
 	economy.earn(int(result["value"]))
-	changed.emit()
 	return result
 
 
