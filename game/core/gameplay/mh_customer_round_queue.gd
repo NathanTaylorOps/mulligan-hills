@@ -11,6 +11,7 @@ var waiting: Array = []
 var active: Dictionary = {} # Compatibility view: lowest party id currently active.
 var active_parties: Dictionary = {}
 var occupied_holes: Dictionary = {}
+var tee_reservations: Dictionary = {} # hole_slot -> party_id already travelling/waiting for that tee.
 var completed: Array = []
 var facility_visits: Array = []
 var pending_facility_visits: Array = []
@@ -112,6 +113,9 @@ func advance_all(now_s: float) -> Array:
 			state["transition_hole_index"] = next_hole
 			state["transition_customers"] = next_party
 			state["transitioning"] = true
+			var next_slot: int = int((next_party[0] as Dictionary).get("hole_slot", -1))
+			if next_slot >= 0 and not tee_reservations.has(next_slot):
+				tee_reservations[next_slot] = party_id
 			active_parties[party_id] = state
 			events.append({"kind": "hole_transition", "party_id": party_id, "hole_index": next_hole,
 				"customers": next_party.duplicate(true), "customer": (next_party[0] as Dictionary).duplicate(true)})
@@ -141,7 +145,7 @@ func _start_waiting_parties(now_s: float, events: Array) -> void:
 			party.append(waiting[end] as Dictionary)
 			end += 1
 		var slot: int = int(first.get("hole_slot", -1))
-		if not occupied_holes.has(slot):
+		if not occupied_holes.has(slot) and not tee_reservations.has(slot):
 			for _i: int in range(end - cursor):
 				waiting.remove_at(cursor)
 			var state: Dictionary = first.duplicate(true)
@@ -172,6 +176,8 @@ func begin_next_hole(now_s: float, party_id: int = -1) -> Dictionary:
 	var slot: int = int((next_party[0] as Dictionary).get("hole_slot", -1))
 	if occupied_holes.has(slot):
 		return {} # Tee congestion: wait until the party ahead clears this hole.
+	if tee_reservations.has(slot) and int(tee_reservations[slot]) != party_id:
+		return {} # A progressing party already reached this tee first.
 	state["hole_index"] = next_hole
 	state["started_s"] = now_s
 	state["customers"] = next_party
@@ -181,6 +187,7 @@ func begin_next_hole(now_s: float, party_id: int = -1) -> Dictionary:
 	state.erase("transition_customers")
 	state.merge((next_party[0] as Dictionary), false)
 	active_parties[party_id] = state
+	tee_reservations.erase(slot)
 	occupied_holes[slot] = party_id
 	_sync_active_compat()
 	return {"kind": "hole_started", "party_id": party_id, "hole_index": next_hole,
