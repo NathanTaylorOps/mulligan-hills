@@ -589,3 +589,28 @@ func test_live_scene_starts_authoritative_customer_playback_once() -> void:
 	scene._advance_customer_playback(0.1)
 	assert_int(scene._visible_golfers.golfer_count()).is_equal(3)
 	scene._active = false
+
+
+func test_live_facility_walker_starts_visit_only_after_arrival() -> void:
+	var scene: MHLiveConstruction = auto_free(MHLiveConstruction.new())
+	scene.store = MHSaveStore.new(DIR)
+	scene.ledger_dir = LEDGERS
+	add_child(scene)
+	assert_bool(scene._active).is_true()
+	var clubhouse_index: int = scene.session.economy.params.building_index("clubhouse")
+	scene.session.economy.set_tier(clubhouse_index, 1)
+	assert_bool(scene.session.set_building_placement("clubhouse", {"ok": true, "center_mm": [1000, 0],
+		"size_m": [18, 14], "ground_mm": 0, "rotation_quarters": 0})).is_true()
+	var facility_id: String = str(MHClubPedestrian.instance_ids_for_type(scene.session, "clubhouse")[0])
+	var customer: Dictionary = {"serial": 91, "identity": {"id": 1, "favorite_hole_slot": -1}}
+	scene.session.customer_playback.queue_facility_visit(customer, facility_id, 0.0)
+	assert_int(scene.session.customer_playback.facility_visits.size()).is_equal(0)
+	scene._advance_facility_walkers(0.1)
+	assert_int(scene._facility_walkers.size()).is_equal(1)
+	assert_int(scene.session.customer_playback.facility_visits.size()).is_equal(0)
+	for _i: int in range(20):
+		scene._advance_facility_walkers(0.1)
+	assert_int(scene._facility_walkers.size()).is_equal(0)
+	assert_int(scene.session.customer_playback.pending_facility_visits.size()).is_equal(0)
+	assert_int(scene.session.customer_playback.facility_visits.size()).is_equal(1)
+	scene._active = false
