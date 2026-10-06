@@ -705,6 +705,8 @@ func enter_cart_drive_mode() -> bool:
 
 func exit_cart_drive_mode() -> void:
 	_cart_drive_active = false
+	if router != null:
+		router.accept_world_input = true
 	if _cart_drive_input != null:
 		_cart_drive_input.hide()
 	if _cart_camera != null:
@@ -1062,7 +1064,9 @@ func _show_new_grounds_events() -> void:
 		var positive: bool = bool(incident.get("positive", false))
 		var handled: bool = bool(incident.get("handled", false))
 		var kind: String = str(incident.get("kind", "grounds issue")).replace("_", " ")
-		if positive:
+		if str(incident.get("kind", "")) == "cart_green":
+			_status.text = "Cart damage on area %d — grounds staff will repair it." % (parcel + 1)
+		elif positive:
 			_status.text = "Course wildlife: %s spotted on area %d." % [kind.capitalize(), parcel + 1]
 		elif handled:
 			_status.text = "%s on area %d — grounds team contained it." % [kind.capitalize(), parcel + 1]
@@ -1378,6 +1382,9 @@ func _notification(what: int) -> void:
 		save_now()
 
 func _exit_tree() -> void:
+	_cart_drive_active = false
+	if _cart_drive_input != null:
+		_cart_drive_input.hide()
 	MHOrientation.restore_default()
 
 func _back() -> void:
