@@ -147,3 +147,35 @@ func test_facility_visit_is_timed_and_expires() -> void:
 	assert_str(str(visit["facility"])).is_equal("restaurant")
 	assert_int(q.active_facility_visits(11.0).size()).is_equal(1)
 	assert_int(q.active_facility_visits(float(visit["end_s"]) + 0.1).size()).is_equal(0)
+
+
+func test_pedestrian_route_ends_at_exact_building_destination() -> void:
+	var start: Vector3 = Vector3(1.0, 0.0, 2.0)
+	var destination: Vector3 = Vector3(40.0, 0.0, 70.0)
+	var route: Array = MHClubPedestrian.route(start, destination, 9)
+	assert_int(route.size()).is_equal(3)
+	assert_bool((route.back() as Vector3).is_equal_approx(destination)).is_true()
+	var pos: Vector3 = start
+	var segment: int = 0
+	var done: bool = false
+	for _i: int in range(10000):
+		var state: Dictionary = MHClubPedestrian.advance(route, segment, pos, 0.1)
+		pos = state["position"] as Vector3
+		segment = int(state["segment"])
+		done = bool(state["done"])
+		if done:
+			break
+	assert_bool(done).is_true()
+	assert_bool(pos.is_equal_approx(destination)).is_true()
+
+
+func test_building_positions_only_include_purchased_tiers() -> void:
+	var s: MHGameSession = MHGameSession.create()
+	var none: Dictionary = MHClubPedestrian.building_positions(s)
+	assert_bool(none.has("restaurant")).is_false()
+	s.economy.set_tier(0, 1)
+	s.economy.set_tier(3, 1)
+	var positions: Dictionary = MHClubPedestrian.building_positions(s)
+	assert_bool(positions.has("clubhouse")).is_true()
+	assert_bool(positions.has("restaurant")).is_true()
+	assert_bool((positions["clubhouse"] as Vector3).distance_to(positions["restaurant"] as Vector3) > 0.0).is_true()
