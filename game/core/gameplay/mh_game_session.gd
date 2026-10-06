@@ -25,6 +25,8 @@ var practice: MHPracticeRound = null
 ## Transient presentation queue. Economy remains authoritative for admission and payment; this only exposes paid arrivals.
 var customer_admissions: Array = []
 var _customer_serial: int = 0
+var customer_feedback_sum: int = 0
+var customer_feedback_count: int = 0
 var _holes: Array = []
 var _ratings: Array = []
 var _course: Dictionary = {}
@@ -256,6 +258,25 @@ func take_customer_admissions(limit: int = 4) -> Array:
 	for _i: int in range(count):
 		out.append(customer_admissions.pop_front())
 	return out
+
+
+## Completed visible rounds move reputation slowly. 50/100 is neutral; one customer can move at most 4 permille.
+## Existing MHEconomy arrivals/membership formulas then turn reputation into future demand.
+func record_customer_feedback(satisfaction: int) -> int:
+	var sat: int = clampi(satisfaction, 0, 100)
+	customer_feedback_sum += sat
+	customer_feedback_count += 1
+	var delta: int = clampi(MHRMath.rdiv(sat - 50, 12), -4, 4)
+	economy.reputation = clampi(economy.reputation + delta, economy.params.c("rep_floor_permille"), 1000)
+	_sync_progress()
+	changed.emit()
+	return delta
+
+
+func customer_feedback_average() -> int:
+	if customer_feedback_count <= 0:
+		return 0
+	return MHRMath.rdiv(customer_feedback_sum, customer_feedback_count)
 
 
 func handle_intent(id: StringName, args: Dictionary) -> Dictionary:
