@@ -97,6 +97,7 @@ func _ready() -> void:
 	_visible_golfers.name = "VisibleGolfers"
 	add_child(_visible_golfers)
 	_visible_golfers.setup(_building_mat)
+	_visible_golfers.terrain_grid = editor.grid
 	var sun: DirectionalLight3D = DirectionalLight3D.new()
 	sun.rotation_degrees = Vector3(-50, 30, 0)
 	add_child(sun)
