@@ -422,6 +422,11 @@ func _resolve_customer_hour() -> void:
 				playback_hole = hole_def
 				break
 		customer_playback.admit([customer], playback_hole, rating, {"save_secret": save_secret, "rating_epoch": rating_epoch})
+		var favorite_facility: String = str(customer["identity"].get("favorite_facility", ""))
+		var facility_ids: Array = MHClubPedestrian.instance_ids_for_type(self, favorite_facility)
+		if not facility_ids.is_empty() and sat >= 55:
+			var facility_index: int = posmod(int(customer.get("serial", 0)), facility_ids.size())
+			customer_playback.queue_facility_visit(customer, str(facility_ids[facility_index]), float(clock.total_minutes()) * 60.0)
 		customer_feedback_sum += sat
 		customer_feedback_count += 1
 	var count: int = customer_outcomes.size() - start
