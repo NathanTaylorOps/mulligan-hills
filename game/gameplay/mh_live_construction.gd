@@ -44,6 +44,7 @@ var _ghost_valid_mat: StandardMaterial3D
 var _ghost_invalid_mat: StandardMaterial3D
 var _placed_buildings_root: Node3D
 var _placed_building_nodes: Dictionary = {}
+var _placed_building_colliders: Dictionary = {}
 var _building_mat: StandardMaterial3D
 var _building_mesh_cache: Dictionary = {}
 var _visible_golfers: MHSliceGolfers
@@ -428,6 +429,7 @@ func _sync_placed_buildings() -> void:
 		var ground: float = float(int(placement.get("ground_mm", 0))) / 1000.0
 		node.position = Vector3(float(int(center[0])) / 1000.0, ground, float(int(center[1])) / 1000.0)
 		node.rotation.y = float(int(placement.get("rotation_quarters", 0))) * PI * 0.5
+		_sync_building_collider(instance_id, node, placement)
 		keep[instance_id] = true
 	for idv: Variant in _placed_building_nodes.keys():
 		var id: String = str(idv)
@@ -436,6 +438,36 @@ func _sync_placed_buildings() -> void:
 			if old != null and is_instance_valid(old):
 				old.queue_free()
 			_placed_building_nodes.erase(id)
+			if _placed_building_colliders.has(id):
+				var collider: Node = _placed_building_colliders[id] as Node
+				if collider != null and is_instance_valid(collider):
+					collider.queue_free()
+				_placed_building_colliders.erase(id)
+
+
+func _sync_building_collider(instance_id: String, visual: MeshInstance3D, placement: Dictionary) -> void:
+	var body: StaticBody3D = _placed_building_colliders.get(instance_id, null) as StaticBody3D
+	if body == null:
+		body = StaticBody3D.new()
+		body.name = "BuildingCollider_" + instance_id
+		_placed_buildings_root.add_child(body)
+		var collision: CollisionShape3D = CollisionShape3D.new()
+		collision.name = "Shape"
+		body.add_child(collision)
+		_placed_building_colliders[instance_id] = body
+	body.position = visual.position
+	body.rotation = visual.rotation
+	var footprint: Array = placement.get("footprint_mm", []) as Array
+	var size_x: float = 4.0
+	var size_z: float = 4.0
+	if footprint.size() >= 2:
+		size_x = maxf(1.0, float(int(footprint[0])) / 1000.0)
+		size_z = maxf(1.0, float(int(footprint[1])) / 1000.0)
+	var shape: BoxShape3D = BoxShape3D.new()
+	shape.size = Vector3(size_x, 3.0, size_z)
+	var collision: CollisionShape3D = body.get_node("Shape") as CollisionShape3D
+	collision.shape = shape
+	collision.position.y = 1.5
 
 
 ## Rect getter for router UI regions that is empty while the button is hidden (dock hidden, panel closed).
