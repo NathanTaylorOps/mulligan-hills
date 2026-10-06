@@ -355,6 +355,30 @@ func decide_membership_application(identity_id: int, accept: bool) -> Dictionary
 	return _result(true)
 
 
+
+func assign_home_to_golfer(identity_id: int) -> Dictionary:
+	if not golfer_roster.golfers.has(identity_id):
+		return _result(false, "golfer")
+	var capacity: int = land.home_slot_capacity()
+	if capacity <= 0 or golfer_roster.home_resident_count() >= capacity:
+		return _result(false, "home_capacity")
+	var used: Dictionary = {}
+	for g_v: Variant in golfer_roster.golfers.values():
+		var g: Dictionary = g_v
+		if str(g.get("home_status", "none")) == "resident":
+			used[int(g.get("home_slot", -1))] = true
+	var slot: int = -1
+	for candidate: int in range(capacity):
+		if not used.has(candidate):
+			slot = candidate
+			break
+	if slot < 0 or not golfer_roster.assign_home(identity_id, slot):
+		return _result(false, "home_eligibility")
+	changed.emit()
+	return {"ok": true, "code": "", "home_slot": slot}
+
+
+
 func available_home_slots() -> int:
 	return maxi(0, land.home_slot_capacity())
 
