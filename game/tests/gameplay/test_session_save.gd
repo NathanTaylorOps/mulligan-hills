@@ -528,3 +528,16 @@ func test_pending_paid_customers_round_trip_through_checkpoint() -> void:
 	assert_bool(loaded.is_ok()).is_true()
 	var restored: MHGameSession = loaded.value as MHGameSession
 	assert_array(restored._pending_customers).contains_exactly(s._pending_customers)
+
+
+func test_management_difficulty_round_trips_and_rejects_invalid_value() -> void:
+	var s: MHGameSession = MHGameSession.create()
+	assert_bool(s.set_management_difficulty("tycoon")).is_true()
+	assert_bool(s.set_management_difficulty("nightmare")).is_false()
+	var checkpoint: Dictionary = _checkpoint(s)
+	var loaded: MHSaveResult = MHSessionSave.restore(checkpoint, s.ledger)
+	assert_bool(loaded.is_ok()).is_true()
+	assert_str((loaded.value as MHGameSession).management_difficulty).is_equal("tycoon")
+	var bad: Dictionary = checkpoint.duplicate(true)
+	(bad["runtime"] as Dictionary)["management_difficulty"] = "nightmare"
+	assert_bool(MHSessionSave.restore(bad, s.ledger).is_ok()).is_false()
