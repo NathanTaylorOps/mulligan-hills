@@ -84,11 +84,11 @@ func test_nearby_obstacle_outside_footprint_is_allowed() -> void:
 
 
 func test_golf_exclusion_uses_saved_hole_world_origin() -> void:
-	var w: Dictionary = _world()
+	var w: Array = _world()
 	var hole: Dictionary = {"slot_id": 0, "tee": [0, 0], "green": [0, 60, 5],
 		"features": [{"t": "fairway", "rect": [-8, 0, 8, 60]}]}
 	var course: Dictionary = {"holes": [{"hole_no": 1, "origin_dm": [700, 500], "layout": hole}]}
-	var result: Dictionary = MHBuildingPlacement.validate(w["grid"], w["splat"], w["land"], "clubhouse", 1,
+	var result: Dictionary = MHBuildingPlacement.validate(w[0], w[1], w[2], "clubhouse", 1,
 		Vector2i(70000, 50000), [], 0, [hole], [], course)
 	assert_bool(bool(result["ok"])).is_false()
 	assert_str(str(result["reason"])).is_equal("golf_feature")
