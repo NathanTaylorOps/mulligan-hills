@@ -53,6 +53,11 @@ static func validate(grid: MHHeightGrid, splat: MHSplatMap, land: MHLandModel, b
 					int(c[0]) - int(s[0]) * 500, int(c[1]) - int(s[1]) * 500,
 					int(c[0]) + int(s[0]) * 500, int(c[1]) + int(s[1]) * 500):
 				return _bad("building_overlap")
+	var cell: int = grid.cell_size_mm
+	var gx0: int = x0 / cell
+	var gx1: int = x1 / cell
+	var gy0: int = y0 / cell
+	var gy1: int = y1 / cell
 	# Hazards must be exhaustive across the footprint: a small pond/path cannot hide between height samples.
 	for gy: int in range(gy0, gy1 + 1):
 		for gx: int in range(gx0, gx1 + 1):
@@ -62,11 +67,6 @@ static func validate(grid: MHHeightGrid, splat: MHSplatMap, land: MHLandModel, b
 	var max_h: int = MHHeightGrid.MIN_H_MM
 	var sum_h: int = 0
 	var samples: int = 0
-	var cell: int = grid.cell_size_mm
-	var gx0: int = x0 / cell
-	var gx1: int = x1 / cell
-	var gy0: int = y0 / cell
-	var gy1: int = y1 / cell
 	for gy: int in range(gy0, gy1 + 1, SAMPLE_STEP_CELLS):
 		for gx: int in range(gx0, gx1 + 1, SAMPLE_STEP_CELLS):
 			var sx: int = clampi(gx, 0, grid.samples_x - 1)
