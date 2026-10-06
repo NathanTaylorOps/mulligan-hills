@@ -334,26 +334,27 @@ func _sync_placed_buildings() -> void:
 		return
 	var keep: Dictionary = {}
 	for idv: Variant in session.building_placements.keys():
-		var id: String = str(idv)
-		var placement: Dictionary = session.building_placements[id] as Dictionary
-		var tier: int = session.economy.tier_of(session.economy.params.building_index(id))
-		if tier <= 0:
+		var instance_id: String = str(idv)
+		var placement: Dictionary = session.building_placements[instance_id] as Dictionary
+		var building_id: String = str(placement.get("building_id", ""))
+		var tier: int = session.economy.tier_of(session.economy.params.building_index(building_id))
+		if building_id.is_empty() or tier <= 0:
 			continue
 		var node: MeshInstance3D
-		if _placed_building_nodes.has(id) and is_instance_valid(_placed_building_nodes[id]):
-			node = _placed_building_nodes[id] as MeshInstance3D
+		if _placed_building_nodes.has(instance_id) and is_instance_valid(_placed_building_nodes[instance_id]):
+			node = _placed_building_nodes[instance_id] as MeshInstance3D
 		else:
 			node = MHArtMaterials.make_instance(null, _building_mat, false)
 			_placed_buildings_root.add_child(node)
-			_placed_building_nodes[id] = node
-		node.mesh = MHBuildingMeshes.build(id, tier, "a")
+			_placed_building_nodes[instance_id] = node
+		node.mesh = MHBuildingMeshes.build(building_id, tier, "a")
 		var center: Array = placement.get("center_mm", []) as Array
 		if center.size() != 2:
 			continue
 		var ground: float = float(int(placement.get("ground_mm", 0))) / 1000.0
 		node.position = Vector3(float(int(center[0])) / 1000.0, ground, float(int(center[1])) / 1000.0)
 		node.rotation.y = float(int(placement.get("rotation_quarters", 0))) * PI * 0.5
-		keep[id] = true
+		keep[instance_id] = true
 	for idv: Variant in _placed_building_nodes.keys():
 		var id: String = str(idv)
 		if not keep.has(id):
