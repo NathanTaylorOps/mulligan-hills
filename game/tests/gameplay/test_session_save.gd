@@ -760,3 +760,55 @@ func test_arrival_identity_only_calls_out_established_golfers() -> void:
 	assert_str(MHLiveConstruction._arrival_identity_text({"name": "Alex Brooks", "visits": 2})).is_equal("Alex Brooks • Returning golfer")
 	assert_str(MHLiveConstruction._arrival_identity_text({"name": "Alex Brooks", "visits": 5})).is_equal("Alex Brooks • Club regular")
 	assert_str(MHLiveConstruction._arrival_identity_text({"name": "Alex Brooks", "visits": 1, "member": true})).is_equal("Alex Brooks • Member")
+
+
+func test_regular_needs_two_additional_happy_rounds_before_membership_application() -> void:
+	var roster: MHGolferRoster = MHGolferRoster.new()
+	var g: Dictionary = roster.identity_for_admission(1234, 1, 1)
+	var id: int = int(g["id"])
+	for day: int in range(1, 6):
+		g = roster.record_visit(id, day, 80, "Happy", 0, 0)
+	assert_int(int(g["visits"])).is_equal(5)
+	assert_str(str(g["membership_status"])).is_equal("interested")
+	assert_int(int(g["happy_rounds_as_regular"])).is_equal(0)
+	g = roster.record_visit(id, 6, 80, "Happy", 0, 0)
+	assert_str(str(g["membership_status"])).is_equal("interested")
+	assert_int(int(g["happy_rounds_as_regular"])).is_equal(1)
+	g = roster.record_visit(id, 7, 80, "Happy", 0, 0)
+	assert_str(str(g["membership_status"])).is_equal("applied")
+	assert_int(int(g["happy_rounds_as_regular"])).is_equal(2)
+
+
+func test_unhappy_round_resets_regular_membership_happiness_progress() -> void:
+	var roster: MHGolferRoster = MHGolferRoster.new()
+	var g: Dictionary = roster.identity_for_admission(4321, 1, 1)
+	var id: int = int(g["id"])
+	for day: int in range(1, 7):
+		g = roster.record_visit(id, day, 80, "Happy", 0, 0)
+	assert_int(int(g["happy_rounds_as_regular"])).is_equal(1)
+	g = roster.record_visit(id, 7, 60, "Poor", 0, 0)
+	assert_int(int(g["happy_rounds_as_regular"])).is_equal(0)
+	assert_str(str(g["membership_status"])).is_equal("interested")
+
+
+func test_five_consecutive_happy_visits_create_home_purchase_request() -> void:
+	var roster: MHGolferRoster = MHGolferRoster.new()
+	var g: Dictionary = roster.identity_for_admission(9876, 1, 1)
+	var id: int = int(g["id"])
+	for day: int in range(1, 5):
+		g = roster.record_visit(id, day, 80, "Happy", 0, 0)
+	assert_bool(bool(g["home_request"])).is_false()
+	g = roster.record_visit(id, 5, 80, "Happy", 0, 0)
+	assert_bool(bool(g["home_request"])).is_true()
+	assert_int(int(g["happy_visit_streak"])).is_equal(5)
+
+
+func test_bad_visit_breaks_home_request_happiness_streak() -> void:
+	var roster: MHGolferRoster = MHGolferRoster.new()
+	var g: Dictionary = roster.identity_for_admission(2468, 1, 1)
+	var id: int = int(g["id"])
+	for day: int in range(1, 5):
+		g = roster.record_visit(id, day, 80, "Happy", 0, 0)
+	g = roster.record_visit(id, 5, 60, "Poor", 0, 0)
+	assert_int(int(g["happy_visit_streak"])).is_equal(0)
+	assert_bool(bool(g["home_request"])).is_false()
