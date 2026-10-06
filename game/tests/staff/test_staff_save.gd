@@ -5,6 +5,14 @@ extends GdUnitTestSuite
 const RICH: int = 1000000000
 const SaveFixture = preload("res://tests/save/save_fixture.gd")
 
+
+## make_doc() is unsealed (no checksum), and validate() returns early without one; add a well-formed dummy so the rest is checked.
+func _doc() -> Dictionary:
+	var d: Dictionary = SaveFixture.make_doc()
+	d["checksum"] = {"alg": "sha256", "value": "0000000000000000000000000000000000000000000000000000000000000000"}
+	return d
+
+
 var _staff: MHStaff
 var _view: Dictionary
 
@@ -144,7 +152,7 @@ func test_legacy_counts_fit_the_existing_club_staff_block() -> void:
 
 
 func test_save_document_validator_accepts_the_roster_block() -> void:
-	var doc: Dictionary = SaveFixture.make_doc()
+	var doc: Dictionary = _doc()
 	var base: int = MHSaveGame.validate(doc).size()
 	(doc["club"] as Dictionary)["staff_roster"] = _played().to_save_block()
 	assert_int(MHSaveGame.validate(doc).size()).is_equal(base)
@@ -158,7 +166,7 @@ func test_save_document_validator_accepts_the_roster_block() -> void:
 
 
 func test_save_document_validator_rejects_a_malformed_roster_block() -> void:
-	var doc: Dictionary = SaveFixture.make_doc()
+	var doc: Dictionary = _doc()
 	var base: int = MHSaveGame.validate(doc).size()
 	(doc["club"] as Dictionary)["staff_roster"] = "nope"
 	assert_int(MHSaveGame.validate(doc).size()).is_greater(base)
@@ -170,13 +178,13 @@ func test_save_document_validator_rejects_a_malformed_roster_block() -> void:
 	(short["pest"] as Array).resize(3)
 	(doc["club"] as Dictionary)["staff_roster"] = short
 	assert_int(MHSaveGame.validate(doc).size()).is_greater(base)
-	var other: Dictionary = SaveFixture.make_doc()
+	var other: Dictionary = _doc()
 	(other["club"] as Dictionary)["unknown_key"] = 1
 	assert_int(MHSaveGame.validate(other).size()).is_greater(base)
 
 
 func test_a_save_without_a_roster_is_the_fresh_default() -> void:
-	var doc: Dictionary = SaveFixture.make_doc()
+	var doc: Dictionary = _doc()
 	assert_bool((doc["club"] as Dictionary).has("staff_roster")).is_false()
 	assert_bool(MHSaveGame.validate(doc).any(func(e: Variant) -> bool: return str(e).contains("staff_roster"))).is_false()
 	assert_int(MHStaffFixture.staff().head_count()).is_equal(0)
