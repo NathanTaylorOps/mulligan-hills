@@ -17,6 +17,8 @@ var _path: Node3D
 var _feedback: Label
 var _scroll: MHScrollBox
 var _toggle: MHTapButton
+var craft_surface: int = MHCraftHole.Surface.FAIRWAY
+var craft_mode: StringName = &"surface"
 ## Header only (body hidden). Layout is recomputed by the scene on `layout_changed`.
 var collapsed: bool = false
 signal layout_changed()
@@ -53,6 +55,18 @@ func setup(scene: MHLiveConstruction) -> void:
 	_feedback = MHUIKit.label("Tap the course to aim. Play shot is a separate confirmation.")
 	_feedback.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	content.add_child(_feedback)
+	var craft_tools: HFlowContainer = MHUIKit.flow(6)
+	content.add_child(craft_tools)
+	_button(craft_tools, "Fairway", func() -> void: craft_surface = MHCraftHole.Surface.FAIRWAY; craft_mode = &"surface"; _describe())
+	_button(craft_tools, "Green", func() -> void: craft_surface = MHCraftHole.Surface.GREEN; craft_mode = &"surface"; _describe())
+	_button(craft_tools, "Bunker", func() -> void: craft_surface = MHCraftHole.Surface.BUNKER; craft_mode = &"surface"; _describe())
+	_button(craft_tools, "Water", func() -> void: craft_surface = MHCraftHole.Surface.WATER; craft_mode = &"surface"; _describe())
+	_button(craft_tools, "Raise", func() -> void: craft_mode = &"raise"; _describe())
+	_button(craft_tools, "Lower", func() -> void: craft_mode = &"lower"; _describe())
+	_button(craft_tools, "Place tee", func() -> void: craft_mode = &"tee"; _describe())
+	_button(craft_tools, "Place pin", func() -> void: craft_mode = &"pin"; _describe())
+	_button(craft_tools, "Undo craft", _craft_undo)
+	_button(craft_tools, "Redo craft", _craft_redo)
 	var design: HFlowContainer = MHUIKit.flow(6)
 	content.add_child(design)
 	_button(design, "Length -", func() -> void: length_yd = maxi(60, length_yd - 1); _draft_changed())
@@ -131,6 +145,46 @@ func _layout() -> Dictionary:
 	if water:
 		features.append({"t": "water", "rect": [10, 20, 14, 30]})
 	return {"slot_id": 0, "tee": [0, 0], "green": [0, length_yd, 5], "features": features}
+
+func craft_at_tile(c: int, r: int) -> bool:
+	if live == null or live.craft_hole == null or not live.craft_hole.in_bounds(c, r):
+		return false
+	var h: MHCraftHole = live.craft_hole
+	if craft_mode == &"tee":
+		h.tees.clear()
+		h.add_tee(c, r)
+	elif craft_mode == &"pin":
+		if h.pins.size() >= MHCraftHole.MAX_PINS:
+			h.pins.clear()
+		h.add_pin(c, r)
+	elif craft_mode == &"raise" or craft_mode == &"lower":
+		h.begin_stroke()
+		h.raise_disc(c, r, 1, 1 if craft_mode == &"raise" else -1)
+		h.commit_stroke()
+	else:
+		h.begin_stroke()
+		h.paint_disc(c, r, 1, craft_surface)
+		h.commit_stroke()
+	_refresh_canonical_craft()
+	return true
+
+func _refresh_canonical_craft() -> void:
+	var problems: Array = MHCraftConvert.problems(live.craft_hole)
+	if problems.is_empty():
+		set_canonical_draft(live.canonical_craft_draft())
+	else:
+		canonical_draft.clear()
+		_preview_draft = true
+		_info.text = "Craft hole needs: " + ", ".join(PackedStringArray(problems))
+		_draw()
+
+func _craft_undo() -> void:
+	if live.craft_hole != null and live.craft_hole.undo():
+		_refresh_canonical_craft()
+
+func _craft_redo() -> void:
+	if live.craft_hole != null and live.craft_hole.redo():
+		_refresh_canonical_craft()
 
 func _draft_changed() -> void:
 	_preview_draft = true
@@ -225,6 +279,8 @@ func _shoot() -> void:
 func _describe() -> void:
 	var price: int = 0 if not live.session.hole_definitions().is_empty() else live.session.economy.hole_cost_cents()
 	_info.text = "Draft: %d yd, fairway %d yd wide. Finalize $%d; redesign free." % [length_yd, half_width_yd * 2, price / 100]
+	if live != null and live.craft_hole != null:
+		_info.text += " | Craft tool: " + str(craft_mode)
 	var r: MHPracticeRound = live.session.practice
 	if r != null:
 		_info.text += " | %d strokes | %s" % [r.strokes, "Picked up" if r.picked_up else ("Holed" if r.finished else "Playing")]
