@@ -721,9 +721,10 @@ func test_management_warns_only_after_repeated_sustained_hole_congestion() -> vo
 	s.customer_playback.hole_wait_s = {4: 100.0}
 	s.customer_playback.hole_wait_count = {4: 2}
 	var report: Dictionary = s.management_report()
-	assert_bool((report["warnings"] as Array).has("pace_bottleneck_hole_5")).is_true()
+	assert_bool((report["warnings"] as Array).has("pace_bottleneck")).is_true()
+	assert_int(int(report["pace_bottleneck_hole"])).is_equal(5)
 	assert_int(int((report["worst_bottleneck"] as Dictionary)["hole_slot"])).is_equal(4)
 	var clean: MHGameSession = MHGameSession.create()
 	clean.customer_playback.hole_wait_s = {4: 44.0}
 	clean.customer_playback.hole_wait_count = {4: 3}
-	assert_bool((clean.management_report()["warnings"] as Array).has("pace_bottleneck_hole_5")).is_false()
+	assert_bool((clean.management_report()["warnings"] as Array).has("pace_bottleneck")).is_false()
