@@ -225,7 +225,7 @@ func _split_over_areas(ed: Dictionary, total: int, view: Dictionary, acc: Array)
 
 
 ## {"work": Array of 16, "ctrl": Array of 16}: grounds work points and pest control points each owned parcel gets today.
-func work_by_parcel(defs: MHStaffDefs, view: Dictionary, equipment: MHStaffEquipment = null) -> Dictionary:
+func work_by_parcel(defs: MHStaffDefs, view: Dictionary, equipment: MHStaffEquipment = null, coordination_pm: int = 1000) -> Dictionary:
 	var work: Array = []
 	var ctrl: Array = []
 	for _i: int in range(MHStaffDefs.NPARCELS):
@@ -235,6 +235,8 @@ func work_by_parcel(defs: MHStaffDefs, view: Dictionary, equipment: MHStaffEquip
 		var ed: Dictionary = e
 		var kind: String = defs.role_kind(str(ed["role"]))
 		var wp: int = defs.work_permille(int(ed["tenure"]))
+		if kind == MHStaffDefs.KIND_GROUNDS or kind == MHStaffDefs.KIND_PEST:
+			wp = MHStaffMath.idiv(wp * coordination_pm, 1000)
 		if equipment != null and (kind == MHStaffDefs.KIND_GROUNDS or kind == MHStaffDefs.KIND_PEST):
 			wp = MHStaffMath.idiv(wp * equipment.multiplier_for_employee(int(ed["serial"]), kind), 1000)
 		if kind == MHStaffDefs.KIND_GROUNDS:
