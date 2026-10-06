@@ -179,3 +179,27 @@ func test_building_positions_require_purchased_and_player_placed_building() -> v
 	var positions: Dictionary = MHClubPedestrian.building_positions(s)
 	assert_bool(positions.has("clubhouse")).is_true()
 	assert_bool((positions["clubhouse"] as Vector3).is_equal_approx(Vector3(30.0, 1.25, 42.0))).is_true()
+
+func test_public_returning_golfer_can_vary_party_from_stable_associates() -> void:
+	var roster: MHGolferRoster = MHGolferRoster.new()
+	var first: Array = roster.group_for_admission(991, 1, 1, 4)
+	var anchor: Dictionary = first[0]
+	roster.record_visit(int(anchor["id"]), 1, 80, "good", 0, 0)
+	for serial: int in range(2, 10):
+		roster.group_for_admission(991, serial * 3, 1, 4)
+	var stored: Dictionary = roster.golfers[int(anchor["id"])]
+	assert_int((stored.get("associates", []) as Array).size()).is_less_equal(8)
+	var a: Array = roster.public_party(int(anchor["id"]), 3, 0)
+	var b: Array = roster.public_party(int(anchor["id"]), 3, 1)
+	assert_int(a.size()).is_greater_equal(1)
+	assert_int(b.size()).is_greater_equal(1)
+
+
+func test_customer_queue_preserves_authoritative_outcome_without_resimulating() -> void:
+	var q: MHCustomerRoundQueue = MHCustomerRoundQueue.new()
+	var outcome: Dictionary = {"serial": 9, "satisfaction": 77, "reaction": "Already resolved",
+		"round": {"events": [], "strokes": 4, "flags": 0}, "identity": {"id": 2}}
+	q.admit([outcome], {}, {}, {})
+	assert_int(q.waiting.size()).is_equal(1)
+	assert_int(int((q.waiting[0] as Dictionary)["satisfaction"])).is_equal(77)
+	assert_str(str((q.waiting[0] as Dictionary)["reaction"])).is_equal("Already resolved")
