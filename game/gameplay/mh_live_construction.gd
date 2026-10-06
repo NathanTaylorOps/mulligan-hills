@@ -1379,6 +1379,9 @@ func _notification(what: int) -> void:
 		return
 	if what == NOTIFICATION_APPLICATION_PAUSED or what == NOTIFICATION_APPLICATION_FOCUS_OUT:
 		router.cancel_world_input()
+		# Free-drive physics is presentation state. Do not leave throttle held while the app is backgrounded.
+		if _player_cart != null and is_instance_valid(_player_cart):
+			_player_cart.drive(0.0, 0.0)
 		save_now()
 
 func _exit_tree() -> void:
@@ -1390,6 +1393,8 @@ func _exit_tree() -> void:
 func _back() -> void:
 	if _active:
 		router.cancel_world_input()
+		if _cart_drive_active:
+			exit_cart_drive_mode()
 		if not save_now():
 			return
 	get_tree().change_scene_to_file(MHLauncher.LAUNCHER_PATH)
