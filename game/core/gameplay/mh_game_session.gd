@@ -704,6 +704,7 @@ func _resolve_tournament() -> void:
 	var result: Dictionary = bridge.resolve_tournament({"event_seed": MHTournamentSim.event_seed(
 		save_secret, bridge.tournaments.event_id(), 0), "pace_score": pace_score(),
 		"fairness": fair, "maintenance_tier": int(tiers().get("maintenance", 0)), "maintenance_quality": maintenance_quality(),
+		"course_condition_penalty_pm": staff_system.condition_penalty_permille(staff_view()),
 		"tiers": tiers(), "pars": pars, "total_yards": yards})
 	if not bool(result.get("ok", false)):
 		return
