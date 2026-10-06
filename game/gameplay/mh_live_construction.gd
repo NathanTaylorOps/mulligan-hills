@@ -654,11 +654,25 @@ func _advance_hole_transition_walkers(delta_s: float) -> void:
 
 
 func _party_uses_cart(customers: Array, party_id: int) -> bool:
+	if not session.carts_allowed_now():
+		return false
+	if _party_has_star(customers):
+		return true
 	if customers.size() < 2:
 		return false
 	if MHClubPedestrian.instance_ids_for_type(session, "cart_barn").is_empty():
 		return false
 	return posmod(party_id, 3) != 0
+
+
+static func _party_has_star(customers: Array) -> bool:
+	for customer_v: Variant in customers:
+		var customer: Dictionary = customer_v as Dictionary
+		var identity: Dictionary = customer.get("identity", {}) as Dictionary
+		var identity_type: String = str(identity.get("identity_type", "ordinary"))
+		if identity_type == "celebrity" or identity_type == "pro":
+			return true
+	return false
 
 
 func _ensure_party_cart(party_id: int, position: Vector3, riders: int = 2) -> void:
