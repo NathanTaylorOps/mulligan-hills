@@ -708,6 +708,7 @@ func exit_cart_drive_mode() -> void:
 	if router != null:
 		router.accept_world_input = true
 	if _cart_drive_input != null:
+		_cart_drive_input.reset_controls()
 		_cart_drive_input.hide()
 	if _cart_camera != null:
 		_cart_camera.current = false
@@ -1387,6 +1388,7 @@ func _notification(what: int) -> void:
 func _exit_tree() -> void:
 	_cart_drive_active = false
 	if _cart_drive_input != null:
+		_cart_drive_input.reset_controls()
 		_cart_drive_input.hide()
 	MHOrientation.restore_default()
 
