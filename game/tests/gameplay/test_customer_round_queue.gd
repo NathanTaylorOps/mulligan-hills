@@ -557,3 +557,17 @@ func test_multiple_progressing_parties_queue_fifo_for_same_next_tee() -> void:
 	assert_bool(q._tee_reserved_for_other(7, 20)).is_false()
 	q._consume_tee_reservation(7, 20)
 	assert_bool(q.tee_reservations.has(7)).is_false()
+
+
+func test_traffic_state_is_read_only_snapshot_of_concurrent_course_use() -> void:
+	var q: MHCustomerRoundQueue = MHCustomerRoundQueue.new()
+	var events: Array = [{"kind": "putt", "shot": 1, "strokes": 1, "x0": 0, "y0": 0, "x1": 0, "y1": 0}]
+	q.admit([{"serial": 1, "party_id": 1, "hole_slot": 2, "round": {"events": events}}], {}, {}, {})
+	q.admit([{"serial": 2, "party_id": 2, "hole_slot": 5, "round": {"events": events}}], {}, {}, {})
+	q.advance_all(0.0)
+	q.advance_all(MHCustomerRoundQueue.TEE_INTERVAL_S)
+	var traffic: Dictionary = q.traffic_state()
+	assert_int((traffic["active_parties"] as Array).size()).is_equal(2)
+	assert_int((traffic["occupied_holes"] as Dictionary).size()).is_equal(2)
+	(traffic["occupied_holes"] as Dictionary).clear()
+	assert_int(q.occupied_holes.size()).is_equal(2)
