@@ -11,6 +11,7 @@ var waiting: Array = []
 var active: Dictionary = {}
 var completed: Array = []
 var facility_visits: Array = []
+var pending_facility_visits: Array = []
 var next_tee_s: float = 0.0
 
 
@@ -33,13 +34,29 @@ func offscreen_waiting_count() -> int:
 
 
 func queue_facility_visit(customer: Dictionary, facility_id: String, now_s: float) -> Dictionary:
+	# Queuing a destination is not the same as arriving there. The dwell timer begins only
+	# when presentation reports physical arrival through begin_facility_visit().
 	if facility_id == "":
 		return {}
 	var visit: Dictionary = {"identity": (customer.get("identity", {}) as Dictionary).duplicate(true),
 		"facility": facility_id, "group_id": int((customer.get("identity", {}) as Dictionary).get("group_id", -1)),
-		"start_s": now_s, "end_s": now_s + 8.0 + float(int(customer.get("serial", 0)) % 8)}
-	facility_visits.append(visit)
+		"serial": int(customer.get("serial", 0)), "queued_s": now_s}
+	pending_facility_visits.append(visit)
 	return visit
+
+
+func begin_facility_visit(serial: int, now_s: float) -> Dictionary:
+	for i: int in range(pending_facility_visits.size()):
+		var pending: Dictionary = pending_facility_visits[i]
+		if int(pending.get("serial", -1)) != serial:
+			continue
+		pending_facility_visits.remove_at(i)
+		var visit: Dictionary = pending.duplicate(true)
+		visit["start_s"] = now_s
+		visit["end_s"] = now_s + 8.0 + float(posmod(serial, 8))
+		facility_visits.append(visit)
+		return visit.duplicate(true)
+	return {}
 
 
 func active_facility_visits(now_s: float) -> Array:
