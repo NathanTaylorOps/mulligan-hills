@@ -54,6 +54,7 @@ var _visible_staff_root: Node3D
 var _visible_staff_nodes: Dictionary = {}
 var _maintenance_visuals: Dictionary = {}
 var _last_condition_signature: int = -1
+var _staff_work_effects: Dictionary = {}
 const MAX_GOLFER_REACTIONS: int = 6
 const GOLFER_REACTION_LIFETIME_S: float = 5.0
 
@@ -565,6 +566,7 @@ func _process(_delta: float) -> void:
 	_sync_visible_staff()
 	_sync_maintenance_visuals()
 	_sync_course_condition_overlay()
+	_show_new_grounds_events()
 	_visible_golfers.advance(float(elapsed) / 1000000.0, controller.rig.global_position)
 	chunks.flush(editor.dirty)
 	_relayout()
@@ -750,6 +752,21 @@ static func _route_state(route: Array, progress: float) -> Dictionary:
 	var a: Vector3 = route[segment] as Vector3
 	var b: Vector3 = route[segment + 1] as Vector3
 	return {"position": a.lerp(b, t), "direction": b - a}
+
+
+func _show_new_grounds_events() -> void:
+	for incident_v: Variant in session.take_grounds_events():
+		var incident: Dictionary = incident_v as Dictionary
+		var parcel: int = int(incident.get("parcel", -1))
+		var positive: bool = bool(incident.get("positive", false))
+		var handled: bool = bool(incident.get("handled", false))
+		var kind: String = str(incident.get("kind", "grounds issue")).replace("_", " ")
+		if positive:
+			_status.text = "Course wildlife: %s spotted on area %d." % [kind.capitalize(), parcel + 1]
+		elif handled:
+			_status.text = "%s on area %d — grounds team contained it." % [kind.capitalize(), parcel + 1]
+		else:
+			_status.text = "%s on area %d — maintenance attention needed." % [kind.capitalize(), parcel + 1]
 
 
 func _sync_course_condition_overlay() -> void:
