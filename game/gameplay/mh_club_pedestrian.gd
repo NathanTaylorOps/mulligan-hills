@@ -7,12 +7,11 @@ const ARRIVE_M: float = 0.35
 
 
 static func building_positions(session: MHGameSession) -> Dictionary:
-	var tiers: Dictionary = session.tiers()
-	var slots: Dictionary = MHSliceLayout.assign_slots(tiers, session.land.owned_ids(), {})
 	var out: Dictionary = {}
-	for id: Variant in slots.keys():
-		var p: Vector2 = MHSliceLayout.slot_centre_m(int(slots[id]))
-		out[str(id)] = Vector3(p.x, 0.0, p.y)
+	for id: Variant in session.building_placements.keys():
+		var p: Vector3 = session.building_position(str(id))
+		if p != Vector3.INF:
+			out[str(id)] = p
 	return out
 
 
