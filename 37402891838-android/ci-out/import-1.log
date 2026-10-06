@@ -1,0 +1,393 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+[   0% ] [90m[1mfirst_scan_filesystem[22m | Started Project initialization (5 steps)[39m[0m
+[   0% ] [90m[1mfirst_scan_filesystem[22m | Scanning file structure...[39m[0m
+[  16% ] [90m[1mfirst_scan_filesystem[22m | Loading global class names...[39m[0m
+[  33% ] [90m[1mfirst_scan_filesystem[22m | Verifying GDExtensions...[39m[0m
+[  50% ] [90m[1mfirst_scan_filesystem[22m | Creating autoload scripts...[39m[0m
+[  66% ] [90m[1mfirst_scan_filesystem[22m | Initializing plugins...[39m[0m
+WARNING: Addon 'res://addons/gdUnit4/plugin.cfg' failed to load. No directory found. Removing from enabled plugins.
+     at: set_addon_plugin_enabled (editor/editor_node.cpp:4464)
+[  83% ] [90m[1mfirst_scan_filesystem[22m | Starting file scan...[39m[0m
+[92m[ DONE ][39m [1mfirst_scan_filesystem[22m
+[0m
+[   0% ] [90m[1mupdate_scripts_classes[22m | Started Registering global classes... (344 steps)[39m[0m
+[   0% ] [90m[1mupdate_scripts_classes[22m | MHBuildingsGolf[39m[0m
+[   0% ] [90m[1mupdate_scripts_classes[22m | MHBuildingsSite[39m[0m
+[   0% ] [90m[1mupdate_scripts_classes[22m | MHBuildingMeshes[39m[0m
+[   0% ] [90m[1mupdate_scripts_classes[22m | MHBuildingParts[39m[0m
+[   1% ] [90m[1mupdate_scripts_classes[22m | MHBuildingTheme[39m[0m
+[   1% ] [90m[1mupdate_scripts_classes[22m | MHGolferFigure[39m[0m
+[   1% ] [90m[1mupdate_scripts_classes[22m | MHGolferLook[39m[0m
+[   2% ] [90m[1mupdate_scripts_classes[22m | MHGolferMeshes[39m[0m
+[   2% ] [90m[1mupdate_scripts_classes[22m | MHGolferPoses[39m[0m
+[   2% ] [90m[1mupdate_scripts_classes[22m | MHNatureMeshes[39m[0m
+[   2% ] [90m[1mupdate_scripts_classes[22m | MHPropMeshes[39m[0m
+[   3% ] [90m[1mupdate_scripts_classes[22m | MHArtMaterials[39m[0m
+[   3% ] [90m[1mupdate_scripts_classes[22m | MHArtRng[39m[0m
+[   3% ] [90m[1mupdate_scripts_classes[22m | MHMeshBuilder[39m[0m
+[   4% ] [90m[1mupdate_scripts_classes[22m | MHPalette[39m[0m
+[   4% ] [90m[1mupdate_scripts_classes[22m | MHSkySetup[39m[0m
+[   4% ] [90m[1mupdate_scripts_classes[22m | MHBuildingGallery[39m[0m
+[   4% ] [90m[1mupdate_scripts_classes[22m | MHNatureGallery[39m[0m
+[   5% ] [90m[1mupdate_scripts_classes[22m | MHBenchScene[39m[0m
+[   5% ] [90m[1mupdate_scripts_classes[22m | MHBenchRunner[39m[0m
+[   5% ] [90m[1mupdate_scripts_classes[22m | MHBenchStats[39m[0m
+[   6% ] [90m[1mupdate_scripts_classes[22m | MHResultsScreen[39m[0m
+[   6% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
+[   6% ] [90m[1mupdate_scripts_classes[22m | MHGolferAnimator[39m[0m
+[   6% ] [90m[1mupdate_scripts_classes[22m | MHGolferRig[39m[0m
+[   7% ] [90m[1mupdate_scripts_classes[22m | MHProceduralSwing[39m[0m
+[   7% ] [90m[1mupdate_scripts_classes[22m | MHBuildingDefs[39m[0m
+[   7% ] [90m[1mupdate_scripts_classes[22m | MHGateReport[39m[0m
+[   8% ] [90m[1mupdate_scripts_classes[22m | MHGateView[39m[0m
+[   8% ] [90m[1mupdate_scripts_classes[22m | MHUnlockRules[39m[0m
+[   8% ] [90m[1mupdate_scripts_classes[22m | MHDailyChallenge[39m[0m
+[   8% ] [90m[1mupdate_scripts_classes[22m | MHDailyState[39m[0m
+[   9% ] [90m[1mupdate_scripts_classes[22m | MHKillSwitch[39m[0m
+[   9% ] [90m[1mupdate_scripts_classes[22m | MHGameClock[39m[0m
+[   9% ] [90m[1mupdate_scripts_classes[22m | MHEconomy[39m[0m
+[  10% ] [90m[1mupdate_scripts_classes[22m | MHEconomyModel[39m[0m
+[  10% ] [90m[1mupdate_scripts_classes[22m | MHEconomyParams[39m[0m
+[  10% ] [90m[1mupdate_scripts_classes[22m | MHEventDeck[39m[0m
+[  11% ] [90m[1mupdate_scripts_classes[22m | MHCourseLayout[39m[0m
+[  11% ] [90m[1mupdate_scripts_classes[22m | MHGameSession[39m[0m
+[  11% ] [90m[1mupdate_scripts_classes[22m | MHLiveTerrainSink[39m[0m
+[  11% ] [90m[1mupdate_scripts_classes[22m | MHPersonalEnvelope[39m[0m
+[  12% ] [90m[1mupdate_scripts_classes[22m | MHPersonalShot[39m[0m
+[  12% ] [90m[1mupdate_scripts_classes[22m | MHPracticeRound[39m[0m
+[  12% ] [90m[1mupdate_scripts_classes[22m | MHSessionSave[39m[0m
+[  13% ] [90m[1mupdate_scripts_classes[22m | MHLandModel[39m[0m
+[  13% ] [90m[1mupdate_scripts_classes[22m | MHAchievements[39m[0m
+[  13% ] [90m[1mupdate_scripts_classes[22m | MHProgression[39m[0m
+[  13% ] [90m[1mupdate_scripts_classes[22m | MHProgressStats[39m[0m
+[  14% ] [90m[1mupdate_scripts_classes[22m | MHStreak[39m[0m
+[  14% ] [90m[1mupdate_scripts_classes[22m | MHRAdvisor[39m[0m
+[  14% ] [90m[1mupdate_scripts_classes[22m | MHRatingEngine[39m[0m
+[  15% ] [90m[1mupdate_scripts_classes[22m | MHRCourse[39m[0m
+[  15% ] [90m[1mupdate_scripts_classes[22m | MHRHole[39m[0m
+[  15% ] [90m[1mupdate_scripts_classes[22m | MHRMath[39m[0m
+[  15% ] [90m[1mupdate_scripts_classes[22m | MHRParams[39m[0m
+[  16% ] [90m[1mupdate_scripts_classes[22m | MHRSim[39m[0m
+[  16% ] [90m[1mupdate_scripts_classes[22m | MHRTournament[39m[0m
+[  16% ] [90m[1mupdate_scripts_classes[22m | MHRValidate[39m[0m
+[  17% ] [90m[1mupdate_scripts_classes[22m | MHAccountDeletion[39m[0m
+[  17% ] [90m[1mupdate_scripts_classes[22m | MHAutosavePolicy[39m[0m
+[  17% ] [90m[1mupdate_scripts_classes[22m | MHCloudConflict[39m[0m
+[  17% ] [90m[1mupdate_scripts_classes[22m | MHJsonFile[39m[0m
+[  18% ] [90m[1mupdate_scripts_classes[22m | MHLoadedSave[39m[0m
+[  18% ] [90m[1mupdate_scripts_classes[22m | MHPlayerSettings[39m[0m
+[  18% ] [90m[1mupdate_scripts_classes[22m | MHSaveFile[39m[0m
+[  19% ] [90m[1mupdate_scripts_classes[22m | MHSaveGame[39m[0m
+[  19% ] [90m[1mupdate_scripts_classes[22m | MHSaveMigrator[39m[0m
+[  19% ] [90m[1mupdate_scripts_classes[22m | MHSaveResult[39m[0m
+[  20% ] [90m[1mupdate_scripts_classes[22m | MHSaveStore[39m[0m
+[  20% ] [90m[1mupdate_scripts_classes[22m | MHSaveSummary[39m[0m
+[  20% ] [90m[1mupdate_scripts_classes[22m | MHSlotInfo[39m[0m
+[  20% ] [90m[1mupdate_scripts_classes[22m | MHStaff[39m[0m
+[  21% ] [90m[1mupdate_scripts_classes[22m | MHStaffDefs[39m[0m
+[  21% ] [90m[1mupdate_scripts_classes[22m | MHStaffEffects[39m[0m
+[  21% ] [90m[1mupdate_scripts_classes[22m | MHStaffGrounds[39m[0m
+[  22% ] [90m[1mupdate_scripts_classes[22m | MHStaffMath[39m[0m
+[  22% ] [90m[1mupdate_scripts_classes[22m | MHStaffRoster[39m[0m
+[  22% ] [90m[1mupdate_scripts_classes[22m | MHStaffView[39m[0m
+[  22% ] [90m[1mupdate_scripts_classes[22m | MHTokenLedger[39m[0m
+[  23% ] [90m[1mupdate_scripts_classes[22m | MHTournamentDefs[39m[0m
+[  23% ] [90m[1mupdate_scripts_classes[22m | MHTournamentRules[39m[0m
+[  23% ] [90m[1mupdate_scripts_classes[22m | MHTournamentSim[39m[0m
+[  24% ] [90m[1mupdate_scripts_classes[22m | MHTournamentState[39m[0m
+[  24% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
+[  24% ] [90m[1mupdate_scripts_classes[22m | MHDataJson[39m[0m
+[  24% ] [90m[1mupdate_scripts_classes[22m | MHFixed[39m[0m
+[  25% ] [90m[1mupdate_scripts_classes[22m | MHHash[39m[0m
+[  25% ] [90m[1mupdate_scripts_classes[22m | MHHole[39m[0m
+[  25% ] [90m[1mupdate_scripts_classes[22m | MHRng[39m[0m
+[  26% ] [90m[1mupdate_scripts_classes[22m | MHShotSim[39m[0m
+[  26% ] [90m[1mupdate_scripts_classes[22m | MHSimHash[39m[0m
+[  26% ] [90m[1mupdate_scripts_classes[22m | MHTrig[39m[0m
+[  26% ] [90m[1mupdate_scripts_classes[22m | MHTrigTable[39m[0m
+[  27% ] [90m[1mupdate_scripts_classes[22m | MHLiveConstruction[39m[0m
+[  27% ] [90m[1mupdate_scripts_classes[22m | MHOneHolePanel[39m[0m
+[  27% ] [90m[1mupdate_scripts_classes[22m | MHSliceGolfers[39m[0m
+[  28% ] [90m[1mupdate_scripts_classes[22m | MHSliceLayout[39m[0m
+[  28% ] [90m[1mupdate_scripts_classes[22m | MHSliceNature[39m[0m
+[  28% ] [90m[1mupdate_scripts_classes[22m | MHSliceRound[39m[0m
+[  28% ] [90m[1mupdate_scripts_classes[22m | MHSliceSchedule[39m[0m
+[  29% ] [90m[1mupdate_scripts_classes[22m | MHSliceStarter[39m[0m
+[  29% ] [90m[1mupdate_scripts_classes[22m | MHSliceText[39m[0m
+[  29% ] [90m[1mupdate_scripts_classes[22m | MHSliceVisibility[39m[0m
+[  30% ] [90m[1mupdate_scripts_classes[22m | MHVerticalSlice[39m[0m
+[  30% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
+[  30% ] [90m[1mupdate_scripts_classes[22m | MHGate0AnimCost[39m[0m
+[  31% ] [90m[1mupdate_scripts_classes[22m | MHGate0KillLog[39m[0m
+[  31% ] [90m[1mupdate_scripts_classes[22m | MHGate0Panel[39m[0m
+[  31% ] [90m[1mupdate_scripts_classes[22m | MHGate0Report[39m[0m
+[  31% ] [90m[1mupdate_scripts_classes[22m | MHGate0SaveHarness[39m[0m
+[  32% ] [90m[1mupdate_scripts_classes[22m | MHGate0Sim[39m[0m
+[  32% ] [90m[1mupdate_scripts_classes[22m | MHGate0Stats[39m[0m
+[  32% ] [90m[1mupdate_scripts_classes[22m | MHGate0TerrainApi[39m[0m
+[  33% ] [90m[1mupdate_scripts_classes[22m | MHGate0TerrainCheck[39m[0m
+[  33% ] [90m[1mupdate_scripts_classes[22m | MHGate0TerrainSink[39m[0m
+[  33% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
+[  33% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
+[  34% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
+[  34% ] [90m[1mupdate_scripts_classes[22m | MHAimTap[39m[0m
+[  34% ] [90m[1mupdate_scripts_classes[22m | MHCameraConfig[39m[0m
+[  35% ] [90m[1mupdate_scripts_classes[22m | MHCameraController[39m[0m
+[  35% ] [90m[1mupdate_scripts_classes[22m | MHCellSentinel[39m[0m
+[  35% ] [90m[1mupdate_scripts_classes[22m | MHCompassButton[39m[0m
+[  35% ] [90m[1mupdate_scripts_classes[22m | MHDebugOverlay[39m[0m
+[  36% ] [90m[1mupdate_scripts_classes[22m | MHForwardingStrokeSink[39m[0m
+[  36% ] [90m[1mupdate_scripts_classes[22m | MHGestureConfig[39m[0m
+[  36% ] [90m[1mupdate_scripts_classes[22m | MHGestureMath[39m[0m
+[  37% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
+[  37% ] [90m[1mupdate_scripts_classes[22m | MHGestureStateMachine[39m[0m
+[  37% ] [90m[1mupdate_scripts_classes[22m | MHInputRouter[39m[0m
+[  37% ] [90m[1mupdate_scripts_classes[22m | MHIsoCameraController[39m[0m
+[  38% ] [90m[1mupdate_scripts_classes[22m | MHIsoRig[39m[0m
+[  38% ] [90m[1mupdate_scripts_classes[22m | MHOrbitRig[39m[0m
+[  38% ] [90m[1mupdate_scripts_classes[22m | MHPracticeAimInput[39m[0m
+[  39% ] [90m[1mupdate_scripts_classes[22m | MHStrokeBridge[39m[0m
+[  39% ] [90m[1mupdate_scripts_classes[22m | MHStrokeSink[39m[0m
+[  39% ] [90m[1mupdate_scripts_classes[22m | MHTouchTracker[39m[0m
+[  40% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
+[  40% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
+[  40% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
+[  40% ] [90m[1mupdate_scripts_classes[22m | MHAccountService[39m[0m
+[  41% ] [90m[1mupdate_scripts_classes[22m | MHAccountServiceMock[39m[0m
+[  41% ] [90m[1mupdate_scripts_classes[22m | MHAnalyticsService[39m[0m
+[  41% ] [90m[1mupdate_scripts_classes[22m | MHAnalyticsServiceMock[39m[0m
+[  42% ] [90m[1mupdate_scripts_classes[22m | MHEntitlementService[39m[0m
+[  42% ] [90m[1mupdate_scripts_classes[22m | MHEntitlementServiceAndroid[39m[0m
+[  42% ] [90m[1mupdate_scripts_classes[22m | MHEntitlementServiceIOS[39m[0m
+[  42% ] [90m[1mupdate_scripts_classes[22m | MHEntitlementServiceMock[39m[0m
+[  43% ] [90m[1mupdate_scripts_classes[22m | MHEntitlementToken[39m[0m
+[  43% ] [90m[1mupdate_scripts_classes[22m | MHIntegrityService[39m[0m
+[  43% ] [90m[1mupdate_scripts_classes[22m | MHIntegrityServiceAndroid[39m[0m
+[  44% ] [90m[1mupdate_scripts_classes[22m | MHIntegrityServiceMock[39m[0m
+[  44% ] [90m[1mupdate_scripts_classes[22m | MHLeaderboardService[39m[0m
+[  44% ] [90m[1mupdate_scripts_classes[22m | MHLeaderboardServiceAndroid[39m[0m
+[  44% ] [90m[1mupdate_scripts_classes[22m | MHLeaderboardServiceIOS[39m[0m
+[  45% ] [90m[1mupdate_scripts_classes[22m | MHLeaderboardServiceMock[39m[0m
+[  45% ] [90m[1mupdate_scripts_classes[22m | MHNotificationService[39m[0m
+[  45% ] [90m[1mupdate_scripts_classes[22m | MHNotificationServiceMock[39m[0m
+[  46% ] [90m[1mupdate_scripts_classes[22m | MHNotificationServiceNative[39m[0m
+[  46% ] [90m[1mupdate_scripts_classes[22m | MHPlatform[39m[0m
+[  46% ] [90m[1mupdate_scripts_classes[22m | MHPlatformConfig[39m[0m
+[  46% ] [90m[1mupdate_scripts_classes[22m | MHVerifyApi[39m[0m
+[  47% ] [90m[1mupdate_scripts_classes[22m | MHAdaptiveScale[39m[0m
+[  47% ] [90m[1mupdate_scripts_classes[22m | MHCameraRig[39m[0m
+[  47% ] [90m[1mupdate_scripts_classes[22m | MHForest[39m[0m
+[  48% ] [90m[1mupdate_scripts_classes[22m | MHForestRng[39m[0m
+[  48% ] [90m[1mupdate_scripts_classes[22m | MHFrameCapSetting[39m[0m
+[  48% ] [90m[1mupdate_scripts_classes[22m | MHFrameGovernor[39m[0m
+[  48% ] [90m[1mupdate_scripts_classes[22m | MHGolfers[39m[0m
+[  49% ] [90m[1mupdate_scripts_classes[22m | MHQuality[39m[0m
+[  49% ] [90m[1mupdate_scripts_classes[22m | MHTreeMeshes[39m[0m
+[  49% ] [90m[1mupdate_scripts_classes[22m | MHTreePlacement[39m[0m
+[  50% ] [90m[1mupdate_scripts_classes[22m | MHWater[39m[0m
+[  50% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
+[  50% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
+[  51% ] [90m[1mupdate_scripts_classes[22m | MHBrush[39m[0m
+[  51% ] [90m[1mupdate_scripts_classes[22m | MHDirtyTracker[39m[0m
+[  51% ] [90m[1mupdate_scripts_classes[22m | MHHeightGrid[39m[0m
+[  51% ] [90m[1mupdate_scripts_classes[22m | MHPicking[39m[0m
+[  52% ] [90m[1mupdate_scripts_classes[22m | MHSplatMap[39m[0m
+[  52% ] [90m[1mupdate_scripts_classes[22m | MHStroke[39m[0m
+[  52% ] [90m[1mupdate_scripts_classes[22m | MHTerrainChunks[39m[0m
+[  53% ] [90m[1mupdate_scripts_classes[22m | MHTerrainEditor[39m[0m
+[  53% ] [90m[1mupdate_scripts_classes[22m | MHTerrainSave[39m[0m
+[  53% ] [90m[1mupdate_scripts_classes[22m | MHUndoStack[39m[0m
+[  53% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
+[  54% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
+[  54% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
+[  54% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
+[  55% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
+[  55% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
+[  55% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
+[  55% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
+[  56% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
+[  56% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
+[  56% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
+[  57% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
+[  57% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
+[  57% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
+[  57% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
+[  58% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
+[  58% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
+[  58% ] [90m[1mupdate_scripts_classes[22m | MHGolden[39m[0m
+[  59% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
+[  59% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
+[  59% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
+[  60% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
+[  60% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
+[  60% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
+[  60% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
+[  61% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
+[  61% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
+[  61% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
+[  62% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
+[  62% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
+[  62% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
+[  62% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
+[  63% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
+[  63% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
+[  63% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
+[  64% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
+[  64% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
+[  64% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
+[  64% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
+[  65% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
+[  65% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
+[  65% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
+[  66% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
+[  66% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
+[  66% ] [90m[1mupdate_scripts_classes[22m | MHInputTestHelpers[39m[0m
+[  66% ] [90m[1mupdate_scripts_classes[22m | MHMockStrokeSink[39m[0m
+[  67% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
+[  67% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
+[  67% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
+[  68% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
+[  68% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
+[  68% ] [90m[1mupdate_scripts_classes[22m | MHProgressionFixture[39m[0m
+[  68% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
+[  69% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
+[  69% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
+[  69% ] [90m[1mupdate_scripts_classes[22m | MHRatingGolden[39m[0m
+[  70% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
+[  70% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
+[  70% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
+[  71% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
+[  71% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
+[  71% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
+[  71% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
+[  72% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
+[  72% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
+[  72% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
+[  73% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
+[  73% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
+[  73% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
+[  73% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
+[  74% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
+[  74% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
+[  74% ] [90m[1mupdate_scripts_classes[22m | MHStaffFixture[39m[0m
+[  75% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
+[  75% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
+[  75% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
+[  75% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
+[  76% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
+[  76% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
+[  76% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
+[  77% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
+[  77% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
+[  77% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
+[  77% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
+[  78% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
+[  78% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
+[  78% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
+[  79% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
+[  79% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
+[  79% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
+[  80% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
+[  80% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
+[  80% ] [90m[1mupdate_scripts_classes[22m | MHTournamentFixture[39m[0m
+[  80% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
+[  81% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
+[  81% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
+[  81% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
+[  82% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
+[  82% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
+[  82% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
+[  82% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
+[  83% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
+[  83% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
+[  83% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
+[  84% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
+[  84% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
+[  84% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
+[  84% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
+[  85% ] [90m[1mupdate_scripts_classes[22m | MHTestEdit[39m[0m
+[  85% ] [90m[1mupdate_scripts_classes[22m | MHFakeGameStateView[39m[0m
+[  85% ] [90m[1mupdate_scripts_classes[22m | MHGameStateView[39m[0m
+[  86% ] [90m[1mupdate_scripts_classes[22m | MHLiveGameStateView[39m[0m
+[  86% ] [90m[1mupdate_scripts_classes[22m | MHProgressBridge[39m[0m
+[  86% ] [90m[1mupdate_scripts_classes[22m | MHBankruptcyDialog[39m[0m
+[  86% ] [90m[1mupdate_scripts_classes[22m | MHConfirmDeleteDialog[39m[0m
+[  87% ] [90m[1mupdate_scripts_classes[22m | MHModalScreen[39m[0m
+[  87% ] [90m[1mupdate_scripts_classes[22m | MHAchievementsScreen[39m[0m
+[  87% ] [90m[1mupdate_scripts_classes[22m | MHBuildScreen[39m[0m
+[  88% ] [90m[1mupdate_scripts_classes[22m | MHConsentScreen[39m[0m
+[  88% ] [90m[1mupdate_scripts_classes[22m | MHDailyScreen[39m[0m
+[  88% ] [90m[1mupdate_scripts_classes[22m | MHEditorScreen[39m[0m
+[  88% ] [90m[1mupdate_scripts_classes[22m | MHHudScreen[39m[0m
+[  89% ] [90m[1mupdate_scripts_classes[22m | MHLandScreen[39m[0m
+[  89% ] [90m[1mupdate_scripts_classes[22m | MHOnboardingScreen[39m[0m
+[  89% ] [90m[1mupdate_scripts_classes[22m | MHRatingScreen[39m[0m
+[  90% ] [90m[1mupdate_scripts_classes[22m | MHScoreScreen[39m[0m
+[  90% ] [90m[1mupdate_scripts_classes[22m | MHScreen[39m[0m
+[  90% ] [90m[1mupdate_scripts_classes[22m | MHSettingsScreen[39m[0m
+[  91% ] [90m[1mupdate_scripts_classes[22m | MHTokenStoreScreen[39m[0m
+[  91% ] [90m[1mupdate_scripts_classes[22m | MHTournamentScreen[39m[0m
+[  91% ] [90m[1mupdate_scripts_classes[22m | MHScrollBox[39m[0m
+[  91% ] [90m[1mupdate_scripts_classes[22m | MHTapButton[39m[0m
+[  92% ] [90m[1mupdate_scripts_classes[22m | MHTouchBridge[39m[0m
+[  92% ] [90m[1mupdate_scripts_classes[22m | MHUIKit[39m[0m
+[  92% ] [90m[1mupdate_scripts_classes[22m | MHAdvisor[39m[0m
+[  93% ] [90m[1mupdate_scripts_classes[22m | MHBuildInfo[39m[0m
+[  93% ] [90m[1mupdate_scripts_classes[22m | MHBuildMenuModel[39m[0m
+[  93% ] [90m[1mupdate_scripts_classes[22m | MHEditorTools[39m[0m
+[  93% ] [90m[1mupdate_scripts_classes[22m | MHFirstLaunchFlow[39m[0m
+[  94% ] [90m[1mupdate_scripts_classes[22m | MHFormat[39m[0m
+[  94% ] [90m[1mupdate_scripts_classes[22m | MHLauncher[39m[0m
+[  94% ] [90m[1mupdate_scripts_classes[22m | MHLayout[39m[0m
+[  95% ] [90m[1mupdate_scripts_classes[22m | MHLiveLayout[39m[0m
+[  95% ] [90m[1mupdate_scripts_classes[22m | MHOrientation[39m[0m
+[  95% ] [90m[1mupdate_scripts_classes[22m | MHRecoveryModel[39m[0m
+[  95% ] [90m[1mupdate_scripts_classes[22m | MHSafeArea[39m[0m
+[  96% ] [90m[1mupdate_scripts_classes[22m | MHScoreModel[39m[0m
+[  96% ] [90m[1mupdate_scripts_classes[22m | MHScreenFactory[39m[0m
+[  96% ] [90m[1mupdate_scripts_classes[22m | MHScreenIds[39m[0m
+[  97% ] [90m[1mupdate_scripts_classes[22m | MHScreenStack[39m[0m
+[  97% ] [90m[1mupdate_scripts_classes[22m | MHSpeedControl[39m[0m
+[  97% ] [90m[1mupdate_scripts_classes[22m | MHStrings[39m[0m
+[  97% ] [90m[1mupdate_scripts_classes[22m | MHTheme[39m[0m
+[  98% ] [90m[1mupdate_scripts_classes[22m | MHTokens[39m[0m
+[  98% ] [90m[1mupdate_scripts_classes[22m | MHUIContext[39m[0m
+[  98% ] [90m[1mupdate_scripts_classes[22m | MHUIGallery[39m[0m
+[  99% ] [90m[1mupdate_scripts_classes[22m | MHUISettings[39m[0m
+[  99% ] [90m[1mupdate_scripts_classes[22m | MHUIShell[39m[0m
+[92m[ DONE ][39m [1mupdate_scripts_classes[22m
+[0m
+[   0% ] [90m[1m_update_scan_actions[22m | Started Scanning actions... (3 steps)[39m[0m
+[   0% ] [90m[1m_update_scan_actions[22m | golfer_placeholder_tpose.obj[39m[0m
+[  25% ] [90m[1m_update_scan_actions[22m | golfer_placeholder.gltf[39m[0m
+[  50% ] [90m[1m_update_scan_actions[22m | icon.png[39m[0m
+[92m[ DONE ][39m [1m_update_scan_actions[22m
+[0m
+[   0% ] [90m[1mreimport[22m | Started (Re)Importing Assets (3 steps)[39m[0m
+[   0% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  25% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  50% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[   0% ] [90m[1mreimport[22m | Executing pre-reimport operations...[39m[0m
+[   0% ] [90m[1mreimport[22m | icon.png[39m[0m
+[  25% ] [90m[1mreimport[22m | golfer_placeholder_tpose.obj[39m[0m
+[  50% ] [90m[1mreimport[22m | golfer_placeholder.gltf[39m[0m
+[   0% ] [90m[1mimport[22m | Started Import Scene (104 steps)[39m[0m
+[   0% ] [90m[1mimport[22m | Importing Scene...[39m[0m
+[   1% ] [90m[1mimport[22m | Running Custom Script...[39m[0m
+[  99% ] [90m[1mimport[22m | Saving...[39m[0m
+[92m[ DONE ][39m [1mimport[22m
+[0m
+[  75% ] [90m[1mreimport[22m | Finalizing Asset Import...[39m[0m
+[92m[ DONE ][39m [1mreimport[22m
+[0m
+[   0% ] [90m[1mreimport[22m | Started (Re)Importing Assets (3 steps)[39m[0m
+[   0% ] [90m[1mreimport[22m | Executing post-reimport operations...[39m[0m
+[92m[ DONE ][39m [1mreimport[22m
+[0m
+[   0% ] [90m[1mloading_editor_layout[22m | Started Loading editor (5 steps)[39m[0m
+[   0% ] [90m[1mloading_editor_layout[22m | Loading editor layout...[39m[0m
+[  16% ] [90m[1mloading_editor_layout[22m | Loading docks...[39m[0m
+[92m[ DONE ][39m [1mloading_editor_layout[22m
+[0m
+cannot connect to daemon at tcp:5037: Connection refused
