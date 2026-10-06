@@ -21,7 +21,7 @@ func test_workshop_tier_maintains_equipment_condition() -> void:
 	maintained.add_unit("fairway_mower")
 	for _day: int in range(30):
 		neglected.on_day(0)
-		maintained.on_day(3)
+		maintained.on_day(3, 1000)
 	var nc: int = int((neglected.units[0] as Dictionary)["condition"])
 	var mc: int = int((maintained.units[0] as Dictionary)["condition"])
 	assert_bool(mc > nc).is_true()
@@ -60,3 +60,16 @@ func test_incompatible_operator_assignment_is_rejected() -> void:
 	var equipment: MHStaffEquipment = MHStaffEquipment.new()
 	var unit: Dictionary = equipment.add_unit("sprayer")
 	assert_bool(equipment.assign_unit(int(unit["serial"]), 7, MHStaffDefs.KIND_GROUNDS)).is_false()
+
+
+func test_broken_equipment_requires_technician_capacity() -> void:
+	var fleet: MHStaffEquipment = MHStaffEquipment.new()
+	fleet.add_unit("greens_mower")
+	var unit: Dictionary = fleet.units[0]
+	unit["condition"] = 100
+	unit["broken"] = true
+	fleet.on_day(3, 0)
+	assert_int(int(unit["condition"])).is_equal(100)
+	fleet.on_day(3, 1000)
+	assert_bool(int(unit["condition"]) > 100).is_true()
+	assert_bool(fleet.repair_cost_for_day() > 0).is_true()
