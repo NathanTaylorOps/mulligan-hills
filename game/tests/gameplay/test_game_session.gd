@@ -295,3 +295,27 @@ func test_management_intent_emits_changed_once() -> void:
 	var assigned: Dictionary = s.handle_intent(&"assign_staff", {"employee_serial": employee, "areas": [0]})
 	assert_bool(bool(assigned["ok"])).is_true()
 	assert_int(int(hits[0])).is_equal(2)
+
+
+func test_golfer_home_request_is_actionable_after_five_happy_visits() -> void:
+	var roster: MHGolferRoster = MHGolferRoster.new()
+	var golfer: Dictionary = roster.identity_for_admission(12345, 1, 0)
+	var id: int = int(golfer["id"])
+	for day: int in range(5):
+		roster.record_visit(id, day, MHGolferRoster.HAPPY_SATISFACTION, "Happy round", 0)
+	var candidates: Array = roster.home_candidates()
+	assert_int(candidates.size()).is_equal(1)
+	assert_int(int((candidates[0] as Dictionary)["id"])).is_equal(id)
+	assert_bool(roster.assign_home(id, 3)).is_true()
+	assert_int(roster.home_resident_count()).is_equal(1)
+
+
+func test_golfer_home_request_streak_resets_on_unhappy_visit() -> void:
+	var roster: MHGolferRoster = MHGolferRoster.new()
+	var golfer: Dictionary = roster.identity_for_admission(12345, 2, 0)
+	var id: int = int(golfer["id"])
+	for day: int in range(4):
+		roster.record_visit(id, day, 80, "Happy round", 0)
+	roster.record_visit(id, 4, 40, "Bad round", 0)
+	roster.record_visit(id, 5, 80, "Happy again", 0)
+	assert_int(roster.home_candidates().size()).is_equal(0)
