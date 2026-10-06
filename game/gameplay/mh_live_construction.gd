@@ -753,6 +753,7 @@ func respawn_player_cart() -> bool:
 	_player_cart.sunk.connect(func() -> void: _status.text = "Cart sunk — respawn it at the clubhouse.")
 	_player_cart.tipped.connect(func() -> void: _status.text = "Cart rolled over.")
 	_player_cart.clubs_lost.connect(func(count: int) -> void: _status.text = "%d clubs fell off the cart." % count)
+	_player_cart.green_violation.connect(func() -> void: _status.text = "You drove onto a green — the grounds crew will not be happy.")
 	return true
 
 
