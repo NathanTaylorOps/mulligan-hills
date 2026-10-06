@@ -16,7 +16,9 @@ var land: MHLandModel
 var bridge: MHProgressBridge
 var demo: bool = true
 var club_name: String = "Mulligan Hills"
-var staff: int = 0 # No staffing rules exist yet. Do not invent employees to unlock tournaments.
+var staff: int = 0
+var maintenance_workers: Array = [] # {id, level}; authoritative operations staff, bounded below.
+const MAX_MAINTENANCE_WORKERS: int = 24
 var save_secret: int = 0
 var rating_epoch: int = 0
 var unix_now: int = 0
@@ -136,10 +138,46 @@ func pace_score() -> int:
 	return 0
 
 
+
+func set_maintenance_workers(levels: Array) -> bool:
+	if levels.size() > MAX_MAINTENANCE_WORKERS:
+		return false
+	var restored: Array = []
+	for i: int in range(levels.size()):
+		if not MHRValidate.is_int_value(levels[i]):
+			return false
+		var level: int = int(levels[i])
+		if level < 1 or level > 5:
+			return false
+		restored.append({"id": i, "level": level})
+	maintenance_workers = restored
+	staff = maintenance_workers.size()
+	changed.emit()
+	return true
+
+
+func maintenance_quality() -> int:
+	# Worker capability, maintenance facility, and equipment/workshop development all matter.
+	# Missing any leg keeps quality low instead of allowing one upgrade to substitute for operations.
+	var worker_score: int = 0
+	if not maintenance_workers.is_empty():
+		var total: int = 0
+		for worker_v: Variant in maintenance_workers:
+			total += int((worker_v as Dictionary).get("level", 1))
+		worker_score = MHRMath.rdiv(total * 20, maintenance_workers.size())
+	var tiers_now: Dictionary = tiers()
+	var maintenance_tier: int = int(tiers_now.get("maintenance", 0))
+	var workshop_tier: int = maxi(int(tiers_now.get("equipment_shed", 0)), int(tiers_now.get("maintenance_workshop", 0)))
+	var facility_score: int = clampi(maintenance_tier * 25, 0, 100)
+	var equipment_score: int = clampi(workshop_tier * 25, 0, 100)
+	return clampi(MHRMath.rdiv(worker_score * 5 + facility_score * 3 + equipment_score * 2, 10), 0, 100)
+
+
+
 func _club_view() -> Dictionary:
 	var g: MHGateView = gate_view()
 	return {"holes": g.holes, "avg_hole_score": g.avg_hole_score, "pace_score": pace_score(),
-		"staff": staff, "tiers": g.tiers}
+		"staff": staff, "maintenance_quality": maintenance_quality(), "tiers": g.tiers}
 
 
 func _sync_progress() -> void:
@@ -582,7 +620,7 @@ func _resolve_tournament() -> void:
 			yards += int(r["L"])
 	var result: Dictionary = bridge.resolve_tournament({"event_seed": MHTournamentSim.event_seed(
 		save_secret, bridge.tournaments.event_id(), 0), "pace_score": pace_score(),
-		"fairness": fair, "maintenance_tier": int(tiers().get("maintenance", 0)),
+		"fairness": fair, "maintenance_tier": int(tiers().get("maintenance", 0)), "maintenance_quality": maintenance_quality(),
 		"tiers": tiers(), "pars": pars, "total_yards": yards})
 	if not bool(result.get("ok", false)):
 		return
