@@ -1,0 +1,2505 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<testsuites id="2026-10-06" name="report_1" tests="1147" failures="0" skipped="0" flaky="0" time="0.000">
+	<testsuite id="0" name="test_animation_build" package="characters/tests" timestamp="2026-10-06T03:19:40" hostname="localhost" tests="7" failures="0" errors="0" skipped="0" flaky="0" time="0.050">
+		<testcase name="test_expand_pose_mirrors_symmetric_keys" classname="test_animation_build" time="0.004">
+		</testcase>
+		<testcase name="test_expand_pose_side_key_overrides_symmetric" classname="test_animation_build" time="0.004">
+		</testcase>
+		<testcase name="test_swap_sides_is_involution" classname="test_animation_build" time="0.004">
+		</testcase>
+		<testcase name="test_library_has_expected_clips_and_lengths" classname="test_animation_build" time="0.005">
+		</testcase>
+		<testcase name="test_every_track_targets_the_skeleton_and_a_humanoid_bone" classname="test_animation_build" time="0.006">
+		</testcase>
+		<testcase name="test_looping_clips_end_where_they_start" classname="test_animation_build" time="0.004">
+		</testcase>
+		<testcase name="test_impact_time_is_inside_clip" classname="test_animation_build" time="0.003">
+		</testcase>
+	</testsuite>
+	<testsuite id="1" name="test_daily_challenge" package="tests/challenges" timestamp="2026-10-06T03:19:40" hostname="localhost" tests="19" failures="0" errors="0" skipped="0" flaky="0" time="0.246">
+		<testcase name="test_shipped_data_loads" classname="test_daily_challenge" time="0.005">
+		</testcase>
+		<testcase name="test_unloaded_generates_nothing" classname="test_daily_challenge" time="0.004">
+		</testcase>
+		<testcase name="test_golden_day_0" classname="test_daily_challenge" time="0.004">
+		</testcase>
+		<testcase name="test_golden_days_1_and_3" classname="test_daily_challenge" time="0.005">
+		</testcase>
+		<testcase name="test_golden_current_era_days" classname="test_daily_challenge" time="0.005">
+		</testcase>
+		<testcase name="test_same_day_same_challenge_every_time" classname="test_daily_challenge" time="0.005">
+		</testcase>
+		<testcase name="test_difficulty_and_template_mix_over_400_days" classname="test_daily_challenge" time="0.013">
+		</testcase>
+		<testcase name="test_thresholds_stay_between_the_pair_ends" classname="test_daily_challenge" time="0.059">
+		</testcase>
+		<testcase name="test_hard_is_no_easier_than_easy" classname="test_daily_challenge" time="0.050">
+		</testcase>
+		<testcase name="test_sim_seed_is_the_public_daily_seed" classname="test_daily_challenge" time="0.004">
+		</testcase>
+		<testcase name="test_kill_switch_stops_generation" classname="test_daily_challenge" time="0.005">
+		</testcase>
+		<testcase name="test_kill_switch_reader_semantics" classname="test_daily_challenge" time="0.004">
+		</testcase>
+		<testcase name="test_day_number_and_rollover" classname="test_daily_challenge" time="0.004">
+		</testcase>
+		<testcase name="test_axes_from_rating" classname="test_daily_challenge" time="0.004">
+		</testcase>
+		<testcase name="test_evaluate_all_met" classname="test_daily_challenge" time="0.004">
+		</testcase>
+		<testcase name="test_evaluate_reports_each_miss" classname="test_daily_challenge" time="0.005">
+		</testcase>
+		<testcase name="test_evaluate_axis_max_min_length_and_min_score" classname="test_daily_challenge" time="0.005">
+		</testcase>
+		<testcase name="test_validation_rejects_bad_data" classname="test_daily_challenge" time="0.005">
+		</testcase>
+		<testcase name="test_game_copy_equals_docs_copy" classname="test_daily_challenge" time="0.004">
+		</testcase>
+	</testsuite>
+	<testsuite id="2" name="test_daily_state" package="tests/challenges" timestamp="2026-10-06T03:19:40" hostname="localhost" tests="13" failures="0" errors="0" skipped="0" flaky="0" time="0.087">
+		<testcase name="test_defaults_match_the_data_file" classname="test_daily_state" time="0.005">
+		</testcase>
+		<testcase name="test_three_attempts_per_day" classname="test_daily_state" time="0.004">
+		</testcase>
+		<testcase name="test_new_day_resets_attempts" classname="test_daily_state" time="0.004">
+		</testcase>
+		<testcase name="test_clock_going_back_is_refused" classname="test_daily_state" time="0.004">
+		</testcase>
+		<testcase name="test_counters_count_days_not_attempts" classname="test_daily_state" time="0.004">
+		</testcase>
+		<testcase name="test_best_score_uses_fairness_to_break_ties" classname="test_daily_state" time="0.004">
+		</testcase>
+		<testcase name="test_scores_are_clamped" classname="test_daily_state" time="0.004">
+		</testcase>
+		<testcase name="test_board_is_sorted_and_capped" classname="test_daily_state" time="0.004">
+		</testcase>
+		<testcase name="test_board_ties_prefer_the_earlier_day" classname="test_daily_state" time="0.004">
+		</testcase>
+		<testcase name="test_history_is_capped" classname="test_daily_state" time="0.004">
+		</testcase>
+		<testcase name="test_round_trip_and_json_round_trip" classname="test_daily_state" time="0.004">
+		</testcase>
+		<testcase name="test_bad_data_is_rejected" classname="test_daily_state" time="0.003">
+		</testcase>
+		<testcase name="test_save_block_round_trip_has_no_version_tag" classname="test_daily_state" time="0.004">
+		</testcase>
+	</testsuite>
+	<testsuite id="3" name="test_golfer_meshes" package="tests/art" timestamp="2026-10-06T03:19:40" hostname="localhost" tests="14" failures="0" errors="0" skipped="0" flaky="0" time="0.150">
+		<testcase name="test_budgets_are_descending_and_cover_every_lod" classname="test_golfer_meshes" time="0.004">
+		</testcase>
+		<testcase name="test_every_look_stays_inside_the_triangle_budget" classname="test_golfer_meshes" time="0.033">
+		</testcase>
+		<testcase name="test_lods_get_cheaper" classname="test_golfer_meshes" time="0.011">
+		</testcase>
+		<testcase name="test_posed_mesh_triangles_equal_the_sum_of_parts" classname="test_golfer_meshes" time="0.006">
+		</testcase>
+		<testcase name="test_far_lod_has_no_club_and_near_lods_have_every_part" classname="test_golfer_meshes" time="0.005">
+		</testcase>
+		<testcase name="test_same_look_and_pose_give_identical_geometry" classname="test_golfer_meshes" time="0.012">
+		</testcase>
+		<testcase name="test_different_poses_and_looks_give_different_geometry" classname="test_golfer_meshes" time="0.006">
+		</testcase>
+		<testcase name="test_looks_are_deterministic_and_varied" classname="test_golfer_meshes" time="0.006">
+		</testcase>
+		<testcase name="test_standing_golfer_has_realistic_height_and_stands_on_the_ground" classname="test_golfer_meshes" time="0.013">
+		</testcase>
+		<testcase name="test_rest_pose_ankles_are_on_the_ground" classname="test_golfer_meshes" time="0.004">
+		</testcase>
+		<testcase name="test_every_joint_has_a_known_parent_listed_before_it" classname="test_golfer_meshes" time="0.003">
+		</testcase>
+		<testcase name="test_rotation_sign_conventions" classname="test_golfer_meshes" time="0.003">
+		</testcase>
+		<testcase name="test_club_scale_changes_only_the_club_length" classname="test_golfer_meshes" time="0.003">
+		</testcase>
+		<testcase name="test_hips_position_shifts_the_whole_body" classname="test_golfer_meshes" time="0.004">
+		</testcase>
+	</testsuite>
+	<testsuite id="4" name="test_building_gallery" package="tests/art" timestamp="2026-10-06T03:19:40" hostname="localhost" tests="3" failures="0" errors="0" skipped="0" flaky="0" time="0.240">
+		<testcase name="test_gallery_builds_five_tiers_for_every_building_and_spec" classname="test_building_gallery" time="0.197">
+		</testcase>
+		<testcase name="test_gallery_select_wraps" classname="test_building_gallery" time="0.026">
+		</testcase>
+		<testcase name="test_scene_file_exists" classname="test_building_gallery" time="0.005">
+		</testcase>
+	</testsuite>
+	<testsuite id="5" name="test_gallery_smoke" package="tests/art" timestamp="2026-10-06T03:19:41" hostname="localhost" tests="7" failures="0" errors="0" skipped="0" flaky="0" time="0.216">
+		<testcase name="test_scene_file_loads_and_carries_the_script" classname="test_gallery_smoke" time="0.004">
+		</testcase>
+		<testcase name="test_every_category_builds_at_every_lod_mode" classname="test_gallery_smoke" time="0.113">
+		</testcase>
+		<testcase name="test_rebuilding_replaces_the_content_instead_of_stacking_it" classname="test_gallery_smoke" time="0.010">
+		</testcase>
+		<testcase name="test_all_lods_mode_shows_three_times_the_rows" classname="test_gallery_smoke" time="0.008">
+		</testcase>
+		<testcase name="test_trees_page_triangles_match_the_meshes_shown" classname="test_gallery_smoke" time="0.015">
+		</testcase>
+		<testcase name="test_stress_page_places_240_trees_in_a_few_multimeshes" classname="test_gallery_smoke" time="0.028">
+		</testcase>
+		<testcase name="test_golfer_page_has_animated_and_baked_rows" classname="test_gallery_smoke" time="0.016">
+		</testcase>
+	</testsuite>
+	<testsuite id="6" name="test_building_theme" package="tests/art" timestamp="2026-10-06T03:19:41" hostname="localhost" tests="6" failures="0" errors="0" skipped="0" flaky="0" time="0.043">
+		<testcase name="test_theme_is_deterministic_and_opaque" classname="test_building_theme" time="0.006">
+		</testcase>
+		<testcase name="test_roof_reads_against_walls" classname="test_building_theme" time="0.005">
+		</testcase>
+		<testcase name="test_spec_b_changes_colours" classname="test_building_theme" time="0.004">
+		</testcase>
+		<testcase name="test_unknown_id_theme_still_valid" classname="test_building_theme" time="0.004">
+		</testcase>
+		<testcase name="test_part_triangle_costs" classname="test_building_theme" time="0.005">
+		</testcase>
+		<testcase name="test_push_pop_restores_frame" classname="test_building_theme" time="0.004">
+		</testcase>
+	</testsuite>
+	<testsuite id="7" name="test_golfer_poses" package="tests/art" timestamp="2026-10-06T03:19:41" hostname="localhost" tests="12" failures="0" errors="0" skipped="0" flaky="0" time="0.099">
+		<testcase name="test_clips_are_well_formed" classname="test_golfer_poses" time="0.004">
+		</testcase>
+		<testcase name="test_only_known_joints_are_used" classname="test_golfer_poses" time="0.006">
+		</testcase>
+		<testcase name="test_looping_clips_close_their_loop" classname="test_golfer_poses" time="0.004">
+		</testcase>
+		<testcase name="test_one_shot_clips_clamp" classname="test_golfer_poses" time="0.004">
+		</testcase>
+		<testcase name="test_sample_hits_keys_and_blends_between_them" classname="test_golfer_poses" time="0.003">
+		</testcase>
+		<testcase name="test_blend_handles_missing_joints_and_club_scale" classname="test_golfer_poses" time="0.004">
+		</testcase>
+		<testcase name="test_impact_times_sit_on_a_key_inside_the_clip" classname="test_golfer_poses" time="0.004">
+		</testcase>
+		<testcase name="test_club_head_is_on_the_ball_at_address_and_impact" classname="test_golfer_poses" time="0.004">
+		</testcase>
+		<testcase name="test_two_hand_grip_holds_at_every_key_and_most_samples" classname="test_golfer_poses" time="0.008">
+		</testcase>
+		<testcase name="test_feet_stay_on_the_ground_in_every_clip" classname="test_golfer_poses" time="0.010">
+		</testcase>
+		<testcase name="test_club_head_never_goes_through_the_ground" classname="test_golfer_poses" time="0.009">
+		</testcase>
+		<testcase name="test_swing_turns_the_chest_away_then_through" classname="test_golfer_poses" time="0.004">
+		</testcase>
+	</testsuite>
+	<testsuite id="8" name="test_mesh_builder" package="tests/art" timestamp="2026-10-06T03:19:41" hostname="localhost" tests="17" failures="0" errors="0" skipped="0" flaky="0" time="0.110">
+		<testcase name="test_box_is_12_triangles_with_outward_clockwise_faces" classname="test_mesh_builder" time="0.004">
+		</testcase>
+		<testcase name="test_box_respects_centre_and_size" classname="test_mesh_builder" time="0.004">
+		</testcase>
+		<testcase name="test_blob_count_formula_and_outward_faces" classname="test_mesh_builder" time="0.005">
+		</testcase>
+		<testcase name="test_blob_jitter_is_deterministic_and_seed_dependent" classname="test_mesh_builder" time="0.004">
+		</testcase>
+		<testcase name="test_frustum_triangle_counts" classname="test_mesh_builder" time="0.004">
+		</testcase>
+		<testcase name="test_capped_frustum_faces_point_away_from_axis_centre" classname="test_mesh_builder" time="0.004">
+		</testcase>
+		<testcase name="test_tube_runs_between_its_end_points" classname="test_mesh_builder" time="0.004">
+		</testcase>
+		<testcase name="test_tube_restores_the_transform" classname="test_mesh_builder" time="0.003">
+		</testcase>
+		<testcase name="test_two_sided_helpers_double_the_triangles" classname="test_mesh_builder" time="0.004">
+		</testcase>
+		<testcase name="test_degenerate_triangles_are_dropped" classname="test_mesh_builder" time="0.004">
+		</testcase>
+		<testcase name="test_disc_and_blob_shadow_counts" classname="test_mesh_builder" time="0.004">
+		</testcase>
+		<testcase name="test_transform_moves_geometry" classname="test_mesh_builder" time="0.003">
+		</testcase>
+		<testcase name="test_non_uniform_scale_keeps_outward_normals" classname="test_mesh_builder" time="0.003">
+		</testcase>
+		<testcase name="test_mesh_output_is_one_indexed_surface_and_hash_matches" classname="test_mesh_builder" time="0.004">
+		</testcase>
+		<testcase name="test_empty_builder_gives_empty_mesh" classname="test_mesh_builder" time="0.004">
+		</testcase>
+		<testcase name="test_basis_y_along_is_orthonormal_for_any_direction" classname="test_mesh_builder" time="0.004">
+		</testcase>
+		<testcase name="test_materials_and_instances_build" classname="test_mesh_builder" time="0.004">
+		</testcase>
+	</testsuite>
+	<testsuite id="9" name="test_prop_meshes" package="tests/art" timestamp="2026-10-06T03:19:41" hostname="localhost" tests="13" failures="0" errors="0" skipped="0" flaky="0" time="0.199">
+		<testcase name="test_every_kind_has_budget_and_height" classname="test_prop_meshes" time="0.004">
+		</testcase>
+		<testcase name="test_triangle_counts_stay_inside_budget" classname="test_prop_meshes" time="0.011">
+		</testcase>
+		<testcase name="test_far_lod_is_cheaper_than_near" classname="test_prop_meshes" time="0.008">
+		</testcase>
+		<testcase name="test_same_inputs_give_identical_geometry" classname="test_prop_meshes" time="0.032">
+		</testcase>
+		<testcase name="test_variants_differ_and_wrap" classname="test_prop_meshes" time="0.017">
+		</testcase>
+		<testcase name="test_lod_is_clamped_and_unknown_kind_is_empty" classname="test_prop_meshes" time="0.005">
+		</testcase>
+		<testcase name="test_sizes_are_plausible" classname="test_prop_meshes" time="0.011">
+		</testcase>
+		<testcase name="test_cart_dimensions_and_front" classname="test_prop_meshes" time="0.004">
+		</testcase>
+		<testcase name="test_fence_section_spans_exactly_its_length_along_x" classname="test_prop_meshes" time="0.004">
+		</testcase>
+		<testcase name="test_sign_label_area_sits_on_the_board_face" classname="test_prop_meshes" time="0.004">
+		</testcase>
+		<testcase name="test_flag_variants_use_distinct_flag_colours" classname="test_prop_meshes" time="0.004">
+		</testcase>
+		<testcase name="test_vertices_and_normals_are_valid" classname="test_prop_meshes" time="0.050">
+		</testcase>
+		<testcase name="test_print_hashes_for_golden_values" classname="test_prop_meshes" time="0.011">
+		</testcase>
+	</testsuite>
+	<testsuite id="10" name="test_art_rng" package="tests/art" timestamp="2026-10-06T03:19:41" hostname="localhost" tests="8" failures="0" errors="0" skipped="0" flaky="0" time="0.078">
+		<testcase name="test_mul32_wraps_like_unsigned_32_bit" classname="test_art_rng" time="0.004">
+		</testcase>
+		<testcase name="test_hash32_golden" classname="test_art_rng" time="0.004">
+		</testcase>
+		<testcase name="test_hash2_golden_and_order_dependence" classname="test_art_rng" time="0.004">
+		</testcase>
+		<testcase name="test_sequence_golden" classname="test_art_rng" time="0.004">
+		</testcase>
+		<testcase name="test_range_helpers_golden" classname="test_art_rng" time="0.004">
+		</testcase>
+		<testcase name="test_noise2_golden_and_range" classname="test_art_rng" time="0.006">
+		</testcase>
+		<testcase name="test_ranges_stay_inside_bounds" classname="test_art_rng" time="0.026">
+		</testcase>
+		<testcase name="test_same_seed_same_sequence_and_different_seed_differs" classname="test_art_rng" time="0.004">
+		</testcase>
+	</testsuite>
+	<testsuite id="11" name="test_golfer_figure" package="tests/art" timestamp="2026-10-06T03:19:41" hostname="localhost" tests="10" failures="0" errors="0" skipped="0" flaky="0" time="0.081">
+		<testcase name="test_setup_builds_every_joint_and_one_mesh_per_part" classname="test_golfer_figure" time="0.006">
+		</testcase>
+		<testcase name="test_setup_twice_replaces_the_tree" classname="test_golfer_figure" time="0.006">
+		</testcase>
+		<testcase name="test_figure_scale_follows_look_height" classname="test_golfer_figure" time="0.005">
+		</testcase>
+		<testcase name="test_pose_application_matches_forward_kinematics" classname="test_golfer_figure" time="0.005">
+		</testcase>
+		<testcase name="test_play_starts_at_the_first_key" classname="test_golfer_figure" time="0.005">
+		</testcase>
+		<testcase name="test_swing_fires_impact_once_and_then_finishes" classname="test_golfer_figure" time="0.005">
+		</testcase>
+		<testcase name="test_replay_resets_impact" classname="test_golfer_figure" time="0.005">
+		</testcase>
+		<testcase name="test_looping_clip_wraps_and_keeps_playing" classname="test_golfer_figure" time="0.005">
+		</testcase>
+		<testcase name="test_speed_scales_playback_and_stop_freezes" classname="test_golfer_figure" time="0.005">
+		</testcase>
+		<testcase name="test_play_without_restart_keeps_the_running_clip" classname="test_golfer_figure" time="0.005">
+		</testcase>
+	</testsuite>
+	<testsuite id="12" name="test_nature_meshes" package="tests/art" timestamp="2026-10-06T03:19:42" hostname="localhost" tests="14" failures="0" errors="0" skipped="0" flaky="0" time="0.395">
+		<testcase name="test_every_kind_has_budget_and_height_entries" classname="test_nature_meshes" time="0.005">
+		</testcase>
+		<testcase name="test_triangle_counts_stay_inside_budget" classname="test_nature_meshes" time="0.026">
+		</testcase>
+		<testcase name="test_tree_lod0_is_under_400_and_budgets_are_consistent" classname="test_nature_meshes" time="0.009">
+		</testcase>
+		<testcase name="test_lods_get_cheaper" classname="test_nature_meshes" time="0.017">
+		</testcase>
+		<testcase name="test_same_inputs_give_identical_geometry" classname="test_nature_meshes" time="0.068">
+		</testcase>
+		<testcase name="test_built_mesh_has_the_same_triangle_count_as_the_builder" classname="test_nature_meshes" time="0.004">
+		</testcase>
+		<testcase name="test_variants_differ" classname="test_nature_meshes" time="0.025">
+		</testcase>
+		<testcase name="test_variant_numbers_wrap_modulo_1024_including_negatives" classname="test_nature_meshes" time="0.006">
+		</testcase>
+		<testcase name="test_lod_argument_is_clamped" classname="test_nature_meshes" time="0.005">
+		</testcase>
+		<testcase name="test_unknown_kind_is_empty" classname="test_nature_meshes" time="0.004">
+		</testcase>
+		<testcase name="test_sizes_are_plausible_and_origin_is_near_the_ground" classname="test_nature_meshes" time="0.023">
+		</testcase>
+		<testcase name="test_vertices_normals_and_colours_are_valid" classname="test_nature_meshes" time="0.143">
+		</testcase>
+		<testcase name="test_flower_variants_use_the_palette_flower_colours" classname="test_nature_meshes" time="0.004">
+		</testcase>
+		<testcase name="test_print_hashes_for_golden_values" classname="test_nature_meshes" time="0.018">
+		</testcase>
+	</testsuite>
+	<testsuite id="13" name="test_building_meshes" package="tests/art" timestamp="2026-10-06T03:19:42" hostname="localhost" tests="17" failures="0" errors="0" skipped="0" flaky="0" time="2.706">
+		<testcase name="test_ids_match_catalogue_in_order" classname="test_building_meshes" time="0.008">
+		</testcase>
+		<testcase name="test_every_building_tier_spec_builds_a_mesh" classname="test_building_meshes" time="0.082">
+		</testcase>
+		<testcase name="test_tier5_is_under_3000_triangles" classname="test_building_meshes" time="0.030">
+		</testcase>
+		<testcase name="test_per_tier_budgets" classname="test_building_meshes" time="0.065">
+		</testcase>
+		<testcase name="test_budget_table_is_increasing_and_under_3000" classname="test_building_meshes" time="0.006">
+		</testcase>
+		<testcase name="test_triangles_strictly_increase_with_tier" classname="test_building_meshes" time="0.065">
+		</testcase>
+		<testcase name="test_bounds_never_shrink_with_tier" classname="test_building_meshes" time="0.086">
+		</testcase>
+		<testcase name="test_top_tier_is_clearly_bigger_than_tier_1" classname="test_building_meshes" time="0.037">
+		</testcase>
+		<testcase name="test_sizes_are_sane" classname="test_building_meshes" time="0.046">
+		</testcase>
+		<testcase name="test_deterministic_same_inputs_same_geometry" classname="test_building_meshes" time="0.406">
+		</testcase>
+		<testcase name="test_mesh_is_stable_between_builds" classname="test_building_meshes" time="0.010">
+		</testcase>
+		<testcase name="test_every_tier_looks_different" classname="test_building_meshes" time="0.112">
+		</testcase>
+		<testcase name="test_every_building_looks_different" classname="test_building_meshes" time="0.050">
+		</testcase>
+		<testcase name="test_spec_only_matters_from_tier_3_and_never_changes_triangle_count" classname="test_building_meshes" time="0.279">
+		</testcase>
+		<testcase name="test_mesh_arrays_are_consistent_and_opaque" classname="test_building_meshes" time="1.320">
+		</testcase>
+		<testcase name="test_unknown_id_gives_empty_mesh_and_tier_is_clamped" classname="test_building_meshes" time="0.012">
+		</testcase>
+		<testcase name="test_total_triangles_for_a_full_course_is_phone_friendly" classname="test_building_meshes" time="0.020">
+		</testcase>
+	</testsuite>
+	<testsuite id="14" name="test_palette" package="tests/art" timestamp="2026-10-06T03:19:45" hostname="localhost" tests="8" failures="0" errors="0" skipped="0" flaky="0" time="0.103">
+		<testcase name="test_contrast_extremes" classname="test_palette" time="0.008">
+		</testcase>
+		<testcase name="test_text_on_picks_readable_text" classname="test_palette" time="0.008">
+		</testcase>
+		<testcase name="test_sign_border_and_face_are_readable" classname="test_palette" time="0.008">
+		</testcase>
+		<testcase name="test_course_accents_stand_out_on_grass" classname="test_palette" time="0.009">
+		</testcase>
+		<testcase name="test_shade_keeps_alpha_and_clamps" classname="test_palette" time="0.009">
+		</testcase>
+		<testcase name="test_pick_wraps_in_both_directions" classname="test_palette" time="0.009">
+		</testcase>
+		<testcase name="test_variety_lists_are_populated" classname="test_palette" time="0.008">
+		</testcase>
+		<testcase name="test_every_list_colour_is_a_valid_srgb_value" classname="test_palette" time="0.010">
+		</testcase>
+	</testsuite>
+	<testsuite id="15" name="test_staff_roster" package="tests/staff" timestamp="2026-10-06T03:19:45" hostname="localhost" tests="14" failures="0" errors="0" skipped="0" flaky="0" time="0.252">
+		<testcase name="test_create_needs_loaded_defs" classname="test_staff_roster" time="0.009">
+		</testcase>
+		<testcase name="test_hire_refusals_in_order" classname="test_staff_roster" time="0.013">
+		</testcase>
+		<testcase name="test_cash_needs_cost_plus_reserve" classname="test_staff_roster" time="0.012">
+		</testcase>
+		<testcase name="test_hire_returns_cost_and_serials_rise" classname="test_staff_roster" time="0.015">
+		</testcase>
+		<testcase name="test_roster_full_uses_the_data_limit" classname="test_staff_roster" time="0.014">
+		</testcase>
+		<testcase name="test_fire" classname="test_staff_roster" time="0.012">
+		</testcase>
+		<testcase name="test_assign_rules_and_no_change_on_error" classname="test_staff_roster" time="0.012">
+		</testcase>
+		<testcase name="test_auto_assign_spreads_and_is_deterministic" classname="test_staff_roster" time="0.016">
+		</testcase>
+		<testcase name="test_auto_assign_with_nothing_owned" classname="test_staff_roster" time="0.015">
+		</testcase>
+		<testcase name="test_wages_follow_grade_and_split_exactly" classname="test_staff_roster" time="0.015">
+		</testcase>
+		<testcase name="test_pay_hour_counts_in_stats_and_hour_wage_does_not" classname="test_staff_roster" time="0.012">
+		</testcase>
+		<testcase name="test_wage_split_matches_the_economy_split" classname="test_staff_roster" time="0.011">
+		</testcase>
+		<testcase name="test_gate_count_needs_tenure_and_building" classname="test_staff_roster" time="0.015">
+		</testcase>
+		<testcase name="test_legacy_counts_sum_to_head_count" classname="test_staff_roster" time="0.015">
+		</testcase>
+	</testsuite>
+	<testsuite id="16" name="test_staff_effects" package="tests/staff" timestamp="2026-10-06T03:19:45" hostname="localhost" tests="8" failures="0" errors="0" skipped="0" flaky="0" time="0.155">
+		<testcase name="test_fresh_club_demand_and_overlay" classname="test_staff_effects" time="0.012">
+		</testcase>
+		<testcase name="test_service_term_appears_with_a_station_building" classname="test_staff_effects" time="0.013">
+		</testcase>
+		<testcase name="test_floor_division_for_negative_terms" classname="test_staff_effects" time="0.012">
+		</testcase>
+		<testcase name="test_demand_is_clamped" classname="test_staff_effects" time="0.015">
+		</testcase>
+		<testcase name="test_pace_points_follow_grades_and_caps" classname="test_staff_effects" time="0.016">
+		</testcase>
+		<testcase name="test_report_collects_the_numbers" classname="test_staff_effects" time="0.013">
+		</testcase>
+		<testcase name="test_tournament_gate_row_uses_the_gate_head_count" classname="test_staff_effects" time="0.014">
+		</testcase>
+		<testcase name="test_economy_hooks_wage_and_demand" classname="test_staff_effects" time="0.016">
+		</testcase>
+	</testsuite>
+	<testsuite id="17" name="test_staff_golden" package="tests/staff" timestamp="2026-10-06T03:19:45" hostname="localhost" tests="7" failures="0" errors="0" skipped="0" flaky="0" time="0.761">
+		<testcase name="test_golden_file_loads" classname="test_staff_golden" time="0.083">
+		</testcase>
+		<testcase name="test_golden_split_matches" classname="test_staff_golden" time="0.075">
+		</testcase>
+		<testcase name="test_scenario_starter" classname="test_staff_golden" time="0.099">
+		</testcase>
+		<testcase name="test_scenario_neglect" classname="test_staff_golden" time="0.094">
+		</testcase>
+		<testcase name="test_scenario_personal" classname="test_staff_golden" time="0.088">
+		</testcase>
+		<testcase name="test_scenario_rangers_handled_and_unhandled_incidents" classname="test_staff_golden" time="0.111">
+		</testcase>
+		<testcase name="test_scenario_late_full_roster_grades_and_sightings" classname="test_staff_golden" time="0.182">
+		</testcase>
+	</testsuite>
+	<testsuite id="18" name="test_staff_save" package="tests/staff" timestamp="2026-10-06T03:19:46" hostname="localhost" tests="11" failures="0" errors="0" skipped="0" flaky="0" time="0.345">
+		<testcase name="test_block_shape_matches_the_schema_keys" classname="test_staff_save" time="0.017">
+		</testcase>
+		<testcase name="test_round_trip_through_json_text" classname="test_staff_save" time="0.021">
+		</testcase>
+		<testcase name="test_loading_over_a_used_state_replaces_everything" classname="test_staff_save" time="0.018">
+		</testcase>
+		<testcase name="test_mid_day_save_keeps_the_daily_personal_limits" classname="test_staff_save" time="0.014">
+		</testcase>
+		<testcase name="test_rejects_bad_blocks" classname="test_staff_save" time="0.118">
+		</testcase>
+		<testcase name="test_unmodified_block_is_accepted_by_the_helper" classname="test_staff_save" time="0.017">
+		</testcase>
+		<testcase name="test_too_many_employees_rejected" classname="test_staff_save" time="0.014">
+		</testcase>
+		<testcase name="test_legacy_counts_fit_the_existing_club_staff_block" classname="test_staff_save" time="0.017">
+		</testcase>
+		<testcase name="test_save_document_validator_accepts_the_roster_block" classname="test_staff_save" time="0.019">
+		</testcase>
+		<testcase name="test_save_document_validator_rejects_a_malformed_roster_block" classname="test_staff_save" time="0.023">
+		</testcase>
+		<testcase name="test_a_save_without_a_roster_is_the_fresh_default" classname="test_staff_save" time="0.013">
+		</testcase>
+	</testsuite>
+	<testsuite id="19" name="test_staff_defs" package="tests/staff" timestamp="2026-10-06T03:19:46" hostname="localhost" tests="11" failures="0" errors="0" skipped="0" flaky="0" time="0.235">
+		<testcase name="test_shipped_data_loads" classname="test_staff_defs" time="0.010">
+		</testcase>
+		<testcase name="test_roles_cover_every_building" classname="test_staff_defs" time="0.013">
+		</testcase>
+		<testcase name="test_grid_and_decay_match_the_land_layout" classname="test_staff_defs" time="0.015">
+		</testcase>
+		<testcase name="test_grades_by_tenure" classname="test_staff_defs" time="0.010">
+		</testcase>
+		<testcase name="test_golden_wages_costs_and_caps" classname="test_staff_defs" time="0.076">
+		</testcase>
+		<testcase name="test_tournament_staff_gate_is_reachable_with_required_buildings_only" classname="test_staff_defs" time="0.010">
+		</testcase>
+		<testcase name="test_max_head_count_fits_the_roster_limit" classname="test_staff_defs" time="0.009">
+		</testcase>
+		<testcase name="test_rejects_bad_data" classname="test_staff_defs" time="0.011">
+		</testcase>
+		<testcase name="test_accessors_return_copies" classname="test_staff_defs" time="0.010">
+		</testcase>
+		<testcase name="test_game_copy_equals_docs_copy" classname="test_staff_defs" time="0.009">
+		</testcase>
+		<testcase name="test_draft_strings_cover_every_name_key" classname="test_staff_defs" time="0.011">
+		</testcase>
+	</testsuite>
+	<testsuite id="20" name="test_staff_grounds" package="tests/staff" timestamp="2026-10-06T03:19:46" hostname="localhost" tests="13" failures="0" errors="0" skipped="0" flaky="0" time="0.464">
+		<testcase name="test_parcel_of_cell_golden" classname="test_staff_grounds" time="0.077">
+		</testcase>
+		<testcase name="test_128_patch_gives_every_parcel_1024_cells" classname="test_staff_grounds" time="0.026">
+		</testcase>
+		<testcase name="test_fresh_state_uses_the_start_values" classname="test_staff_grounds" time="0.013">
+		</testcase>
+		<testcase name="test_personal_mow_caps_and_resets" classname="test_staff_grounds" time="0.012">
+		</testcase>
+		<testcase name="test_personal_mow_ignores_bad_input" classname="test_staff_grounds" time="0.013">
+		</testcase>
+		<testcase name="test_personal_patrol" classname="test_staff_grounds" time="0.013">
+		</testcase>
+		<testcase name="test_untended_course_sinks_to_the_hard_floor_and_pests_to_their_cap" classname="test_staff_grounds" time="0.015">
+		</testcase>
+		<testcase name="test_keepers_hold_condition_and_rangers_hold_pests" classname="test_staff_grounds" time="0.018">
+		</testcase>
+		<testcase name="test_staff_on_unowned_areas_do_nothing" classname="test_staff_grounds" time="0.017">
+		</testcase>
+		<testcase name="test_on_day_is_idempotent_and_ordered" classname="test_staff_grounds" time="0.013">
+		</testcase>
+		<testcase name="test_incidents_are_bounded_and_deterministic" classname="test_staff_grounds" time="0.057">
+		</testcase>
+		<testcase name="test_secret_changes_the_incident_rolls" classname="test_staff_grounds" time="0.051">
+		</testcase>
+		<testcase name="test_h32_matches_the_python_vectors" classname="test_staff_grounds" time="0.078">
+		</testcase>
+	</testsuite>
+	<testsuite id="21" name="test_land_model" package="tests/land" timestamp="2026-10-06T03:19:47" hostname="localhost" tests="13" failures="0" errors="0" skipped="0" flaky="0" time="0.214">
+		<testcase name="test_layout_counts" classname="test_land_model" time="0.012">
+		</testcase>
+		<testcase name="test_start_plot" classname="test_land_model" time="0.012">
+		</testcase>
+		<testcase name="test_neighbors" classname="test_land_model" time="0.014">
+		</testcase>
+		<testcase name="test_adjacency_rule" classname="test_land_model" time="0.012">
+		</testcase>
+		<testcase name="test_buyable_at_start_sorted" classname="test_land_model" time="0.012">
+		</testcase>
+		<testcase name="test_price_curve_integer" classname="test_land_model" time="0.012">
+		</testcase>
+		<testcase name="test_buy_all_in_recommended_order" classname="test_land_model" time="0.012">
+		</testcase>
+		<testcase name="test_recommended_prefers_golf_then_facility_then_homes" classname="test_land_model" time="0.012">
+		</testcase>
+		<testcase name="test_hole_capacity_steps" classname="test_land_model" time="0.011">
+		</testcase>
+		<testcase name="test_heavy_parcel_requirement" classname="test_land_model" time="0.014">
+		</testcase>
+		<testcase name="test_fill_view_and_gate_together" classname="test_land_model" time="0.012">
+		</testcase>
+		<testcase name="test_load_owned_roundtrip_and_validation" classname="test_land_model" time="0.011">
+		</testcase>
+		<testcase name="test_deterministic_two_runs" classname="test_land_model" time="0.012">
+		</testcase>
+	</testsuite>
+	<testsuite id="22" name="test_event_deck" package="tests/events" timestamp="2026-10-06T03:19:47" hostname="localhost" tests="20" failures="0" errors="0" skipped="0" flaky="0" time="0.283">
+		<testcase name="test_shipped_deck_loads_with_at_least_sixty_cards" classname="test_event_deck" time="0.011">
+		</testcase>
+		<testcase name="test_every_card_is_well_formed" classname="test_event_deck" time="0.027">
+		</testcase>
+		<testcase name="test_optional_spending_choices_are_gated_by_cash" classname="test_event_deck" time="0.011">
+		</testcase>
+		<testcase name="test_game_copy_matches_docs_copy" classname="test_event_deck" time="0.010">
+		</testcase>
+		<testcase name="test_strings_exist_for_every_key" classname="test_event_deck" time="0.013">
+		</testcase>
+		<testcase name="test_eligibility_count_for_a_fixed_context" classname="test_event_deck" time="0.008">
+		</testcase>
+		<testcase name="test_golden_draw_sequence" classname="test_event_deck" time="0.009">
+		</testcase>
+		<testcase name="test_golden_daily_roll_sequence" classname="test_event_deck" time="0.009">
+		</testcase>
+		<testcase name="test_same_seed_same_sequence_and_different_seed_differs" classname="test_event_deck" time="0.018">
+		</testcase>
+		<testcase name="test_draw_with_nothing_eligible_consumes_no_rng" classname="test_event_deck" time="0.008">
+		</testcase>
+		<testcase name="test_weights_decide_the_pick" classname="test_event_deck" time="0.008">
+		</testcase>
+		<testcase name="test_cooldown_blocks_repeats" classname="test_event_deck" time="0.006">
+		</testcase>
+		<testcase name="test_once_cards_fire_once" classname="test_event_deck" time="0.005">
+		</testcase>
+		<testcase name="test_conditions" classname="test_event_deck" time="0.006">
+		</testcase>
+		<testcase name="test_daily_roll_uses_permille_gate" classname="test_event_deck" time="0.006">
+		</testcase>
+		<testcase name="test_resolve_choice_returns_effects_and_scales_cash" classname="test_event_deck" time="0.007">
+		</testcase>
+		<testcase name="test_resolving_does_not_modify_the_deck" classname="test_event_deck" time="0.007">
+		</testcase>
+		<testcase name="test_load_rejects_bad_decks" classname="test_event_deck" time="0.007">
+		</testcase>
+		<testcase name="test_fired_state_round_trips_and_continues_identically" classname="test_event_deck" time="0.012">
+		</testcase>
+		<testcase name="test_card_history_matches_the_save_schema_shape" classname="test_event_deck" time="0.010">
+		</testcase>
+	</testsuite>
+	<testsuite id="23" name="test_unlock_rules" package="tests/buildings" timestamp="2026-10-06T03:19:47" hostname="localhost" tests="15" failures="0" errors="0" skipped="0" flaky="0" time="0.173">
+		<testcase name="test_exact_view_passes_every_tier" classname="test_unlock_rules" time="0.010">
+		</testcase>
+		<testcase name="test_each_numeric_requirement_one_short_fails" classname="test_unlock_rules" time="0.012">
+		</testcase>
+		<testcase name="test_specific_prerequisite_one_short_fails" classname="test_unlock_rules" time="0.008">
+		</testcase>
+		<testcase name="test_any_others_one_short_fails" classname="test_unlock_rules" time="0.008">
+		</testcase>
+		<testcase name="test_tier_5_needs_hosted_tournament_and_landmark_regional" classname="test_unlock_rules" time="0.007">
+		</testcase>
+		<testcase name="test_tiers_must_be_bought_in_order" classname="test_unlock_rules" time="0.008">
+		</testcase>
+		<testcase name="test_unknown_ids_and_tiers_fail" classname="test_unlock_rules" time="0.008">
+		</testcase>
+		<testcase name="test_demo_caps_block_purchase" classname="test_unlock_rules" time="0.008">
+		</testcase>
+		<testcase name="test_demo_has_no_unreachable_tiers" classname="test_unlock_rules" time="0.007">
+		</testcase>
+		<testcase name="test_heavy_parcel_requirement_in_gate" classname="test_unlock_rules" time="0.008">
+		</testcase>
+		<testcase name="test_homes_need_a_homes_parcel" classname="test_unlock_rules" time="0.007">
+		</testcase>
+		<testcase name="test_all_fifty_tiers_reachable_in_order" classname="test_unlock_rules" time="0.008">
+		</testcase>
+		<testcase name="test_dead_hole_rule_in_view" classname="test_unlock_rules" time="0.008">
+		</testcase>
+		<testcase name="test_dead_holes_do_not_meet_hole_gate" classname="test_unlock_rules" time="0.008">
+		</testcase>
+		<testcase name="test_deterministic_repeat" classname="test_unlock_rules" time="0.008">
+		</testcase>
+	</testsuite>
+	<testsuite id="24" name="test_building_defs" package="tests/buildings" timestamp="2026-10-06T03:19:48" hostname="localhost" tests="12" failures="0" errors="0" skipped="0" flaky="0" time="0.172">
+		<testcase name="test_loads" classname="test_building_defs" time="0.008">
+		</testcase>
+		<testcase name="test_building_order_and_classes" classname="test_building_defs" time="0.008">
+		</testcase>
+		<testcase name="test_score_and_hole_gates_every_building" classname="test_building_defs" time="0.009">
+		</testcase>
+		<testcase name="test_payback_targets_and_no_fixed_cost" classname="test_building_defs" time="0.009">
+		</testcase>
+		<testcase name="test_heavy_buildings_need_one_extra_parcel_tiers_2_to_5" classname="test_building_defs" time="0.009">
+		</testcase>
+		<testcase name="test_demo_caps" classname="test_building_defs" time="0.008">
+		</testcase>
+		<testcase name="test_prerequisite_links_and_tier5_gate" classname="test_building_defs" time="0.008">
+		</testcase>
+		<testcase name="test_homes_slots_and_parcel_kind" classname="test_building_defs" time="0.008">
+		</testcase>
+		<testcase name="test_dead_hole_threshold" classname="test_building_defs" time="0.007">
+		</testcase>
+		<testcase name="test_rejects_garbage_and_non_integers" classname="test_building_defs" time="0.010">
+		</testcase>
+		<testcase name="test_rejects_prerequisite_cycle" classname="test_building_defs" time="0.011">
+		</testcase>
+		<testcase name="test_runtime_copy_equals_spec_data" classname="test_building_defs" time="0.037">
+		</testcase>
+	</testsuite>
+	<testsuite id="25" name="test_one_hole" package="tests/gameplay" timestamp="2026-10-06T03:19:48" hostname="localhost" tests="7" failures="0" errors="0" skipped="0" flaky="0" time="0.967">
+		<testcase name="test_exact_geometry_roundtrip_and_legacy_preservation" classname="test_one_hole" time="0.012">
+		</testcase>
+		<testcase name="test_ambiguous_geometry_and_unowned_land_rejected" classname="test_one_hole" time="0.012">
+		</testcase>
+		<testcase name="test_finalized_checkpoint_reloads_without_charge_or_award" classname="test_one_hole" time="0.878">
+		</testcase>
+		<testcase name="test_practice_uses_same_flight_and_resumes_same_next_shot" classname="test_one_hole" time="0.006">
+		</testcase>
+		<testcase name="test_individual_putt_can_hole_and_finished_round_cannot_shoot" classname="test_one_hole" time="0.006">
+		</testcase>
+		<testcase name="test_malformed_round_and_forged_state_rejected" classname="test_one_hole" time="0.007">
+		</testcase>
+		<testcase name="test_bad_world_version_slot_and_unsupported_panel_profile_reject" classname="test_one_hole" time="0.012">
+		</testcase>
+	</testsuite>
+	<testsuite id="26" name="test_vertical_slice_scene" package="tests/gameplay" timestamp="2026-10-06T03:19:49" hostname="localhost" tests="12" failures="0" errors="0" skipped="0" flaky="0" time="30.856">
+		<testcase name="test_scene_file_loads_and_carries_the_script" classname="test_vertical_slice_scene" time="0.006">
+		</testcase>
+		<testcase name="test_launcher_lists_the_slice" classname="test_vertical_slice_scene" time="0.006">
+		</testcase>
+		<testcase name="test_starts_with_the_starter_club" classname="test_vertical_slice_scene" time="2.370">
+		</testcase>
+		<testcase name="test_starter_building_appears_at_its_parcel_and_grows_with_its_tier" classname="test_vertical_slice_scene" time="2.396">
+		</testcase>
+		<testcase name="test_all_ten_buildings_get_distinct_places_outside_hole_parcels" classname="test_vertical_slice_scene" time="2.388">
+		</testcase>
+		<testcase name="test_buying_land_does_not_move_placed_buildings" classname="test_vertical_slice_scene" time="2.378">
+		</testcase>
+		<testcase name="test_holes_need_their_parcels_before_they_can_be_built" classname="test_vertical_slice_scene" time="5.920">
+		</testcase>
+		<testcase name="test_golfers_appear_within_the_caps_over_one_game_day" classname="test_vertical_slice_scene" time="3.118">
+		</testcase>
+		<testcase name="test_drawing_never_changes_the_sim" classname="test_vertical_slice_scene" time="5.099">
+		</testcase>
+		<testcase name="test_pause_freezes_the_golfers" classname="test_vertical_slice_scene" time="2.369">
+		</testcase>
+		<testcase name="test_quality_button_cycles_the_caps" classname="test_vertical_slice_scene" time="2.375">
+		</testcase>
+		<testcase name="test_menu_rows_show_state_and_buy_buttons" classname="test_vertical_slice_scene" time="2.371">
+		</testcase>
+	</testsuite>
+	<testsuite id="27" name="test_game_session" package="tests/gameplay" timestamp="2026-10-06T03:20:20" hostname="localhost" tests="14" failures="0" errors="0" skipped="0" flaky="0" time="0.950">
+		<testcase name="test_live_adapter_reads_cents_without_rounding_up" classname="test_game_session" time="0.012">
+		</testcase>
+		<testcase name="test_hour_boundary_ticks_once_and_pause_does_not_tick" classname="test_game_session" time="0.013">
+		</testcase>
+		<testcase name="test_day_roll_keeps_clock_and_economy_in_step" classname="test_game_session" time="0.161">
+		</testcase>
+		<testcase name="test_buy_parcel_ignores_forged_price_and_is_atomic" classname="test_game_session" time="0.011">
+		</testcase>
+		<testcase name="test_unaffordable_parcel_does_not_change_ownership" classname="test_game_session" time="0.012">
+		</testcase>
+		<testcase name="test_building_gate_cannot_be_bypassed_by_ui" classname="test_game_session" time="0.011">
+		</testcase>
+		<testcase name="test_invalid_course_has_no_financial_or_rating_side_effects" classname="test_game_session" time="0.011">
+		</testcase>
+		<testcase name="test_rounded_dead_hole_cannot_unlock_buildings" classname="test_game_session" time="0.011">
+		</testcase>
+		<testcase name="test_small_mandatory_loss_uses_existing_bankruptcy_policy" classname="test_game_session" time="0.011">
+		</testcase>
+		<testcase name="test_official_course_submission_charges_once_and_keeps_slot" classname="test_game_session" time="0.605">
+		</testcase>
+		<testcase name="test_recognized_rejected_intent_does_not_fall_through" classname="test_game_session" time="0.012">
+		</testcase>
+		<testcase name="test_bank_loan_reports_success_and_preserves_no_cash_token_rule" classname="test_game_session" time="0.011">
+		</testcase>
+		<testcase name="test_live_editor_history_works_while_clock_paused" classname="test_game_session" time="0.011">
+		</testcase>
+		<testcase name="test_router_suppression_clears_latched_mouse_and_touch_state" classname="test_game_session" time="0.006">
+		</testcase>
+	</testsuite>
+	<testsuite id="28" name="test_slice_round" package="tests/gameplay" timestamp="2026-10-06T03:20:21" hostname="localhost" tests="10" failures="0" errors="0" skipped="0" flaky="0" time="0.102">
+		<testcase name="test_times_are_ordered_for_every_member" classname="test_slice_round" time="0.007">
+		</testcase>
+		<testcase name="test_everyone_swings_before_anyone_walks" classname="test_slice_round" time="0.006">
+		</testcase>
+		<testcase name="test_first_member_swings_at_once_and_the_second_waits" classname="test_slice_round" time="0.006">
+		</testcase>
+		<testcase name="test_ball_is_in_the_air_only_after_impact" classname="test_slice_round" time="0.005">
+		</testcase>
+		<testcase name="test_walk_putt_exit_and_done" classname="test_slice_round" time="0.006">
+		</testcase>
+		<testcase name="test_progress_along_the_hole_never_goes_backwards" classname="test_slice_round" time="0.013">
+		</testcase>
+		<testcase name="test_group_duration_is_the_last_member_exit" classname="test_slice_round" time="0.006">
+		</testcase>
+		<testcase name="test_facing_yaw_turns_the_right_local_axis_toward_the_hole" classname="test_slice_round" time="0.006">
+		</testcase>
+		<testcase name="test_group_members_spread_sideways_around_the_line" classname="test_slice_round" time="0.006">
+		</testcase>
+		<testcase name="test_ball_flies_a_parabola_from_tee_to_green" classname="test_slice_round" time="0.006">
+		</testcase>
+	</testsuite>
+	<testsuite id="29" name="test_session_save" package="tests/gameplay" timestamp="2026-10-06T03:20:21" hostname="localhost" tests="13" failures="0" errors="0" skipped="0" flaky="0" time="2.221">
+		<testcase name="test_exact_money_clock_land_progress_and_tiers_round_trip" classname="test_session_save" time="0.029">
+		</testcase>
+		<testcase name="test_future_hour_cash_and_building_disagreements_are_rejected" classname="test_session_save" time="0.062">
+		</testcase>
+		<testcase name="test_runtime_schema_rejects_bad_types_ranges_and_old_reader" classname="test_session_save" time="0.028">
+		</testcase>
+		<testcase name="test_legacy_slot_stays_readable_but_is_not_silently_reinitialized" classname="test_session_save" time="0.007">
+		</testcase>
+		<testcase name="test_existing_holes_cannot_be_erased_by_construction_checkpoint" classname="test_session_save" time="0.012">
+		</testcase>
+		<testcase name="test_separate_ledger_generations_survive_failed_world_write" classname="test_session_save" time="0.082">
+		</testcase>
+		<testcase name="test_corrupt_checksum_and_missing_ledger_reject" classname="test_session_save" time="0.022">
+		</testcase>
+		<testcase name="test_paint_only_torn_write_recovers_matching_full_snapshot" classname="test_session_save" time="0.115">
+		</testcase>
+		<testcase name="test_malformed_capture_sources_reject_without_indexing_bad_shapes" classname="test_session_save" time="0.014">
+		</testcase>
+		<testcase name="test_live_scene_routes_pause_paint_history_purchase_and_reload" classname="test_session_save" time="0.132">
+		</testcase>
+		<testcase name="test_live_scene_finalization_can_save_and_reload_practice" classname="test_session_save" time="0.969">
+		</testcase>
+		<testcase name="test_screen_aim_projection_sets_target_without_playing_or_charging" classname="test_session_save" time="0.346">
+		</testcase>
+		<testcase name="test_camera_follow_and_overview_preserve_gameplay_state" classname="test_session_save" time="0.345">
+		</testcase>
+	</testsuite>
+	<testsuite id="30" name="test_slice_bar" package="tests/gameplay" timestamp="2026-10-06T03:20:23" hostname="localhost" tests="4" failures="0" errors="0" skipped="0" flaky="0" time="0.041">
+		<testcase name="test_every_button_is_in_exactly_one_tab" classname="test_slice_bar" time="0.007">
+		</testcase>
+		<testcase name="test_par_follows_length" classname="test_slice_bar" time="0.006">
+		</testcase>
+		<testcase name="test_club_grows_with_distance" classname="test_slice_bar" time="0.006">
+		</testcase>
+		<testcase name="test_readout_text_for_a_real_hole" classname="test_slice_bar" time="0.006">
+		</testcase>
+	</testsuite>
+	<testsuite id="31" name="test_slice_schedule" package="tests/gameplay" timestamp="2026-10-06T03:20:23" hostname="localhost" tests="10" failures="0" errors="0" skipped="0" flaky="0" time="0.117">
+		<testcase name="test_split_groups_is_even_and_covers_everyone" classname="test_slice_schedule" time="0.009">
+		</testcase>
+		<testcase name="test_add_hour_carries_the_remainder" classname="test_slice_schedule" time="0.006">
+		</testcase>
+		<testcase name="test_release_gives_one_group_per_tee_slot" classname="test_slice_schedule" time="0.006">
+		</testcase>
+		<testcase name="test_unused_tee_slots_are_skipped_not_banked" classname="test_slice_schedule" time="0.006">
+		</testcase>
+		<testcase name="test_queue_is_capped" classname="test_slice_schedule" time="0.006">
+		</testcase>
+		<testcase name="test_same_inputs_give_the_same_schedule" classname="test_slice_schedule" time="0.007">
+		</testcase>
+		<testcase name="test_from_economy_reads_group_size_and_interval" classname="test_slice_schedule" time="0.011">
+		</testcase>
+		<testcase name="test_expected_hour_matches_the_economy_tick" classname="test_slice_schedule" time="0.012">
+		</testcase>
+		<testcase name="test_expected_hour_does_not_change_the_economy" classname="test_slice_schedule" time="0.011">
+		</testcase>
+		<testcase name="test_look_index_is_stable_and_in_range" classname="test_slice_schedule" time="0.009">
+		</testcase>
+	</testsuite>
+	<testsuite id="32" name="test_slice_layout" package="tests/gameplay" timestamp="2026-10-06T03:20:23" hostname="localhost" tests="17" failures="0" errors="0" skipped="0" flaky="0" time="1.332">
+		<testcase name="test_order_matches_the_art_catalogue" classname="test_slice_layout" time="0.006">
+		</testcase>
+		<testcase name="test_reserved_parcels_are_the_hole_parcels_and_never_preferred" classname="test_slice_layout" time="0.008">
+		</testcase>
+		<testcase name="test_hole_tables_have_one_entry_per_slot" classname="test_slice_layout" time="0.006">
+		</testcase>
+		<testcase name="test_hole_corridors_lie_inside_their_parcels_and_the_map" classname="test_slice_layout" time="0.006">
+		</testcase>
+		<testcase name="test_hole_templates_pass_rating_validation" classname="test_slice_layout" time="0.007">
+		</testcase>
+		<testcase name="test_hole_site_availability_follows_ownership" classname="test_slice_layout" time="0.006">
+		</testcase>
+		<testcase name="test_slot_centres" classname="test_slice_layout" time="0.006">
+		</testcase>
+		<testcase name="test_every_cell_centre_is_inside_its_parcel" classname="test_slice_layout" time="0.006">
+		</testcase>
+		<testcase name="test_fit_scale_never_enlarges" classname="test_slice_layout" time="0.006">
+		</testcase>
+		<testcase name="test_building_transform_centres_the_tier_5_footprint_on_the_slot" classname="test_slice_layout" time="0.006">
+		</testcase>
+		<testcase name="test_assign_slots_fills_the_start_facility_parcel_then_the_annex" classname="test_slice_layout" time="0.006">
+		</testcase>
+		<testcase name="test_assign_slots_are_unique_and_never_in_reserved_parcels" classname="test_slice_layout" time="0.007">
+		</testcase>
+		<testcase name="test_heavy_buildings_prefer_free_golf_parcels" classname="test_slice_layout" time="0.007">
+		</testcase>
+		<testcase name="test_slots_are_sticky_when_land_grows" classname="test_slice_layout" time="0.006">
+		</testcase>
+		<testcase name="test_assign_slots_is_deterministic_and_skips_unowned_tiers" classname="test_slice_layout" time="0.006">
+		</testcase>
+		<testcase name="test_an_invalid_previous_slot_is_replaced" classname="test_slice_layout" time="0.006">
+		</testcase>
+		<testcase name="test_the_real_session_can_build_the_starter_holes_and_they_are_not_dead" classname="test_slice_layout" time="1.175">
+		</testcase>
+	</testsuite>
+	<testsuite id="33" name="test_slice_visibility" package="tests/gameplay" timestamp="2026-10-06T03:20:24" hostname="localhost" tests="9" failures="0" errors="0" skipped="0" flaky="0" time="0.093">
+		<testcase name="test_empty_input" classname="test_slice_visibility" time="0.007">
+		</testcase>
+		<testcase name="test_nearest_golfers_become_figures" classname="test_slice_visibility" time="0.006">
+		</testcase>
+		<testcase name="test_farthest_golfers_are_hidden_beyond_the_total_cap" classname="test_slice_visibility" time="0.006">
+		</testcase>
+		<testcase name="test_two_near_golfers_with_the_same_look_cannot_both_be_figures" classname="test_slice_visibility" time="0.006">
+		</testcase>
+		<testcase name="test_equal_distance_ties_go_to_the_lower_index" classname="test_slice_visibility" time="0.006">
+		</testcase>
+		<testcase name="test_zero_caps" classname="test_slice_visibility" time="0.006">
+		</testcase>
+		<testcase name="test_caps_are_never_exceeded" classname="test_slice_visibility" time="0.010">
+		</testcase>
+		<testcase name="test_a_visible_golfer_is_never_farther_than_a_hidden_one" classname="test_slice_visibility" time="0.005">
+		</testcase>
+		<testcase name="test_tier_caps_grow_with_the_tier_and_stay_in_the_stated_range" classname="test_slice_visibility" time="0.006">
+		</testcase>
+	</testsuite>
+	<testsuite id="34" name="test_personal_shot" package="tests/gameplay" timestamp="2026-10-06T03:20:24" hostname="localhost" tests="3" failures="0" errors="0" skipped="0" flaky="0" time="0.041">
+		<testcase name="test_python_shot_vectors" classname="test_personal_shot" time="0.013">
+		</testcase>
+		<testcase name="test_envelope_vector_and_strict_profile" classname="test_personal_shot" time="0.006">
+		</testcase>
+		<testcase name="test_zero_width_hazard_and_invalid_start" classname="test_personal_shot" time="0.006">
+		</testcase>
+	</testsuite>
+	<testsuite id="35" name="test_slice_nature" package="tests/gameplay" timestamp="2026-10-06T03:20:25" hostname="localhost" tests="7" failures="0" errors="0" skipped="0" flaky="0" time="0.096">
+		<testcase name="test_same_seed_gives_the_same_scatter" classname="test_slice_nature" time="0.015">
+		</testcase>
+		<testcase name="test_a_different_seed_gives_a_different_scatter" classname="test_slice_nature" time="0.008">
+		</testcase>
+		<testcase name="test_items_are_valid_and_avoid_the_exclusions" classname="test_slice_nature" time="0.014">
+		</testcase>
+		<testcase name="test_zero_and_negative_counts_give_nothing" classname="test_slice_nature" time="0.006">
+		</testcase>
+		<testcase name="test_exclusions_cover_the_hole_corridors_and_building_parcels" classname="test_slice_nature" time="0.007">
+		</testcase>
+		<testcase name="test_grouping_keeps_every_item_and_limits_draw_calls" classname="test_slice_nature" time="0.008">
+		</testcase>
+		<testcase name="test_every_group_key_builds_a_mesh_inside_its_budget" classname="test_slice_nature" time="0.011">
+		</testcase>
+	</testsuite>
+	<testsuite id="36" name="test_aiming" package="tests/gameplay" timestamp="2026-10-06T03:20:25" hostname="localhost" tests="8" failures="0" errors="0" skipped="0" flaky="0" time="0.079">
+		<testcase name="test_world_tap_aims_but_ui_tap_does_not" classname="test_aiming" time="0.007">
+		</testcase>
+		<testcase name="test_drag_return_cancel_and_ui_crossing_do_not_aim" classname="test_aiming" time="0.006">
+		</testcase>
+		<testcase name="test_second_finger_in_ui_cancels_world_tap_until_all_lift" classname="test_aiming" time="0.006">
+		</testcase>
+		<testcase name="test_clear_prevents_latent_release_and_hybrid_pointer_aim" classname="test_aiming" time="0.006">
+		</testcase>
+		<testcase name="test_preview_uses_carry_without_consuming_next_draw_or_game_state" classname="test_aiming" time="0.006">
+		</testcase>
+		<testcase name="test_unreachable_and_water_target_feedback" classname="test_aiming" time="0.006">
+		</testcase>
+		<testcase name="test_recenter_clears_camera_inertia_and_snap_but_preserves_orientation" classname="test_aiming" time="0.006">
+		</testcase>
+		<testcase name="test_recenter_respects_camera_distance_and_target_bounds" classname="test_aiming" time="0.006">
+		</testcase>
+	</testsuite>
+	<testsuite id="37" name="test_slice_text" package="tests/gameplay" timestamp="2026-10-06T03:20:25" hostname="localhost" tests="6" failures="0" errors="0" skipped="0" flaky="0" time="0.066">
+		<testcase name="test_building_title" classname="test_slice_text" time="0.007">
+		</testcase>
+		<testcase name="test_reason_text" classname="test_slice_text" time="0.006">
+		</testcase>
+		<testcase name="test_income_per_hour" classname="test_slice_text" time="0.006">
+		</testcase>
+		<testcase name="test_hud_and_detail_lines" classname="test_slice_text" time="0.006">
+		</testcase>
+		<testcase name="test_row_summary_and_buy_label_for_synthetic_rows" classname="test_slice_text" time="0.006">
+		</testcase>
+		<testcase name="test_real_menu_rows_for_a_fresh_session" classname="test_slice_text" time="0.012">
+		</testcase>
+	</testsuite>
+	<testsuite id="38" name="test_gesture_math" package="tests/input" timestamp="2026-10-06T03:20:25" hostname="localhost" tests="15" failures="0" errors="0" skipped="0" flaky="0" time="0.142">
+		<testcase name="test_wrap_angle_at_pi" classname="test_gesture_math" time="0.006">
+		</testcase>
+		<testcase name="test_twist_quarter_turn_clockwise" classname="test_gesture_math" time="0.006">
+		</testcase>
+		<testcase name="test_twist_wraps_across_pi" classname="test_gesture_math" time="0.006">
+		</testcase>
+		<testcase name="test_twist_degenerate_vector_is_zero" classname="test_gesture_math" time="0.006">
+		</testcase>
+		<testcase name="test_pinch_ratio" classname="test_gesture_math" time="0.006">
+		</testcase>
+		<testcase name="test_two_finger_delta_pure_pan" classname="test_gesture_math" time="0.006">
+		</testcase>
+		<testcase name="test_pan_world_delta_yaw_zero_and_ninety" classname="test_gesture_math" time="0.006">
+		</testcase>
+		<testcase name="test_pinch_zoom_clamps" classname="test_gesture_math" time="0.006">
+		</testcase>
+		<testcase name="test_pinch_out_reduces_distance" classname="test_gesture_math" time="0.007">
+		</testcase>
+		<testcase name="test_tilt_clamped_when_manual" classname="test_gesture_math" time="0.006">
+		</testcase>
+		<testcase name="test_pitch_stays_in_limits_when_following_zoom" classname="test_gesture_math" time="0.006">
+		</testcase>
+		<testcase name="test_twist_changes_yaw_and_wraps" classname="test_gesture_math" time="0.006">
+		</testcase>
+		<testcase name="test_snap_north_eases_to_exact_zero_shortest_way" classname="test_gesture_math" time="0.009">
+		</testcase>
+		<testcase name="test_user_gesture_cancels_snap" classname="test_gesture_math" time="0.006">
+		</testcase>
+		<testcase name="test_pan_bounds_clamp" classname="test_gesture_math" time="0.006">
+		</testcase>
+	</testsuite>
+	<testsuite id="39" name="test_gesture_state_machine" package="tests/input" timestamp="2026-10-06T03:20:25" hostname="localhost" tests="21" failures="0" errors="0" skipped="0" flaky="0" time="0.200">
+		<testcase name="test_single_finger_paint" classname="test_gesture_state_machine" time="0.006">
+		</testcase>
+		<testcase name="test_fast_drag_beyond_dead_zone_starts_stroke_before_window" classname="test_gesture_state_machine" time="0.006">
+		</testcase>
+		<testcase name="test_quick_tap_paints_one_dab" classname="test_gesture_state_machine" time="0.006">
+		</testcase>
+		<testcase name="test_second_finger_cancels_open_stroke" classname="test_gesture_state_machine" time="0.006">
+		</testcase>
+		<testcase name="test_late_second_finger_within_window_is_camera_intent" classname="test_gesture_state_machine" time="0.006">
+		</testcase>
+		<testcase name="test_second_finger_after_window_cancels_rather_than_prevents" classname="test_gesture_state_machine" time="0.007">
+		</testcase>
+		<testcase name="test_no_paint_resume_after_second_finger_lifts" classname="test_gesture_state_machine" time="0.006">
+		</testcase>
+		<testcase name="test_camera_can_resume_with_new_second_finger_but_never_paints" classname="test_gesture_state_machine" time="0.006">
+		</testcase>
+		<testcase name="test_three_fingers_ignored" classname="test_gesture_state_machine" time="0.006">
+		</testcase>
+		<testcase name="test_third_finger_after_cancel_keeps_single_cancel" classname="test_gesture_state_machine" time="0.006">
+		</testcase>
+		<testcase name="test_two_finger_twist_emits_camera_gesture" classname="test_gesture_state_machine" time="0.006">
+		</testcase>
+		<testcase name="test_edge_rejection" classname="test_gesture_state_machine" time="0.006">
+		</testcase>
+		<testcase name="test_palm_filter_hook" classname="test_gesture_state_machine" time="0.006">
+		</testcase>
+		<testcase name="test_long_press_mode" classname="test_gesture_state_machine" time="0.006">
+		</testcase>
+		<testcase name="test_canceled_touch_event_rolls_back" classname="test_gesture_state_machine" time="0.007">
+		</testcase>
+		<testcase name="test_cancel_all_on_focus_loss" classname="test_gesture_state_machine" time="0.006">
+		</testcase>
+		<testcase name="test_desktop_left_drag_paints" classname="test_gesture_state_machine" time="0.006">
+		</testcase>
+		<testcase name="test_tracker_ignores_drag_for_unknown_index" classname="test_gesture_state_machine" time="0.006">
+		</testcase>
+		<testcase name="test_tracker_ids_sorted" classname="test_gesture_state_machine" time="0.006">
+		</testcase>
+		<testcase name="test_bridge_forwards_to_sink_and_rolls_back" classname="test_gesture_state_machine" time="0.006">
+		</testcase>
+		<testcase name="test_bridge_normal_stroke_and_no_cell" classname="test_gesture_state_machine" time="0.006">
+		</testcase>
+	</testsuite>
+	<testsuite id="40" name="test_iso_rig" package="tests/input" timestamp="2026-10-06T03:20:25" hostname="localhost" tests="7" failures="0" errors="0" skipped="0" flaky="0" time="0.071">
+		<testcase name="test_four_views_wrap_in_both_directions" classname="test_iso_rig" time="0.006">
+		</testcase>
+		<testcase name="test_zoom_steps_clamp_at_both_ends" classname="test_iso_rig" time="0.006">
+		</testcase>
+		<testcase name="test_camera_looks_down_at_the_fixed_pitch" classname="test_iso_rig" time="0.006">
+		</testcase>
+		<testcase name="test_screen_axes_are_perpendicular_ground_directions_in_every_view" classname="test_iso_rig" time="0.006">
+		</testcase>
+		<testcase name="test_dragging_moves_the_ground_with_the_finger" classname="test_iso_rig" time="0.006">
+		</testcase>
+		<testcase name="test_pan_stays_inside_the_bounds" classname="test_iso_rig" time="0.006">
+		</testcase>
+		<testcase name="test_easing_reaches_the_goal_by_the_shortest_way_and_stops" classname="test_iso_rig" time="0.006">
+		</testcase>
+	</testsuite>
+	<testsuite id="41" name="test_cell_sentinel" package="tests/input" timestamp="2026-10-06T03:20:25" hostname="localhost" tests="10" failures="0" errors="0" skipped="0" flaky="0" time="0.095">
+		<testcase name="test_sentinels_differ" classname="test_cell_sentinel" time="0.006">
+		</testcase>
+		<testcase name="test_miss_becomes_no_cell" classname="test_cell_sentinel" time="0.007">
+		</testcase>
+		<testcase name="test_real_cells_pass_through" classname="test_cell_sentinel" time="0.006">
+		</testcase>
+		<testcase name="test_no_cell_is_idempotent" classname="test_cell_sentinel" time="0.006">
+		</testcase>
+		<testcase name="test_ground_hit_null_is_no_cell" classname="test_cell_sentinel" time="0.007">
+		</testcase>
+		<testcase name="test_ground_hit_floors_to_cell" classname="test_cell_sentinel" time="0.006">
+		</testcase>
+		<testcase name="test_pick_terrain_miss_upward_ray" classname="test_cell_sentinel" time="0.007">
+		</testcase>
+		<testcase name="test_pick_terrain_hit_downward_ray" classname="test_cell_sentinel" time="0.006">
+		</testcase>
+		<testcase name="test_bridge_skips_translated_miss" classname="test_cell_sentinel" time="0.006">
+		</testcase>
+		<testcase name="test_bridge_with_raw_miss_would_dab_minus_one" classname="test_cell_sentinel" time="0.006">
+		</testcase>
+	</testsuite>
+	<testsuite id="42" name="test_speed_recovery_score" package="tests/ui" timestamp="2026-10-06T03:20:25" hostname="localhost" tests="11" failures="0" errors="0" skipped="0" flaky="0" time="0.108">
+		<testcase name="test_one_x_is_always_free" classname="test_speed_recovery_score" time="0.007">
+		</testcase>
+		<testcase name="test_only_eight_x_needs_a_token" classname="test_speed_recovery_score" time="0.006">
+		</testcase>
+		<testcase name="test_rates_and_minutes_left" classname="test_speed_recovery_score" time="0.007">
+		</testcase>
+		<testcase name="test_effective_speed_falls_back" classname="test_speed_recovery_score" time="0.006">
+		</testcase>
+		<testcase name="test_options_rows" classname="test_speed_recovery_score" time="0.006">
+		</testcase>
+		<testcase name="test_speed_list_matches_the_clock" classname="test_speed_recovery_score" time="0.006">
+		</testcase>
+		<testcase name="test_recovery_options" classname="test_speed_recovery_score" time="0.006">
+		</testcase>
+		<testcase name="test_recovery_without_offer_numbers" classname="test_speed_recovery_score" time="0.006">
+		</testcase>
+		<testcase name="test_band_keys" classname="test_speed_recovery_score" time="0.006">
+		</testcase>
+		<testcase name="test_weakest_and_dead" classname="test_speed_recovery_score" time="0.006">
+		</testcase>
+		<testcase name="test_next_gate" classname="test_speed_recovery_score" time="0.008">
+		</testcase>
+	</testsuite>
+	<testsuite id="43" name="test_layout_and_context" package="tests/ui" timestamp="2026-10-06T03:20:25" hostname="localhost" tests="6" failures="0" errors="0" skipped="0" flaky="0" time="0.060">
+		<testcase name="test_classify" classname="test_layout_and_context" time="0.006">
+		</testcase>
+		<testcase name="test_columns" classname="test_layout_and_context" time="0.006">
+		</testcase>
+		<testcase name="test_kind_names" classname="test_layout_and_context" time="0.007">
+		</testcase>
+		<testcase name="test_context_phone" classname="test_layout_and_context" time="0.006">
+		</testcase>
+		<testcase name="test_context_tablet_and_safe_area" classname="test_layout_and_context" time="0.007">
+		</testcase>
+		<testcase name="test_context_follows_settings" classname="test_layout_and_context" time="0.006">
+		</testcase>
+	</testsuite>
+	<testsuite id="44" name="test_screens_smoke" package="tests/ui" timestamp="2026-10-06T03:20:25" hostname="localhost" tests="10" failures="0" errors="0" skipped="0" flaky="0" time="0.210">
+		<testcase name="test_ids_are_unique_and_creatable" classname="test_screens_smoke" time="0.007">
+		</testcase>
+		<testcase name="test_every_screen_builds_and_refreshes" classname="test_screens_smoke" time="0.053">
+		</testcase>
+		<testcase name="test_editor_pause_routes_to_live_clock_and_can_resume" classname="test_screens_smoke" time="0.013">
+		</testcase>
+		<testcase name="test_screens_survive_empty_game_state" classname="test_screens_smoke" time="0.014">
+		</testcase>
+		<testcase name="test_screens_build_in_portrait_left_handed_and_large_text" classname="test_screens_smoke" time="0.030">
+		</testcase>
+		<testcase name="test_overlay_flags_and_regions" classname="test_screens_smoke" time="0.016">
+		</testcase>
+		<testcase name="test_consent_default_off_and_one_tap" classname="test_screens_smoke" time="0.011">
+		</testcase>
+		<testcase name="test_token_store_has_no_purchase_path" classname="test_screens_smoke" time="0.012">
+		</testcase>
+		<testcase name="test_gallery_is_in_the_launcher" classname="test_screens_smoke" time="0.006">
+		</testcase>
+		<testcase name="test_achievement_filter" classname="test_screens_smoke" time="0.007">
+		</testcase>
+	</testsuite>
+	<testsuite id="45" name="test_format" package="tests/ui" timestamp="2026-10-06T03:20:26" hostname="localhost" tests="11" failures="0" errors="0" skipped="0" flaky="0" time="0.108">
+		<testcase name="test_group_thousands" classname="test_format" time="0.007">
+		</testcase>
+		<testcase name="test_money" classname="test_format" time="0.006">
+		</testcase>
+		<testcase name="test_money_compact" classname="test_format" time="0.006">
+		</testcase>
+		<testcase name="test_clock" classname="test_format" time="0.006">
+		</testcase>
+		<testcase name="test_game_clock_runs_seven_to_six" classname="test_format" time="0.006">
+		</testcase>
+		<testcase name="test_day_helpers" classname="test_format" time="0.006">
+		</testcase>
+		<testcase name="test_duration_minutes" classname="test_format" time="0.006">
+		</testcase>
+		<testcase name="test_distance_and_height" classname="test_format" time="0.007">
+		</testcase>
+		<testcase name="test_multiplier_and_percent" classname="test_format" time="0.006">
+		</testcase>
+		<testcase name="test_payback_days_rounds_up" classname="test_format" time="0.006">
+		</testcase>
+		<testcase name="test_score_formats" classname="test_format" time="0.006">
+		</testcase>
+	</testsuite>
+	<testsuite id="46" name="test_safe_area" package="tests/ui" timestamp="2026-10-06T03:20:26" hostname="localhost" tests="5" failures="0" errors="0" skipped="0" flaky="0" time="0.051">
+		<testcase name="test_notch_landscape" classname="test_safe_area" time="0.006">
+		</testcase>
+		<testcase name="test_full_cover_or_bad_input_gives_zero" classname="test_safe_area" time="0.006">
+		</testcase>
+		<testcase name="test_inset_is_capped_at_30_percent" classname="test_safe_area" time="0.006">
+		</testcase>
+		<testcase name="test_negative_origin_is_ignored" classname="test_safe_area" time="0.006">
+		</testcase>
+		<testcase name="test_gutter_mirror_and_content_rect" classname="test_safe_area" time="0.006">
+		</testcase>
+	</testsuite>
+	<testsuite id="47" name="test_game_state_view" package="tests/ui" timestamp="2026-10-06T03:20:26" hostname="localhost" tests="13" failures="0" errors="0" skipped="0" flaky="0" time="0.204">
+		<testcase name="test_base_class_is_read_only" classname="test_game_state_view" time="0.011">
+		</testcase>
+		<testcase name="test_fake_adds_only_sample_or_private_methods" classname="test_game_state_view" time="0.013">
+		</testcase>
+		<testcase name="test_base_defaults_are_safe" classname="test_game_state_view" time="0.007">
+		</testcase>
+		<testcase name="test_fake_scalar_ranges" classname="test_game_state_view" time="0.011">
+		</testcase>
+		<testcase name="test_fake_sample_numbers" classname="test_game_state_view" time="0.011">
+		</testcase>
+		<testcase name="test_hole_rating_rows" classname="test_game_state_view" time="0.014">
+		</testcase>
+		<testcase name="test_gate_view_is_a_copy" classname="test_game_state_view" time="0.011">
+		</testcase>
+		<testcase name="test_catalogue_land_and_income" classname="test_game_state_view" time="0.011">
+		</testcase>
+		<testcase name="test_challenge_tournament_achievement_rows" classname="test_game_state_view" time="0.018">
+		</testcase>
+		<testcase name="test_changed_signal_fires_on_sample_edits" classname="test_game_state_view" time="0.011">
+		</testcase>
+		<testcase name="test_fake_progress_rows" classname="test_game_state_view" time="0.012">
+		</testcase>
+		<testcase name="test_fake_host_tournament_intent" classname="test_game_state_view" time="0.011">
+		</testcase>
+		<testcase name="test_fake_daily_play_intent" classname="test_game_state_view" time="0.012">
+		</testcase>
+	</testsuite>
+	<testsuite id="48" name="test_theme_scaling" package="tests/ui" timestamp="2026-10-06T03:20:26" hostname="localhost" tests="12" failures="0" errors="0" skipped="0" flaky="0" time="0.117">
+		<testcase name="test_clamp_text_scale" classname="test_theme_scaling" time="0.007">
+		</testcase>
+		<testcase name="test_scaled" classname="test_theme_scaling" time="0.006">
+		</testcase>
+		<testcase name="test_scaled_is_monotonic_across_the_range" classname="test_theme_scaling" time="0.007">
+		</testcase>
+		<testcase name="test_step_text_scale" classname="test_theme_scaling" time="0.006">
+		</testcase>
+		<testcase name="test_content_scale" classname="test_theme_scaling" time="0.006">
+		</testcase>
+		<testcase name="test_units_per_dp" classname="test_theme_scaling" time="0.006">
+		</testcase>
+		<testcase name="test_touch_min_is_48_dp_with_a_floor" classname="test_theme_scaling" time="0.006">
+		</testcase>
+		<testcase name="test_palette_matches_the_brief" classname="test_theme_scaling" time="0.006">
+		</testcase>
+		<testcase name="test_contrast" classname="test_theme_scaling" time="0.006">
+		</testcase>
+		<testcase name="test_build_scales_font_sizes" classname="test_theme_scaling" time="0.007">
+		</testcase>
+		<testcase name="test_build_defines_button_variants" classname="test_theme_scaling" time="0.007">
+		</testcase>
+		<testcase name="test_load_fonts_never_fails_without_files" classname="test_theme_scaling" time="0.006">
+		</testcase>
+	</testsuite>
+	<testsuite id="49" name="test_strings" package="tests/ui" timestamp="2026-10-06T03:20:26" hostname="localhost" tests="6" failures="0" errors="0" skipped="0" flaky="0" time="0.225">
+		<testcase name="test_lookup_and_missing_key" classname="test_strings" time="0.008">
+		</testcase>
+		<testcase name="test_placeholders" classname="test_strings" time="0.006">
+		</testcase>
+		<testcase name="test_key_params_are_translated" classname="test_strings" time="0.006">
+		</testcase>
+		<testcase name="test_house_style" classname="test_strings" time="0.151">
+		</testcase>
+		<testcase name="test_every_dynamic_key_family_exists" classname="test_strings" time="0.014">
+		</testcase>
+		<testcase name="test_sample_advisor_codes_have_text" classname="test_strings" time="0.011">
+		</testcase>
+	</testsuite>
+	<testsuite id="50" name="test_build_menu_model" package="tests/ui" timestamp="2026-10-06T03:20:26" hostname="localhost" tests="10" failures="0" errors="0" skipped="0" flaky="0" time="0.142">
+		<testcase name="test_ten_rows_five_tiers" classname="test_build_menu_model" time="0.012">
+		</testcase>
+		<testcase name="test_cost_is_payback_days_times_income" classname="test_build_menu_model" time="0.012">
+		</testcase>
+		<testcase name="test_statuses_in_demo" classname="test_build_menu_model" time="0.012">
+		</testcase>
+		<testcase name="test_statuses_in_full_game_and_low_cash" classname="test_build_menu_model" time="0.011">
+		</testcase>
+		<testcase name="test_heavy_building_needs_extra_parcel" classname="test_build_menu_model" time="0.012">
+		</testcase>
+		<testcase name="test_maxed_row" classname="test_build_menu_model" time="0.012">
+		</testcase>
+		<testcase name="test_tier_states" classname="test_build_menu_model" time="0.012">
+		</testcase>
+		<testcase name="test_reason_mapping" classname="test_build_menu_model" time="0.007">
+		</testcase>
+		<testcase name="test_reports_list_demo_first_and_skip_met_rows" classname="test_build_menu_model" time="0.007">
+		</testcase>
+		<testcase name="test_unloaded_catalogue_gives_empty" classname="test_build_menu_model" time="0.006">
+		</testcase>
+	</testsuite>
+	<testsuite id="51" name="test_no_literal_text" package="tests/ui" timestamp="2026-10-06T03:20:27" hostname="localhost" tests="1" failures="0" errors="0" skipped="0" flaky="0" time="0.037">
+		<testcase name="test_no_literal_text_in_ui_code" classname="test_no_literal_text" time="0.028">
+		</testcase>
+	</testsuite>
+	<testsuite id="52" name="test_progress_bridge" package="tests/ui" timestamp="2026-10-06T03:20:27" hostname="localhost" tests="17" failures="0" errors="0" skipped="0" flaky="0" time="0.243">
+		<testcase name="test_bridge_loads" classname="test_progress_bridge" time="0.010">
+		</testcase>
+		<testcase name="test_daily_row_enabled" classname="test_progress_bridge" time="0.010">
+		</testcase>
+		<testcase name="test_daily_row_kill_switch" classname="test_progress_bridge" time="0.009">
+		</testcase>
+		<testcase name="test_start_daily_does_not_use_an_attempt" classname="test_progress_bridge" time="0.009">
+		</testcase>
+		<testcase name="test_attempts_run_out" classname="test_progress_bridge" time="0.010">
+		</testcase>
+		<testcase name="test_finish_attempt_completes_and_registers_streak_once" classname="test_progress_bridge" time="0.010">
+		</testcase>
+		<testcase name="test_invalid_attempt_is_not_complete" classname="test_progress_bridge" time="0.010">
+		</testcase>
+		<testcase name="test_tournament_rows_shape_and_local_available" classname="test_progress_bridge" time="0.010">
+		</testcase>
+		<testcase name="test_tournament_rows_cash_short" classname="test_progress_bridge" time="0.009">
+		</testcase>
+		<testcase name="test_host_tournament_takes_cost_and_locks_others" classname="test_progress_bridge" time="0.010">
+		</testcase>
+		<testcase name="test_host_tournament_refusals" classname="test_progress_bridge" time="0.014">
+		</testcase>
+		<testcase name="test_resolve_tournament" classname="test_progress_bridge" time="0.010">
+		</testcase>
+		<testcase name="test_handle_intent_routing" classname="test_progress_bridge" time="0.011">
+		</testcase>
+		<testcase name="test_save_round_trip" classname="test_progress_bridge" time="0.013">
+		</testcase>
+		<testcase name="test_bad_block_changes_nothing" classname="test_progress_bridge" time="0.010">
+		</testcase>
+		<testcase name="test_achievement_rows_and_levels" classname="test_progress_bridge" time="0.014">
+		</testcase>
+		<testcase name="test_new_strings_exist" classname="test_progress_bridge" time="0.006">
+		</testcase>
+	</testsuite>
+	<testsuite id="53" name="test_live_layout" package="tests/ui" timestamp="2026-10-06T03:20:27" hostname="localhost" tests="10" failures="0" errors="0" skipped="0" flaky="0" time="0.109">
+		<testcase name="test_zones_never_overlap_and_stay_inside_free_rect" classname="test_live_layout" time="0.010">
+		</testcase>
+		<testcase name="test_touch_targets_and_status_width" classname="test_live_layout" time="0.007">
+		</testcase>
+		<testcase name="test_landscape_uses_side_column_and_portrait_uses_bottom_sheet" classname="test_live_layout" time="0.006">
+		</testcase>
+		<testcase name="test_mirror_puts_panel_on_the_left" classname="test_live_layout" time="0.006">
+		</testcase>
+		<testcase name="test_hidden_panel_gives_no_panel_zone_and_full_width_column" classname="test_live_layout" time="0.007">
+		</testcase>
+		<testcase name="test_collapsed_panel_is_header_height" classname="test_live_layout" time="0.007">
+		</testcase>
+		<testcase name="test_flow_rows_wrap" classname="test_live_layout" time="0.007">
+		</testcase>
+		<testcase name="test_tiny_free_rect_still_never_overlaps" classname="test_live_layout" time="0.006">
+		</testcase>
+		<testcase name="test_orientation_policy" classname="test_live_layout" time="0.007">
+		</testcase>
+		<testcase name="test_touch_bridge_clipping" classname="test_live_layout" time="0.006">
+		</testcase>
+	</testsuite>
+	<testsuite id="54" name="test_stack_flow_settings" package="tests/ui" timestamp="2026-10-06T03:20:27" hostname="localhost" tests="10" failures="0" errors="0" skipped="0" flaky="0" time="0.105">
+		<testcase name="test_stack_push_pop_root_protected" classname="test_stack_flow_settings" time="0.007">
+		</testcase>
+		<testcase name="test_stack_limits_and_pop_to" classname="test_stack_flow_settings" time="0.007">
+		</testcase>
+		<testcase name="test_first_launch_one_tap_under_30_seconds" classname="test_stack_flow_settings" time="0.007">
+		</testcase>
+		<testcase name="test_first_launch_budget_and_skip" classname="test_stack_flow_settings" time="0.006">
+		</testcase>
+		<testcase name="test_settings_defaults_have_analytics_off" classname="test_stack_flow_settings" time="0.007">
+		</testcase>
+		<testcase name="test_settings_normalisers" classname="test_stack_flow_settings" time="0.007">
+		</testcase>
+		<testcase name="test_settings_apply_dict_sanitises_and_round_trips" classname="test_stack_flow_settings" time="0.007">
+		</testcase>
+		<testcase name="test_settings_signal" classname="test_stack_flow_settings" time="0.007">
+		</testcase>
+		<testcase name="test_touch_pick_prefers_the_last_rect" classname="test_stack_flow_settings" time="0.007">
+		</testcase>
+		<testcase name="test_touch_slop" classname="test_stack_flow_settings" time="0.007">
+		</testcase>
+	</testsuite>
+	<testsuite id="55" name="test_editor_tools_advisor" package="tests/ui" timestamp="2026-10-06T03:20:27" hostname="localhost" tests="4" failures="0" errors="0" skipped="0" flaky="0" time="0.045">
+		<testcase name="test_tools_map_to_brush_modes" classname="test_editor_tools_advisor" time="0.006">
+		</testcase>
+		<testcase name="test_surfaces_and_radius" classname="test_editor_tools_advisor" time="0.006">
+		</testcase>
+		<testcase name="test_advisor_sorting_and_limit" classname="test_editor_tools_advisor" time="0.007">
+		</testcase>
+		<testcase name="test_advisor_keys" classname="test_editor_tools_advisor" time="0.006">
+		</testcase>
+	</testsuite>
+	<testsuite id="56" name="test_launcher_and_build_info" package="tests/ui" timestamp="2026-10-06T03:20:27" hostname="localhost" tests="7" failures="0" errors="0" skipped="0" flaky="0" time="0.073">
+		<testcase name="test_fallback_when_file_missing" classname="test_launcher_and_build_info" time="0.007">
+		</testcase>
+		<testcase name="test_parse_bad_json_falls_back" classname="test_launcher_and_build_info" time="0.008">
+		</testcase>
+		<testcase name="test_parse_partial_and_full" classname="test_launcher_and_build_info" time="0.006">
+		</testcase>
+		<testcase name="test_label_text" classname="test_launcher_and_build_info" time="0.006">
+		</testcase>
+		<testcase name="test_label_text_default_never_empty" classname="test_launcher_and_build_info" time="0.006">
+		</testcase>
+		<testcase name="test_filter_entries" classname="test_launcher_and_build_info" time="0.006">
+		</testcase>
+		<testcase name="test_scene_list_paths_are_scene_files" classname="test_launcher_and_build_info" time="0.006">
+		</testcase>
+	</testsuite>
+	<testsuite id="57" name="test_economy_state" package="tests/economy" timestamp="2026-10-06T03:20:27" hostname="localhost" tests="21" failures="0" errors="0" skipped="0" flaky="0" time="0.337">
+		<testcase name="test_start_state" classname="test_economy_state" time="0.010">
+		</testcase>
+		<testcase name="test_create_rejects_bad_inputs" classname="test_economy_state" time="0.009">
+		</testcase>
+		<testcase name="test_spend_and_earn_rules" classname="test_economy_state" time="0.009">
+		</testcase>
+		<testcase name="test_cash_never_negative_by_spending" classname="test_economy_state" time="0.010">
+		</testcase>
+		<testcase name="test_fee_clamps_to_range" classname="test_economy_state" time="0.010">
+		</testcase>
+		<testcase name="test_suggested_fee_is_inside_range_and_beats_extremes" classname="test_economy_state" time="0.012">
+		</testcase>
+		<testcase name="test_tick_hour_advances_clock_and_rolls_day" classname="test_economy_state" time="0.010">
+		</testcase>
+		<testcase name="test_day_ledger_sums_to_cash_change" classname="test_economy_state" time="0.013">
+		</testcase>
+		<testcase name="test_daily_upkeep_is_paid_exactly_over_a_day" classname="test_economy_state" time="0.010">
+		</testcase>
+		<testcase name="test_golden_day_cycle" classname="test_economy_state" time="0.017">
+		</testcase>
+		<testcase name="test_golden_bankruptcy_and_free_loan" classname="test_economy_state" time="0.020">
+		</testcase>
+		<testcase name="test_loan_is_limited_and_needs_bankruptcy" classname="test_economy_state" time="0.010">
+		</testcase>
+		<testcase name="test_golden_token_recovery_through_ledger" classname="test_economy_state" time="0.025">
+		</testcase>
+		<testcase name="test_speed_hook_is_pure_token_arithmetic" classname="test_economy_state" time="0.009">
+		</testcase>
+		<testcase name="test_purchase_tier_charges_the_payback_price" classname="test_economy_state" time="0.010">
+		</testcase>
+		<testcase name="test_start_cash_covers_all_tier_one_and_two_buildings" classname="test_economy_state" time="0.009">
+		</testcase>
+		<testcase name="test_save_roundtrip_and_bad_input" classname="test_economy_state" time="0.011">
+		</testcase>
+		<testcase name="test_deterministic_replay" classname="test_economy_state" time="0.012">
+		</testcase>
+		<testcase name="test_golden_renovation_sink" classname="test_economy_state" time="0.016">
+		</testcase>
+		<testcase name="test_renovation_stops_at_the_maximum_and_survives_save" classname="test_economy_state" time="0.010">
+		</testcase>
+		<testcase name="test_renovation_requires_every_building_at_tier_five" classname="test_economy_state" time="0.009">
+		</testcase>
+	</testsuite>
+	<testsuite id="58" name="test_economy_model" package="tests/economy" timestamp="2026-10-06T03:20:28" hostname="localhost" tests="18" failures="0" errors="0" skipped="0" flaky="0" time="0.271">
+		<testcase name="test_golden_file_and_params_load" classname="test_economy_model" time="0.009">
+		</testcase>
+		<testcase name="test_params_building_order_matches_buildings_json" classname="test_economy_model" time="0.009">
+		</testcase>
+		<testcase name="test_params_rejects_garbage" classname="test_economy_model" time="0.012">
+		</testcase>
+		<testcase name="test_hours_per_day_matches_clock" classname="test_economy_model" time="0.009">
+		</testcase>
+		<testcase name="test_golden_wtp_and_acceptance" classname="test_economy_model" time="0.009">
+		</testcase>
+		<testcase name="test_acceptance_is_half_at_wtp_and_monotone" classname="test_economy_model" time="0.010">
+		</testcase>
+		<testcase name="test_golden_attract" classname="test_economy_model" time="0.011">
+		</testcase>
+		<testcase name="test_golden_arrivals" classname="test_economy_model" time="0.009">
+		</testcase>
+		<testcase name="test_golden_split_hour_parts_sum_to_daily" classname="test_economy_model" time="0.010">
+		</testcase>
+		<testcase name="test_golden_members" classname="test_economy_model" time="0.009">
+		</testcase>
+		<testcase name="test_golden_parcel_and_hole_costs" classname="test_economy_model" time="0.010">
+		</testcase>
+		<testcase name="test_golden_payback_and_speed_tokens" classname="test_economy_model" time="0.009">
+		</testcase>
+		<testcase name="test_golden_course_upkeep" classname="test_economy_model" time="0.009">
+		</testcase>
+		<testcase name="test_golden_day_estimates_and_fee_suggestion" classname="test_economy_model" time="0.030">
+		</testcase>
+		<testcase name="test_golden_renovation_sink" classname="test_economy_model" time="0.010">
+		</testcase>
+		<testcase name="test_tournament_costs_match_tournament_data" classname="test_economy_model" time="0.010">
+		</testcase>
+		<testcase name="test_tier_prices_follow_payback_rule" classname="test_economy_model" time="0.013">
+		</testcase>
+		<testcase name="test_upkeep_is_covered_by_added_income" classname="test_economy_model" time="0.010">
+		</testcase>
+	</testsuite>
+	<testsuite id="59" name="test_tree_placement" package="tests/render" timestamp="2026-10-06T03:20:28" hostname="localhost" tests="8" failures="0" errors="0" skipped="0" flaky="0" time="0.187">
+		<testcase name="test_hash32_golden" classname="test_tree_placement" time="0.006">
+		</testcase>
+		<testcase name="test_rng_sequence_golden" classname="test_tree_placement" time="0.006">
+		</testcase>
+		<testcase name="test_placement_count_and_first_trees" classname="test_tree_placement" time="0.010">
+		</testcase>
+		<testcase name="test_placement_checksum_golden" classname="test_tree_placement" time="0.015">
+		</testcase>
+		<testcase name="test_placement_is_repeatable" classname="test_tree_placement" time="0.014">
+		</testcase>
+		<testcase name="test_different_seeds_differ" classname="test_tree_placement" time="0.014">
+		</testcase>
+		<testcase name="test_no_tree_in_exclusion_and_fields_in_range" classname="test_tree_placement" time="0.080">
+		</testcase>
+		<testcase name="test_chunk_grouping_covers_all_trees" classname="test_tree_placement" time="0.011">
+		</testcase>
+	</testsuite>
+	<testsuite id="60" name="test_adaptive_scale" package="tests/render" timestamp="2026-10-06T03:20:28" hostname="localhost" tests="13" failures="0" errors="0" skipped="0" flaky="0" time="0.133">
+		<testcase name="test_next_scale_down_on_slow_p95" classname="test_adaptive_scale" time="0.007">
+		</testcase>
+		<testcase name="test_next_scale_never_below_floor" classname="test_adaptive_scale" time="0.007">
+		</testcase>
+		<testcase name="test_next_scale_deadband_holds" classname="test_adaptive_scale" time="0.007">
+		</testcase>
+		<testcase name="test_next_scale_up_needs_calm_windows" classname="test_adaptive_scale" time="0.007">
+		</testcase>
+		<testcase name="test_next_scale_never_above_max" classname="test_adaptive_scale" time="0.006">
+		</testcase>
+		<testcase name="test_high_tier_floor_is_075_and_change_counter" classname="test_adaptive_scale" time="0.007">
+		</testcase>
+		<testcase name="test_p95_ignores_single_hitch" classname="test_adaptive_scale" time="0.007">
+		</testcase>
+		<testcase name="test_two_hitches_in_window_trigger_drop" classname="test_adaptive_scale" time="0.007">
+		</testcase>
+		<testcase name="test_recovery_after_calm_windows" classname="test_adaptive_scale" time="0.007">
+		</testcase>
+		<testcase name="test_flip_flop_backoff_doubles_calm_requirement" classname="test_adaptive_scale" time="0.007">
+		</testcase>
+		<testcase name="test_paused_ignores_frames" classname="test_adaptive_scale" time="0.006">
+		</testcase>
+		<testcase name="test_disabled_ignores_frames" classname="test_adaptive_scale" time="0.006">
+		</testcase>
+		<testcase name="test_set_target_fps_changes_budget" classname="test_adaptive_scale" time="0.006">
+		</testcase>
+	</testsuite>
+	<testsuite id="61" name="test_bench_helpers" package="tests/render" timestamp="2026-10-06T03:20:28" hostname="localhost" tests="6" failures="0" errors="0" skipped="0" flaky="0" time="0.066">
+		<testcase name="test_percentile_nearest_rank" classname="test_bench_helpers" time="0.006">
+		</testcase>
+		<testcase name="test_summarize_steady_30fps_passes" classname="test_bench_helpers" time="0.007">
+		</testcase>
+		<testcase name="test_summarize_slow_fails" classname="test_bench_helpers" time="0.007">
+		</testcase>
+		<testcase name="test_empty_is_no_data" classname="test_bench_helpers" time="0.006">
+		</testcase>
+		<testcase name="test_parse_user_args" classname="test_bench_helpers" time="0.007">
+		</testcase>
+		<testcase name="test_adaptive_scale_drops_and_recovers" classname="test_bench_helpers" time="0.008">
+		</testcase>
+	</testsuite>
+	<testsuite id="62" name="test_frame_governor" package="tests/render" timestamp="2026-10-06T03:20:28" hostname="localhost" tests="14" failures="0" errors="0" skipped="0" flaky="0" time="0.144">
+		<testcase name="test_normalize_setting" classname="test_frame_governor" time="0.007">
+		</testcase>
+		<testcase name="test_resolve_cap_fixed" classname="test_frame_governor" time="0.007">
+		</testcase>
+		<testcase name="test_resolve_cap_auto_by_tier" classname="test_frame_governor" time="0.006">
+		</testcase>
+		<testcase name="test_decide_active_within_hold" classname="test_frame_governor" time="0.007">
+		</testcase>
+		<testcase name="test_decide_idle_after_hold" classname="test_frame_governor" time="0.006">
+		</testcase>
+		<testcase name="test_decide_ambient_blocks_low_processor" classname="test_frame_governor" time="0.006">
+		</testcase>
+		<testcase name="test_decide_idle_fps_never_above_cap" classname="test_frame_governor" time="0.007">
+		</testcase>
+		<testcase name="test_update_sequence_active_then_idle_then_wake" classname="test_frame_governor" time="0.007">
+		</testcase>
+		<testcase name="test_update_input_alone_keeps_active" classname="test_frame_governor" time="0.006">
+		</testcase>
+		<testcase name="test_note_input_resets_hold" classname="test_frame_governor" time="0.006">
+		</testcase>
+		<testcase name="test_disabled_returns_disabled_and_zero_fps" classname="test_frame_governor" time="0.007">
+		</testcase>
+		<testcase name="test_idle_pct_accounting" classname="test_frame_governor" time="0.007">
+		</testcase>
+		<testcase name="test_cap_setting_cycle" classname="test_frame_governor" time="0.007">
+		</testcase>
+		<testcase name="test_cap_setting_options_ids_are_valid" classname="test_frame_governor" time="0.006">
+		</testcase>
+	</testsuite>
+	<testsuite id="63" name="test_quality_tiers" package="tests/render" timestamp="2026-10-06T03:20:28" hostname="localhost" tests="5" failures="0" errors="0" skipped="0" flaky="0" time="0.056">
+		<testcase name="test_all_tiers_valid" classname="test_quality_tiers" time="0.007">
+		</testcase>
+		<testcase name="test_tier_names_match" classname="test_quality_tiers" time="0.006">
+		</testcase>
+		<testcase name="test_unknown_name_falls_back_to_medium" classname="test_quality_tiers" time="0.007">
+		</testcase>
+		<testcase name="test_tiers_are_monotonic" classname="test_quality_tiers" time="0.007">
+		</testcase>
+		<testcase name="test_validate_rejects_bad_configs" classname="test_quality_tiers" time="0.007">
+		</testcase>
+	</testsuite>
+	<testsuite id="64" name="test_content_catalogue" package="tests/data" timestamp="2026-10-06T03:20:28" hostname="localhost" tests="4" failures="0" errors="0" skipped="0" flaky="0" time="0.048">
+		<testcase name="test_fifteen_tree_styles_in_three_heights" classname="test_content_catalogue" time="0.007">
+		</testcase>
+		<testcase name="test_ten_plant_styles_in_fifteen_colours" classname="test_content_catalogue" time="0.007">
+		</testcase>
+		<testcase name="test_several_turf_types_with_sane_speed" classname="test_content_catalogue" time="0.007">
+		</testcase>
+		<testcase name="test_walking_paths_are_cheaper_than_cart_paths_and_exclude_carts" classname="test_content_catalogue" time="0.007">
+		</testcase>
+	</testsuite>
+	<testsuite id="65" name="test_cloud_conflict" package="tests/save" timestamp="2026-10-06T03:20:28" hostname="localhost" tests="10" failures="0" errors="0" skipped="0" flaky="0" time="0.110">
+		<testcase name="test_differing_saves_always_prompt" classname="test_cloud_conflict" time="0.006">
+		</testcase>
+		<testcase name="test_a_higher_revision_never_wins_silently" classname="test_cloud_conflict" time="0.007">
+		</testcase>
+		<testcase name="test_identical_checksums_are_in_sync" classname="test_cloud_conflict" time="0.007">
+		</testcase>
+		<testcase name="test_missing_sides" classname="test_cloud_conflict" time="0.006">
+		</testcase>
+		<testcase name="test_rows_show_day_cash_holes_and_playtime" classname="test_cloud_conflict" time="0.007">
+		</testcase>
+		<testcase name="test_choices_and_actions" classname="test_cloud_conflict" time="0.006">
+		</testcase>
+		<testcase name="test_summary_dict_round_trip_for_the_cloud_service" classname="test_cloud_conflict" time="0.007">
+		</testcase>
+		<testcase name="test_free_manual_slot_skips_used_slots_and_slot_zero" classname="test_cloud_conflict" time="0.007">
+		</testcase>
+		<testcase name="test_autosave_policy_hours" classname="test_cloud_conflict" time="0.007">
+		</testcase>
+		<testcase name="test_autosave_policy_matches_clock_hour_events" classname="test_cloud_conflict" time="0.008">
+		</testcase>
+	</testsuite>
+	<testsuite id="66" name="test_save_migrator" package="tests/save" timestamp="2026-10-06T03:20:29" hostname="localhost" tests="9" failures="0" errors="0" skipped="0" flaky="0" time="0.103">
+		<testcase name="test_default_registry_matches_current_version" classname="test_save_migrator" time="0.007">
+		</testcase>
+		<testcase name="test_version_one_document_needs_no_migration_today" classname="test_save_migrator" time="0.007">
+		</testcase>
+		<testcase name="test_single_step_applies_and_does_not_mutate_the_input" classname="test_save_migrator" time="0.008">
+		</testcase>
+		<testcase name="test_steps_run_in_order_and_never_skip" classname="test_save_migrator" time="0.007">
+		</testcase>
+		<testcase name="test_migration_is_deterministic" classname="test_save_migrator" time="0.008">
+		</testcase>
+		<testcase name="test_step_may_not_change_determinism_state" classname="test_save_migrator" time="0.007">
+		</testcase>
+		<testcase name="test_step_output_is_normalised_and_checked" classname="test_save_migrator" time="0.007">
+		</testcase>
+		<testcase name="test_register_step_rules" classname="test_save_migrator" time="0.007">
+		</testcase>
+		<testcase name="test_missing_or_odd_version_fails" classname="test_save_migrator" time="0.007">
+		</testcase>
+	</testsuite>
+	<testsuite id="67" name="test_save_progress" package="tests/save" timestamp="2026-10-06T03:20:29" hostname="localhost" tests="11" failures="0" errors="0" skipped="0" flaky="0" time="0.183">
+		<testcase name="test_clock_constant_matches_the_game_day" classname="test_save_progress" time="0.006">
+		</testcase>
+		<testcase name="test_legacy_v1_save_stays_valid_and_readable" classname="test_save_progress" time="0.008">
+		</testcase>
+		<testcase name="test_save_without_ironman_key_is_valid_and_true_is_refused" classname="test_save_progress" time="0.008">
+		</testcase>
+		<testcase name="test_strip_legacy_keys_returns_a_copy_without_ironman" classname="test_save_progress" time="0.007">
+		</testcase>
+		<testcase name="test_full_document_validates_and_reads_back" classname="test_save_progress" time="0.009">
+		</testcase>
+		<testcase name="test_full_document_survives_bytes_round_trip_byte_identical" classname="test_save_progress" time="0.011">
+		</testcase>
+		<testcase name="test_progress_blocks_load_back_into_the_modules" classname="test_save_progress" time="0.012">
+		</testcase>
+		<testcase name="test_old_progress_without_new_blocks_loads_with_fresh_defaults" classname="test_save_progress" time="0.008">
+		</testcase>
+		<testcase name="test_bad_progress_blocks_change_nothing" classname="test_save_progress" time="0.009">
+		</testcase>
+		<testcase name="test_validate_rejects_bad_new_fields" classname="test_save_progress" time="0.047">
+		</testcase>
+		<testcase name="test_clock_resumes_mid_day_from_the_save" classname="test_save_progress" time="0.010">
+		</testcase>
+	</testsuite>
+	<testsuite id="68" name="test_save_game" package="tests/save" timestamp="2026-10-06T03:20:29" hostname="localhost" tests="15" failures="0" errors="0" skipped="0" flaky="0" time="0.170">
+		<testcase name="test_normalize_converts_integral_floats" classname="test_save_game" time="0.006">
+		</testcase>
+		<testcase name="test_normalize_rejects_bad_numbers" classname="test_save_game" time="0.007">
+		</testcase>
+		<testcase name="test_normalize_two_pow_53_edge" classname="test_save_game" time="0.007">
+		</testcase>
+		<testcase name="test_normalize_rejects_non_string_keys_and_deep_nesting" classname="test_save_game" time="0.007">
+		</testcase>
+		<testcase name="test_u64_hex_round_trip" classname="test_save_game" time="0.007">
+		</testcase>
+		<testcase name="test_canonical_json_sorts_keys_and_prints_integers" classname="test_save_game" time="0.006">
+		</testcase>
+		<testcase name="test_checksum_matches_python_reference" classname="test_save_game" time="0.007">
+		</testcase>
+		<testcase name="test_seal_and_tamper_detection" classname="test_save_game" time="0.007">
+		</testcase>
+		<testcase name="test_bytes_round_trip_is_byte_identical" classname="test_save_game" time="0.008">
+		</testcase>
+		<testcase name="test_parse_bytes_error_codes" classname="test_save_game" time="0.010">
+		</testcase>
+		<testcase name="test_validate_accepts_the_fixture" classname="test_save_game" time="0.008">
+		</testcase>
+		<testcase name="test_validate_rejects_entitlement_keys" classname="test_save_game" time="0.009">
+		</testcase>
+		<testcase name="test_validate_rejects_ironman" classname="test_save_game" time="0.008">
+		</testcase>
+		<testcase name="test_validate_rejects_bad_fields" classname="test_save_game" time="0.009">
+		</testcase>
+		<testcase name="test_safe_blob_name" classname="test_save_game" time="0.007">
+		</testcase>
+	</testsuite>
+	<testsuite id="69" name="test_save_store" package="tests/save" timestamp="2026-10-06T03:20:29" hostname="localhost" tests="19" failures="0" errors="0" skipped="0" flaky="0" time="0.337">
+		<testcase name="test_save_and_load_round_trip" classname="test_save_store" time="0.010">
+		</testcase>
+		<testcase name="test_slot_zero_is_autosave_kind" classname="test_save_store" time="0.010">
+		</testcase>
+		<testcase name="test_revision_increments_and_bak_keeps_previous_generation" classname="test_save_store" time="0.018">
+		</testcase>
+		<testcase name="test_invalid_arguments_are_rejected_without_writing" classname="test_save_store" time="0.012">
+		</testcase>
+		<testcase name="test_torn_json_falls_back_to_bak_and_heals" classname="test_save_store" time="0.015">
+		</testcase>
+		<testcase name="test_all_generations_damaged_fails_and_touches_nothing" classname="test_save_store" time="0.012">
+		</testcase>
+		<testcase name="test_bad_checksum_is_corruption" classname="test_save_store" time="0.010">
+		</testcase>
+		<testcase name="test_kill_between_blob_and_json_write_recovers_old_pair" classname="test_save_store" time="0.019">
+		</testcase>
+		<testcase name="test_json_newer_than_blob_falls_back_to_previous_generation" classname="test_save_store" time="0.015">
+		</testcase>
+		<testcase name="test_blob_problems_are_reported_never_partially_loaded" classname="test_save_store" time="0.012">
+		</testcase>
+		<testcase name="test_write_killed_mid_temp_write_leaves_old_save_loadable" classname="test_save_store" time="0.013">
+		</testcase>
+		<testcase name="test_write_killed_after_bak_rotation_recovers_from_complete_tmp" classname="test_save_store" time="0.016">
+		</testcase>
+		<testcase name="test_future_save_needs_app_update_and_is_not_touched" classname="test_save_store" time="0.009">
+		</testcase>
+		<testcase name="test_list_slots" classname="test_save_store" time="0.014">
+		</testcase>
+		<testcase name="test_autosave_if_due_follows_game_hours" classname="test_save_store" time="0.016">
+		</testcase>
+		<testcase name="test_export_import_round_trip_and_overwrite_confirmation" classname="test_save_store" time="0.016">
+		</testcase>
+		<testcase name="test_import_validates_everything_before_touching_a_slot" classname="test_save_store" time="0.011">
+		</testcase>
+		<testcase name="test_delete_slot_removes_every_file" classname="test_save_store" time="0.013">
+		</testcase>
+		<testcase name="test_store_migrates_an_old_file_and_keeps_a_premigrate_copy" classname="test_save_store" time="0.011">
+		</testcase>
+	</testsuite>
+	<testsuite id="70" name="test_player_settings" package="tests/save" timestamp="2026-10-06T03:20:29" hostname="localhost" tests="11" failures="0" errors="0" skipped="0" flaky="0" time="0.134">
+		<testcase name="test_consent_defaults_to_false_and_is_asked_once" classname="test_player_settings" time="0.007">
+		</testcase>
+		<testcase name="test_first_launch_load_keeps_safe_defaults" classname="test_player_settings" time="0.007">
+		</testcase>
+		<testcase name="test_save_and_load_round_trip" classname="test_player_settings" time="0.007">
+		</testcase>
+		<testcase name="test_damaged_file_falls_back_to_bak_then_to_defaults" classname="test_player_settings" time="0.008">
+		</testcase>
+		<testcase name="test_non_boolean_consent_value_is_not_consent" classname="test_player_settings" time="0.007">
+		</testcase>
+		<testcase name="test_settings_are_never_part_of_a_save_document" classname="test_player_settings" time="0.007">
+		</testcase>
+		<testcase name="test_uuid_formatting" classname="test_player_settings" time="0.007">
+		</testcase>
+		<testcase name="test_ensure_install_id_is_stable" classname="test_player_settings" time="0.007">
+		</testcase>
+		<testcase name="test_account_deletion_request_lists_server_data_and_keeps_purchases" classname="test_player_settings" time="0.007">
+		</testcase>
+		<testcase name="test_account_deletion_keeps_local_saves_by_default" classname="test_player_settings" time="0.011">
+		</testcase>
+		<testcase name="test_account_deletion_can_also_wipe_local_saves" classname="test_player_settings" time="0.013">
+		</testcase>
+	</testsuite>
+	<testsuite id="71" name="test_rng" package="tests/core" timestamp="2026-10-06T03:20:29" hostname="localhost" tests="5" failures="0" errors="0" skipped="0" flaky="0" time="0.089">
+		<testcase name="test_published_pcg32_vector" classname="test_rng" time="0.007">
+		</testcase>
+		<testcase name="test_u32_streams" classname="test_rng" time="0.009">
+		</testcase>
+		<testcase name="test_bounded_and_range" classname="test_rng" time="0.014">
+		</testcase>
+		<testcase name="test_gauss" classname="test_rng" time="0.010">
+		</testcase>
+		<testcase name="test_mixed_1000_hash" classname="test_rng" time="0.025">
+		</testcase>
+	</testsuite>
+	<testsuite id="72" name="test_fixed" package="tests/core" timestamp="2026-10-06T03:20:30" hostname="localhost" tests="10" failures="0" errors="0" skipped="0" flaky="0" time="0.123">
+		<testcase name="test_golden_file_loaded" classname="test_fixed" time="0.007">
+		</testcase>
+		<testcase name="test_mul" classname="test_fixed" time="0.010">
+		</testcase>
+		<testcase name="test_div" classname="test_fixed" time="0.010">
+		</testcase>
+		<testcase name="test_sqrt" classname="test_fixed" time="0.011">
+		</testcase>
+		<testcase name="test_isqrt" classname="test_fixed" time="0.010">
+		</testcase>
+		<testcase name="test_lerp" classname="test_fixed" time="0.008">
+		</testcase>
+		<testcase name="test_clamp" classname="test_fixed" time="0.007">
+		</testcase>
+		<testcase name="test_trunc_and_floor" classname="test_fixed" time="0.007">
+		</testcase>
+		<testcase name="test_hypot" classname="test_fixed" time="0.008">
+		</testcase>
+		<testcase name="test_negative_semantics_documented" classname="test_fixed" time="0.006">
+		</testcase>
+	</testsuite>
+	<testsuite id="73" name="test_shotsim" package="tests/core" timestamp="2026-10-06T03:20:30" hostname="localhost" tests="4" failures="0" errors="0" skipped="0" flaky="0" time="0.407">
+		<testcase name="test_hole_generation" classname="test_shotsim" time="0.092">
+		</testcase>
+		<testcase name="test_single_hole_sims" classname="test_shotsim" time="0.021">
+		</testcase>
+		<testcase name="test_sim_hash_runs" classname="test_shotsim" time="0.179">
+		</testcase>
+		<testcase name="test_trace_flag_does_not_change_results" classname="test_shotsim" time="0.093">
+		</testcase>
+	</testsuite>
+	<testsuite id="74" name="test_hash" package="tests/core" timestamp="2026-10-06T03:20:30" hostname="localhost" tests="5" failures="0" errors="0" skipped="0" flaky="0" time="0.057">
+		<testcase name="test_byte_vectors" classname="test_hash" time="0.007">
+		</testcase>
+		<testcase name="test_published_vectors" classname="test_hash" time="0.007">
+		</testcase>
+		<testcase name="test_single_i64" classname="test_hash" time="0.007">
+		</testcase>
+		<testcase name="test_u32" classname="test_hash" time="0.007">
+		</testcase>
+		<testcase name="test_sequence" classname="test_hash" time="0.007">
+		</testcase>
+	</testsuite>
+	<testsuite id="75" name="test_trig" package="tests/core" timestamp="2026-10-06T03:20:30" hostname="localhost" tests="4" failures="0" errors="0" skipped="0" flaky="0" time="0.123">
+		<testcase name="test_table_sizes_and_hash" classname="test_trig" time="0.007">
+		</testcase>
+		<testcase name="test_sin_cos" classname="test_trig" time="0.051">
+		</testcase>
+		<testcase name="test_atan2" classname="test_trig" time="0.037">
+		</testcase>
+		<testcase name="test_cardinal_points" classname="test_trig" time="0.007">
+		</testcase>
+	</testsuite>
+	<testsuite id="76" name="test_hash_report" package="tests/core" timestamp="2026-10-06T03:20:30" hostname="localhost" tests="1" failures="0" errors="0" skipped="0" flaky="0" time="0.186">
+		<testcase name="test_print_sim_hashes" classname="test_hash_report" time="0.178">
+		</testcase>
+	</testsuite>
+	<testsuite id="77" name="test_game_clock" package="tests/clock" timestamp="2026-10-06T03:20:30" hostname="localhost" tests="22" failures="0" errors="0" skipped="0" flaky="0" time="0.383">
+		<testcase name="test_one_game_day_is_twenty_five_real_minutes" classname="test_game_clock" time="0.008">
+		</testcase>
+		<testcase name="test_exact_accumulator_values" classname="test_game_clock" time="0.007">
+		</testcase>
+		<testcase name="test_slicing_does_not_change_the_result" classname="test_game_clock" time="0.012">
+		</testcase>
+		<testcase name="test_sixty_fps_for_one_real_hour" classname="test_game_clock" time="0.131">
+		</testcase>
+		<testcase name="test_hour_events_after_a_partial_day" classname="test_game_clock" time="0.008">
+		</testcase>
+		<testcase name="test_pause_freezes_everything" classname="test_game_clock" time="0.007">
+		</testcase>
+		<testcase name="test_request_speed_rules" classname="test_game_clock" time="0.007">
+		</testcase>
+		<testcase name="test_speed_two_is_free_and_never_drops" classname="test_game_clock" time="0.007">
+		</testcase>
+		<testcase name="test_speed_eight_with_earned_then_paid_tokens" classname="test_game_clock" time="0.007">
+		</testcase>
+		<testcase name="test_speed_without_ledger_drops_to_one" classname="test_game_clock" time="0.007">
+		</testcase>
+		<testcase name="test_catch_up_is_capped_and_free" classname="test_game_clock" time="0.007">
+		</testcase>
+		<testcase name="test_offline_progress_is_bounded" classname="test_game_clock" time="0.007">
+		</testcase>
+		<testcase name="test_set_time_and_getters" classname="test_game_clock" time="0.007">
+		</testcase>
+		<testcase name="test_save_round_trip_through_json" classname="test_game_clock" time="0.007">
+		</testcase>
+		<testcase name="test_from_dict_rejects_bad_data" classname="test_game_clock" time="0.007">
+		</testcase>
+		<testcase name="test_legacy_clock_preserves_fractional_game_minute" classname="test_game_clock" time="0.007">
+		</testcase>
+		<testcase name="test_speed_eight_mixed_earned_and_paid_golden" classname="test_game_clock" time="0.007">
+		</testcase>
+		<testcase name="test_speed_two_with_sixty_fps_frames_golden" classname="test_game_clock" time="0.013">
+		</testcase>
+		<testcase name="test_speed_eight_is_independent_of_frame_slicing" classname="test_game_clock" time="0.008">
+		</testcase>
+		<testcase name="test_one_x_never_touches_the_ledger" classname="test_game_clock" time="0.008">
+		</testcase>
+		<testcase name="test_paused_clock_does_not_drain_tokens" classname="test_game_clock" time="0.006">
+		</testcase>
+		<testcase name="test_hour_boundary_events_never_skip_when_fast" classname="test_game_clock" time="0.007">
+		</testcase>
+	</testsuite>
+	<testsuite id="78" name="test_achievements" package="tests/progression" timestamp="2026-10-06T03:20:31" hostname="localhost" tests="18" failures="0" errors="0" skipped="0" flaky="0" time="0.230">
+		<testcase name="test_stats_only_go_up" classname="test_achievements" time="0.007">
+		</testcase>
+		<testcase name="test_stats_ignore_unknown_and_bad_values" classname="test_achievements" time="0.007">
+		</testcase>
+		<testcase name="test_observe_tiers" classname="test_achievements" time="0.007">
+		</testcase>
+		<testcase name="test_observe_hosted" classname="test_achievements" time="0.007">
+		</testcase>
+		<testcase name="test_stats_round_trip" classname="test_achievements" time="0.007">
+		</testcase>
+		<testcase name="test_stat_keys_match_the_schema_enum" classname="test_achievements" time="0.007">
+		</testcase>
+		<testcase name="test_stats_save_block_is_flat_and_skips_zero" classname="test_achievements" time="0.007">
+		</testcase>
+		<testcase name="test_save_schema_stats_keys_match" classname="test_achievements" time="0.009">
+		</testcase>
+		<testcase name="test_catalogue_loads_with_at_least_forty" classname="test_achievements" time="0.008">
+		</testcase>
+		<testcase name="test_every_achievement_is_well_formed_and_unique" classname="test_achievements" time="0.012">
+		</testcase>
+		<testcase name="test_unlock_conditions_are_data" classname="test_achievements" time="0.009">
+		</testcase>
+		<testcase name="test_all_conditions_must_hold" classname="test_achievements" time="0.009">
+		</testcase>
+		<testcase name="test_newly_unlocked_skips_already_unlocked_and_keeps_file_order" classname="test_achievements" time="0.009">
+		</testcase>
+		<testcase name="test_points" classname="test_achievements" time="0.008">
+		</testcase>
+		<testcase name="test_progress_rows" classname="test_achievements" time="0.009">
+		</testcase>
+		<testcase name="test_non_gte_ops" classname="test_achievements" time="0.007">
+		</testcase>
+		<testcase name="test_validation_rejects_bad_catalogues" classname="test_achievements" time="0.012">
+		</testcase>
+		<testcase name="test_game_copy_equals_docs_copy" classname="test_achievements" time="0.008">
+		</testcase>
+	</testsuite>
+	<testsuite id="79" name="test_progression" package="tests/progression" timestamp="2026-10-06T03:20:31" hostname="localhost" tests="18" failures="0" errors="0" skipped="0" flaky="0" time="0.250">
+		<testcase name="test_loads_defaults" classname="test_progression" time="0.009">
+		</testcase>
+		<testcase name="test_unloaded_is_safe" classname="test_progression" time="0.007">
+		</testcase>
+		<testcase name="test_points_breakdown_golden" classname="test_progression" time="0.009">
+		</testcase>
+		<testcase name="test_member_points_are_capped" classname="test_progression" time="0.009">
+		</testcase>
+		<testcase name="test_level_table_edges" classname="test_progression" time="0.009">
+		</testcase>
+		<testcase name="test_unlocks_by_level" classname="test_progression" time="0.009">
+		</testcase>
+		<testcase name="test_refresh_unlocks_achievements_and_lifts_the_level" classname="test_progression" time="0.009">
+		</testcase>
+		<testcase name="test_refresh_small_progress" classname="test_progression" time="0.010">
+		</testcase>
+		<testcase name="test_refresh_tournament_ladder" classname="test_progression" time="0.009">
+		</testcase>
+		<testcase name="test_points_never_drop_when_stats_are_observed_lower" classname="test_progression" time="0.009">
+		</testcase>
+		<testcase name="test_bonus_prestige_adds_up" classname="test_progression" time="0.009">
+		</testcase>
+		<testcase name="test_streak_feeds_stats_and_points" classname="test_progression" time="0.009">
+		</testcase>
+		<testcase name="test_observe_helpers_for_other_modules" classname="test_progression" time="0.008">
+		</testcase>
+		<testcase name="test_save_ids_filter_unknown_and_duplicates" classname="test_progression" time="0.009">
+		</testcase>
+		<testcase name="test_round_trip_and_json_round_trip" classname="test_progression" time="0.013">
+		</testcase>
+		<testcase name="test_bad_saves_change_nothing" classname="test_progression" time="0.009">
+		</testcase>
+		<testcase name="test_achievement_rows_for_the_screen" classname="test_progression" time="0.009">
+		</testcase>
+		<testcase name="test_rejects_bad_progression_data" classname="test_progression" time="0.012">
+		</testcase>
+	</testsuite>
+	<testsuite id="80" name="test_streak" package="tests/progression" timestamp="2026-10-06T03:20:31" hostname="localhost" tests="15" failures="0" errors="0" skipped="0" flaky="0" time="0.181">
+		<testcase name="test_configured_from_data" classname="test_streak" time="0.008">
+		</testcase>
+		<testcase name="test_first_day_starts_the_streak" classname="test_streak" time="0.008">
+		</testcase>
+		<testcase name="test_same_day_and_earlier_day_do_nothing" classname="test_streak" time="0.008">
+		</testcase>
+		<testcase name="test_consecutive_days_extend_and_pay_milestones_once" classname="test_streak" time="0.008">
+		</testcase>
+		<testcase name="test_grace_bridges_one_gap" classname="test_streak" time="0.008">
+		</testcase>
+		<testcase name="test_gap_of_two_missed_days_can_still_be_bridged" classname="test_streak" time="0.007">
+		</testcase>
+		<testcase name="test_without_grace_the_streak_resumes_at_half_never_zero" classname="test_streak" time="0.008">
+		</testcase>
+		<testcase name="test_long_gap_resumes_even_with_grace" classname="test_streak" time="0.007">
+		</testcase>
+		<testcase name="test_resume_from_one_is_one" classname="test_streak" time="0.007">
+		</testcase>
+		<testcase name="test_grace_is_regained_every_seven_days_up_to_the_max" classname="test_streak" time="0.008">
+		</testcase>
+		<testcase name="test_milestone_table_pays_each_step" classname="test_streak" time="0.007">
+		</testcase>
+		<testcase name="test_display_streak" classname="test_streak" time="0.007">
+		</testcase>
+		<testcase name="test_round_trip" classname="test_streak" time="0.009">
+		</testcase>
+		<testcase name="test_configure_rejects_bad_blocks" classname="test_streak" time="0.007">
+		</testcase>
+		<testcase name="test_save_block_round_trip_has_no_version_tag" classname="test_streak" time="0.008">
+		</testcase>
+	</testsuite>
+	<testsuite id="81" name="test_rating_validate" package="tests/rating" timestamp="2026-10-06T03:20:32" hostname="localhost" tests="5" failures="0" errors="0" skipped="0" flaky="0" time="1.111">
+		<testcase name="test_fuzz_rejection_codes" classname="test_rating_validate" time="0.007">
+		</testcase>
+		<testcase name="test_embedded_score_ignored" classname="test_rating_validate" time="1.056">
+		</testcase>
+		<testcase name="test_integer_valued_floats_are_integers" classname="test_rating_validate" time="0.008">
+		</testcase>
+		<testcase name="test_invalid_holes_score_zero_with_codes" classname="test_rating_validate" time="0.007">
+		</testcase>
+		<testcase name="test_rate_shared_rejects_before_rating" classname="test_rating_validate" time="0.007">
+		</testcase>
+	</testsuite>
+	<testsuite id="82" name="test_rating_math" package="tests/rating" timestamp="2026-10-06T03:20:33" hostname="localhost" tests="9" failures="0" errors="0" skipped="0" flaky="0" time="0.103">
+		<testcase name="test_params_load_and_hash" classname="test_rating_math" time="0.007">
+		</testcase>
+		<testcase name="test_division_vectors" classname="test_rating_math" time="0.008">
+		</testcase>
+		<testcase name="test_interp_length_table" classname="test_rating_math" time="0.007">
+		</testcase>
+		<testcase name="test_h32_vectors" classname="test_rating_math" time="0.007">
+		</testcase>
+		<testcase name="test_hash64_vectors" classname="test_rating_math" time="0.006">
+		</testcase>
+		<testcase name="test_z256_hash" classname="test_rating_math" time="0.006">
+		</testcase>
+		<testcase name="test_seeds" classname="test_rating_math" time="0.007">
+		</testcase>
+		<testcase name="test_tree_rect_expansion" classname="test_rating_math" time="0.008">
+		</testcase>
+		<testcase name="test_reason_code_table" classname="test_rating_math" time="0.007">
+		</testcase>
+	</testsuite>
+	<testsuite id="83" name="test_rating_sim" package="tests/rating" timestamp="2026-10-06T03:20:33" hostname="localhost" tests="13" failures="0" errors="0" skipped="0" flaky="0" time="12.710">
+		<testcase name="test_plain_par4" classname="test_rating_sim" time="0.607">
+		</testcase>
+		<testcase name="test_choice_par4" classname="test_rating_sim" time="0.751">
+		</testcase>
+		<testcase name="test_forced_water" classname="test_rating_sim" time="2.141">
+		</testcase>
+		<testcase name="test_determinism_base" classname="test_rating_sim" time="1.073">
+		</testcase>
+		<testcase name="test_tree_spam" classname="test_rating_sim" time="1.041">
+		</testcase>
+		<testcase name="test_synthetic_par3" classname="test_rating_sim" time="0.325">
+		</testcase>
+		<testcase name="test_synthetic_par5" classname="test_rating_sim" time="1.489">
+		</testcase>
+		<testcase name="test_preview_n30" classname="test_rating_sim" time="0.212">
+		</testcase>
+		<testcase name="test_headwind" classname="test_rating_sim" time="0.740">
+		</testcase>
+		<testcase name="test_rain_epoch3" classname="test_rating_sim" time="0.699">
+		</testcase>
+		<testcase name="test_unplayable_island" classname="test_rating_sim" time="1.318">
+		</testcase>
+		<testcase name="test_records_digest_matches_golden" classname="test_rating_sim" time="1.053">
+		</testcase>
+		<testcase name="test_same_input_same_hash_twice" classname="test_rating_sim" time="1.201">
+		</testcase>
+	</testsuite>
+	<testsuite id="84" name="test_rating_course" package="tests/rating" timestamp="2026-10-06T03:20:45" hostname="localhost" tests="9" failures="0" errors="0" skipped="0" flaky="0" time="0.953">
+		<testcase name="test_rollups_match_reference" classname="test_rating_course" time="0.262">
+		</testcase>
+		<testcase name="test_rollup_codes_match_reference" classname="test_rating_course" time="0.258">
+		</testcase>
+		<testcase name="test_descriptor_hashes" classname="test_rating_course" time="0.260">
+		</testcase>
+		<testcase name="test_mirror_copy_is_detected" classname="test_rating_course" time="0.016">
+		</testcase>
+		<testcase name="test_tier_gates_and_dead_hole_counting" classname="test_rating_course" time="0.083">
+		</testcase>
+		<testcase name="test_empty_course_is_safe" classname="test_rating_course" time="0.007">
+		</testcase>
+		<testcase name="test_sustained_and_prestige" classname="test_rating_course" time="0.007">
+		</testcase>
+		<testcase name="test_tournament_and_misc_codes" classname="test_rating_course" time="0.007">
+		</testcase>
+		<testcase name="test_rank_tie_break" classname="test_rating_course" time="0.007">
+		</testcase>
+	</testsuite>
+	<testsuite id="85" name="test_paint_undo" package="tests/terrain" timestamp="2026-10-06T03:20:46" hostname="localhost" tests="20" failures="0" errors="0" skipped="0" flaky="0" time="0.263">
+		<testcase name="test_layer_names_and_order_match_schema" classname="test_paint_undo" time="0.008">
+		</testcase>
+		<testcase name="test_default_map_is_all_rough_and_sized_for_11_layers" classname="test_paint_undo" time="0.012">
+		</testcase>
+		<testcase name="test_packed_texture_mapping_three_rgba_planes" classname="test_paint_undo" time="0.007">
+		</testcase>
+		<testcase name="test_paint_full_strength_is_one_hot_at_centre_for_every_layer" classname="test_paint_undo" time="0.011">
+		</testcase>
+		<testcase name="test_invalid_layer_paints_nothing" classname="test_paint_undo" time="0.007">
+		</testcase>
+		<testcase name="test_legacy_mapping_of_four_layers" classname="test_paint_undo" time="0.007">
+		</testcase>
+		<testcase name="test_paint_stroke_undo_redo_restores_splat_exactly" classname="test_paint_undo" time="0.010">
+		</testcase>
+		<testcase name="test_paint_undo_chain_returns_to_start_with_overlapping_strokes" classname="test_paint_undo" time="0.012">
+		</testcase>
+		<testcase name="test_paint_cancel_rolls_back_with_no_residue" classname="test_paint_undo" time="0.012">
+		</testcase>
+		<testcase name="test_paint_cancel_marks_cells_dirty" classname="test_paint_undo" time="0.008">
+		</testcase>
+		<testcase name="test_paint_stroke_marks_dirty_and_undo_redo_mark_dirty" classname="test_paint_undo" time="0.008">
+		</testcase>
+		<testcase name="test_paint_that_changes_nothing_is_discarded_and_keeps_redo" classname="test_paint_undo" time="0.009">
+		</testcase>
+		<testcase name="test_new_paint_stroke_clears_redo" classname="test_paint_undo" time="0.009">
+		</testcase>
+		<testcase name="test_mixed_height_and_paint_stroke_undoes_both" classname="test_paint_undo" time="0.008">
+		</testcase>
+		<testcase name="test_paint_stroke_does_not_change_heights" classname="test_paint_undo" time="0.008">
+		</testcase>
+		<testcase name="test_paint_clipped_at_grid_corners_undoes_cleanly" classname="test_paint_undo" time="0.008">
+		</testcase>
+		<testcase name="test_undo_bytes_accounting_includes_splat_diff" classname="test_paint_undo" time="0.008">
+		</testcase>
+		<testcase name="test_paint_is_deterministic" classname="test_paint_undo" time="0.013">
+		</testcase>
+		<testcase name="test_legacy_direct_paint_is_not_undoable" classname="test_paint_undo" time="0.007">
+		</testcase>
+		<testcase name="test_apply_dab_in_paint_mode_does_not_touch_heights" classname="test_paint_undo" time="0.007">
+		</testcase>
+	</testsuite>
+	<testsuite id="86" name="test_save_robust" package="tests/terrain" timestamp="2026-10-06T03:20:47" hostname="localhost" tests="19" failures="0" errors="0" skipped="0" flaky="0" time="1.095">
+		<testcase name="test_first_save_creates_no_bak_and_no_tmp" classname="test_save_robust" time="0.009">
+		</testcase>
+		<testcase name="test_second_save_keeps_previous_good_file_as_bak" classname="test_save_robust" time="0.016">
+		</testcase>
+		<testcase name="test_fallback_main_ok_uses_main_even_if_bak_is_garbage" classname="test_save_robust" time="0.013">
+		</testcase>
+		<testcase name="test_fallback_truncated_main_uses_bak" classname="test_save_robust" time="0.014">
+		</testcase>
+		<testcase name="test_fallback_every_truncation_length_uses_bak" classname="test_save_robust" time="0.030">
+		</testcase>
+		<testcase name="test_fallback_garbage_main_uses_bak" classname="test_save_robust" time="0.014">
+		</testcase>
+		<testcase name="test_fallback_bit_flipped_main_uses_bak" classname="test_save_robust" time="0.014">
+		</testcase>
+		<testcase name="test_fallback_missing_main_uses_bak" classname="test_save_robust" time="0.013">
+		</testcase>
+		<testcase name="test_fallback_corrupt_main_and_corrupt_bak_fails" classname="test_save_robust" time="0.012">
+		</testcase>
+		<testcase name="test_fallback_corrupt_main_without_bak_fails" classname="test_save_robust" time="0.009">
+		</testcase>
+		<testcase name="test_fallback_nothing_on_disk_is_not_found" classname="test_save_robust" time="0.007">
+		</testcase>
+		<testcase name="test_fallback_missing_main_prefers_valid_tmp_over_bak" classname="test_save_robust" time="0.015">
+		</testcase>
+		<testcase name="test_fallback_truncated_tmp_is_skipped_in_favour_of_bak" classname="test_save_robust" time="0.014">
+		</testcase>
+		<testcase name="test_corrupt_main_is_not_promoted_to_bak_on_next_save" classname="test_save_robust" time="0.015">
+		</testcase>
+		<testcase name="test_write_atomic_rejects_data_that_fails_verification_and_keeps_main" classname="test_save_robust" time="0.010">
+		</testcase>
+		<testcase name="test_fault_after_bak_rotate_recovers_new_data_from_tmp" classname="test_save_robust" time="0.021">
+		</testcase>
+		<testcase name="test_fault_after_temp_write_still_loads_previous_via_fallback" classname="test_save_robust" time="0.013">
+		</testcase>
+		<testcase name="test_fault_mid_temp_write_with_missing_main_falls_back_to_bak" classname="test_save_robust" time="0.016">
+		</testcase>
+		<testcase name="test_600x400_kill_simulation_falls_back_to_previous_save" classname="test_save_robust" time="0.756">
+		</testcase>
+	</testsuite>
+	<testsuite id="87" name="test_picking" package="tests/terrain" timestamp="2026-10-06T03:20:48" hostname="localhost" tests="4" failures="0" errors="0" skipped="0" flaky="0" time="0.050">
+		<testcase name="test_straight_down_ray_hits_cell_under_it" classname="test_picking" time="0.008">
+		</testcase>
+		<testcase name="test_angled_ray_on_flat_ground" classname="test_picking" time="0.007">
+		</testcase>
+		<testcase name="test_ray_hits_raised_hill_before_ground" classname="test_picking" time="0.008">
+		</testcase>
+		<testcase name="test_ray_pointing_up_misses" classname="test_picking" time="0.007">
+		</testcase>
+	</testsuite>
+	<testsuite id="88" name="test_save" package="tests/terrain" timestamp="2026-10-06T03:20:48" hostname="localhost" tests="21" failures="0" errors="0" skipped="0" flaky="0" time="1.023">
+		<testcase name="test_crc32_known_vector" classname="test_save" time="0.008">
+		</testcase>
+		<testcase name="test_round_trip_in_memory" classname="test_save" time="0.010">
+		</testcase>
+		<testcase name="test_encode_is_deterministic" classname="test_save" time="0.010">
+		</testcase>
+		<testcase name="test_round_trip_via_file" classname="test_save" time="0.012">
+		</testcase>
+		<testcase name="test_extreme_heights_round_trip" classname="test_save" time="0.007">
+		</testcase>
+		<testcase name="test_every_single_byte_flip_in_small_file_is_detected" classname="test_save" time="0.010">
+		</testcase>
+		<testcase name="test_truncation_and_garbage_detected" classname="test_save" time="0.009">
+		</testcase>
+		<testcase name="test_bad_magic_and_future_version" classname="test_save" time="0.009">
+		</testcase>
+		<testcase name="test_corrupt_file_on_disk_detected" classname="test_save" time="0.010">
+		</testcase>
+		<testcase name="test_fault_after_temp_write_keeps_old_file" classname="test_save" time="0.016">
+		</testcase>
+		<testcase name="test_fault_mid_temp_write_keeps_old_file_and_temp_is_invalid" classname="test_save" time="0.015">
+		</testcase>
+		<testcase name="test_fault_on_first_ever_save_leaves_no_valid_file" classname="test_save" time="0.011">
+		</testcase>
+		<testcase name="test_save_after_stale_temp_succeeds" classname="test_save" time="0.014">
+		</testcase>
+		<testcase name="test_version_and_layer_count_of_current_format" classname="test_save" time="0.010">
+		</testcase>
+		<testcase name="test_all_eleven_layers_round_trip" classname="test_save" time="0.011">
+		</testcase>
+		<testcase name="test_uncompressed_and_compressed_decode_to_same_data" classname="test_save" time="0.014">
+		</testcase>
+		<testcase name="test_splat_hash_mismatch_with_valid_crc_is_detected" classname="test_save" time="0.013">
+		</testcase>
+		<testcase name="test_height_hash_mismatch_with_valid_crc_is_detected" classname="test_save" time="0.012">
+		</testcase>
+		<testcase name="test_600x400_dimensions" classname="test_save" time="0.013">
+		</testcase>
+		<testcase name="test_600x400_round_trip_in_memory_keeps_x_y_orientation" classname="test_save" time="0.269">
+		</testcase>
+		<testcase name="test_600x400_round_trip_via_file_with_stroke_and_undo" classname="test_save" time="0.448">
+		</testcase>
+	</testsuite>
+	<testsuite id="89" name="test_dirty" package="tests/terrain" timestamp="2026-10-06T03:20:49" hostname="localhost" tests="14" failures="0" errors="0" skipped="0" flaky="0" time="0.185">
+		<testcase name="test_chunk_counts" classname="test_dirty" time="0.008">
+		</testcase>
+		<testcase name="test_interior_cell_dirties_one_chunk" classname="test_dirty" time="0.007">
+		</testcase>
+		<testcase name="test_border_cell_dirties_neighbour_chunks" classname="test_dirty" time="0.007">
+		</testcase>
+		<testcase name="test_take_clears_and_is_ordered" classname="test_dirty" time="0.007">
+		</testcase>
+		<testcase name="test_rects_union_within_chunk" classname="test_dirty" time="0.008">
+		</testcase>
+		<testcase name="test_out_of_grid_is_clipped" classname="test_dirty" time="0.007">
+		</testcase>
+		<testcase name="test_mark_all_covers_every_chunk" classname="test_dirty" time="0.007">
+		</testcase>
+		<testcase name="test_editor_stroke_marks_footprint_chunks_only" classname="test_dirty" time="0.013">
+		</testcase>
+		<testcase name="test_600x400_chunk_counts" classname="test_dirty" time="0.007">
+		</testcase>
+		<testcase name="test_600x400_last_sample_dirties_only_last_chunk" classname="test_dirty" time="0.007">
+		</testcase>
+		<testcase name="test_600x400_border_sample_of_partial_chunk_dirties_two_chunks" classname="test_dirty" time="0.007">
+		</testcase>
+		<testcase name="test_600x400_mark_all_covers_every_chunk_and_stays_in_grid" classname="test_dirty" time="0.013">
+		</testcase>
+		<testcase name="test_600x400_editor_stroke_at_far_corner_marks_one_chunk" classname="test_dirty" time="0.013">
+		</testcase>
+		<testcase name="test_600x400_paint_stroke_at_far_corner_marks_one_chunk_and_undo_marks_again" classname="test_dirty" time="0.013">
+		</testcase>
+	</testsuite>
+	<testsuite id="90" name="test_save_golden" package="tests/terrain" timestamp="2026-10-06T03:20:49" hostname="localhost" tests="7" failures="0" errors="0" skipped="0" flaky="0" time="0.123">
+		<testcase name="test_v2_fixture_loads_with_expected_hashes_and_data" classname="test_save_golden" time="0.008">
+		</testcase>
+		<testcase name="test_encoder_matches_python_v2_fixture_byte_for_byte" classname="test_save_golden" time="0.007">
+		</testcase>
+		<testcase name="test_legacy_encoder_matches_python_v1_fixture_byte_for_byte" classname="test_save_golden" time="0.008">
+		</testcase>
+		<testcase name="test_v1_fixture_loads_and_maps_four_layers" classname="test_save_golden" time="0.012">
+		</testcase>
+		<testcase name="test_compressed_v1_in_memory_loads_too" classname="test_save_golden" time="0.007">
+		</testcase>
+		<testcase name="test_v1_fixture_migrates_to_v2_and_round_trips_on_disk" classname="test_save_golden" time="0.008">
+		</testcase>
+		<testcase name="test_every_byte_flip_in_v1_and_v2_fixtures_is_detected" classname="test_save_golden" time="0.039">
+		</testcase>
+	</testsuite>
+	<testsuite id="91" name="test_stroke_undo" package="tests/terrain" timestamp="2026-10-06T03:20:49" hostname="localhost" tests="10" failures="0" errors="0" skipped="0" flaky="0" time="0.133">
+		<testcase name="test_stroke_apply_changes_grid_and_counts_cells" classname="test_stroke_undo" time="0.008">
+		</testcase>
+		<testcase name="test_undo_restores_exactly_and_redo_reapplies" classname="test_stroke_undo" time="0.008">
+		</testcase>
+		<testcase name="test_undo_chain_of_many_strokes_returns_to_start" classname="test_stroke_undo" time="0.009">
+		</testcase>
+		<testcase name="test_cancel_rolls_back_with_no_residue" classname="test_stroke_undo" time="0.009">
+		</testcase>
+		<testcase name="test_cancel_marks_cells_dirty_so_renderer_reverts" classname="test_stroke_undo" time="0.008">
+		</testcase>
+		<testcase name="test_new_stroke_clears_redo" classname="test_stroke_undo" time="0.008">
+		</testcase>
+		<testcase name="test_empty_stroke_is_discarded_and_keeps_redo" classname="test_stroke_undo" time="0.007">
+		</testcase>
+		<testcase name="test_cannot_undo_or_begin_twice_during_open_stroke" classname="test_stroke_undo" time="0.007">
+		</testcase>
+		<testcase name="test_apply_without_stroke_is_ignored" classname="test_stroke_undo" time="0.010">
+		</testcase>
+		<testcase name="test_undo_stack_trims_by_count" classname="test_stroke_undo" time="0.010">
+		</testcase>
+	</testsuite>
+	<testsuite id="92" name="test_brush" package="tests/terrain" timestamp="2026-10-06T03:20:49" hostname="localhost" tests="9" failures="0" errors="0" skipped="0" flaky="0" time="0.156">
+		<testcase name="test_falloff_table_shape" classname="test_brush" time="0.018">
+		</testcase>
+		<testcase name="test_raise_centre_is_exact_strength" classname="test_brush" time="0.007">
+		</testcase>
+		<testcase name="test_raise_lower_cancel" classname="test_brush" time="0.008">
+		</testcase>
+		<testcase name="test_clamps_to_int16" classname="test_brush" time="0.007">
+		</testcase>
+		<testcase name="test_flatten_pulls_centre_to_level" classname="test_brush" time="0.008">
+		</testcase>
+		<testcase name="test_edge_clipping_does_not_crash" classname="test_brush" time="0.007">
+		</testcase>
+		<testcase name="test_determinism_hash_repeatable" classname="test_brush" time="0.012">
+		</testcase>
+		<testcase name="test_golden_falloff" classname="test_brush" time="0.008">
+		</testcase>
+		<testcase name="test_golden_vectors_match_python_reference" classname="test_brush" time="0.042">
+		</testcase>
+	</testsuite>
+	<testsuite id="93" name="test_gate0_kill" package="tests/gate0" timestamp="2026-10-06T03:20:49" hostname="localhost" tests="12" failures="0" errors="0" skipped="0" flaky="0" time="0.170">
+		<testcase name="test_parse_counts_and_ignores_torn_lines" classname="test_gate0_kill" time="0.008">
+		</testcase>
+		<testcase name="test_parse_empty" classname="test_gate0_kill" time="0.008">
+		</testcase>
+		<testcase name="test_judge_ok_accepts_done_or_inflight_only" classname="test_gate0_kill" time="0.008">
+		</testcase>
+		<testcase name="test_judge_fallback_allows_previous_generation" classname="test_gate0_kill" time="0.007">
+		</testcase>
+		<testcase name="test_judge_corrupt_never_ok" classname="test_gate0_kill" time="0.007">
+		</testcase>
+		<testcase name="test_judge_none_after_saves_began_is_a_fail" classname="test_gate0_kill" time="0.007">
+		</testcase>
+		<testcase name="test_stamp_round_trip_and_tear_detection" classname="test_gate0_kill" time="0.007">
+		</testcase>
+		<testcase name="test_save_then_verify_ok" classname="test_gate0_kill" time="0.013">
+		</testcase>
+		<testcase name="test_corrupt_primary_falls_back_to_backup" classname="test_gate0_kill" time="0.014">
+		</testcase>
+		<testcase name="test_both_corrupt_is_corrupt" classname="test_gate0_kill" time="0.009">
+		</testcase>
+		<testcase name="test_interrupted_write_leaves_previous_generation" classname="test_gate0_kill" time="0.014">
+		</testcase>
+		<testcase name="test_interrupted_after_write_before_rename_keeps_old_primary" classname="test_gate0_kill" time="0.014">
+		</testcase>
+	</testsuite>
+	<testsuite id="94" name="test_gate0_terrain_check" package="tests/gate0" timestamp="2026-10-06T03:20:50" hostname="localhost" tests="7" failures="0" errors="0" skipped="0" flaky="0" time="0.183">
+		<testcase name="test_plan_is_deterministic_and_in_bounds" classname="test_gate0_terrain_check" time="0.010">
+		</testcase>
+		<testcase name="test_plan_differs_by_seed" classname="test_gate0_terrain_check" time="0.008">
+		</testcase>
+		<testcase name="test_full_check_passes_on_small_grid" classname="test_gate0_terrain_check" time="0.064">
+		</testcase>
+		<testcase name="test_judge_fails_when_any_criterion_fails" classname="test_gate0_terrain_check" time="0.041">
+		</testcase>
+		<testcase name="test_sink_stroke_then_undo_restores_hash" classname="test_gate0_terrain_check" time="0.009">
+		</testcase>
+		<testcase name="test_sink_cancel_rolls_back" classname="test_gate0_terrain_check" time="0.009">
+		</testcase>
+		<testcase name="test_sink_ignores_dab_without_stroke" classname="test_gate0_terrain_check" time="0.008">
+		</testcase>
+	</testsuite>
+	<testsuite id="95" name="test_gate0_sim" package="tests/gate0" timestamp="2026-10-06T03:20:50" hostname="localhost" tests="8" failures="0" errors="0" skipped="0" flaky="0" time="0.102">
+		<testcase name="test_embedded_golden_matches_json" classname="test_gate0_sim" time="0.008">
+		</testcase>
+		<testcase name="test_run_one_smallest_row_passes" classname="test_gate0_sim" time="0.014">
+		</testcase>
+		<testcase name="test_matches_is_case_insensitive_and_rejects_empty" classname="test_gate0_sim" time="0.008">
+		</testcase>
+		<testcase name="test_all_pass_and_consistency" classname="test_gate0_sim" time="0.007">
+		</testcase>
+		<testcase name="test_cost_arithmetic" classname="test_gate0_sim" time="0.007">
+		</testcase>
+		<testcase name="test_cost_verdict_bands" classname="test_gate0_sim" time="0.007">
+		</testcase>
+		<testcase name="test_format_result_mentions_label_and_verdict" classname="test_gate0_sim" time="0.007">
+		</testcase>
+		<testcase name="test_report_and_evidence" classname="test_gate0_sim" time="0.008">
+		</testcase>
+	</testsuite>
+	<testsuite id="96" name="test_gate0_helpers" package="tests/gate0" timestamp="2026-10-06T03:20:50" hostname="localhost" tests="11" failures="0" errors="0" skipped="0" flaky="0" time="0.131">
+		<testcase name="test_stats_summary_basic" classname="test_gate0_helpers" time="0.008">
+		</testcase>
+		<testcase name="test_stats_percentile_and_over_33" classname="test_gate0_helpers" time="0.008">
+		</testcase>
+		<testcase name="test_stats_window_rolls_but_totals_keep_counting" classname="test_gate0_helpers" time="0.007">
+		</testcase>
+		<testcase name="test_stats_empty_and_reset" classname="test_gate0_helpers" time="0.008">
+		</testcase>
+		<testcase name="test_verdict_fails_slow_or_stall" classname="test_gate0_helpers" time="0.007">
+		</testcase>
+		<testcase name="test_evidence_has_required_fields" classname="test_gate0_helpers" time="0.008">
+		</testcase>
+		<testcase name="test_sha_from_build_info_text" classname="test_gate0_helpers" time="0.009">
+		</testcase>
+		<testcase name="test_panel_hit_test" classname="test_gate0_helpers" time="0.008">
+		</testcase>
+		<testcase name="test_anim_layout_centred_and_counted" classname="test_gate0_helpers" time="0.007">
+		</testcase>
+		<testcase name="test_anim_cost_math" classname="test_gate0_helpers" time="0.008">
+		</testcase>
+		<testcase name="test_clip_size_counts_keys" classname="test_gate0_helpers" time="0.007">
+		</testcase>
+	</testsuite>
+	<testsuite id="97" name="test_token_ledger" package="tests/tokens" timestamp="2026-10-06T03:20:50" hostname="localhost" tests="17" failures="0" errors="0" skipped="0" flaky="0" time="0.206">
+		<testcase name="test_starts_empty" classname="test_token_ledger" time="0.008">
+		</testcase>
+		<testcase name="test_reward_rule_amounts" classname="test_token_ledger" time="0.008">
+		</testcase>
+		<testcase name="test_earned_grants_are_once_per_key" classname="test_token_ledger" time="0.008">
+		</testcase>
+		<testcase name="test_earned_balance_is_capped" classname="test_token_ledger" time="0.008">
+		</testcase>
+		<testcase name="test_purchase_is_idempotent_per_receipt_id" classname="test_token_ledger" time="0.007">
+		</testcase>
+		<testcase name="test_invalid_purchases_change_nothing" classname="test_token_ledger" time="0.007">
+		</testcase>
+		<testcase name="test_spend_takes_earned_first_then_paid" classname="test_token_ledger" time="0.008">
+		</testcase>
+		<testcase name="test_spend_is_atomic" classname="test_token_ledger" time="0.007">
+		</testcase>
+		<testcase name="test_spend_up_to" classname="test_token_ledger" time="0.007">
+		</testcase>
+		<testcase name="test_refund_is_idempotent_and_cannot_go_below_zero" classname="test_token_ledger" time="0.007">
+		</testcase>
+		<testcase name="test_refund_never_touches_earned_tokens" classname="test_token_ledger" time="0.008">
+		</testcase>
+		<testcase name="test_paid_cap" classname="test_token_ledger" time="0.007">
+		</testcase>
+		<testcase name="test_tokens_never_buy_cash" classname="test_token_ledger" time="0.007">
+		</testcase>
+		<testcase name="test_json_round_trip_keeps_idempotency_and_balances" classname="test_token_ledger" time="0.008">
+		</testcase>
+		<testcase name="test_from_dict_rejects_bad_data_and_leaves_ledger_alone" classname="test_token_ledger" time="0.007">
+		</testcase>
+		<testcase name="test_ledger_file_round_trip_and_first_launch" classname="test_token_ledger" time="0.008">
+		</testcase>
+		<testcase name="test_ledger_is_not_part_of_a_save_document" classname="test_token_ledger" time="0.008">
+		</testcase>
+	</testsuite>
+	<testsuite id="98" name="test_tournament_sim" package="tests/tournaments" timestamp="2026-10-06T03:20:50" hostname="localhost" tests="19" failures="0" errors="0" skipped="0" flaky="0" time="0.289">
+		<testcase name="test_event_seed_golden" classname="test_tournament_sim" time="0.007">
+		</testcase>
+		<testcase name="test_event_id_is_unique_per_day_and_level" classname="test_tournament_sim" time="0.007">
+		</testcase>
+		<testcase name="test_condition_draw_golden" classname="test_tournament_sim" time="0.009">
+		</testcase>
+		<testcase name="test_condition_draw_follows_the_weights" classname="test_tournament_sim" time="0.031">
+		</testcase>
+		<testcase name="test_local_golden_event_0" classname="test_tournament_sim" time="0.009">
+		</testcase>
+		<testcase name="test_local_golden_events_1_to_3" classname="test_tournament_sim" time="0.010">
+		</testcase>
+		<testcase name="test_regional_and_national_golden" classname="test_tournament_sim" time="0.011">
+		</testcase>
+		<testcase name="test_major_fails_on_low_snapshot_with_penalties" classname="test_tournament_sim" time="0.010">
+		</testcase>
+		<testcase name="test_same_inputs_same_result" classname="test_tournament_sim" time="0.010">
+		</testcase>
+		<testcase name="test_different_seed_changes_the_field" classname="test_tournament_sim" time="0.010">
+		</testcase>
+		<testcase name="test_failure_trigger_boundaries" classname="test_tournament_sim" time="0.011">
+		</testcase>
+		<testcase name="test_unfair_holes_cost_satisfaction_then_fail" classname="test_tournament_sim" time="0.010">
+		</testcase>
+		<testcase name="test_bad_conditions_need_maintenance" classname="test_tournament_sim" time="0.013">
+		</testcase>
+		<testcase name="test_all_triggers_can_fire_together" classname="test_tournament_sim" time="0.008">
+		</testcase>
+		<testcase name="test_only_listed_triggers_can_fail" classname="test_tournament_sim" time="0.008">
+		</testcase>
+		<testcase name="test_unknown_level_gives_empty_result" classname="test_tournament_sim" time="0.008">
+		</testcase>
+		<testcase name="test_pars_fallback_and_validation" classname="test_tournament_sim" time="0.008">
+		</testcase>
+		<testcase name="test_stronger_skill_scores_lower_on_average" classname="test_tournament_sim" time="0.011">
+		</testcase>
+		<testcase name="test_countback_and_hash_break_ties" classname="test_tournament_sim" time="0.007">
+		</testcase>
+	</testsuite>
+	<testsuite id="99" name="test_tournament_state" package="tests/tournaments" timestamp="2026-10-06T03:20:51" hostname="localhost" tests="18" failures="0" errors="0" skipped="0" flaky="0" time="0.263">
+		<testcase name="test_fresh_state_is_idle" classname="test_tournament_state" time="0.009">
+		</testcase>
+		<testcase name="test_start_takes_cost_and_locks_the_course" classname="test_tournament_state" time="0.009">
+		</testcase>
+		<testcase name="test_start_refusals_in_order" classname="test_tournament_state" time="0.008">
+		</testcase>
+		<testcase name="test_phases_over_the_days" classname="test_tournament_state" time="0.010">
+		</testcase>
+		<testcase name="test_finish_before_ready_is_refused" classname="test_tournament_state" time="0.008">
+		</testcase>
+		<testcase name="test_success_records_level_cooldown_and_counts" classname="test_tournament_state" time="0.010">
+		</testcase>
+		<testcase name="test_failure_counts_as_attempt_not_as_hosted" classname="test_tournament_state" time="0.010">
+		</testcase>
+		<testcase name="test_acknowledge_does_nothing_while_running" classname="test_tournament_state" time="0.010">
+		</testcase>
+		<testcase name="test_cancel_only_while_preparing_and_refunds_half" classname="test_tournament_state" time="0.011">
+		</testcase>
+		<testcase name="test_hosting_regional_satisfies_the_local_gate_for_tier_five" classname="test_tournament_state" time="0.009">
+		</testcase>
+		<testcase name="test_gate_view_hosted_level_feeds_unlock_rules" classname="test_tournament_state" time="0.008">
+		</testcase>
+		<testcase name="test_full_loop_with_simulated_outcome" classname="test_tournament_state" time="0.008">
+		</testcase>
+		<testcase name="test_save_block_round_trip_matches_schema_shape" classname="test_tournament_state" time="0.008">
+		</testcase>
+		<testcase name="test_dict_round_trip_keeps_counters" classname="test_tournament_state" time="0.010">
+		</testcase>
+		<testcase name="test_bad_blocks_are_rejected_without_changes" classname="test_tournament_state" time="0.008">
+		</testcase>
+		<testcase name="test_hosted_levels_are_kept_in_ladder_order" classname="test_tournament_state" time="0.007">
+		</testcase>
+		<testcase name="test_save_block_carries_the_counters" classname="test_tournament_state" time="0.013">
+		</testcase>
+		<testcase name="test_old_block_without_counters_keeps_current_counters_and_bad_counters_are_refused" classname="test_tournament_state" time="0.008">
+		</testcase>
+	</testsuite>
+	<testsuite id="100" name="test_tournament_defs" package="tests/tournaments" timestamp="2026-10-06T03:20:51" hostname="localhost" tests="15" failures="0" errors="0" skipped="0" flaky="0" time="0.202">
+		<testcase name="test_shipped_data_loads" classname="test_tournament_defs" time="0.010">
+		</testcase>
+		<testcase name="test_four_levels_in_ladder_order" classname="test_tournament_defs" time="0.010">
+		</testcase>
+		<testcase name="test_no_requirement_is_tier_five" classname="test_tournament_defs" time="0.009">
+		</testcase>
+		<testcase name="test_ladder_gets_harder_and_pays_more" classname="test_tournament_defs" time="0.008">
+		</testcase>
+		<testcase name="test_spectator_capacity_by_clubhouse_tier" classname="test_tournament_defs" time="0.008">
+		</testcase>
+		<testcase name="test_conditions_and_purse_data" classname="test_tournament_defs" time="0.008">
+		</testcase>
+		<testcase name="test_accessors_return_copies" classname="test_tournament_defs" time="0.007">
+		</testcase>
+		<testcase name="test_rejects_wrong_schema" classname="test_tournament_defs" time="0.008">
+		</testcase>
+		<testcase name="test_rejects_tier_five_requirement" classname="test_tournament_defs" time="0.008">
+		</testcase>
+		<testcase name="test_rejects_bad_prestige_weights_and_purse" classname="test_tournament_defs" time="0.009">
+		</testcase>
+		<testcase name="test_rejects_missing_or_bad_revenue" classname="test_tournament_defs" time="0.008">
+		</testcase>
+		<testcase name="test_host_costs_follow_dec_065" classname="test_tournament_defs" time="0.008">
+		</testcase>
+		<testcase name="test_rejects_levels_out_of_order_or_missing" classname="test_tournament_defs" time="0.008">
+		</testcase>
+		<testcase name="test_rejects_fractional_numbers_in_text" classname="test_tournament_defs" time="0.008">
+		</testcase>
+		<testcase name="test_game_copy_equals_docs_copy" classname="test_tournament_defs" time="0.008">
+		</testcase>
+	</testsuite>
+	<testsuite id="101" name="test_tournament_rules" package="tests/tournaments" timestamp="2026-10-06T03:20:51" hostname="localhost" tests="15" failures="0" errors="0" skipped="0" flaky="0" time="0.192">
+		<testcase name="test_exact_local_requirements_are_eligible" classname="test_tournament_rules" time="0.008">
+		</testcase>
+		<testcase name="test_each_missing_requirement_is_reported" classname="test_tournament_rules" time="0.008">
+		</testcase>
+		<testcase name="test_row_shape_matches_gate_report" classname="test_tournament_rules" time="0.008">
+		</testcase>
+		<testcase name="test_unknown_level_never_eligible" classname="test_tournament_rules" time="0.009">
+		</testcase>
+		<testcase name="test_highest_eligible_level" classname="test_tournament_rules" time="0.008">
+		</testcase>
+		<testcase name="test_tier_five_clubhouse_gives_spectators_but_requirements_stay_tier_four" classname="test_tournament_rules" time="0.008">
+		</testcase>
+		<testcase name="test_snapshot_score_needs_history" classname="test_tournament_rules" time="0.008">
+		</testcase>
+		<testcase name="test_snapshot_score_is_min_of_latest_and_median" classname="test_tournament_rules" time="0.008">
+		</testcase>
+		<testcase name="test_snapshot_score_uses_only_the_window" classname="test_tournament_rules" time="0.008">
+		</testcase>
+		<testcase name="test_snapshot_score_clamps_and_even_window_uses_lower_median" classname="test_tournament_rules" time="0.008">
+		</testcase>
+		<testcase name="test_facility_permille_caps_at_tier_four" classname="test_tournament_rules" time="0.008">
+		</testcase>
+		<testcase name="test_unfair_holes_and_satisfaction" classname="test_tournament_rules" time="0.008">
+		</testcase>
+		<testcase name="test_event_prestige_golden" classname="test_tournament_rules" time="0.008">
+		</testcase>
+		<testcase name="test_purse_table_sums_exactly" classname="test_tournament_rules" time="0.008">
+		</testcase>
+		<testcase name="test_cancel_refund" classname="test_tournament_rules" time="0.008">
+		</testcase>
+	</testsuite>
+	<testsuite id="102" name="test_platform_mocks" package="platform/tests" timestamp="2026-10-06T03:20:51" hostname="localhost" tests="13" failures="0" errors="0" skipped="0" flaky="0" time="0.156">
+		<testcase name="test_demo_is_locked_by_default" classname="test_platform_mocks" time="0.007">
+		</testcase>
+		<testcase name="test_purchase_unlocks_and_emits" classname="test_platform_mocks" time="0.007">
+		</testcase>
+		<testcase name="test_canceled_purchase_does_not_unlock" classname="test_platform_mocks" time="0.008">
+		</testcase>
+		<testcase name="test_unknown_product_errors" classname="test_platform_mocks" time="0.007">
+		</testcase>
+		<testcase name="test_restore_hook" classname="test_platform_mocks" time="0.007">
+		</testcase>
+		<testcase name="test_restore_nothing_found" classname="test_platform_mocks" time="0.007">
+		</testcase>
+		<testcase name="test_account_deletion_keeps_entitlement_by_default" classname="test_platform_mocks" time="0.007">
+		</testcase>
+		<testcase name="test_integrity_mock" classname="test_platform_mocks" time="0.007">
+		</testcase>
+		<testcase name="test_leaderboard_requires_sign_in" classname="test_platform_mocks" time="0.007">
+		</testcase>
+		<testcase name="test_notifications_need_permission" classname="test_platform_mocks" time="0.007">
+		</testcase>
+		<testcase name="test_analytics_respects_consent_and_reset" classname="test_platform_mocks" time="0.008">
+		</testcase>
+		<testcase name="test_factory_returns_mocks_on_desktop" classname="test_platform_mocks" time="0.008">
+		</testcase>
+		<testcase name="test_account_deletion_helper" classname="test_platform_mocks" time="0.008">
+		</testcase>
+	</testsuite>
+	<testsuite id="103" name="test_entitlement_token" package="platform/tests" timestamp="2026-10-06T03:20:51" hostname="localhost" tests="8" failures="0" errors="0" skipped="0" flaky="0" time="0.097">
+		<testcase name="test_valid_token_verifies" classname="test_entitlement_token" time="0.008">
+		</testcase>
+		<testcase name="test_tampered_payload_rejected" classname="test_entitlement_token" time="0.008">
+		</testcase>
+		<testcase name="test_wrong_package_rejected" classname="test_entitlement_token" time="0.007">
+		</testcase>
+		<testcase name="test_wrong_product_rejected" classname="test_entitlement_token" time="0.007">
+		</testcase>
+		<testcase name="test_garbage_rejected" classname="test_entitlement_token" time="0.007">
+		</testcase>
+		<testcase name="test_empty_key_rejected" classname="test_entitlement_token" time="0.007">
+		</testcase>
+		<testcase name="test_needs_refresh" classname="test_entitlement_token" time="0.007">
+		</testcase>
+		<testcase name="test_request_hash_vector" classname="test_entitlement_token" time="0.007">
+		</testcase>
+	</testsuite>
+</testsuites>
