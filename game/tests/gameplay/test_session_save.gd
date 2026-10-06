@@ -580,6 +580,9 @@ func test_live_scene_starts_authoritative_customer_playback_once() -> void:
 	add_child(scene)
 	assert_bool(scene._active).is_true()
 	scene.session._holes = [{"slot_id": 4, "tee": [10, 20], "green": [40, 80, 5]}]
+	# Live presentation resolves the authoritative hole-local geometry through its saved world origin.
+	(scene.document["course"] as Dictionary)["holes"] = [{"hole_no": 5, "origin_dm": [100, 200],
+		"layout": scene.session._holes[0]}]
 	var customers: Array = []
 	for serial: int in range(77, 80):
 		customers.append({"serial": serial, "party_id": 77, "hole_slot": 4, "group_size": 3,
