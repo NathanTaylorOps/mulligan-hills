@@ -109,7 +109,7 @@ func advance(now_s: float) -> Dictionary:
 				event = {"kind": "hole_started", "hole_index": next_hole, "customers": next_party.duplicate(true),
 					"customer": (next_party[0] as Dictionary).duplicate(true)}
 			else:
-				var done_party: Array = party_customers.duplicate(true)
+				var done_party: Array = _party_for_hole(party_customers, hole_index)
 				for done_v: Variant in done_party:
 					completed.append((done_v as Dictionary).duplicate(true))
 				while completed.size() > MAX_COMPLETED_HISTORY:
