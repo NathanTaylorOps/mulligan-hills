@@ -6,6 +6,7 @@ var length_yd: int = 60
 var half_width_yd: int = 8
 var water: bool = false
 var _preview_draft: bool = false
+var canonical_draft: Dictionary = {}
 var follow_ball: bool = true
 var aim_x: int = 0
 var aim_y: int = 6000
@@ -109,7 +110,23 @@ func _button(parent: Control, title: String, action: Callable) -> void:
 	parent.add_child(b)
 	b.pressed.connect(action)
 
+func set_canonical_draft(layout: Dictionary) -> bool:
+	var validation: Dictionary = MHRatingEngine.validate_input({"schema": 1, "engine": MHRatingEngine.RATING_VERSION, "hole": layout})
+	if not bool(validation.get("ok", false)) or int(layout.get("slot_id", -1)) != 0:
+		return false
+	canonical_draft = layout.duplicate(true)
+	_preview_draft = true
+	if _world != null:
+		_draw()
+		_describe()
+	return true
+
+func clear_canonical_draft() -> void:
+	canonical_draft.clear()
+
 func _layout() -> Dictionary:
+	if not canonical_draft.is_empty():
+		return canonical_draft.duplicate(true)
 	var features: Array = [{"t": "fairway", "rect": [-half_width_yd, 0, half_width_yd, length_yd]}]
 	if water:
 		features.append({"t": "water", "rect": [10, 20, 14, 30]})
@@ -134,6 +151,7 @@ func _finalize() -> void:
 		_info.text = "Cannot finalize: " + str(result["reason"])
 		return
 	_preview_draft = false
+	canonical_draft.clear()
 	live.document["course"] = encoded.value
 	live.document["min_reader_version"] = 3
 	live.session.practice = null # A redesign cannot continue a round on a previous layout.
@@ -150,10 +168,9 @@ func _restart() -> void:
 		_info.text = "Finalize your hole first."
 		return
 	_preview_draft = false
+	canonical_draft.clear()
 	var current: Dictionary = layouts[0]
-	length_yd = int(current["green"][1])
-	half_width_yd = int(current["features"][0]["rect"][2])
-	water = (current["features"] as Array).size() > 1
+	_sync_legacy_controls(current)
 	live.session.practice = MHPracticeRound.create(layouts[0] as Dictionary,
 		MHRatingEngine.seed_for(0, {"save_secret": live.session.save_secret, "rating_epoch": live.session.rating_epoch}))
 	live._request_save()
@@ -161,6 +178,21 @@ func _restart() -> void:
 	_follow_camera()
 	_draw()
 	_describe()
+
+func _sync_legacy_controls(current: Dictionary) -> void:
+	# The old prototype controls are only a convenience for its rectangular fallback layout.
+	# Canonical craft layouts may contain arbitrary feature shapes and relief, so never infer them unsafely.
+	if current.has("relief") or not current.has("features"):
+		return
+	var features: Array = current["features"]
+	if features.is_empty() or typeof(features[0]) != TYPE_DICTIONARY or not (features[0] as Dictionary).has("rect"):
+		return
+	var rect: Array = (features[0] as Dictionary)["rect"]
+	var green: Array = current["green"]
+	if rect.size() == 4 and green.size() >= 2:
+		length_yd = int(green[1])
+		half_width_yd = absi(int(rect[2]))
+		water = features.size() > 1
 
 func _aim_cup() -> void:
 	if live.session.practice != null:
@@ -210,6 +242,8 @@ func _draw() -> void:
 	var h: Dictionary = _layout() if layouts.is_empty() or _preview_draft else layouts[0]
 	for row: Variant in h["features"]:
 		var f: Dictionary = row
+		if not f.has("rect"):
+			continue
 		var rect: Array = f["rect"]
 		var a: Vector3 = _position(int(rect[0]) * 100, int(rect[1]) * 100, 0.02)
 		var b: Vector3 = _position(int(rect[2]) * 100, int(rect[3]) * 100, 0.02)
@@ -272,7 +306,7 @@ static func supported(course: Dictionary) -> bool:
 	if row["origin_dm"] != ORIGIN:
 		return false
 	var h: Dictionary = row["layout"]
-	if int(h["slot_id"]) != 0 or h["tee"] != [0, 0] or h.has("tee_z_mm") or h.has("green_z_mm"):
+	if int(h["slot_id"]) != 0 or h["tee"] != [0, 0] or h.has("tee_z_mm") or h.has("green_z_mm") or h.has("relief"):
 		return false
 	var g: Array = h["green"]
 	if int(g[0]) != 0 or int(g[1]) < 60 or int(g[1]) > 62 or int(g[2]) != 5:
