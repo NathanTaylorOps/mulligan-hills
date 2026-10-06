@@ -74,28 +74,42 @@ func active_facility_visits(now_s: float) -> Array:
 func advance(now_s: float) -> Dictionary:
 	var event: Dictionary = {}
 	if active.is_empty() and not waiting.is_empty() and now_s >= next_tee_s:
-		active = waiting.pop_front() as Dictionary
-		active["started_s"] = now_s
+		var first: Dictionary = waiting.pop_front() as Dictionary
+		var party_id: int = int(first.get("party_id", first.get("serial", 0)))
+		var party: Array = [first]
+		while not waiting.is_empty() and int((waiting[0] as Dictionary).get("party_id", (waiting[0] as Dictionary).get("serial", 0))) == party_id:
+			party.append(waiting.pop_front() as Dictionary)
+		active = {"party_id": party_id, "customers": party, "started_s": now_s}
 		next_tee_s = now_s + TEE_INTERVAL_S
-		event = {"kind": "started", "customer": active.duplicate(true)}
+		event = {"kind": "started", "customers": party.duplicate(true), "customer": first.duplicate(true)}
 	if not active.is_empty():
-		var round: Dictionary = active["round"]
 		var elapsed: float = now_s - float(active["started_s"])
-		var state: Dictionary = MHAIRoundTimeline.state(round["events"] as Array, elapsed)
-		if bool(state.get("done", false)):
-			var done: Dictionary = active.duplicate(true)
-			completed.append(done)
+		var all_done: bool = true
+		for customer_v: Variant in active.get("customers", []):
+			var customer: Dictionary = customer_v
+			var round: Dictionary = customer["round"]
+			var state: Dictionary = MHAIRoundTimeline.state(round["events"] as Array, elapsed)
+			if not bool(state.get("done", false)):
+				all_done = false
+				break
+		if all_done:
+			var done_party: Array = (active.get("customers", []) as Array).duplicate(true)
+			for done_v: Variant in done_party:
+				completed.append((done_v as Dictionary).duplicate(true))
 			while completed.size() > MAX_COMPLETED_HISTORY:
 				completed.pop_front()
 			active = {}
-			event = {"kind": "finished", "customer": done}
+			event = {"kind": "finished", "customers": done_party, "customer": (done_party[0] as Dictionary).duplicate(true)}
 	return event
 
 
 func visual_state(now_s: float) -> Dictionary:
 	if active.is_empty():
 		return {"done": true}
-	var round: Dictionary = active["round"]
+	var customers: Array = active.get("customers", [])
+	if customers.is_empty():
+		return {"done": true}
+	var round: Dictionary = (customers[0] as Dictionary)["round"]
 	return MHAIRoundTimeline.state(round["events"] as Array, now_s - float(active["started_s"]))
 
 
