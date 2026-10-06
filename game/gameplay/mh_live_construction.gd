@@ -47,6 +47,7 @@ var _placed_building_nodes: Dictionary = {}
 var _building_mat: StandardMaterial3D
 var _building_mesh_cache: Dictionary = {}
 var _visible_golfers: MHSliceGolfers
+var _facility_walkers: Dictionary = {}
 
 func _ready() -> void:
 	MHOrientation.apply_game() # No-op off mobile; one switch, see MHOrientation.
@@ -545,6 +546,7 @@ func _process(_delta: float) -> void:
 	_last_usec = now
 	session.advance(elapsed, int(Time.get_unix_time_from_system()))
 	_advance_customer_playback(float(elapsed) / 1000000.0)
+	_advance_facility_walkers(float(elapsed) / 1000000.0)
 	_visible_golfers.advance(float(elapsed) / 1000000.0, controller.rig.global_position)
 	chunks.flush(editor.dirty)
 	_relayout()
@@ -580,6 +582,52 @@ func _advance_customer_playback(delta_s: float) -> void:
 	var identity: Dictionary = customer.get("identity", {}) as Dictionary
 	var size: int = clampi(int(identity.get("party_size", customer.get("group_size", 1))), 1, 4)
 	_visible_golfers.spawn_group(int(customer.get("serial", 0)), size, tee, green)
+
+func _advance_facility_walkers(delta_s: float) -> void:
+	var now_s: float = float(session.clock.total_minutes()) * 60.0
+	var positions: Dictionary = MHClubPedestrian.building_positions(session)
+	for pending_v: Variant in session.customer_playback.pending_facility_visits:
+		var pending: Dictionary = pending_v
+		var serial: int = int(pending.get("serial", -1))
+		if serial < 0 or _facility_walkers.has(serial):
+			continue
+		var facility_id: String = str(pending.get("facility_instance_id", ""))
+		if not positions.has(facility_id):
+			continue
+		var start: Vector3 = Vector3.ZERO
+		var slot: int = int((pending.get("identity", {}) as Dictionary).get("favorite_hole_slot", -1))
+		for hole_v: Variant in session.hole_definitions():
+			var hole: Dictionary = hole_v
+			if slot >= 0 and int(hole.get("slot_id", -1)) != slot:
+				continue
+			var green_v: Array = hole.get("green", [])
+			if green_v.size() >= 2:
+				start = Vector3(float(green_v[0]), 0.0, float(green_v[1]))
+				break
+		start = MHClubPedestrian.apply_ground_height(start, editor.grid)
+		var node: Node3D = Node3D.new()
+		node.name = "FacilityWalker_%d" % serial
+		node.position = start
+		add_child(node)
+		_facility_walkers[serial] = {"node": node, "route": MHClubPedestrian.route(start, positions[facility_id] as Vector3, serial),
+			"segment": 1}
+	var arrived: Array = []
+	for serial_v: Variant in _facility_walkers.keys():
+		var serial: int = int(serial_v)
+		var walker: Dictionary = _facility_walkers[serial]
+		var node: Node3D = walker["node"] as Node3D
+		var step: Dictionary = MHClubPedestrian.advance(walker["route"] as Array, int(walker["segment"]), node.position, delta_s, editor.grid)
+		node.position = step["position"] as Vector3
+		walker["segment"] = int(step["segment"])
+		if bool(step["done"]):
+			session.customer_playback.begin_facility_visit(serial, now_s)
+			arrived.append(serial)
+	for serial_v: Variant in arrived:
+		var serial: int = int(serial_v)
+		var walker: Dictionary = _facility_walkers[serial]
+		(walker["node"] as Node3D).queue_free()
+		_facility_walkers.erase(serial)
+
 
 func _notification(what: int) -> void:
 	if not _active:
