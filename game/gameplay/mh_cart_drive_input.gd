@@ -22,6 +22,15 @@ func _ready() -> void:
 	_add_action_button("Exit", Vector2(-218, 24), func() -> void: exit_requested.emit())
 	_add_action_button("Respawn", Vector2(-116, 24), func() -> void: respawn_requested.emit())
 
+func reset_controls() -> void:
+	_left = false
+	_right = false
+	_forward = false
+	_reverse = false
+	throttle = 0.0
+	steer = 0.0
+	drive_changed.emit(0.0, 0.0)
+
 func _process(_delta: float) -> void:
 	var new_throttle: float = float(int(_forward) - int(_reverse))
 	var new_steer: float = float(int(_left) - int(_right))
