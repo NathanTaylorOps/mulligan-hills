@@ -51,7 +51,10 @@ func _input(event: InputEvent) -> void:
 		if bool(result["consume"]):
 			get_viewport().set_input_as_handled()
 		if bool(result["aim"]):
-			panel.aim_from_screen(pos)
+			if panel._preview_draft:
+				panel.craft_from_screen(pos)
+			else:
+				panel.aim_from_screen(pos)
 
 func _notification(what: int) -> void:
 	if what == NOTIFICATION_APPLICATION_PAUSED or what == NOTIFICATION_APPLICATION_FOCUS_OUT or what == NOTIFICATION_WM_WINDOW_FOCUS_OUT:
