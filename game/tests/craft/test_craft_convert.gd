@@ -174,3 +174,28 @@ func test_hill_hole_passes_validation_and_counts_as_elevation() -> void:
 	var hd: MHRHole = MHRHole.from_def(inp["hole"] as Dictionary)
 	assert_int(hd.relief_range).is_equal(6000)
 	assert_bool(hd.elev_mm() >= 3600).is_true()
+
+
+func test_elevated_craft_hole_crosses_canonical_course_save_boundary() -> void:
+	var h: MHCraftHole = _hole()
+	h.set_height_tile(11, 15, 6)
+	var layout: Dictionary = MHCraftConvert.to_hole_def(h, 0, 0, 0)
+	assert_bool(layout.has("relief")).is_true()
+	var course: Dictionary = {
+		"schema_version": 1,
+		"rating_engine_version": MHRatingEngine.RATING_VERSION,
+		"world": {
+			"width_dm": 1000,
+			"height_dm": 1000,
+			"parcels": [{"parcel_id": 0, "x0": 0, "y0": 0, "x1": 999, "y1": 999, "owned": true}],
+		},
+		"holes": [],
+	}
+	var encoded: MHSaveResult = MHCourseLayout.encode([layout], course, [[100, 100]])
+	assert_bool(encoded.is_ok()).override_failure_message(encoded.message).is_true()
+	if not encoded.is_ok():
+		return
+	var decoded: MHSaveResult = MHCourseLayout.decode(encoded.value as Dictionary)
+	assert_bool(decoded.is_ok()).override_failure_message(decoded.message).is_true()
+	if decoded.is_ok():
+		assert_array(decoded.value as Array).contains_exactly([layout])
