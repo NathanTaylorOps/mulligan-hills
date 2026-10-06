@@ -1,6 +1,6 @@
 class_name MHCustomerRoundQueue
 extends RefCounted
-## Presentation scheduler for economy-authorized customers on one authoritative hole.
+## Presentation scheduler for economy-authorized customers across authoritative course holes.
 ## Admission/payment happen in MHEconomy. This class never changes cash or simulation outcomes.
 
 const TEE_INTERVAL_S: float = 12.0
@@ -83,26 +83,39 @@ func advance(now_s: float) -> Dictionary:
 		active["party_id"] = party_id
 		active["customers"] = party
 		active["started_s"] = now_s
+		active["hole_index"] = 0
 		next_tee_s = now_s + TEE_INTERVAL_S
 		event = {"kind": "started", "customers": party.duplicate(true), "customer": first.duplicate(true)}
 	if not active.is_empty():
 		var elapsed: float = now_s - float(active["started_s"])
 		var all_done: bool = true
+		var hole_index: int = int(active.get("hole_index", 0))
 		for customer_v: Variant in active.get("customers", []):
 			var customer: Dictionary = customer_v
-			var round: Dictionary = customer["round"]
-			var state: Dictionary = MHAIRoundTimeline.state(round["events"] as Array, elapsed)
+			var round: Dictionary = _playback_round(customer, hole_index)
+			var state: Dictionary = MHAIRoundTimeline.state(round.get("events", []) as Array, elapsed)
 			if not bool(state.get("done", false)):
 				all_done = false
 				break
 		if all_done:
-			var done_party: Array = (active.get("customers", []) as Array).duplicate(true)
-			for done_v: Variant in done_party:
-				completed.append((done_v as Dictionary).duplicate(true))
-			while completed.size() > MAX_COMPLETED_HISTORY:
-				completed.pop_front()
-			active = {}
-			event = {"kind": "finished", "customers": done_party, "customer": (done_party[0] as Dictionary).duplicate(true)}
+			var party_customers: Array = active.get("customers", []) as Array
+			var next_hole: int = hole_index + 1
+			if _party_has_hole(party_customers, next_hole):
+				active["hole_index"] = next_hole
+				active["started_s"] = now_s
+				var next_party: Array = _party_for_hole(party_customers, next_hole)
+				active["customers"] = next_party
+				active.merge((next_party[0] as Dictionary), false)
+				event = {"kind": "hole_started", "hole_index": next_hole, "customers": next_party.duplicate(true),
+					"customer": (next_party[0] as Dictionary).duplicate(true)}
+			else:
+				var done_party: Array = party_customers.duplicate(true)
+				for done_v: Variant in done_party:
+					completed.append((done_v as Dictionary).duplicate(true))
+				while completed.size() > MAX_COMPLETED_HISTORY:
+					completed.pop_front()
+				active = {}
+				event = {"kind": "finished", "customers": done_party, "customer": (done_party[0] as Dictionary).duplicate(true)}
 	return event
 
 
@@ -112,8 +125,34 @@ func visual_state(now_s: float) -> Dictionary:
 	var customers: Array = active.get("customers", [])
 	if customers.is_empty():
 		return {"done": true}
-	var round: Dictionary = (customers[0] as Dictionary)["round"]
-	return MHAIRoundTimeline.state(round["events"] as Array, now_s - float(active["started_s"]))
+	var round: Dictionary = _playback_round(customers[0] as Dictionary, int(active.get("hole_index", 0)))
+	return MHAIRoundTimeline.state(round.get("events", []) as Array, now_s - float(active["started_s"]))
+
+
+static func _playback_round(customer: Dictionary, hole_index: int) -> Dictionary:
+	var holes: Array = customer.get("course_round", []) as Array
+	if hole_index >= 0 and hole_index < holes.size():
+		return (holes[hole_index] as Dictionary).get("round", {}) as Dictionary
+	return customer.get("round", {}) as Dictionary
+
+
+static func _party_has_hole(customers: Array, hole_index: int) -> bool:
+	if customers.is_empty():
+		return false
+	return hole_index < ((customers[0] as Dictionary).get("course_round", []) as Array).size()
+
+
+static func _party_for_hole(customers: Array, hole_index: int) -> Array:
+	var out: Array = []
+	for customer_v: Variant in customers:
+		var customer: Dictionary = (customer_v as Dictionary).duplicate(true)
+		var holes: Array = customer.get("course_round", []) as Array
+		if hole_index >= 0 and hole_index < holes.size():
+			var hole: Dictionary = holes[hole_index] as Dictionary
+			customer["hole_slot"] = int(hole.get("hole_slot", customer.get("hole_slot", -1)))
+			customer["round"] = (hole.get("round", {}) as Dictionary).duplicate(true)
+		out.append(customer)
+	return out
 
 
 static func satisfaction(round: Dictionary, par: int = 3) -> int:
