@@ -52,6 +52,7 @@ var _hole_transition_walkers: Dictionary = {}
 var _golfer_reactions: Array = []
 var _visible_staff_root: Node3D
 var _visible_staff_nodes: Dictionary = {}
+var _maintenance_visuals: Dictionary = {}
 const MAX_GOLFER_REACTIONS: int = 6
 const GOLFER_REACTION_LIFETIME_S: float = 5.0
 
@@ -560,6 +561,7 @@ func _process(_delta: float) -> void:
 	_advance_facility_walkers(float(elapsed) / 1000000.0)
 	_advance_golfer_reactions(float(elapsed) / 1000000.0)
 	_sync_visible_staff()
+	_sync_maintenance_visuals()
 	_visible_golfers.advance(float(elapsed) / 1000000.0, controller.rig.global_position)
 	chunks.flush(editor.dirty)
 	_relayout()
@@ -745,6 +747,75 @@ static func _route_state(route: Array, progress: float) -> Dictionary:
 	var a: Vector3 = route[segment] as Vector3
 	var b: Vector3 = route[segment + 1] as Vector3
 	return {"position": a.lerp(b, t), "direction": b - a}
+
+
+func _sync_maintenance_visuals() -> void:
+	if _visible_staff_root == null or session == null:
+		return
+	var maintenance_ids: Array = MHClubPedestrian.instance_ids_for_type(session, "maintenance")
+	if maintenance_ids.is_empty():
+		_clear_maintenance_visuals()
+		return
+	var workshop: Vector3 = session.building_instance_position(str(maintenance_ids[0]))
+	if workshop == Vector3.INF:
+		_clear_maintenance_visuals()
+		return
+	var state: Dictionary = session.live_maintenance_state()
+	var used: Dictionary = {}
+	for employee_v: Variant in state.get("specialists", []):
+		var employee: Dictionary = employee_v as Dictionary
+		var serial: int = int(employee.get("serial", 0))
+		var key: String = "staff:%d" % serial
+		used[key] = true
+		var node: Node3D = _maintenance_visuals.get(key, null) as Node3D
+		if node == null:
+			node = _make_staff_visual(employee)
+			_visible_staff_root.add_child(node)
+			_maintenance_visuals[key] = node
+		var angle: float = float(posmod(session.clock.total_minutes() + serial * 19, 360)) * PI / 180.0
+		var radius: float = 2.0 + float(posmod(serial, 3))
+		node.position = MHClubPedestrian.apply_ground_height(workshop + Vector3(cos(angle), 0.0, sin(angle)) * radius, editor.grid)
+	for unit_v: Variant in state.get("broken_equipment", []):
+		var unit: Dictionary = unit_v as Dictionary
+		var serial: int = int(unit.get("serial", 0))
+		var key: String = "machine:%d" % serial
+		used[key] = true
+		var machine: Node3D = _maintenance_visuals.get(key, null) as Node3D
+		if machine == null:
+			machine = _make_broken_machine_visual(unit)
+			_visible_staff_root.add_child(machine)
+			_maintenance_visuals[key] = machine
+		var index: int = posmod(serial, 5)
+		machine.position = MHClubPedestrian.apply_ground_height(workshop + Vector3(float(index - 2) * 1.7, 0.0, 3.2), editor.grid)
+	for key_v: Variant in _maintenance_visuals.keys():
+		if not used.has(key_v):
+			(_maintenance_visuals[key_v] as Node3D).queue_free()
+			_maintenance_visuals.erase(key_v)
+
+
+func _clear_maintenance_visuals() -> void:
+	for node_v: Variant in _maintenance_visuals.values():
+		(node_v as Node3D).queue_free()
+	_maintenance_visuals.clear()
+
+
+func _make_broken_machine_visual(unit: Dictionary) -> Node3D:
+	var root: Node3D = Node3D.new()
+	root.name = "BrokenMachine_%d" % int(unit.get("serial", 0))
+	var machine: MeshInstance3D = MeshInstance3D.new()
+	var mesh: BoxMesh = BoxMesh.new()
+	mesh.size = Vector3(1.3, 0.55, 1.8)
+	machine.mesh = mesh
+	machine.position.y = 0.35
+	root.add_child(machine)
+	var status: Label3D = Label3D.new()
+	status.text = "Repairing" if session.live_maintenance_state().get("technician_work_pm", 0) > 0 else "Awaiting technician"
+	status.font_size = 18
+	status.outline_size = 5
+	status.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+	status.position = Vector3(0.0, 1.6, 0.0)
+	root.add_child(status)
+	return root
 
 
 func _make_staff_visual(assignment: Dictionary) -> Node3D:
