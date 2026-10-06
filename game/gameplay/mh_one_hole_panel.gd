@@ -15,6 +15,10 @@ var _ball: MeshInstance3D
 var _path: Node3D
 var _feedback: Label
 var _ai_record: Dictionary = {}
+var _ai_elapsed: float = 0.0
+var _ai_playing: bool = false
+var _ai_golfer: MHGolferFigure
+var _ai_ball: MeshInstance3D
 var _scroll: MHScrollBox
 var _toggle: MHTapButton
 ## Header only (body hidden). Layout is recomputed by the scene on `layout_changed`.
@@ -68,6 +72,7 @@ func setup(scene: MHLiveConstruction) -> void:
 	_button(shots, "Course overview", _overview)
 	_button(shots, "Play shot", _shoot)
 	_button(shots, "New practice round", _restart)
+	_button(shots, "Watch AI play", _watch_ai)
 	_button(shots, "Close", func() -> void: hide(); _world.hide(); live.chunks.show())
 	_world = Node3D.new()
 	live.add_child(_world)
@@ -79,6 +84,7 @@ func setup(scene: MHLiveConstruction) -> void:
 		half_width_yd = int(h["features"][0]["rect"][2])
 		water = (h["features"] as Array).size() > 1
 	_describe()
+	set_process(true)
 	hide()
 
 func set_collapsed(value: bool) -> void:
@@ -231,6 +237,25 @@ func _shoot() -> void:
 	elif bool(result["tree"]):
 		_info.text += " | Tree hit"
 
+func _process(delta: float) -> void:
+	if not _ai_playing or _ai_record.is_empty() or _world == null or not _world.visible:
+		return
+	_ai_elapsed += maxf(delta, 0.0)
+	_apply_ai_visual(MHAIRoundTimeline.state(_ai_record.get("events", []) as Array, _ai_elapsed))
+
+
+func _watch_ai() -> void:
+	if _ai_record.is_empty():
+		_refresh_ai_record()
+	if _ai_record.is_empty():
+		_info.text = "Finalize the hole before watching an AI golfer."
+		return
+	_ai_elapsed = 0.0
+	_ai_playing = true
+	_draw()
+	_apply_ai_visual(MHAIRoundTimeline.state(_ai_record["events"] as Array, 0.0))
+
+
 func _refresh_ai_record() -> void:
 	var layouts: Array = live.session.hole_definitions()
 	_ai_record = {}
@@ -238,6 +263,55 @@ func _refresh_ai_record() -> void:
 		return
 	_ai_record = MHAIRoundRecord.play(layouts[0] as Dictionary,
 		{"save_secret": live.session.save_secret, "rating_epoch": live.session.rating_epoch})
+
+
+func _apply_ai_visual(st: Dictionary) -> void:
+	if bool(st.get("done", false)):
+		_ai_playing = false
+		if _ai_golfer != null:
+			_ai_golfer.visible = false
+		if _ai_ball != null:
+			_ai_ball.visible = false
+		_feedback.text = "AI finished in %d strokes." % int(_ai_record.get("strokes", 0))
+		return
+	if _ai_golfer == null or _ai_ball == null:
+		return
+	var u: float = float(st.get("u", 0.0))
+	var phase: String = str(st.get("phase", "address"))
+	var x0: int = int(st["x0"])
+	var y0: int = int(st["y0"])
+	var x1: int = int(st["x1"])
+	var y1: int = int(st["y1"])
+	var golfer_u: float = u if phase == "walk" else 0.0
+	var gx: int = int(round(lerpf(float(x0), float(x1), golfer_u)))
+	var gy: int = int(round(lerpf(float(y0), float(y1), golfer_u)))
+	_ai_golfer.position = _position(gx, gy, 0.0)
+	var dir: Vector2 = Vector2(float(x1 - x0), float(y1 - y0)).normalized()
+	_ai_golfer.rotation.y = MHSliceRound.facing_yaw(dir.x, dir.y, phase == "address" or phase == "swing" or phase == "putt")
+	var clip: String = MHGolferPoses.CLIP_IDLE
+	var clip_t: float = _ai_elapsed
+	if phase == "swing":
+		clip = MHGolferPoses.CLIP_SWING
+		clip_t = u * MHGolferPoses.LENGTH_SWING
+	elif phase == "walk":
+		clip = MHGolferPoses.CLIP_WALK
+		clip_t = fposmod(_ai_elapsed, MHGolferPoses.LENGTH_WALK)
+	elif phase == "putt":
+		clip = MHGolferPoses.CLIP_PUTT
+		clip_t = fposmod(_ai_elapsed, MHGolferPoses.LENGTH_PUTT)
+	_ai_golfer.set_pose(MHGolferPoses.sample(clip, clip_t))
+	_ai_golfer.visible = true
+	_ai_ball.visible = phase == "flight" or phase == "putt" or phase == "walk"
+	var ball_u: float = u if phase == "flight" or phase == "putt" else (1.0 if phase == "walk" else 0.0)
+	var bx: int = int(round(lerpf(float(x0), float(x1), ball_u)))
+	var by: int = int(round(lerpf(float(y0), float(y1), ball_u)))
+	var z0: float = float(int(st.get("z0", 0))) / 1000.0
+	var z1: float = float(int(st.get("z1", 0))) / 1000.0
+	var arc: float = 0.0 if phase == "putt" or phase == "walk" else 6.0 * 4.0 * ball_u * (1.0 - ball_u)
+	_ai_ball.position = _position(bx, by, 0.15 + lerpf(z0, z1, ball_u) + arc)
+	_feedback.text = "AI shot %d: %s%s%s" % [int(st.get("shot", 0)), phase,
+		" | WATER" if int(st.get("penalty", 0)) == 1 else (" | OUT OF BOUNDS" if int(st.get("penalty", 0)) == 2 else ""),
+		" | TREE" if bool(st.get("tree", false)) else ""]
 
 
 func _describe() -> void:
@@ -277,7 +351,16 @@ func _draw() -> void:
 	var r: MHPracticeRound = live.session.practice
 	_ball.position = _position(r.x if r != null and not _preview_draft else 0, r.y if r != null and not _preview_draft else 0, 0.45)
 	_aim = _marker(Color(1, 0.8, 0.1), 0.55)
+	_ai_ball = _marker(Color.WHITE, 0.18)
+	_ai_ball.visible = false
+	_ai_golfer = MHGolferFigure.new()
+	_ai_golfer.auto_advance = false
+	_world.add_child(_ai_golfer)
+	_ai_golfer.setup(MHGolferLook.from_seed(4242), 0, MHArtMaterials.vertex_color())
+	_ai_golfer.visible = false
 	_move_aim()
+	if _ai_playing and not _ai_record.is_empty():
+		_apply_ai_visual(MHAIRoundTimeline.state(_ai_record["events"] as Array, _ai_elapsed))
 
 func _move_aim() -> void:
 	if _aim != null:
