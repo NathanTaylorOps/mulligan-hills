@@ -272,3 +272,19 @@ func test_visiting_party_id_is_transient_and_does_not_mutate_saved_social_identi
 	if int((returning[0] as Dictionary)["id"]) == anchor_id:
 		assert_int(int((returning[0] as Dictionary)["group_id"])).is_equal(44)
 		assert_int(int((roster.golfers[anchor_id] as Dictionary)["group_id"])).is_equal(-1)
+
+
+func test_social_graph_is_deterministic_bounded_and_persistent() -> void:
+	var a: MHGolferRoster = MHGolferRoster.new()
+	var b: MHGolferRoster = MHGolferRoster.new()
+	for serial: int in range(12):
+		a.identity_for_admission(8080, serial + 1, 1)
+		b.identity_for_admission(8080, serial + 1, 1)
+	a.ensure_social_graph(8080)
+	b.ensure_social_graph(8080)
+	assert_dict(a.to_dict()).is_equal(b.to_dict())
+	for golfer_v: Variant in a.golfers.values():
+		var golfer: Dictionary = golfer_v
+		var associates: Array = golfer["associates"] as Array
+		assert_bool(associates.size() > 0 and associates.size() <= MHGolferRoster.ASSOCIATE_LIMIT).is_true()
+		assert_bool(not associates.has(int(golfer["id"]))).is_true()
