@@ -100,6 +100,7 @@ func _fill() -> void:
 					next_areas.sort()
 				var area_button: MHTapButton = MHUIKit.button(ctx, MHStrings.t("management.parcel", {"parcel": area + 1}),
 					&"SelectedButton" if current_areas.has(area) else &"ChipButton", 86.0)
+				area_button.disabled = not current_areas.has(area) and current_areas.size() >= int(r.get("max_areas_per_employee", 0))
 				area_button.pressed.connect(send.bind(&"assign_staff", {"employee_serial": int(e.get("serial", 0)), "areas": next_areas}))
 				area_actions.add_child(area_button)
 			var clear_button: MHTapButton = MHUIKit.button(ctx, MHStrings.t("management.unassign"), &"ChipButton", 80.0)
