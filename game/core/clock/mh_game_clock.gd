@@ -4,7 +4,7 @@ extends RefCounted
 ## real-time delta in integer microseconds.
 ##
 ## Time model: one game day is 660 game minutes (11 hours, day only). At 1x a game day lasts 25 real minutes
-## (1,500,000,000 us), which is 26.4 game seconds per real second (DEC-070). Speeds 2x, 4x, 8x consume token time.
+## (1,500,000,000 us), which is 26.4 game seconds per real second (DEC-070). 2x is free (DEC-087); 8x consumes token time. There is no 4x.
 ## Fractions are kept exactly with an integer accumulator measured in (real us * game minutes), so stepping
 ## is exact and independent of how the real time is sliced into frames.
 ##
@@ -50,15 +50,11 @@ var last_was_catchup: bool = false
 
 
 static func is_valid_speed(speed: int) -> bool:
-	return speed == 1 or speed == 2 or speed == 4 or speed == 8
+	return speed == 1 or speed == 2 or speed == 8
 
 
 ## Tokens consumed per real minute at a speed (0 at 1x).
 static func tokens_per_real_minute(speed: int) -> int:
-	if speed == 2:
-		return 1
-	if speed == 4:
-		return 2
 	if speed == 8:
 		return 4
 	return 0
@@ -116,6 +112,9 @@ func request_speed(new_speed: int, token_balance: int) -> int:
 		return SPEED_DENIED_INVALID
 	if new_speed == 1:
 		_speed = 1
+		return SPEED_OK
+	if new_speed == 2:
+		_speed = 2
 		return SPEED_OK
 	if _credit <= 0 and token_balance < 1:
 		return SPEED_DENIED_TOKENS
@@ -214,6 +213,8 @@ func from_dict(d: Dictionary) -> bool:
 	# Earlier v1 clock snapshots omitted this field and used a 15-minute day. Preserve their fractional minute.
 	var source_period: int = int(d.get("real_us_per_day", 900000000))
 	var sp: int = int(d.get("speed", 1))
+	if sp == 4:
+		sp = 2 # 4x was removed (DEC-087); an older save resumes at the free 2x
 	var cr: int = int(d.get("credit", 0))
 	if source_period != 900000000 and source_period != REAL_US_PER_DAY_1X:
 		return false

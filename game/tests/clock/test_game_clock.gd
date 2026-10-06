@@ -87,30 +87,28 @@ func test_request_speed_rules() -> void:
 	var c: MHGameClock = MHGameClock.new()
 	assert_int(c.request_speed(3, 100)).is_equal(MHGameClock.SPEED_DENIED_INVALID)
 	assert_int(c.request_speed(0, 100)).is_equal(MHGameClock.SPEED_DENIED_INVALID)
-	assert_int(c.request_speed(2, 0)).is_equal(MHGameClock.SPEED_DENIED_TOKENS)
-	assert_int(c.speed()).is_equal(1)
-	assert_int(c.request_speed(4, 1)).is_equal(MHGameClock.SPEED_OK)
-	assert_int(c.speed()).is_equal(4)
+	assert_int(c.request_speed(4, 100)).is_equal(MHGameClock.SPEED_DENIED_INVALID) # 4x was removed (DEC-087)
+	assert_int(c.request_speed(2, 0)).is_equal(MHGameClock.SPEED_OK) # 2x is free
+	assert_int(c.speed()).is_equal(2)
+	assert_int(c.request_speed(8, 0)).is_equal(MHGameClock.SPEED_DENIED_TOKENS)
+	assert_int(c.speed()).is_equal(2)
+	assert_int(c.request_speed(8, 1)).is_equal(MHGameClock.SPEED_OK)
+	assert_int(c.speed()).is_equal(8)
 	assert_int(c.request_speed(1, 0)).is_equal(MHGameClock.SPEED_OK)
 	assert_int(c.speed()).is_equal(1)
 
 
-func test_speed_two_drains_one_token_per_minute_then_drops() -> void:
+func test_speed_two_is_free_and_never_drops() -> void:
 	var c: MHGameClock = MHGameClock.new()
 	var l: MHTokenLedger = MHTokenLedger.new()
-	l.earned = 1
 	assert_int(c.request_speed(2, l.total())).is_equal(MHGameClock.SPEED_OK)
 	var ev: PackedInt32Array = _run(c, 61, 1000000, l)
-	# 60 s at 2x plus 1 s at 1x = 121 effective seconds = 53 game minutes, acc 360000000
+	# 61 s at 2x = 122 effective seconds = 53 game minutes, acc 1020000000, no hour yet, no speed drop
 	assert_int(c.total_minutes()).is_equal(53)
-	assert_int(int(c.to_dict()["acc"])).is_equal(360000000)
-	assert_int(c.speed()).is_equal(1)
+	assert_int(int(c.to_dict()["acc"])).is_equal(1020000000)
+	assert_int(c.speed()).is_equal(2)
 	assert_int(l.total()).is_equal(0)
-	# No hour has ended yet; only the speed drop row: [3, day 0, old speed 2].
-	var expect: Array = [3, 0, 2]
-	assert_int(ev.size()).is_equal(expect.size())
-	for i in range(expect.size()):
-		assert_int(ev[i]).is_equal(int(expect[i]))
+	assert_int(ev.size()).is_equal(0)
 
 
 func test_speed_eight_with_earned_then_paid_tokens() -> void:
@@ -198,7 +196,7 @@ func test_save_round_trip_through_json() -> void:
 	var c: MHGameClock = MHGameClock.new()
 	var l: MHTokenLedger = MHTokenLedger.new()
 	l.earned = 5
-	c.request_speed(4, l.total())
+	c.request_speed(8, l.total())
 	_run(c, 7, 1000000, l)
 	var text: String = JSON.stringify(c.to_dict())
 	var parsed: Variant = JSON.parse_string(text)
@@ -244,33 +242,33 @@ func _expect(ev: PackedInt32Array, expect: Array) -> void:
 		assert_int(ev[i]).is_equal(int(expect[i]))
 
 
-func test_speed_four_mixed_earned_and_paid_golden() -> void:
+func test_speed_eight_mixed_earned_and_paid_golden() -> void:
 	var c: MHGameClock = MHGameClock.new()
 	var l: MHTokenLedger = MHTokenLedger.new()
 	l.earned = 1
 	l.paid = 2
-	c.request_speed(4, l.total())
+	c.request_speed(8, l.total())
 	var ev: PackedInt32Array = _run(c, 100, 1000000, l)
-	# 3 tokens = 90 s of 4x, then 10 s at 1x: 370 effective seconds = 162 game minutes
-	assert_int(c.total_minutes()).is_equal(162)
-	assert_int(int(c.to_dict()["acc"])).is_equal(1200000000)
+	# 3 tokens = 45 s of 8x (360 s), then 55 s at 1x: 415 effective seconds = 182 game minutes
+	assert_int(c.total_minutes()).is_equal(182)
+	assert_int(int(c.to_dict()["acc"])).is_equal(900000000)
 	assert_int(c.speed()).is_equal(1)
 	assert_int(c.prepaid_credit()).is_equal(0)
 	assert_int(l.total()).is_equal(0)
-	_expect(ev, [1, 0, 1, 1, 0, 2, 3, 0, 4])
+	_expect(ev, [1, 0, 1, 1, 0, 2, 3, 0, 8, 1, 0, 3])
 
 
 func test_speed_two_with_sixty_fps_frames_golden() -> void:
 	var c: MHGameClock = MHGameClock.new()
 	var l: MHTokenLedger = MHTokenLedger.new()
-	l.earned = 2
 	c.request_speed(2, l.total())
 	var ev: PackedInt32Array = _run(c, 8000, 16667, l)
-	assert_int(c.total_minutes()).is_equal(111)
-	assert_int(int(c.to_dict()["acc"])).is_equal(701760000)
-	assert_int(c.speed()).is_equal(1)
+	# 8000 frames of 16667 us at 2x = 266672000 effective us = 117 game minutes, acc 503520000
+	assert_int(c.total_minutes()).is_equal(117)
+	assert_int(int(c.to_dict()["acc"])).is_equal(503520000)
+	assert_int(c.speed()).is_equal(2)
 	assert_int(l.total()).is_equal(0)
-	_expect(ev, [1, 0, 1, 3, 0, 2])
+	_expect(ev, [1, 0, 1])
 
 
 func test_speed_eight_is_independent_of_frame_slicing() -> void:

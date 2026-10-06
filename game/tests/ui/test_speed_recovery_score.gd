@@ -9,41 +9,44 @@ func test_one_x_is_always_free() -> void:
 	assert_int(MHSpeedControl.tokens_per_minute(1)).is_equal(0)
 
 
-func test_boosted_speeds_need_a_token() -> void:
-	for s: int in [2, 4, 8]:
-		assert_bool(MHSpeedControl.is_locked(s, 0)).is_true()
-		assert_bool(MHSpeedControl.can_select(s, 0)).is_false()
-		assert_bool(MHSpeedControl.can_select(s, 1)).is_true()
+func test_only_eight_x_needs_a_token() -> void:
+	assert_bool(MHSpeedControl.is_locked(8, 0)).is_true()
+	assert_bool(MHSpeedControl.can_select(8, 0)).is_false()
+	assert_bool(MHSpeedControl.can_select(8, 1)).is_true()
+	assert_bool(MHSpeedControl.is_locked(2, 0)).is_false()
+	assert_bool(MHSpeedControl.can_select(2, 0)).is_true()
+	assert_bool(MHSpeedControl.can_select(4, 99)).is_false() # 4x was removed
 	assert_bool(MHSpeedControl.can_select(3, 99)).is_false()
 	assert_bool(MHSpeedControl.can_select(0, 99)).is_false()
 
 
 func test_rates_and_minutes_left() -> void:
-	assert_int(MHSpeedControl.tokens_per_minute(2)).is_equal(1)
-	assert_int(MHSpeedControl.tokens_per_minute(4)).is_equal(2)
+	assert_int(MHSpeedControl.tokens_per_minute(2)).is_equal(0)
 	assert_int(MHSpeedControl.tokens_per_minute(8)).is_equal(4)
-	assert_int(MHSpeedControl.minutes_left(5, 2)).is_equal(5)
-	assert_int(MHSpeedControl.minutes_left(5, 4)).is_equal(2)
+	assert_int(MHSpeedControl.minutes_left(5, 2)).is_equal(-1)
 	assert_int(MHSpeedControl.minutes_left(5, 8)).is_equal(1)
-	assert_int(MHSpeedControl.minutes_left(-3, 2)).is_equal(0)
+	assert_int(MHSpeedControl.minutes_left(-3, 8)).is_equal(0)
 
 
 func test_effective_speed_falls_back() -> void:
-	assert_int(MHSpeedControl.effective_speed(4, 0)).is_equal(1)
-	assert_int(MHSpeedControl.effective_speed(4, 3)).is_equal(4)
+	assert_int(MHSpeedControl.effective_speed(8, 0)).is_equal(1)
+	assert_int(MHSpeedControl.effective_speed(8, 3)).is_equal(8)
+	assert_int(MHSpeedControl.effective_speed(2, 0)).is_equal(2)
+	assert_int(MHSpeedControl.effective_speed(4, 3)).is_equal(1)
 	assert_int(MHSpeedControl.effective_speed(7, 3)).is_equal(1)
 
 
 func test_options_rows() -> void:
-	var o: Array = MHSpeedControl.options(0, 4)
-	assert_int(o.size()).is_equal(4)
-	assert_bool(bool((o[0] as Dictionary)["selected"])).is_true()
-	assert_bool(bool((o[1] as Dictionary)["locked"])).is_true()
+	var o: Array = MHSpeedControl.options(0, 8)
+	assert_int(o.size()).is_equal(3)
+	assert_bool(bool((o[0] as Dictionary)["selected"])).is_true() # 8x without tokens falls back to 1x
+	assert_bool(bool((o[1] as Dictionary)["locked"])).is_false()
+	assert_bool(bool((o[2] as Dictionary)["locked"])).is_true()
 	assert_bool(bool((o[2] as Dictionary)["selected"])).is_false()
-	var o2: Array = MHSpeedControl.options(5, 4)
+	var o2: Array = MHSpeedControl.options(5, 8)
 	assert_bool(bool((o2[2] as Dictionary)["selected"])).is_true()
 	assert_bool(bool((o2[2] as Dictionary)["locked"])).is_false()
-	assert_int(int((o2[3] as Dictionary)["tokens_per_min"])).is_equal(4)
+	assert_int(int((o2[2] as Dictionary)["tokens_per_min"])).is_equal(4)
 
 
 func test_speed_list_matches_the_clock() -> void:

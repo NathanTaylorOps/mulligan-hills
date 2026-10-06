@@ -30,7 +30,7 @@ extends RefCounted
 
 signal changed()
 
-const SPEEDS: Array = [1, 2, 4, 8]
+const SPEEDS: Array = [1, 2, 8]
 
 
 func is_demo() -> bool:

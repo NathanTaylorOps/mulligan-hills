@@ -1,10 +1,10 @@
 class_name MHSpeedControl
 extends RefCounted
-## Pure logic behind the HUD speed control (DEC-052, DEC-053). 1x is always free. 2x, 4x and 8x spend tokens
-## (earned first, then paid, see MHTokenLedger) at 1, 2 and 4 tokens per real minute, so they are locked
+## Pure logic behind the HUD speed control (DEC-052, DEC-053). 1x and 2x are always free (DEC-087). 8x spends tokens
+## (earned first, then paid, see MHTokenLedger) at 4 tokens per real minute, so it is locked
 ## while the player holds no token. The clock itself enforces this too; the UI only mirrors the rule.
 
-const SPEEDS: Array = [1, 2, 4, 8]
+const SPEEDS: Array = [1, 2, 8]
 
 
 static func tokens_per_minute(speed: int) -> int:
@@ -12,7 +12,7 @@ static func tokens_per_minute(speed: int) -> int:
 
 
 static func is_locked(speed: int, tokens_total: int) -> bool:
-	return speed > 1 and tokens_total < 1
+	return tokens_per_minute(speed) > 0 and tokens_total < 1
 
 
 static func can_select(speed: int, tokens_total: int) -> bool:

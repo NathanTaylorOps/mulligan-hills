@@ -557,8 +557,6 @@ func _on_speed() -> void:
 		1:
 			next = 2
 		2:
-			next = 4
-		4:
 			next = 8
 		_:
 			next = 1

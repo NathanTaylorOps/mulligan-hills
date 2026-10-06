@@ -160,7 +160,7 @@ func refresh() -> void:
 			b.theme_type_variation = &"ChipButton"
 		b.text = MHFormat.speed_label(int(row["speed"])) + ((" " + MHStrings.t("hud.speed.lock_suffix")) if bool(row["locked"]) else "")
 	var eff: int = MHSpeedControl.effective_speed(view.speed(), tokens)
-	if eff > 1:
+	if MHSpeedControl.tokens_per_minute(eff) > 0:
 		_speed_note.text = MHStrings.t("hud.speed.cost", {"rate": MHSpeedControl.tokens_per_minute(eff), "minutes": MHSpeedControl.minutes_left(tokens, eff)})
 	elif tokens < 1:
 		_speed_note.text = MHStrings.t("hud.speed.need_tokens")
