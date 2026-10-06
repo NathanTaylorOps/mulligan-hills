@@ -32,6 +32,12 @@ var _pending_save: bool = false
 var _active: bool = false
 var _last_usec: int = 0
 var _resumed_checkpoint: bool = false
+var _placement_id: String = ""
+var _placement_tier: int = 1
+var _placement_rotation: int = 0
+var _placement_ghost: MeshInstance3D
+var _placement_status: Label
+var _placement_last: Dictionary = {}
 
 func _ready() -> void:
 	MHOrientation.apply_game() # No-op off mobile; one switch, see MHOrientation.
@@ -138,6 +144,10 @@ func _ready() -> void:
 	get_viewport().size_changed.connect(_relayout)
 	shell.screen_changed.connect(func(_id: String) -> void: _relayout())
 	play.pressed.connect(one_hole.open)
+	var build: MHTapButton = MHUIKit.button(shell.ctx, "Place building", &"ChipButton", 150)
+	_actions.add_child(build)
+	_action_buttons.append(build)
+	build.pressed.connect(_begin_first_owned_building)
 	router.register_ui_region(&"live_practice", _button_rect.bind(play))
 	router.register_ui_region(&"live_save", _button_rect.bind(save_button))
 	router.register_ui_region(&"live_back", _button_rect.bind(back))
@@ -148,6 +158,8 @@ func _ready() -> void:
 		else: shell.trigger_region(id))
 	# The status label sits in a container with a real width (an autowrap Label directly under a CanvasLayer has
 	# zero width and wraps one character per line) and is limited to MHLiveLayout.STATUS_LINES lines.
+	_placement_status = MHUIKit.label("", &"SmallLabel")
+	_status_zone.add_child(_placement_status)
 	_status = MHUIKit.label(_first_round_status(), &"SmallLabel")
 	_status.max_lines_visible = MHLiveLayout.STATUS_LINES
 	_status.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
@@ -178,12 +190,85 @@ func _pick(pos: Vector2) -> Vector2i:
 	return MHPicking.pick(editor.grid, controller.camera.project_ray_origin(pos), controller.camera.project_ray_normal(pos), 1500.0)
 
 
-func validate_building_placement(building_id: String, tier: int, world_m: Vector2) -> Dictionary:
+func _begin_first_owned_building() -> void:
+	for idv: Variant in session.economy.params.building_ids:
+		var id: String = str(idv)
+		var tier: int = session.economy.tier_of(session.economy.params.building_index(id))
+		if tier > 0:
+			_begin_building_placement(id, tier)
+			return
+	_status.text = "Buy a building tier first, then place it."
+
+
+func _begin_building_placement(building_id: String, tier: int) -> void:
+	_placement_id = building_id
+	_placement_tier = tier
+	_placement_rotation = 0
+	if _placement_ghost == null:
+		_placement_ghost = MeshInstance3D.new()
+		add_child(_placement_ghost)
+	_update_ghost_mesh()
+	_status.text = "Placing %s: move pointer over terrain. R rotates; click/tap confirms." % building_id.replace("_", " ")
+
+
+func _update_ghost_mesh() -> void:
+	if _placement_ghost == null or _placement_id == "":
+		return
+	var size: Vector2i = MHBuildingPlacement.footprint_m(_placement_id, _placement_tier)
+	if _placement_rotation % 2 == 1:
+		size = Vector2i(size.y, size.x)
+	var box: BoxMesh = BoxMesh.new()
+	box.size = Vector3(float(size.x), 2.0, float(size.y))
+	_placement_ghost.mesh = box
+
+
+func _placement_preview(world_m: Vector2) -> void:
+	if _placement_id == "":
+		return
+	_placement_last = validate_building_placement(_placement_id, _placement_tier, world_m, _placement_rotation)
+	if _placement_ghost != null:
+		var ground: float = float(int(_placement_last.get("ground_mm", 0))) / 1000.0
+		_placement_ghost.position = Vector3(world_m.x, ground + 1.0, world_m.y)
+	_placement_status.text = "VALID — click/tap to build" if bool(_placement_last.get("ok", false)) else "INVALID — " + _placement_reason(str(_placement_last.get("reason", "")))
+
+
+func _placement_reason(reason: String) -> String:
+	var labels: Dictionary = {"world_edge": "outside world", "unowned_land": "footprint crosses unowned land",
+		"building_overlap": "too close to another building", "hazard": "natural/man-made hazard under footprint",
+		"terrain_relief": "site is too uneven", "terrain_slope": "site is too steep", "golf_feature": "overlaps playable golf area",
+		"unsupported": "unsupported site"}
+	return str(labels.get(reason, reason))
+
+
+func rotate_building_preview() -> void:
+	if _placement_id == "":
+		return
+	_placement_rotation = posmod(_placement_rotation + 1, 4)
+	_update_ghost_mesh()
+
+
+func confirm_building_preview() -> Dictionary:
+	if _placement_id == "" or not bool(_placement_last.get("ok", false)):
+		return {"ok": false, "reason": str(_placement_last.get("reason", "invalid"))}
+	if not session.set_building_placement(_placement_id, _placement_last):
+		return {"ok": false, "reason": "building"}
+	var result: Dictionary = _placement_last.duplicate(true)
+	_placement_id = ""
+	_placement_last = {}
+	if _placement_ghost != null:
+		_placement_ghost.queue_free()
+		_placement_ghost = null
+	_placement_status.text = ""
+	_request_save()
+	return result
+
+
+func validate_building_placement(building_id: String, tier: int, world_m: Vector2, rotation_quarters: int = 0) -> Dictionary:
 	var existing: Array = []
 	for v: Variant in session.building_placements.values():
 		existing.append((v as Dictionary).duplicate(true))
 	return MHBuildingPlacement.validate(editor.grid, editor.splat, session.land, building_id, tier,
-		Vector2i(roundi(world_m.x * 1000.0), roundi(world_m.y * 1000.0)), existing)
+		Vector2i(roundi(world_m.x * 1000.0), roundi(world_m.y * 1000.0)), existing, rotation_quarters, session.hole_definitions())
 
 
 func place_building(building_id: String, tier: int, world_m: Vector2) -> Dictionary:
