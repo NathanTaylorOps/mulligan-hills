@@ -288,3 +288,18 @@ func test_social_graph_is_deterministic_bounded_and_persistent() -> void:
 		var associates: Array = golfer["associates"] as Array
 		assert_bool(associates.size() > 0 and associates.size() <= MHGolferRoster.ASSOCIATE_LIMIT).is_true()
 		assert_bool(not associates.has(int(golfer["id"]))).is_true()
+
+
+func test_membership_application_requires_explicit_club_decision() -> void:
+	var roster: MHGolferRoster = MHGolferRoster.new()
+	var g: Dictionary = roster.identity_for_admission(9191, 1, 1)
+	var id: int = int(g["id"])
+	for day: int in range(1, 6):
+		roster.record_visit(id, day, 100, "Loved the course")
+	assert_str(str(roster.golfers[id]["membership_status"])).is_equal("applied")
+	assert_bool(bool(roster.golfers[id]["member"])).is_false()
+	assert_int(roster.membership_applications().size()).is_equal(1)
+	assert_bool(roster.decide_membership(id, true)).is_true()
+	assert_str(str(roster.golfers[id]["membership_status"])).is_equal("member")
+	assert_bool(bool(roster.golfers[id]["member"])).is_true()
+	assert_bool(roster.decide_membership(id, false)).is_false()
