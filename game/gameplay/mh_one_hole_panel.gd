@@ -110,7 +110,7 @@ func open() -> void:
 	if live.aim_input != null:
 		live.aim_input.taps.clear()
 	live.shell.show_root(MHScreenIds.HUD)
-	live.chunks.hide() # Flat exact-layout view; arbitrary brush terrain is not claimed as rated geometry.
+	live.chunks.show() # Sculpted terrain is the same geometry sampled by rating and shot simulation.
 	show()
 	_world.show()
 	_follow_camera()
@@ -394,7 +394,6 @@ func _draw() -> void:
 	for child: Node in _world.get_children():
 		_world.remove_child(child)
 		child.queue_free()
-	_box(Vector3(64, -0.1, 64), Vector3(128, 0.1, 128), Color(0.27, 0.44, 0.21))
 	var layouts: Array = live.session.hole_definitions()
 	var h: Dictionary = _layout() if layouts.is_empty() or _preview_draft else layouts[0]
 	for row: Variant in h["features"]:
@@ -431,8 +430,19 @@ func _move_aim() -> void:
 	_refresh_path()
 
 func _position(cx: int, cy: int, height: float) -> Vector3:
-	return Vector3(float(MHCourseLayout.world_mm(int(ORIGIN[0]), cx)) / 1000.0, height,
-		float(MHCourseLayout.world_mm(int(ORIGIN[1]), cy)) / 1000.0)
+	var wx_mm: int = MHCourseLayout.world_mm(int(ORIGIN[0]), cx)
+	var wy_mm: int = MHCourseLayout.world_mm(int(ORIGIN[1]), cy)
+	var ground: float = _terrain_height_m(wx_mm, wy_mm)
+	return Vector3(float(wx_mm) / 1000.0, ground + height, float(wy_mm) / 1000.0)
+
+
+func _terrain_height_m(wx_mm: int, wy_mm: int) -> float:
+	if live == null or live.editor == null or live.editor.grid == null:
+		return 0.0
+	var grid: MHHeightGrid = live.editor.grid
+	var sx: int = clampi(MHRMath.rdiv(wx_mm, grid.cell_size_mm), 0, grid.samples_x - 1)
+	var sy: int = clampi(MHRMath.rdiv(wy_mm, grid.cell_size_mm), 0, grid.samples_y - 1)
+	return float(grid.get_h(sx, sy)) / 1000.0
 
 func _marker(color: Color, radius: float) -> MeshInstance3D:
 	var sphere: SphereMesh = SphereMesh.new()
