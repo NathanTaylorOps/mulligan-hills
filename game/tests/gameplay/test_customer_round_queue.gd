@@ -525,3 +525,22 @@ func test_party_waits_at_occupied_next_tee_until_hole_clears() -> void:
 	q.advance_all(blocker_done)
 	var admitted: Dictionary = q.begin_next_hole(blocker_done + 0.1, 10)
 	assert_str(str(admitted.get("kind", ""))).is_equal("hole_started")
+
+
+func test_progressing_party_reserves_next_tee_ahead_of_new_admission() -> void:
+	var q: MHCustomerRoundQueue = MHCustomerRoundQueue.new()
+	var events: Array = [{"kind": "putt", "shot": 1, "strokes": 1, "x0": 0, "y0": 0, "x1": 0, "y1": 0}]
+	var course: Array = [{"hole_slot": 2, "round": {"events": events}}, {"hole_slot": 5, "round": {"events": events}}]
+	q.admit([{"serial": 10, "party_id": 10, "hole_slot": 2, "round": {"events": events}, "course_round": course}], {}, {}, {})
+	q.advance_all(0.0)
+	var duration: float = MHAIRoundTimeline.total_duration(events) + 0.1
+	q.advance_all(duration)
+	assert_int(int(q.tee_reservations.get(5, -1))).is_equal(10)
+	# A newly admitted group targeting hole 5 must not jump the party already walking there.
+	q.admit([{"serial": 20, "party_id": 20, "hole_slot": 5, "round": {"events": events}}], {}, {}, {})
+	q.advance_all(duration + MHCustomerRoundQueue.TEE_INTERVAL_S)
+	assert_bool(q.active_parties.has(20)).is_false()
+	var next: Dictionary = q.begin_next_hole(duration + MHCustomerRoundQueue.TEE_INTERVAL_S, 10)
+	assert_str(str(next.get("kind", ""))).is_equal("hole_started")
+	assert_bool(q.tee_reservations.has(5)).is_false()
+	assert_int(int(q.occupied_holes.get(5, -1))).is_equal(10)
