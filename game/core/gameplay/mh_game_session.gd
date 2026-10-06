@@ -171,6 +171,12 @@ func live_staff_assignments() -> Array:
 	return out
 
 
+func live_course_condition() -> Dictionary:
+	if staff_system == null:
+		return {"condition": [], "pest": []}
+	return {"condition": staff_system.grounds.condition.duplicate(), "pest": staff_system.grounds.pest.duplicate()}
+
+
 func live_maintenance_state() -> Dictionary:
 	# Presentation projection only: specialists and broken machines remain authoritative in staff_system.
 	if staff_system == null:
