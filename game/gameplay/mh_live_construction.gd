@@ -50,6 +50,8 @@ var _visible_golfers: MHSliceGolfers
 var _facility_walkers: Dictionary = {}
 var _hole_transition_walkers: Dictionary = {}
 var _golfer_reactions: Array = []
+var _visible_staff_root: Node3D
+var _visible_staff_nodes: Dictionary = {}
 const MAX_GOLFER_REACTIONS: int = 6
 const GOLFER_REACTION_LIFETIME_S: float = 5.0
 
@@ -103,6 +105,10 @@ func _ready() -> void:
 	add_child(_visible_golfers)
 	_visible_golfers.setup(_building_mat)
 	_visible_golfers.terrain_grid = editor.grid
+	_visible_staff_root = Node3D.new()
+	_visible_staff_root.name = "VisibleStaff"
+	add_child(_visible_staff_root)
+	_sync_visible_staff()
 	var sun: DirectionalLight3D = DirectionalLight3D.new()
 	sun.rotation_degrees = Vector3(-50, 30, 0)
 	add_child(sun)
@@ -553,6 +559,7 @@ func _process(_delta: float) -> void:
 	_advance_hole_transition_walkers(float(elapsed) / 1000000.0)
 	_advance_facility_walkers(float(elapsed) / 1000000.0)
 	_advance_golfer_reactions(float(elapsed) / 1000000.0)
+	_sync_visible_staff()
 	_visible_golfers.advance(float(elapsed) / 1000000.0, controller.rig.global_position)
 	chunks.flush(editor.dirty)
 	_relayout()
@@ -674,6 +681,57 @@ func _render_customer_hole(event: Dictionary) -> void:
 	var origin_dm: Array = MHCourseLayout.origin_for_slot(course, slot)
 	var world_origin: Vector2 = Vector2(float(origin_dm[0]) / 10.0, float(origin_dm[1]) / 10.0)
 	_visible_golfers.spawn_authoritative_party(customers, tee, green, world_origin)
+
+
+func _sync_visible_staff() -> void:
+	if _visible_staff_root == null or session == null:
+		return
+	var used: Dictionary = {}
+	for assignment_v: Variant in session.live_staff_assignments():
+		var assignment: Dictionary = assignment_v as Dictionary
+		var serial: int = int(assignment.get("serial", 0))
+		var areas: Array = assignment.get("areas", []) as Array
+		if serial <= 0 or areas.is_empty():
+			continue
+		var slot: int = int(areas[0])
+		var start: Vector3 = _hole_world_point(slot, "tee")
+		var finish: Vector3 = _hole_world_point(slot, "green")
+		if start == Vector3.INF or finish == Vector3.INF:
+			continue
+		used[serial] = true
+		var node: Node3D = _visible_staff_nodes.get(serial, null) as Node3D
+		if node == null:
+			node = _make_staff_visual(assignment)
+			_visible_staff_root.add_child(node)
+			_visible_staff_nodes[serial] = node
+		var phase: float = fmod(float(session.clock.total_minutes() + serial * 7), 60.0) / 60.0
+		var p: Vector3 = start.lerp(finish, 0.15 + 0.7 * absf(sin(phase * PI)))
+		node.position = MHClubPedestrian.apply_ground_height(p, editor.grid)
+	for serial_v: Variant in _visible_staff_nodes.keys():
+		if not used.has(serial_v):
+			(_visible_staff_nodes[serial_v] as Node3D).queue_free()
+			_visible_staff_nodes.erase(serial_v)
+
+
+func _make_staff_visual(assignment: Dictionary) -> Node3D:
+	var root: Node3D = Node3D.new()
+	root.name = "Staff_%d" % int(assignment.get("serial", 0))
+	var worker: MeshInstance3D = MeshInstance3D.new()
+	var body: CapsuleMesh = CapsuleMesh.new()
+	body.radius = 0.32
+	body.height = 1.65
+	worker.mesh = body
+	worker.position.y = 0.82
+	root.add_child(worker)
+	var equipment: Dictionary = assignment.get("equipment", {}) as Dictionary
+	if not equipment.is_empty():
+		var machine: MeshInstance3D = MeshInstance3D.new()
+		var machine_mesh: BoxMesh = BoxMesh.new()
+		machine_mesh.size = Vector3(1.3, 0.55, 1.8)
+		machine.mesh = machine_mesh
+		machine.position = Vector3(0.0, 0.35, -0.9)
+		root.add_child(machine)
+	return root
 
 
 func _show_arrival_identity(event: Dictionary) -> void:
