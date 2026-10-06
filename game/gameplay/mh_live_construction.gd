@@ -44,7 +44,34 @@ var _ghost_valid_mat: StandardMaterial3D
 var _ghost_invalid_mat: StandardMaterial3D
 var _placed_buildings_root: Node3D
 var _placed_building_nodes: Dictionary = {}
+var _placed_building_colliders: Dictionary = {}
 var _building_mat: StandardMaterial3D
+var _building_mesh_cache: Dictionary = {}
+var _visible_golfers: MHSliceGolfers
+var _facility_walkers: Dictionary = {}
+var _hole_transition_walkers: Dictionary = {}
+var _party_carts: Dictionary = {}
+var _player_cart: MHPlayerCart
+var _player_cart_debris: Node3D
+var _cart_drive_input: MHCartDriveInput
+var _cart_drive_active: bool = false
+var _hud_layer: CanvasLayer
+var _cart_camera: Camera3D
+var _cart_camera_ready: bool = false
+var _cart_tree_collision_root: Node3D
+var _cart_tree_collision_anchor: Vector3 = Vector3.INF
+const CART_TREE_COLLISION_RADIUS_M: float = 22.0
+const CART_TREE_COLLISION_REFRESH_M: float = 8.0
+var _golfer_reactions: Array = []
+var _visible_staff_root: Node3D
+var _visible_staff_nodes: Dictionary = {}
+var _maintenance_visuals: Dictionary = {}
+var _last_condition_signature: int = -1
+var _staff_work_effects: Dictionary = {}
+var _operations_refresh_s: float = 0.0
+const OPERATIONS_REFRESH_INTERVAL_S: float = 0.35
+const MAX_GOLFER_REACTIONS: int = 6
+const GOLFER_REACTION_LIFETIME_S: float = 5.0
 
 func _ready() -> void:
 	MHOrientation.apply_game() # No-op off mobile; one switch, see MHOrientation.
@@ -66,6 +93,9 @@ func _ready() -> void:
 		session = restored.value as MHGameSession
 		document = saved.data.duplicate(true)
 		editor = MHTerrainEditor.new(terrain.grid, terrain.splat, 32)
+		if not _revalidate_restored_buildings():
+			_fail("Checkpoint building placements no longer match terrain, ownership or course geometry.")
+			return
 	elif loaded.code == MHSaveResult.Code.NOT_FOUND:
 		session = MHGameSession.create()
 		if session == null:
@@ -84,10 +114,20 @@ func _ready() -> void:
 	chunks = MHTerrainChunks.new()
 	add_child(chunks)
 	chunks.setup(editor.grid, editor.splat, 32)
+	_sync_course_condition_overlay()
 	_placed_buildings_root = Node3D.new()
 	_placed_buildings_root.name = "PlacedBuildings"
 	add_child(_placed_buildings_root)
 	_building_mat = MHArtMaterials.vertex_color()
+	_visible_golfers = MHSliceGolfers.new()
+	_visible_golfers.name = "VisibleGolfers"
+	add_child(_visible_golfers)
+	_visible_golfers.setup(_building_mat)
+	_visible_golfers.terrain_grid = editor.grid
+	_visible_staff_root = Node3D.new()
+	_visible_staff_root.name = "VisibleStaff"
+	add_child(_visible_staff_root)
+	_sync_visible_staff()
 	var sun: DirectionalLight3D = DirectionalLight3D.new()
 	sun.rotation_degrees = Vector3(-50, 30, 0)
 	add_child(sun)
@@ -98,9 +138,12 @@ func _ready() -> void:
 	controller = MHCameraController.new()
 	controller.config = cfg
 	add_child(controller)
-	controller.rig.target = Vector3(64, 0, 64)
+	var world_center_x: float = float(editor.grid.cells_x * editor.grid.cell_size_mm) / 2000.0
+	var world_center_z: float = float(editor.grid.cells_y * editor.grid.cell_size_mm) / 2000.0
+	controller.rig.target = Vector3(world_center_x, 0.0, world_center_z)
 	controller.desktop_pan(Vector2.ZERO)
 	var layer: CanvasLayer = CanvasLayer.new()
+	_hud_layer = layer
 	add_child(layer)
 	var compass: MHCompassButton = MHCompassButton.new()
 	var debug: MHDebugOverlay = MHDebugOverlay.new()
@@ -137,7 +180,9 @@ func _ready() -> void:
 	back.pressed.connect(_back)
 	var play_label: String = "Continue first round" if _resumed_checkpoint and not session.hole_definitions().is_empty() else "Build / play first hole"
 	var play: MHTapButton = MHUIKit.button(shell.ctx, play_label, &"ChipButton", 180)
-	for b: MHTapButton in [save_button, back, play]:
+	var drive_cart: MHTapButton = MHUIKit.button(shell.ctx, "Drive cart", &"ChipButton", 120)
+	drive_cart.pressed.connect(enter_cart_drive_mode)
+	for b: MHTapButton in [save_button, back, play, drive_cart]:
 		_actions.add_child(b)
 		_action_buttons.append(b)
 	_status_zone = MHUIKit.panel(&"HudChip")
@@ -176,12 +221,14 @@ func _ready() -> void:
 	_ghost_invalid_mat.albedo_color = Color(1.0, 0.2, 0.2, 0.45)
 	_ghost_invalid_mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
 	router.register_ui_region(&"live_practice", _button_rect.bind(play))
+	router.register_ui_region(&"live_drive_cart", _button_rect.bind(drive_cart))
 	router.register_ui_region(&"live_save", _button_rect.bind(save_button))
 	router.register_ui_region(&"live_back", _button_rect.bind(back))
 	router.ui_tapped.connect(func(id: StringName) -> void:
 		if id == &"live_save": save_button.pressed.emit()
 		elif id == &"live_back": back.pressed.emit()
 		elif id == &"live_practice": play.pressed.emit()
+		elif id == &"live_drive_cart": drive_cart.pressed.emit()
 		else: shell.trigger_region(id))
 	# The status label sits in a container with a real width (an autowrap Label directly under a CanvasLayer has
 	# zero width and wraps one character per line) and is limited to MHLiveLayout.STATUS_LINES lines.
@@ -207,6 +254,39 @@ func _ready() -> void:
 	_sync_placed_buildings()
 	_request_save()
 	_relayout()
+
+
+func _revalidate_restored_buildings() -> bool:
+	if session == null or editor == null:
+		return false
+	var accepted: Array = []
+	var ids: Array = session.building_placements.keys()
+	ids.sort()
+	for id_v: Variant in ids:
+		var instance_id: String = str(id_v)
+		var saved: Dictionary = session.building_placements[instance_id] as Dictionary
+		var building_id: String = str(saved.get("building_id", ""))
+		var index: int = session.economy.params.building_index(building_id)
+		if index < 0:
+			return false
+		var tier: int = session.economy.tier_of(index)
+		var center: Array = saved.get("center_mm", []) as Array
+		if tier <= 0 or center.size() != 2:
+			return false
+		var checked: Dictionary = MHBuildingPlacement.validate(editor.grid, editor.splat, session.land, building_id, tier,
+			Vector2i(int(center[0]), int(center[1])), accepted, int(saved.get("rotation_quarters", 0)),
+			session.hole_definitions(), _placement_obstacles(), document.get("course", {}) as Dictionary)
+		if not bool(checked.get("ok", false)):
+			return false
+		# The terrain/ownership validator is authoritative. Replace derived geometry from the save
+		# with its canonical result so stale ground/size fields cannot survive a valid restore.
+		var canonical: Dictionary = checked.duplicate(true)
+		canonical["building_id"] = building_id
+		canonical["instance_id"] = instance_id
+		session.building_placements[instance_id] = canonical
+		accepted.append(canonical)
+	return true
+
 
 func _first_round_status() -> String:
 	if _resumed_checkpoint:
@@ -246,12 +326,10 @@ func _begin_building_placement(building_id: String, tier: int) -> void:
 func _update_ghost_mesh() -> void:
 	if _placement_ghost == null or _placement_id == "":
 		return
-	var size: Vector2i = MHBuildingPlacement.footprint_m(_placement_id, _placement_tier)
-	if _placement_rotation % 2 == 1:
-		size = Vector2i(size.y, size.x)
-	var box: BoxMesh = BoxMesh.new()
-	box.size = Vector3(float(size.x), 2.0, float(size.y))
-	_placement_ghost.mesh = box
+	var mesh_key: String = "%s:%d:a" % [_placement_id, _placement_tier]
+	if not _building_mesh_cache.has(mesh_key):
+		_building_mesh_cache[mesh_key] = MHBuildingMeshes.build(_placement_id, _placement_tier, "a")
+	_placement_ghost.mesh = _building_mesh_cache[mesh_key] as Mesh
 	_placement_ghost.rotation.y = float(_placement_rotation) * PI * 0.5
 
 
@@ -261,7 +339,7 @@ func _placement_preview(world_m: Vector2) -> void:
 	_placement_last = validate_building_placement(_placement_id, _placement_tier, world_m, _placement_rotation)
 	if _placement_ghost != null:
 		var ground: float = float(int(_placement_last.get("ground_mm", 0))) / 1000.0
-		_placement_ghost.position = Vector3(world_m.x, ground + 1.0, world_m.y)
+		_placement_ghost.position = Vector3(world_m.x, ground, world_m.y)
 		_placement_ghost.material_override = _ghost_valid_mat if bool(_placement_last.get("ok", false)) else _ghost_invalid_mat
 	_placement_status.text = "VALID — click/tap to build" if bool(_placement_last.get("ok", false)) else "INVALID — " + _placement_reason(str(_placement_last.get("reason", "")))
 
@@ -334,26 +412,31 @@ func _sync_placed_buildings() -> void:
 		return
 	var keep: Dictionary = {}
 	for idv: Variant in session.building_placements.keys():
-		var id: String = str(idv)
-		var placement: Dictionary = session.building_placements[id] as Dictionary
-		var tier: int = session.economy.tier_of(session.economy.params.building_index(id))
-		if tier <= 0:
+		var instance_id: String = str(idv)
+		var placement: Dictionary = session.building_placements[instance_id] as Dictionary
+		var building_id: String = str(placement.get("building_id", ""))
+		var tier: int = session.economy.tier_of(session.economy.params.building_index(building_id))
+		if building_id.is_empty() or tier <= 0:
 			continue
 		var node: MeshInstance3D
-		if _placed_building_nodes.has(id) and is_instance_valid(_placed_building_nodes[id]):
-			node = _placed_building_nodes[id] as MeshInstance3D
+		if _placed_building_nodes.has(instance_id) and is_instance_valid(_placed_building_nodes[instance_id]):
+			node = _placed_building_nodes[instance_id] as MeshInstance3D
 		else:
 			node = MHArtMaterials.make_instance(null, _building_mat, false)
 			_placed_buildings_root.add_child(node)
-			_placed_building_nodes[id] = node
-		node.mesh = MHBuildingMeshes.build(id, tier, "a")
+			_placed_building_nodes[instance_id] = node
+		var mesh_key: String = "%s:%d:a" % [building_id, tier]
+		if not _building_mesh_cache.has(mesh_key):
+			_building_mesh_cache[mesh_key] = MHBuildingMeshes.build(building_id, tier, "a")
+		node.mesh = _building_mesh_cache[mesh_key] as Mesh
 		var center: Array = placement.get("center_mm", []) as Array
 		if center.size() != 2:
 			continue
 		var ground: float = float(int(placement.get("ground_mm", 0))) / 1000.0
 		node.position = Vector3(float(int(center[0])) / 1000.0, ground, float(int(center[1])) / 1000.0)
 		node.rotation.y = float(int(placement.get("rotation_quarters", 0))) * PI * 0.5
-		keep[id] = true
+		_sync_building_collider(instance_id, node, placement)
+		keep[instance_id] = true
 	for idv: Variant in _placed_building_nodes.keys():
 		var id: String = str(idv)
 		if not keep.has(id):
@@ -361,6 +444,43 @@ func _sync_placed_buildings() -> void:
 			if old != null and is_instance_valid(old):
 				old.queue_free()
 			_placed_building_nodes.erase(id)
+			if _placed_building_colliders.has(id):
+				var collider: Node = _placed_building_colliders[id] as Node
+				if collider != null and is_instance_valid(collider):
+					collider.queue_free()
+				_placed_building_colliders.erase(id)
+
+
+func _sync_building_collider(instance_id: String, visual: MeshInstance3D, placement: Dictionary) -> void:
+	var body: StaticBody3D = _placed_building_colliders.get(instance_id, null) as StaticBody3D
+	if body == null:
+		body = StaticBody3D.new()
+		body.name = "BuildingCollider_" + instance_id
+		_placed_buildings_root.add_child(body)
+		var collision: CollisionShape3D = CollisionShape3D.new()
+		collision.name = "Shape"
+		body.add_child(collision)
+		_placed_building_colliders[instance_id] = body
+	body.position = visual.position
+	body.rotation = visual.rotation
+	var saved_size: Array = placement.get("size_m", []) as Array
+	if saved_size.size() != 2:
+		# Valid placements always carry the authoritative footprint produced by MHBuildingPlacement.validate().
+		# Do not invent a collision footprint if restored/legacy data is incomplete.
+		body.visible = false
+		var missing_shape: CollisionShape3D = body.get_node("Shape") as CollisionShape3D
+		missing_shape.disabled = true
+		return
+	var size_x: float = maxf(1.0, float(int(saved_size[0])))
+	var size_z: float = maxf(1.0, float(int(saved_size[1])))
+	var mesh_bounds: AABB = visual.mesh.get_aabb() if visual.mesh != null else AABB()
+	var height: float = maxf(1.0, mesh_bounds.size.y)
+	var shape: BoxShape3D = BoxShape3D.new()
+	shape.size = Vector3(size_x, height, size_z)
+	var collision: CollisionShape3D = body.get_node("Shape") as CollisionShape3D
+	collision.disabled = false
+	collision.shape = shape
+	collision.position.y = mesh_bounds.position.y + height * 0.5
 
 
 ## Rect getter for router UI regions that is empty while the button is hidden (dock hidden, panel closed).
@@ -497,6 +617,22 @@ func _process(_delta: float) -> void:
 	var elapsed: int = maxi(0, now - _last_usec)
 	_last_usec = now
 	session.advance(elapsed, int(Time.get_unix_time_from_system()))
+	_advance_customer_playback(float(elapsed) / 1000000.0)
+	_advance_hole_transition_walkers(float(elapsed) / 1000000.0)
+	_advance_facility_walkers(float(elapsed) / 1000000.0)
+	_advance_golfer_reactions(float(elapsed) / 1000000.0)
+	_operations_refresh_s -= float(elapsed) / 1000000.0
+	if _operations_refresh_s <= 0.0:
+		_operations_refresh_s = OPERATIONS_REFRESH_INTERVAL_S
+		_sync_visible_staff()
+		_sync_maintenance_visuals()
+		_sync_course_condition_overlay()
+		_show_new_grounds_events()
+	_enforce_cart_availability()
+	_update_cart_drive_camera()
+	_update_player_cart_wheels()
+	_sync_cart_tree_collisions()
+	_visible_golfers.advance(float(elapsed) / 1000000.0, controller.rig.global_position)
 	chunks.flush(editor.dirty)
 	_relayout()
 	router.accept_world_input = _placement_id == "" and shell.current_screen_id() == MHScreenIds.EDITOR and shell.modal_id() == "" and (one_hole == null or not one_hole.visible)
@@ -505,19 +641,916 @@ func _process(_delta: float) -> void:
 	if _pending_save and not editor.is_stroke_open():
 		save_now()
 
+func _advance_customer_playback(delta_s: float) -> void:
+	if _visible_golfers == null or session.customer_playback == null or session.clock.is_paused():
+		return
+	var now_s: float = float(session.clock.total_minutes()) * 60.0
+	for event_v: Variant in session.customer_playback.advance_all(now_s):
+		var event: Dictionary = event_v
+		var kind: String = str(event.get("kind", ""))
+		if kind == "finished":
+			var finished_customers: Array = event.get("customers", [event.get("customer", {})]) as Array
+			for customer_v: Variant in finished_customers:
+				var customer: Dictionary = session.apply_playback_pace_experience(customer_v as Dictionary)
+				_show_golfer_reaction(customer)
+				_queue_finished_customer_facility(customer, now_s)
+			if not finished_customers.is_empty():
+				var finished_customer: Dictionary = finished_customers[0] as Dictionary
+				_remove_party_cart(int(finished_customer.get("party_id", finished_customer.get("serial", -1))))
+		elif kind == "hole_transition":
+			for customer_v: Variant in event.get("customers", [event.get("customer", {})]):
+				_show_hole_reaction(customer_v as Dictionary)
+			_begin_hole_transition(event)
+		elif kind == "started" or kind == "hole_started":
+			_render_customer_hole(event)
+			if kind == "started":
+				_show_arrival_identity(event)
+
+
+func _begin_hole_transition(event: Dictionary) -> void:
+	var customer: Dictionary = event.get("customer", {}) as Dictionary
+	var party_id: int = int(customer.get("party_id", customer.get("serial", -1)))
+	if party_id < 0 or _hole_transition_walkers.has(party_id):
+		return
+	var previous_slot: int = session.customer_playback.transition_from_hole(party_id)
+	var next_slot: int = int(customer.get("hole_slot", -1))
+	var from_pos: Vector3 = _hole_world_point(previous_slot, "green")
+	var to_pos: Vector3 = _hole_world_point(next_slot, "tee")
+	if from_pos == Vector3.INF or to_pos == Vector3.INF:
+		var fallback_event: Dictionary = session.customer_playback.begin_next_hole(float(session.clock.total_minutes()) * 60.0, party_id)
+		if not fallback_event.is_empty():
+			_render_customer_hole(fallback_event)
+		return
+	_visible_golfers.remove_group(party_id)
+	var start: Vector3 = MHClubPedestrian.apply_ground_height(from_pos, editor.grid)
+	var customers: Array = event.get("customers", [customer]) as Array
+	var star_cart: bool = _party_has_star(customers) and session.carts_allowed_now()
+	var uses_cart: bool = _party_uses_cart(customers, party_id)
+	_visible_golfers.spawn_walking_party(customers, start, to_pos)
+	_visible_golfers.set_walking_party_hidden(party_id, uses_cart)
+	if uses_cart:
+		_ensure_party_cart(party_id, start, customers.size(), _star_cart_style(customers))
+	var travel_route: Array = MHClubPedestrian.route(start, to_pos, party_id)
+	if uses_cart:
+		var cart_route: Array = MHCartRoute.route_to_ball(start, to_pos, party_id, editor.splat, editor.grid)
+		if cart_route.size() >= 2:
+			travel_route = cart_route
+	_hole_transition_walkers[party_id] = {"position": start,
+		"route": travel_route, "segment": 1, "uses_cart": uses_cart, "star_cart": star_cart}
+
+
+func _advance_hole_transition_walkers(delta_s: float) -> void:
+	if _hole_transition_walkers.is_empty():
+		return
+	var arrived: Array = []
+	for party_v: Variant in _hole_transition_walkers.keys():
+		var party_id: int = int(party_v)
+		var walker: Dictionary = _hole_transition_walkers[party_id]
+		var before: Vector3 = walker["position"] as Vector3
+		var step: Dictionary
+		if bool(walker.get("uses_cart", false)):
+			step = MHCartRoute.advance(walker["route"] as Array, int(walker["segment"]), before, delta_s, editor.grid)
+		else:
+			step = MHClubPedestrian.advance(walker["route"] as Array, int(walker["segment"]), before, delta_s, editor.grid)
+		var position: Vector3 = step["position"] as Vector3
+		walker["position"] = position
+		walker["segment"] = int(step["segment"])
+		_visible_golfers.update_walking_party(party_id, position, position - before)
+		_update_party_cart(party_id, position, position - before, bool(walker.get("uses_cart", false)))
+		if bool(step["done"]):
+			arrived.append(party_id)
+	for party_v: Variant in arrived:
+		var party_id: int = int(party_v)
+		var event: Dictionary = session.customer_playback.begin_next_hole(float(session.clock.total_minutes()) * 60.0, party_id)
+		if event.is_empty():
+			# The next tee is occupied. Keep the real party waiting visibly at the tee and retry next frame.
+			continue
+		_hole_transition_walkers.erase(party_id)
+		_visible_golfers.remove_group(party_id)
+		if not bool(walker.get("star_cart", false)):
+			_remove_party_cart(party_id)
+		else:
+			_park_star_cart(party_id, int((event.get("customer", {}) as Dictionary).get("hole_slot", -1)))
+		_render_customer_hole(event)
+
+
+func _enforce_cart_availability() -> void:
+	if session == null or session.carts_allowed_now():
+		return
+	# Hosted tournaments are a hard no-cart boundary, including carts that were already visible before lock.
+	for party_v: Variant in _party_carts.keys():
+		_remove_party_cart(int(party_v))
+	if _cart_drive_active:
+		exit_cart_drive_mode()
+	if _player_cart != null and is_instance_valid(_player_cart):
+		_player_cart.queue_free()
+	_player_cart = null
+	if _player_cart_debris != null and is_instance_valid(_player_cart_debris):
+		_player_cart_debris.queue_free()
+	_player_cart_debris = null
+
+
+func enter_cart_drive_mode() -> bool:
+	if not session.carts_allowed_now():
+		_status.text = "Carts are not allowed during tournaments."
+		return false
+	if _player_cart == null or not is_instance_valid(_player_cart):
+		if not respawn_player_cart():
+			_status.text = "Build a clubhouse before using free-drive carts."
+			return false
+	if _cart_drive_input == null:
+		_cart_drive_input = MHCartDriveInput.new()
+		_hud_layer.add_child(_cart_drive_input)
+		_cart_drive_input.drive_changed.connect(func(throttle: float, steer: float) -> void: drive_player_cart(throttle, steer))
+		_cart_drive_input.exit_requested.connect(exit_cart_drive_mode)
+		_cart_drive_input.respawn_requested.connect(func() -> void: respawn_player_cart())
+	if _cart_camera == null:
+		_cart_camera = Camera3D.new()
+		add_child(_cart_camera)
+	_cart_drive_input.show()
+	_cart_drive_active = true
+	_cart_camera_ready = false
+	_cart_camera.current = true
+	router.accept_world_input = false
+	_status.text = "Free drive: stay on paths or cause trouble."
+	return true
+
+
+func exit_cart_drive_mode() -> void:
+	_cart_drive_active = false
+	_cart_camera_ready = false
+	if _cart_tree_collision_root != null and is_instance_valid(_cart_tree_collision_root):
+		_cart_tree_collision_root.queue_free()
+	_cart_tree_collision_root = null
+	_cart_tree_collision_anchor = Vector3.INF
+	if router != null:
+		router.accept_world_input = _placement_id == "" and shell != null and shell.current_screen_id() == MHScreenIds.EDITOR and shell.modal_id() == "" and (one_hole == null or not one_hole.visible)
+	if _cart_drive_input != null:
+		_cart_drive_input.reset_controls()
+		_cart_drive_input.hide()
+	if _cart_camera != null:
+		_cart_camera.current = false
+	if controller != null and controller.rig != null:
+		var main_camera: Camera3D = controller.rig.get_node_or_null("Camera3D") as Camera3D
+		if main_camera != null:
+			main_camera.current = true
+	_status.text = "Returned to course management."
+
+
+func _update_cart_drive_camera() -> void:
+	if not _cart_drive_active or _cart_camera == null or _player_cart == null or not is_instance_valid(_player_cart):
+		return
+	var back: Vector3 = _player_cart.global_transform.basis.z.normalized() * 7.0
+	var target: Vector3 = _player_cart.global_position + Vector3(0.0, 1.0, 0.0)
+	var desired: Vector3 = target + back + Vector3(0.0, 3.8, 0.0)
+	if not _cart_camera_ready:
+		_cart_camera.global_position = desired
+		_cart_camera_ready = true
+	else:
+		_cart_camera.global_position = _cart_camera.global_position.lerp(desired, 0.16)
+	_cart_camera.look_at(target, Vector3.UP)
+
+
+func _sync_cart_tree_collisions() -> void:
+	if not _cart_drive_active or _player_cart == null or not is_instance_valid(_player_cart):
+		if _cart_tree_collision_root != null and is_instance_valid(_cart_tree_collision_root):
+			_cart_tree_collision_root.queue_free()
+		_cart_tree_collision_root = null
+		_cart_tree_collision_anchor = Vector3.INF
+		return
+	var cart_pos: Vector3 = _player_cart.global_position
+	if _cart_tree_collision_anchor != Vector3.INF and Vector2(cart_pos.x, cart_pos.z).distance_to(Vector2(_cart_tree_collision_anchor.x, _cart_tree_collision_anchor.z)) < CART_TREE_COLLISION_REFRESH_M:
+		return
+	if _cart_tree_collision_root != null and is_instance_valid(_cart_tree_collision_root):
+		_cart_tree_collision_root.queue_free()
+	_cart_tree_collision_root = Node3D.new()
+	_cart_tree_collision_root.name = "NearbyTreeCollisions"
+	add_child(_cart_tree_collision_root)
+	_cart_tree_collision_anchor = cart_pos
+	var radius_sq: float = CART_TREE_COLLISION_RADIUS_M * CART_TREE_COLLISION_RADIUS_M
+	for n: Node in find_children("*", "MHForest", true, false):
+		var forest: MHForest = n as MHForest
+		if forest.placement.is_empty():
+			forest.build()
+		for i: int in range(forest.placed_tree_count()):
+			var o: int = i * MHTreePlacement.STRIDE
+			var local_pos: Vector3 = MHForest.world_pos_of(forest.placement[o], forest.placement[o + 1])
+			var world_pos: Vector3 = forest.to_global(local_pos)
+			var dx: float = world_pos.x - cart_pos.x
+			var dz: float = world_pos.z - cart_pos.z
+			if dx * dx + dz * dz > radius_sq:
+				continue
+			var scale: float = float(forest.placement[o + 3]) * 0.01
+			var body: StaticBody3D = StaticBody3D.new()
+			var shape_node: CollisionShape3D = CollisionShape3D.new()
+			var trunk: CylinderShape3D = CylinderShape3D.new()
+			trunk.radius = 0.34 * scale
+			trunk.height = 4.8 * scale
+			shape_node.shape = trunk
+			shape_node.position.y = trunk.height * 0.5
+			body.add_child(shape_node)
+			_cart_tree_collision_root.add_child(body)
+			body.global_position = MHClubPedestrian.apply_ground_height(world_pos, editor.grid)
+
+
+func respawn_player_cart() -> bool:
+	var spawn: Vector3 = MHCartRoute.clubhouse_spawn(session)
+	if spawn == Vector3.INF:
+		return false
+	if _player_cart != null and is_instance_valid(_player_cart):
+		_player_cart.queue_free()
+	if _player_cart_debris != null and is_instance_valid(_player_cart_debris):
+		_player_cart_debris.queue_free()
+	_player_cart_debris = Node3D.new()
+	_player_cart_debris.name = "PlayerCartDebris"
+	add_child(_player_cart_debris)
+	_player_cart = MHPlayerCart.new()
+	_player_cart.name = "PlayerCart"
+	_player_cart.splat = editor.splat
+	_player_cart.grid = editor.grid
+	_player_cart.debris_root = _player_cart_debris
+	_add_player_cart_visual(_player_cart)
+	var collision: CollisionShape3D = CollisionShape3D.new()
+	var shape: BoxShape3D = BoxShape3D.new()
+	shape.size = Vector3(1.25, 0.75, 2.0)
+	collision.shape = shape
+	collision.position.y = 0.5
+	_player_cart.add_child(collision)
+	add_child(_player_cart)
+	_player_cart.global_position = MHClubPedestrian.apply_ground_height(spawn, editor.grid) + Vector3(0.0, 0.6, 0.0)
+	_player_cart.sunk.connect(func() -> void: _status.text = "Cart sunk — respawn it at the clubhouse.")
+	_player_cart.tipped.connect(func() -> void: _status.text = "Cart rolled over.")
+	_player_cart.clubs_lost.connect(func(count: int) -> void: _status.text = "%d clubs fell off the cart." % count)
+	_player_cart.green_violation.connect(_on_player_cart_green_violation)
+	_player_cart.hard_impact.connect(func(speed_mps: float) -> void:
+		_status.text = "Hard cart impact at %d km/h." % roundi(speed_mps * 3.6))
+	return true
+
+
+static func _add_player_cart_visual(cart: Node3D) -> void:
+	var body: MeshInstance3D = MeshInstance3D.new()
+	var body_mesh: BoxMesh = BoxMesh.new()
+	body_mesh.size = Vector3(1.25, 0.55, 2.0)
+	body.mesh = body_mesh
+	body.position.y = 0.65
+	cart.add_child(body)
+	var roof: MeshInstance3D = MeshInstance3D.new()
+	var roof_mesh: BoxMesh = BoxMesh.new()
+	roof_mesh.size = Vector3(1.35, 0.10, 1.65)
+	roof.mesh = roof_mesh
+	roof.position = Vector3(0.0, 1.65, -0.05)
+	cart.add_child(roof)
+	for x: float in [-0.72, 0.72]:
+		for z: float in [-0.68, 0.68]:
+			var wheel: MeshInstance3D = MeshInstance3D.new()
+			var wheel_mesh: CylinderMesh = CylinderMesh.new()
+			wheel_mesh.top_radius = 0.28
+			wheel_mesh.bottom_radius = 0.28
+			wheel_mesh.height = 0.18
+			wheel.mesh = wheel_mesh
+			wheel.rotation_degrees.z = 90.0
+			wheel.position = Vector3(x, 0.28, z)
+			wheel.name = ("Front" if z < 0.0 else "Rear") + ("LeftWheel" if x < 0.0 else "RightWheel")
+			cart.add_child(wheel)
+	var bag: MeshInstance3D = MeshInstance3D.new()
+	var bag_mesh: CylinderMesh = CylinderMesh.new()
+	bag_mesh.top_radius = 0.18
+	bag_mesh.bottom_radius = 0.24
+	bag_mesh.height = 0.9
+	bag.mesh = bag_mesh
+	bag.rotation_degrees.x = -18.0
+	bag.position = Vector3(0.0, 1.05, 1.05)
+	bag.name = "GolfBag"
+	cart.add_child(bag)
+
+
+func _update_player_cart_wheels() -> void:
+	if _player_cart == null or not is_instance_valid(_player_cart):
+		return
+	var spin: float = _player_cart.wheel_spin()
+	var steer_angle: float = deg_to_rad(24.0) * _player_cart.steering_input()
+	for wheel_name: String in ["FrontLeftWheel", "FrontRightWheel", "RearLeftWheel", "RearRightWheel"]:
+		var wheel: Node3D = _player_cart.get_node_or_null(wheel_name) as Node3D
+		if wheel == null:
+			continue
+		# Cylinder axis is local Y; Z=90 lays it across the cart. Spin remains cosmetic and cheap.
+		wheel.rotation = Vector3(spin, steer_angle if wheel_name.begins_with("Front") else 0.0, PI * 0.5)
+
+
+func _on_player_cart_green_violation() -> void:
+	if _player_cart == null or editor == null or editor.grid == null:
+		return
+	var cell_mm: int = editor.grid.cell_size_mm
+	if cell_mm <= 0:
+		return
+	var cx: int = clampi(roundi(_player_cart.global_position.x * 1000.0) / cell_mm, 0, editor.grid.cells_x - 1)
+	var cy: int = clampi(roundi(_player_cart.global_position.z * 1000.0) / cell_mm, 0, editor.grid.cells_y - 1)
+	var result: Dictionary = session.damage_turf_at_cell(cx, cy, editor.grid.cells_x, editor.grid.cells_y)
+	var damage: int = int(result.get("damage", 0))
+	_status.text = "Green damaged (-%d condition). Grounds staff will need to repair it." % damage if damage > 0 else "You drove onto a green."
+
+
+func drive_player_cart(throttle: float, steer: float) -> bool:
+	if _player_cart == null or not is_instance_valid(_player_cart):
+		return false
+	_player_cart.drive(throttle, steer)
+	return true
+
+
+func _party_uses_cart(customers: Array, party_id: int) -> bool:
+	if not session.carts_allowed_now():
+		return false
+	if _party_has_star(customers):
+		return true
+	if customers.size() < 2:
+		return false
+	if MHClubPedestrian.instance_ids_for_type(session, "cart_barn").is_empty():
+		return false
+	return posmod(party_id, 3) != 0
+
+
+static func _party_has_star(customers: Array) -> bool:
+	for customer_v: Variant in customers:
+		var customer: Dictionary = customer_v as Dictionary
+		var identity: Dictionary = customer.get("identity", {}) as Dictionary
+		var identity_type: String = str(identity.get("identity_type", "ordinary"))
+		if identity_type == "celebrity" or identity_type == "pro":
+			return true
+	return false
+
+
+func _ensure_party_cart(party_id: int, position: Vector3, riders: int = 2, style: String = "standard") -> void:
+	if _party_carts.has(party_id):
+		return
+	var root: Node3D = Node3D.new()
+	root.name = "PartyCart_%d" % party_id
+	root.set_meta("cart_style", style)
+	var profile: Dictionary = MHStarCartProfiles.profile_for(style)
+	root.set_meta("cart_behavior", str(profile.get("behavior", "park_nearby")))
+	var body: MeshInstance3D = MeshInstance3D.new()
+	var mesh: BoxMesh = BoxMesh.new()
+	mesh.size = MHStarCartProfiles.body_size(profile)
+	body.mesh = mesh
+	body.position.y = 0.5
+	root.add_child(body)
+	var rider_count: int = mini(4, maxi(1, riders))
+	for i: int in range(rider_count):
+		var rider: MeshInstance3D = MeshInstance3D.new()
+		var rider_mesh: CapsuleMesh = CapsuleMesh.new()
+		rider_mesh.radius = 0.22
+		rider_mesh.height = 0.85
+		rider.mesh = rider_mesh
+		rider.position = Vector3(-0.32 if i % 2 == 0 else 0.32, 1.05, -0.28 if i < 2 else 0.35)
+		root.add_child(rider)
+	add_child(root)
+	root.position = position
+	_party_carts[party_id] = root
+
+
+static func _star_cart_style(customers: Array) -> String:
+	for customer_v: Variant in customers:
+		var identity: Dictionary = (customer_v as Dictionary).get("identity", {}) as Dictionary
+		var identity_type: String = str(identity.get("identity_type", "ordinary"))
+		if identity_type == "celebrity" or identity_type == "pro":
+			return str(identity.get("cart_skin", identity.get("parody_id", identity_type)))
+	return "standard"
+
+
+func _park_star_cart(party_id: int, hole_slot: int) -> void:
+	if not _party_carts.has(party_id):
+		return
+	var tee: Vector3 = _hole_world_point(hole_slot, "tee")
+	if tee == Vector3.INF:
+		return
+	var cart: Node3D = _party_carts[party_id] as Node3D
+	var profile: Dictionary = MHStarCartProfiles.profile_for(str(cart.get_meta("cart_style", "standard")))
+	cart.position = MHClubPedestrian.apply_ground_height(tee + MHStarCartProfiles.park_offset(profile), editor.grid)
+	var behavior: String = str(profile.get("behavior", "park_nearby"))
+	if behavior == "park_nearby_upside_down":
+		cart.rotation_degrees.z = 180.0
+	else:
+		cart.rotation_degrees.z = 0.0
+
+
+func _update_party_cart(party_id: int, position: Vector3, direction: Vector3, enabled: bool) -> void:
+	if not enabled:
+		return
+	_ensure_party_cart(party_id, position, 2)
+	var cart: Node3D = _party_carts[party_id] as Node3D
+	cart.position = position
+	if direction.length_squared() > 0.001:
+		var target_yaw: float = atan2(direction.x, direction.z)
+		cart.rotation.y = lerp_angle(cart.rotation.y, target_yaw, 0.28)
+
+
+func _remove_party_cart(party_id: int) -> void:
+	if not _party_carts.has(party_id):
+		return
+	(_party_carts[party_id] as Node3D).queue_free()
+	_party_carts.erase(party_id)
+
+
+func _hole_world_point(slot: int, key: String) -> Vector3:
+	for hole_v: Variant in session.hole_definitions():
+		var hole: Dictionary = hole_v
+		if int(hole.get("slot_id", -1)) != slot:
+			continue
+		var point: Array = hole.get(key, []) as Array
+		if point.size() < 2:
+			return Vector3.INF
+		var mm: Vector2i = MHCourseLayout.world_point_mm(document.get("course", {}) as Dictionary,
+			slot, int(point[0]) * 100, int(point[1]) * 100)
+		if mm.x < 0:
+			return Vector3.INF
+		return MHClubPedestrian.apply_ground_height(Vector3(float(mm.x) / 1000.0, 0.0, float(mm.y) / 1000.0), editor.grid)
+	return Vector3.INF
+
+
+func _render_customer_hole(event: Dictionary) -> void:
+	var customer: Dictionary = event.get("customer", {}) as Dictionary
+	var customers: Array = event.get("customers", [customer]) as Array
+	var slot: int = int(customer.get("hole_slot", -1))
+	var hole: Dictionary = {}
+	for hole_v: Variant in session.hole_definitions():
+		var candidate: Dictionary = hole_v
+		if int(candidate.get("slot_id", -1)) == slot:
+			hole = candidate
+			break
+	if hole.is_empty():
+		return
+	var tee_v: Array = hole.get("tee", [])
+	var green_v: Array = hole.get("green", [])
+	if tee_v.size() < 2 or green_v.size() < 2:
+		return
+	var course: Dictionary = document.get("course", {}) as Dictionary
+	var tee_mm: Vector2i = MHCourseLayout.world_point_mm(course, slot, int(tee_v[0]) * 100, int(tee_v[1]) * 100)
+	var green_mm: Vector2i = MHCourseLayout.world_point_mm(course, slot, int(green_v[0]) * 100, int(green_v[1]) * 100)
+	if tee_mm.x < 0 or green_mm.x < 0:
+		return
+	var tee: Vector2 = Vector2(float(tee_mm.x) / 1000.0, float(tee_mm.y) / 1000.0)
+	var green: Vector2 = Vector2(float(green_mm.x) / 1000.0, float(green_mm.y) / 1000.0)
+	var origin_dm: Array = MHCourseLayout.origin_for_slot(course, slot)
+	var world_origin: Vector2 = Vector2(float(origin_dm[0]) / 10.0, float(origin_dm[1]) / 10.0)
+	_visible_golfers.spawn_authoritative_party(customers, tee, green, world_origin)
+	_sync_star_cart_for_hole(customers, slot)
+
+
+func _sync_star_cart_for_hole(customers: Array, hole_slot: int) -> void:
+	if customers.is_empty() or not session.carts_allowed_now() or not _party_has_star(customers):
+		return
+	var customer: Dictionary = customers[0] as Dictionary
+	var party_id: int = int(customer.get("party_id", customer.get("serial", -1)))
+	if party_id < 0:
+		return
+	var tee: Vector3 = _hole_world_point(hole_slot, "tee")
+	if tee == Vector3.INF:
+		return
+	_ensure_party_cart(party_id, tee, customers.size(), _star_cart_style(customers))
+	_park_star_cart(party_id, hole_slot)
+
+
+func _sync_visible_staff() -> void:
+	if _visible_staff_root == null or session == null:
+		return
+	var used: Dictionary = {}
+	for assignment_v: Variant in session.live_staff_assignments():
+		var assignment: Dictionary = assignment_v as Dictionary
+		var serial: int = int(assignment.get("serial", 0))
+		var areas: Array = assignment.get("areas", []) as Array
+		if serial <= 0 or areas.is_empty():
+			continue
+		var area_index: int = posmod((session.clock.total_minutes() / 60) + serial, areas.size())
+		var parcel: int = int(areas[area_index])
+		var route: Array = _staff_work_route(parcel, serial)
+		if route.size() < 2:
+			continue
+		used[serial] = true
+		var node: Node3D = _visible_staff_nodes.get(serial, null) as Node3D
+		var equipment: Dictionary = assignment.get("equipment", {}) as Dictionary
+		var visual_key: String = str(equipment.get("type", "walking")) + (":broken" if bool(equipment.get("broken", false)) else "")
+		if node == null or str(node.get_meta("visual_key", "")) != visual_key:
+			if node != null:
+				node.queue_free()
+			node = _make_staff_visual(assignment)
+			node.set_meta("visual_key", visual_key)
+			_visible_staff_root.add_child(node)
+			_visible_staff_nodes[serial] = node
+		var progress: float = fmod(float(session.clock.total_minutes() * 3 + serial * 11), 100.0) / 100.0
+		var state: Dictionary = _route_state(route, progress)
+		node.position = MHClubPedestrian.apply_ground_height(state["position"] as Vector3, editor.grid)
+		var direction: Vector3 = state["direction"] as Vector3
+		if direction.length_squared() > 0.001:
+			node.rotation.y = atan2(direction.x, direction.z)
+		_sync_staff_work_marker(node, assignment, progress)
+	for serial_v: Variant in _visible_staff_nodes.keys():
+		if not used.has(serial_v):
+			(_visible_staff_nodes[serial_v] as Node3D).queue_free()
+			_visible_staff_nodes.erase(serial_v)
+
+
+func _sync_staff_work_marker(node: Node3D, assignment: Dictionary, progress: float) -> void:
+	var existing: Label3D = node.get_node_or_null("WorkState") as Label3D
+	var equipment: Dictionary = assignment.get("equipment", {}) as Dictionary
+	var broken: bool = bool(equipment.get("broken", false))
+	var active: bool = fmod(progress * 100.0, 20.0) < 7.0
+	if not active:
+		if existing != null:
+			existing.visible = false
+		return
+	if existing == null:
+		existing = Label3D.new()
+		existing.name = "WorkState"
+		existing.font_size = 15
+		existing.outline_size = 4
+		existing.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+		existing.position = Vector3(0.0, 2.15, 0.0)
+		node.add_child(existing)
+	existing.visible = true
+	if not equipment.is_empty() and not broken:
+		existing.text = "Mowing" if str(equipment.get("kind", "")) == "grounds" else "Working"
+	elif broken:
+		existing.text = "Manual work"
+	else:
+		existing.text = "Grounds work"
+
+
+func _staff_work_route(parcel: int, serial: int) -> Array:
+	if parcel < 0 or parcel >= 16 or editor == null or editor.grid == null:
+		return []
+	# Staff areas are authoritative 4x4 land parcels, not hole slots. Route workers inside the assigned parcel.
+	var col: int = parcel % 4
+	var row: int = parcel / 4
+	var world_w: float = float(editor.grid.cells_x * editor.grid.cell_size_mm) / 1000.0
+	var world_h: float = float(editor.grid.cells_y * editor.grid.cell_size_mm) / 1000.0
+	var x0: float = world_w * float(col) / 4.0
+	var x1: float = world_w * float(col + 1) / 4.0
+	var z0: float = world_h * float(row) / 4.0
+	var z1: float = world_h * float(row + 1) / 4.0
+	var margin: float = minf(4.0, minf(x1 - x0, z1 - z0) * 0.18)
+	var phase: float = float(posmod(serial, 5)) * 0.55
+	return [Vector3(x0 + margin, 0.0, z0 + margin + phase),
+		Vector3(x1 - margin, 0.0, z0 + margin + phase),
+		Vector3(x1 - margin, 0.0, z1 - margin - phase),
+		Vector3(x0 + margin, 0.0, z1 - margin - phase),
+		Vector3(x0 + margin, 0.0, z0 + margin + phase)]
+
+
+static func _route_state(route: Array, progress: float) -> Dictionary:
+	if route.size() < 2:
+		return {"position": Vector3.ZERO, "direction": Vector3.ZERO}
+	var p: float = clampf(progress, 0.0, 0.999999) * float(route.size() - 1)
+	var segment: int = mini(route.size() - 2, int(floor(p)))
+	var t: float = p - float(segment)
+	var a: Vector3 = route[segment] as Vector3
+	var b: Vector3 = route[segment + 1] as Vector3
+	return {"position": a.lerp(b, t), "direction": b - a}
+
+
+func _show_new_grounds_events() -> void:
+	for incident_v: Variant in session.take_grounds_events():
+		var incident: Dictionary = incident_v as Dictionary
+		var parcel: int = int(incident.get("parcel", -1))
+		var positive: bool = bool(incident.get("positive", false))
+		var handled: bool = bool(incident.get("handled", false))
+		var kind: String = str(incident.get("kind", "grounds issue")).replace("_", " ")
+		if str(incident.get("kind", "")) == "cart_green":
+			_status.text = "Cart damage on area %d — grounds staff will repair it." % (parcel + 1)
+		elif positive:
+			_status.text = "Course wildlife: %s spotted on area %d." % [kind.capitalize(), parcel + 1]
+		elif handled:
+			_status.text = "%s on area %d — grounds team contained it." % [kind.capitalize(), parcel + 1]
+		else:
+			_status.text = "%s on area %d — maintenance attention needed." % [kind.capitalize(), parcel + 1]
+
+
+func _sync_course_condition_overlay() -> void:
+	if chunks == null or session == null:
+		return
+	var state: Dictionary = session.live_course_condition()
+	var condition: Array = state.get("condition", []) as Array
+	var pest: Array = state.get("pest", []) as Array
+	var signature: int = hash([condition, pest])
+	if signature == _last_condition_signature:
+		return
+	_last_condition_signature = signature
+	chunks.set_condition_overlay(condition, pest)
+
+
+func _sync_maintenance_visuals() -> void:
+	if _visible_staff_root == null or session == null:
+		return
+	var maintenance_ids: Array = MHClubPedestrian.instance_ids_for_type(session, "maintenance")
+	if maintenance_ids.is_empty():
+		_clear_maintenance_visuals()
+		return
+	var workshop: Vector3 = session.building_instance_position(str(maintenance_ids[0]))
+	if workshop == Vector3.INF:
+		_clear_maintenance_visuals()
+		return
+	var state: Dictionary = session.live_maintenance_state()
+	var used: Dictionary = {}
+	for employee_v: Variant in state.get("specialists", []):
+		var employee: Dictionary = employee_v as Dictionary
+		var serial: int = int(employee.get("serial", 0))
+		var key: String = "staff:%d" % serial
+		used[key] = true
+		var node: Node3D = _maintenance_visuals.get(key, null) as Node3D
+		if node == null:
+			node = _make_staff_visual(employee)
+			_visible_staff_root.add_child(node)
+			_maintenance_visuals[key] = node
+		var angle: float = float(posmod(session.clock.total_minutes() + serial * 19, 360)) * PI / 180.0
+		var radius: float = 2.0 + float(posmod(serial, 3))
+		node.position = MHClubPedestrian.apply_ground_height(workshop + Vector3(cos(angle), 0.0, sin(angle)) * radius, editor.grid)
+	for unit_v: Variant in state.get("broken_equipment", []):
+		var unit: Dictionary = unit_v as Dictionary
+		var serial: int = int(unit.get("serial", 0))
+		var key: String = "machine:%d" % serial
+		used[key] = true
+		var machine: Node3D = _maintenance_visuals.get(key, null) as Node3D
+		var repair_active: bool = int(state.get("technician_work_pm", 0)) > 0 and int(state.get("maintenance_tier", 0)) >= 2
+		var status_key: String = "repairing" if repair_active else "waiting"
+		if machine == null or str(machine.get_meta("status_key", "")) != status_key:
+			if machine != null:
+				machine.queue_free()
+			machine = _make_broken_machine_visual(unit, repair_active)
+			machine.set_meta("status_key", status_key)
+			_visible_staff_root.add_child(machine)
+			_maintenance_visuals[key] = machine
+		var index: int = posmod(serial, 5)
+		machine.position = MHClubPedestrian.apply_ground_height(workshop + Vector3(float(index - 2) * 1.7, 0.0, 3.2), editor.grid)
+	for key_v: Variant in _maintenance_visuals.keys():
+		if not used.has(key_v):
+			(_maintenance_visuals[key_v] as Node3D).queue_free()
+			_maintenance_visuals.erase(key_v)
+
+
+func _clear_maintenance_visuals() -> void:
+	for node_v: Variant in _maintenance_visuals.values():
+		(node_v as Node3D).queue_free()
+	_maintenance_visuals.clear()
+
+
+func _make_broken_machine_visual(unit: Dictionary, repair_active: bool) -> Node3D:
+	var root: Node3D = Node3D.new()
+	root.name = "BrokenMachine_%d" % int(unit.get("serial", 0))
+	var machine: MeshInstance3D = MeshInstance3D.new()
+	var mesh: BoxMesh = BoxMesh.new()
+	mesh.size = Vector3(1.3, 0.55, 1.8)
+	machine.mesh = mesh
+	machine.position.y = 0.35
+	root.add_child(machine)
+	var status: Label3D = Label3D.new()
+	status.text = "Repairing" if repair_active else "Awaiting technician"
+	status.font_size = 18
+	status.outline_size = 5
+	status.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+	status.position = Vector3(0.0, 1.6, 0.0)
+	root.add_child(status)
+	return root
+
+
+func _make_staff_visual(assignment: Dictionary) -> Node3D:
+	var root: Node3D = Node3D.new()
+	root.name = "Staff_%d" % int(assignment.get("serial", 0))
+	var worker: MeshInstance3D = MeshInstance3D.new()
+	var body: CapsuleMesh = CapsuleMesh.new()
+	body.radius = 0.32
+	body.height = 1.65
+	worker.mesh = body
+	worker.position.y = 0.82
+	root.add_child(worker)
+	var equipment: Dictionary = assignment.get("equipment", {}) as Dictionary
+	if not equipment.is_empty() and not bool(equipment.get("broken", false)):
+		var machine: MeshInstance3D = MeshInstance3D.new()
+		var machine_mesh: BoxMesh = BoxMesh.new()
+		machine_mesh.size = Vector3(1.3, 0.55, 1.8)
+		machine.mesh = machine_mesh
+		machine.position = Vector3(0.0, 0.35, -0.9)
+		root.add_child(machine)
+	return root
+
+
+func _show_arrival_identity(event: Dictionary) -> void:
+	var customer: Dictionary = event.get("customer", {}) as Dictionary
+	var identity: Dictionary = customer.get("identity", {}) as Dictionary
+	var text: String = _arrival_identity_text(identity)
+	if text.is_empty():
+		return
+	var position: Vector3 = _hole_world_point(int(customer.get("hole_slot", -1)), "tee")
+	if position != Vector3.INF:
+		_spawn_reaction_label(text, position)
+
+
+static func _arrival_identity_text(identity: Dictionary) -> String:
+	var name: String = str(identity.get("name", ""))
+	if name.is_empty():
+		return ""
+	if bool(identity.get("member", false)):
+		return "%s • Member" % name
+	var visits: int = int(identity.get("visits", 0))
+	if visits >= 5:
+		return "%s • Club regular" % name
+	if visits >= 2:
+		return "%s • Returning golfer" % name
+	return ""
+
+
+func _show_hole_reaction(customer: Dictionary) -> void:
+	var round: Dictionary = customer.get("round", {}) as Dictionary
+	var rating: Dictionary = customer.get("rating", {}) as Dictionary
+	var text: String = _hole_reaction_text(round, int(rating.get("par", 3)))
+	if text.is_empty():
+		return
+	var position: Vector3 = _hole_world_point(int(customer.get("hole_slot", -1)), "green")
+	if position == Vector3.INF:
+		return
+	_spawn_reaction_label(text, position)
+
+
+static func _hole_reaction_text(round: Dictionary, par: int) -> String:
+	var strokes: int = int(round.get("strokes", par))
+	if strokes <= par - 2:
+		return "What a hole!"
+	if strokes == par - 1:
+		return "Birdie!"
+	if strokes >= par + 3:
+		return "Forget that one..."
+	return ""
+
+
+func _spawn_reaction_label(text: String, position: Vector3) -> void:
+	var label: Label3D = Label3D.new()
+	label.text = text
+	label.font_size = 24
+	label.outline_size = 6
+	label.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+	label.no_depth_test = true
+	label.position = position + Vector3(0.0, 2.4, 0.0)
+	add_child(label)
+	_golfer_reactions.append({"node": label, "remaining": GOLFER_REACTION_LIFETIME_S})
+	while _golfer_reactions.size() > MAX_GOLFER_REACTIONS:
+		var oldest: Dictionary = _golfer_reactions.pop_front() as Dictionary
+		(oldest["node"] as Label3D).queue_free()
+
+
+func _show_golfer_reaction(customer: Dictionary) -> void:
+	var slot: int = int(customer.get("hole_slot", -1))
+	var position: Vector3 = _hole_world_point(slot, "green")
+	if position == Vector3.INF:
+		return
+	var text: String = _reaction_text(customer)
+	if text.is_empty():
+		return
+	_spawn_reaction_label(text, position)
+
+
+static func _reaction_text(customer: Dictionary) -> String:
+	var identity: Dictionary = customer.get("identity", {}) as Dictionary
+	var name: String = str(identity.get("name", "Golfer")).get_slice(" ", 0)
+	var pace_penalty: int = int(customer.get("pace_penalty", 0))
+	if pace_penalty >= 6:
+		return "%s: That was slow..." % name
+	var pref_bonus: int = int(customer.get("preference_bonus", 0))
+	var pref: int = int(customer.get("preference", identity.get("preference", MHGolferPreference.CASUAL)))
+	if pref_bonus >= 6:
+		return "%s: %s" % [name, _preference_praise(pref)]
+	if pref_bonus <= -6:
+		return "%s: %s" % [name, _preference_complaint(pref)]
+	var sat: int = int(customer.get("satisfaction", 50))
+	if sat >= 85:
+		return "%s: What a round!" % name
+	if sat <= 30:
+		return "%s: Rough day out there." % name
+	if pace_penalty > 0:
+		return "%s: Bit of a wait." % name
+	return ""
+
+
+static func _preference_praise(kind: int) -> String:
+	match kind:
+		MHGolferPreference.STRATEGIST: return "Loved the choices out there."
+		MHGolferPreference.THRILL_SEEKER: return "Now that was exciting!"
+		MHGolferPreference.PURIST: return "That's proper golf."
+	return "Beautiful, fair course."
+
+
+static func _preference_complaint(kind: int) -> String:
+	match kind:
+		MHGolferPreference.STRATEGIST: return "Not enough interesting choices."
+		MHGolferPreference.THRILL_SEEKER: return "Could use more excitement."
+		MHGolferPreference.PURIST: return "That didn't feel quite fair."
+	return "That course was a bit rough."
+
+
+func _advance_golfer_reactions(delta_s: float) -> void:
+	for i: int in range(_golfer_reactions.size() - 1, -1, -1):
+		var reaction: Dictionary = _golfer_reactions[i] as Dictionary
+		reaction["remaining"] = float(reaction["remaining"]) - delta_s
+		if float(reaction["remaining"]) <= 0.0:
+			(reaction["node"] as Label3D).queue_free()
+			_golfer_reactions.remove_at(i)
+
+
+func _queue_finished_customer_facility(customer: Dictionary, now_s: float) -> void:
+	if int(customer.get("satisfaction", 0)) < 55:
+		return
+	var identity: Dictionary = customer.get("identity", {}) as Dictionary
+	var favorite_facility: String = str(identity.get("favorite_facility", ""))
+	var facility_ids: Array = MHClubPedestrian.instance_ids_for_type(session, favorite_facility)
+	if facility_ids.is_empty():
+		return
+	var facility_index: int = posmod(int(customer.get("serial", 0)), facility_ids.size())
+	session.customer_playback.queue_facility_visit(customer, str(facility_ids[facility_index]), now_s)
+
+
+func _advance_facility_walkers(delta_s: float) -> void:
+	var now_s: float = float(session.clock.total_minutes()) * 60.0
+	var positions: Dictionary = MHClubPedestrian.building_positions(session)
+	for pending_v: Variant in session.customer_playback.pending_facility_visits:
+		var pending: Dictionary = pending_v
+		var serial: int = int(pending.get("serial", -1))
+		if serial < 0 or _facility_walkers.has(serial):
+			continue
+		var facility_id: String = str(pending.get("facility_instance_id", ""))
+		if not positions.has(facility_id):
+			continue
+		var start: Vector3 = Vector3.ZERO
+		var slot: int = int(pending.get("hole_slot", -1))
+		for hole_v: Variant in session.hole_definitions():
+			var hole: Dictionary = hole_v
+			if slot >= 0 and int(hole.get("slot_id", -1)) != slot:
+				continue
+			var green_v: Array = hole.get("green", [])
+			if green_v.size() >= 2:
+				var green_mm: Vector2i = MHCourseLayout.world_point_mm(document.get("course", {}) as Dictionary,
+					int(hole.get("slot_id", -1)), int(green_v[0]) * 100, int(green_v[1]) * 100)
+				if green_mm.x >= 0:
+					start = Vector3(float(green_mm.x) / 1000.0, 0.0, float(green_mm.y) / 1000.0)
+				break
+		start = MHClubPedestrian.apply_ground_height(start, editor.grid)
+		var node: Node3D = Node3D.new()
+		node.name = "FacilityWalker_%d" % serial
+		node.position = start
+		var body: MeshInstance3D = MeshInstance3D.new()
+		var capsule: CapsuleMesh = CapsuleMesh.new()
+		capsule.radius = 0.32
+		capsule.height = 1.7
+		capsule.radial_segments = 8
+		capsule.rings = 2
+		body.mesh = capsule
+		body.position.y = 0.85
+		body.material_override = _building_mat
+		node.add_child(body)
+		add_child(node)
+		_facility_walkers[serial] = {"node": node, "route": MHClubPedestrian.route(start, positions[facility_id] as Vector3, serial),
+			"segment": 1}
+	var arrived: Array = []
+	for serial_v: Variant in _facility_walkers.keys():
+		var serial: int = int(serial_v)
+		var walker: Dictionary = _facility_walkers[serial]
+		var node: Node3D = walker["node"] as Node3D
+		var step: Dictionary = MHClubPedestrian.advance(walker["route"] as Array, int(walker["segment"]), node.position, delta_s, editor.grid)
+		node.position = step["position"] as Vector3
+		walker["segment"] = int(step["segment"])
+		if bool(step["done"]):
+			session.customer_playback.begin_facility_visit(serial, now_s)
+			arrived.append(serial)
+	for serial_v: Variant in arrived:
+		var serial: int = int(serial_v)
+		var walker: Dictionary = _facility_walkers[serial]
+		(walker["node"] as Node3D).queue_free()
+		_facility_walkers.erase(serial)
+
+
 func _notification(what: int) -> void:
 	if not _active:
 		return
 	if what == NOTIFICATION_APPLICATION_PAUSED or what == NOTIFICATION_APPLICATION_FOCUS_OUT:
 		router.cancel_world_input()
+		# Free-drive physics is presentation state. Do not leave throttle held while the app is backgrounded.
+		if _player_cart != null and is_instance_valid(_player_cart):
+			_player_cart.drive(0.0, 0.0)
 		save_now()
 
 func _exit_tree() -> void:
+	_cart_drive_active = false
+	if _player_cart != null and is_instance_valid(_player_cart):
+		_player_cart.drive(0.0, 0.0)
+	if _cart_drive_input != null:
+		_cart_drive_input.reset_controls()
+		_cart_drive_input.hide()
+	if _cart_tree_collision_root != null and is_instance_valid(_cart_tree_collision_root):
+		_cart_tree_collision_root.queue_free()
+	_cart_tree_collision_root = null
+	_cart_tree_collision_anchor = Vector3.INF
 	MHOrientation.restore_default()
 
 func _back() -> void:
 	if _active:
 		router.cancel_world_input()
+		if _cart_drive_active:
+			exit_cart_drive_mode()
 		if not save_now():
 			return
 	get_tree().change_scene_to_file(MHLauncher.LAUNCHER_PATH)
@@ -582,6 +1615,5 @@ func _placement_obstacles() -> Array:
 			forest.build()
 		for i: int in range(forest.placed_tree_count()):
 			var o: int = i * MHTreePlacement.STRIDE
-			var wp: Vector3 = MHForest.world_pos_of(forest.placement[o], forest.placement[o + 1])
-			out.append({"kind": "tree", "x_mm": roundi(wp.x * 1000.0), "y_mm": roundi(wp.z * 1000.0), "radius_mm": 2200})
+			out.append({"kind": "tree", "x_mm": forest.placement[o], "y_mm": forest.placement[o + 1], "radius_mm": 2200})
 	return out

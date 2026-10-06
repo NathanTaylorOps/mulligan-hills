@@ -36,6 +36,7 @@ var _baked_cache: Dictionary = {}
 var _baked_pool: Array = []
 var _balls: Array = []
 var _ball_mesh: Mesh
+var terrain_grid: MHHeightGrid
 
 
 func setup(material: Material) -> void:
@@ -56,14 +57,78 @@ func set_caps(near: int, total: int) -> void:
 
 
 ## Adds one group that teed off just now. tee and green are world x,z in metres.
-func spawn_group(serial: int, size: int, tee: Vector2, green: Vector2) -> void:
+func spawn_group(serial: int, size: int, tee: Vector2, green: Vector2, round: Dictionary = {}) -> void:
 	var delta: Vector2 = green - tee
 	var length: float = delta.length()
 	var dir: Vector2 = Vector2(0.0, 1.0) if length < 0.001 else delta / length
 	for member: int in range(size):
 		golfers.append({"group": serial, "member": member, "size": size,
 			"look": MHSliceSchedule.look_index(serial, member, LOOK_POOL), "t": 0.0,
-			"tee": tee, "dir": dir, "len": length, "green": green})
+			"tee": tee, "dir": dir, "len": length, "green": green,
+			"events": (round.get("events", []) as Array).duplicate(true) if member == 0 else []})
+
+
+func spawn_authoritative_party(customers: Array, tee: Vector2, green: Vector2, world_origin: Vector2 = Vector2.ZERO) -> void:
+	for i: int in range(customers.size()):
+		var customer: Dictionary = customers[i] as Dictionary
+		var round: Dictionary = customer.get("round", {}) as Dictionary
+		var delta: Vector2 = green - tee
+		var length: float = delta.length()
+		var dir: Vector2 = Vector2(0.0, 1.0) if length < 0.001 else delta / length
+		golfers.append({"group": int(customer.get("party_id", customer.get("serial", 0))), "member": i,
+			"size": customers.size(), "look": _look_for_customer(customer),
+			"t": 0.0, "tee": tee, "dir": dir, "len": length, "green": green, "world_origin": world_origin,
+			"events": (round.get("events", []) as Array).duplicate(true)})
+
+
+func spawn_walking_party(customers: Array, from: Vector3, to: Vector3) -> void:
+	var start: Vector2 = Vector2(from.x, from.z)
+	var finish: Vector2 = Vector2(to.x, to.z)
+	var delta: Vector2 = finish - start
+	var length: float = delta.length()
+	var dir: Vector2 = Vector2(0.0, 1.0) if length < 0.001 else delta / length
+	for i: int in range(customers.size()):
+		var customer: Dictionary = customers[i] as Dictionary
+		golfers.append({"group": int(customer.get("party_id", customer.get("serial", 0))), "member": i,
+			"size": customers.size(), "look": _look_for_customer(customer), "t": 0.0, "tee": start,
+			"dir": dir, "len": length, "green": finish, "walk_only": true})
+
+
+func set_walking_party_hidden(group_id: int, hidden: bool) -> void:
+	for golfer_v: Variant in golfers:
+		var golfer: Dictionary = golfer_v
+		if int(golfer.get("group", -1)) == group_id and bool(golfer.get("walk_only", false)):
+			golfer["transport_hidden"] = hidden
+
+
+func update_walking_party(group_id: int, center: Vector3, direction: Vector3) -> void:
+	var dir2: Vector2 = Vector2(direction.x, direction.z).normalized()
+	if dir2.length_squared() < 0.001:
+		dir2 = Vector2(0.0, 1.0)
+	var center2: Vector2 = Vector2(center.x, center.z)
+	for golfer_v: Variant in golfers:
+		var golfer: Dictionary = golfer_v
+		if int(golfer.get("group", -1)) != group_id or not bool(golfer.get("walk_only", false)):
+			continue
+		golfer["tee"] = center2
+		golfer["green"] = center2 + dir2
+		golfer["dir"] = dir2
+		golfer["len"] = 1.0
+
+
+static func _look_for_customer(customer: Dictionary) -> int:
+	var identity: Dictionary = customer.get("identity", {}) as Dictionary
+	var seed: int = int(identity.get("look_seed", identity.get("id", customer.get("serial", 0))))
+	return MHSliceSchedule.look_index(seed, 0, LOOK_POOL)
+
+
+func remove_group(group_id: int) -> void:
+	var keep: Array = []
+	for golfer_v: Variant in golfers:
+		var golfer: Dictionary = golfer_v
+		if int(golfer.get("group", -1)) != group_id:
+			keep.append(golfer)
+	golfers = keep
 
 
 func golfer_count() -> int:
@@ -77,13 +142,50 @@ func advance(dt: float, cam_pos: Vector3) -> void:
 	for g: Variant in golfers:
 		var d: Dictionary = g
 		d["t"] = float(d["t"]) + maxf(dt, 0.0)
-		var st: Dictionary = MHSliceRound.state(float(d["t"]), int(d["member"]), int(d["size"]), float(d["len"]))
-		if int(st["phase"]) == MHSliceRound.Phase.DONE:
+		var st: Dictionary
+		var events: Array = d.get("events", []) as Array
+		if bool(d.get("walk_only", false)):
+			st = {"done": false, "phase": MHSliceRound.Phase.WALK, "clip": MHGolferPoses.CLIP_WALK,
+				"clip_t": float(d["t"]), "aim": false, "ball_u": -1.0, "along": 0.0}
+		elif not events.is_empty():
+			st = _authoritative_state(events, float(d["t"]), int(d["member"]), int(d["size"]))
+		else:
+			st = MHSliceRound.state(float(d["t"]), int(d["member"]), int(d["size"]), float(d["len"]))
+		if bool(st.get("done", false)) or int(st.get("phase", -1)) == MHSliceRound.Phase.DONE:
 			continue
 		live.append(d)
 		states.append(st)
 	golfers = live
 	_render(states, cam_pos)
+
+
+func _authoritative_state(events: Array, t: float, member: int, size: int) -> Dictionary:
+	var stagger: float = float(member) * 0.35
+	var timeline: Dictionary = MHAIRoundTimeline.state(events, maxf(0.0, t - stagger))
+	if bool(timeline.get("done", false)):
+		return {"done": true, "phase": MHSliceRound.Phase.DONE, "clip": MHGolferPoses.CLIP_IDLE,
+			"clip_t": 0.0, "aim": false, "ball_u": -1.0, "world": Vector2.ZERO}
+	# Rating traces are hole-local centiyards. Convert them to local metres here;
+	# the saved hole world origin is applied by the renderer.
+	var x0: float = float(int(timeline["x0"])) * 0.009144
+	var y0: float = float(int(timeline["y0"])) * 0.009144
+	var x1: float = float(int(timeline["x1"])) * 0.009144
+	var y1: float = float(int(timeline["y1"])) * 0.009144
+	var u: float = float(timeline.get("u", 0.0))
+	var phase: String = str(timeline.get("phase", "address"))
+	var world: Vector2 = Vector2(x0, y0)
+	if phase == "walk" or phase == "putt":
+		world = Vector2(x0, y0).lerp(Vector2(x1, y1), u)
+	var clip: String = MHGolferPoses.CLIP_IDLE
+	if phase == "swing":
+		clip = MHGolferPoses.CLIP_SWING
+	elif phase == "walk":
+		clip = MHGolferPoses.CLIP_WALK
+	elif phase == "putt":
+		clip = MHGolferPoses.CLIP_PUTT
+	return {"done": false, "phase": MHSliceRound.Phase.WALK, "clip": clip, "clip_t": t,
+		"aim": phase != "walk", "ball_u": u if phase == "flight" else -1.0, "world": world,
+		"ball_from": Vector2(x0, y0), "ball_to": Vector2(x1, y1)}
 
 
 func _render(states: Array, cam_pos: Vector3) -> void:
@@ -93,13 +195,38 @@ func _render(states: Array, cam_pos: Vector3) -> void:
 	for i: int in range(golfers.size()):
 		var d: Dictionary = golfers[i]
 		var st: Dictionary = states[i]
-		var p2: Vector2 = MHSliceRound.ground_point(d["tee"] as Vector2, d["dir"] as Vector2, float(st["along"]),
-			int(d["member"]), int(d["size"]))
+		if bool(d.get("transport_hidden", false)):
+			positions.append(Vector3.ZERO)
+			dist2.append(INF)
+			looks.append(int(d["look"]))
+			continue
+		var p2: Vector2
+		if st.has("world"):
+			p2 = (st["world"] as Vector2) + (d.get("world_origin", Vector2.ZERO) as Vector2)
+		else:
+			p2 = MHSliceRound.ground_point(d["tee"] as Vector2, d["dir"] as Vector2, float(st["along"]),
+				int(d["member"]), int(d["size"]))
 		var p3: Vector3 = Vector3(p2.x, 0.0, p2.y)
+		p3 = MHClubPedestrian.apply_ground_height(p3, terrain_grid)
 		positions.append(p3)
 		dist2.append(p3.distance_squared_to(cam_pos))
 		looks.append(int(d["look"]))
-	var vis: PackedInt32Array = MHSliceVisibility.classify(dist2, looks, near_cap, total_cap)
+	# Transport-hidden riders must not consume the limited figure/baked visibility budget.
+	var eligible_dist2: Array = []
+	var eligible_looks: Array = []
+	var eligible_indices: Array = []
+	for i: int in range(golfers.size()):
+		if bool((golfers[i] as Dictionary).get("transport_hidden", false)):
+			continue
+		eligible_indices.append(i)
+		eligible_dist2.append(dist2[i])
+		eligible_looks.append(looks[i])
+	var eligible_vis: PackedInt32Array = MHSliceVisibility.classify(eligible_dist2, eligible_looks, near_cap, total_cap)
+	var vis: PackedInt32Array = PackedInt32Array()
+	vis.resize(golfers.size())
+	vis.fill(MHSliceVisibility.HIDDEN)
+	for j: int in range(eligible_indices.size()):
+		vis[int(eligible_indices[j])] = eligible_vis[j]
 	last_figures = MHSliceVisibility.count_state(vis, MHSliceVisibility.FIGURE)
 	last_baked = MHSliceVisibility.count_state(vis, MHSliceVisibility.BAKED)
 	last_hidden = MHSliceVisibility.count_state(vis, MHSliceVisibility.HIDDEN)
@@ -117,12 +244,13 @@ func _render(states: Array, cam_pos: Vector3) -> void:
 		var pos: Vector3 = positions[i] as Vector3
 		if state == MHSliceVisibility.FIGURE:
 			var look_i: int = int(d2["look"])
-			var fig: MHGolferFigure = _figure_for(look_i)
+			var figure_key: String = "%d:%d" % [int(d2.get("group", 0)), int(d2.get("member", i))]
+			var fig: MHGolferFigure = _figure_for(figure_key, look_i)
 			fig.visible = true
 			fig.position = pos
 			fig.rotation = Vector3(0.0, yaw, 0.0)
 			fig.set_pose(MHGolferPoses.sample(str(st2["clip"]), float(st2["clip_t"])))
-			used_figures[look_i] = true
+			used_figures[figure_key] = true
 		else:
 			var mi: MeshInstance3D = _baked_node(baked_used)
 			baked_used += 1
@@ -137,9 +265,15 @@ func _render(states: Array, cam_pos: Vector3) -> void:
 		if u >= 0.0 and balls_used < _balls.size():
 			var b: MeshInstance3D = _balls[balls_used] as MeshInstance3D
 			balls_used += 1
-			var tee: Vector2 = d2["tee"] as Vector2
-			var green: Vector2 = d2["green"] as Vector2
+			var tee: Vector2 = st2.get("ball_from", d2["tee"]) as Vector2
+			var green: Vector2 = st2.get("ball_to", d2["green"]) as Vector2
+			if st2.has("ball_from"):
+				var origin: Vector2 = d2.get("world_origin", Vector2.ZERO) as Vector2
+				tee += origin
+				green += origin
 			b.position = MHSliceRound.ball_point(tee, green, u)
+			var ground: Vector3 = MHClubPedestrian.apply_ground_height(Vector3(b.position.x, 0.0, b.position.z), terrain_grid)
+			b.position.y += ground.y
 			b.visible = true
 	for k: Variant in _figures.keys():
 		if not used_figures.has(k):
@@ -150,14 +284,14 @@ func _render(states: Array, cam_pos: Vector3) -> void:
 		(_balls[n] as MeshInstance3D).visible = false
 
 
-func _figure_for(look_index: int) -> MHGolferFigure:
-	if _figures.has(look_index):
-		return _figures[look_index] as MHGolferFigure
+func _figure_for(instance_key: String, look_index: int) -> MHGolferFigure:
+	if _figures.has(instance_key):
+		return _figures[instance_key] as MHGolferFigure
 	var fig: MHGolferFigure = MHGolferFigure.new()
 	fig.auto_advance = false # Posed directly each frame; the joint tree never self-animates.
 	add_child(fig)
 	fig.setup(_looks[look_index] as MHGolferLook, 0, _mat)
-	_figures[look_index] = fig
+	_figures[instance_key] = fig
 	return fig
 
 

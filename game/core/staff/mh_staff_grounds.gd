@@ -90,14 +90,29 @@ func personal_patrol(defs: MHStaffDefs, parcel: int, cells: int, cells_per_parce
 	return gain
 
 
+## Apply a bounded external turf-damage event (for example a player cart driving onto a green).
+## Damage is authoritative, saved through the existing condition array, and normal grounds work repairs it later.
+func damage_condition(parcel: int, amount: int, view: Dictionary) -> int:
+	if parcel < 0 or parcel >= MHStaffDefs.NPARCELS or not MHStaffView.is_owned(view, parcel):
+		return 0
+	var applied: int = mini(clampi(amount, 0, 250), int(condition[parcel]))
+	if applied <= 0:
+		return 0
+	condition[parcel] = int(condition[parcel]) - applied
+	return applied
+
+
 ## One game day (call once per MHGameClock.EV_DAY, after the day's hourly accounting). Order per owned parcel, ascending id:
 ## pest growth/decline, ranger control, decay vs grounds work, pest damage, incident roll. Returns {"ran": bool,
 ## "incidents": Array of {parcel, kind, positive, handled}}. Idempotent per day: day <= last_day does nothing.
 ## The caller ages the roster (MHStaffRoster.age_one_day) when ran is true; MHStaff.on_day does both.
-func on_day(defs: MHStaffDefs, roster: MHStaffRoster, day: int, view: Dictionary, secret: int) -> Dictionary:
+func on_day(defs: MHStaffDefs, roster: MHStaffRoster, day: int, view: Dictionary, secret: int, equipment: MHStaffEquipment = null) -> Dictionary:
 	if day <= last_day:
 		return {"ran": false, "incidents": []}
-	var wc: Dictionary = roster.work_by_parcel(defs, view)
+	var coordination_pm: int = 1000
+	if defs.has_role("superintendent"):
+		coordination_pm += mini(200, MHStaffMath.idiv(roster.role_work_sum(defs, "superintendent"), 10))
+	var wc: Dictionary = roster.work_by_parcel(defs, view, equipment, coordination_pm)
 	var work: Array = wc["work"]
 	var ctrl: Array = wc["ctrl"]
 	var out: Array = []
@@ -154,7 +169,7 @@ func on_day(defs: MHStaffDefs, roster: MHStaffRoster, day: int, view: Dictionary
 		personal_work[i] = 0
 		personal_pest[i] = 0
 	last_day = day
-	return {"ran": true, "incidents": out}
+	return {"ran": true, "incidents": out, "used_employees": (wc.get("used_employees", []) as Array).duplicate()}
 
 
 ## Mean condition over the owned golf parcels (cond_start when none is owned).

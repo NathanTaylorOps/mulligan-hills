@@ -16,20 +16,24 @@ var land: MHLandModel
 var bridge: MHProgressBridge
 var demo: bool = true
 var club_name: String = "Mulligan Hills"
-var staff: int = 0 # No staffing rules exist yet. Do not invent employees to unlock tournaments.
+var management_difficulty: String = "standard" # relaxed | standard | tycoon
+var staff_system: MHStaff
 var save_secret: int = 0
 var rating_epoch: int = 0
 var unix_now: int = 0
 var recent_scores: Array = []
+var grounds_events: Array = []
 var practice: MHPracticeRound = null
 ## Transient presentation queue. Economy remains authoritative for admission and payment; this only exposes paid arrivals.
-var customer_admissions: Array = []
+var _pending_customers: Array = [] # authoritative paid customers awaiting hourly outcome resolution
 var _customer_serial: int = 0
 var customer_feedback_sum: int = 0
 var customer_feedback_count: int = 0
 var customer_outcomes: Array = [] # immutable authoritative records; presentation never mutates economy/roster
+var customer_playback: MHCustomerRoundQueue = MHCustomerRoundQueue.new() # transient visual scheduling; never authoritative economy
 var golfer_roster: MHGolferRoster = MHGolferRoster.new()
-var building_placements: Dictionary = {} # id -> terrain-aware freeform placement record
+var building_placements: Dictionary = {} # instance_id -> terrain-aware freeform placement record
+var _next_building_instance_id: int = 1
 var _holes: Array = []
 var _ratings: Array = []
 var _course: Dictionary = {}
@@ -44,7 +48,9 @@ static func create() -> MHGameSession:
 	s.economy = MHEconomy.create_from_defs(params, s.defs)
 	s.land = MHLandModel.create(s.defs)
 	s.bridge = MHProgressBridge.create()
-	if s.economy == null or not s.bridge.is_ready():
+	var staff_defs: MHStaffDefs = MHStaffDefs.load_default()
+	s.staff_system = MHStaff.create(staff_defs)
+	if s.economy == null or s.staff_system == null or not s.bridge.is_ready():
 		return null
 	s._apply_course()
 	s._sync_progress()
@@ -130,15 +136,109 @@ func gate_view() -> MHGateView:
 
 
 func pace_score() -> int:
-	# Same course pace statistic used by the rating engine, converted to a 0..100 score.
-	# Until the authoritative pace-to-entry conversion exists, zero keeps the gate honest.
-	return 0
+	# Course-flow simulation is not authoritative yet, so do not invent one here. The existing staff model
+	# deliberately defines a small 0..100 pace contribution for marshals/caddies; expose that real investment.
+	if staff_system == null:
+		return 0
+	return clampi(staff_system.pace_points(), 0, 100)
+
+
+
+
+func staff_view() -> Dictionary:
+	return MHStaffView.make(tiers(), land.owned_ids(), MHStaffView.kinds_from_defs(defs))
+
+
+func carts_allowed_now() -> bool:
+	# Hosted tournament play is walking-only. Course lock is the authoritative active-event boundary.
+	return bridge == null or bridge.tournaments == null or not bridge.tournaments.course_locked()
+
+
+func damage_turf_at_cell(cx: int, cy: int, cells_x: int, cells_y: int, severity: String = "cart_green") -> Dictionary:
+	var parcel: int = MHStaffGrounds.parcel_of_cell(cx, cy, cells_x, cells_y, 4, 4)
+	if parcel < 0:
+		return {"ok": false, "parcel": -1, "damage": 0}
+	var amount: int = 18
+	if severity == "cart_green":
+		match management_difficulty:
+			"relaxed": amount = 8
+			"tycoon": amount = 30
+	var applied: int = staff_system.damage_turf(parcel, amount, staff_view())
+	if applied > 0:
+		grounds_events.append({"day": economy.day, "parcel": parcel, "kind": severity, "positive": false, "handled": false})
+		while grounds_events.size() > 24:
+			grounds_events.pop_front()
+		changed.emit()
+	return {"ok": applied > 0, "parcel": parcel, "damage": applied}
+
+
+func live_staff_assignments() -> Array:
+	# Presentation-only projection of authoritative staff/equipment assignments.
+	if staff_system == null:
+		return []
+	var report: Dictionary = staff_system.report(staff_view())
+	var equipment_by_employee: Dictionary = {}
+	for unit_v: Variant in report.get("equipment", []):
+		var unit: Dictionary = unit_v as Dictionary
+		var employee_serial: int = int(unit.get("assigned_employee", 0))
+		if employee_serial > 0:
+			equipment_by_employee[employee_serial] = unit.duplicate(true)
+	var out: Array = []
+	for employee_v: Variant in report.get("employees", []):
+		var employee: Dictionary = employee_v as Dictionary
+		var areas: Array = employee.get("areas", []) as Array
+		if areas.is_empty():
+			continue
+		var row: Dictionary = employee.duplicate(true)
+		row["equipment"] = (equipment_by_employee.get(int(employee.get("serial", 0)), {}) as Dictionary).duplicate(true)
+		out.append(row)
+	return out
+
+
+func take_grounds_events() -> Array:
+	var out: Array = grounds_events.duplicate(true)
+	grounds_events.clear()
+	return out
+
+
+func live_course_condition() -> Dictionary:
+	if staff_system == null:
+		return {"condition": [], "pest": []}
+	return {"condition": staff_system.grounds.condition.duplicate(), "pest": staff_system.grounds.pest.duplicate()}
+
+
+func live_maintenance_state() -> Dictionary:
+	# Presentation projection only: specialists and broken machines remain authoritative in staff_system.
+	if staff_system == null:
+		return {"specialists": [], "broken_equipment": []}
+	var report: Dictionary = staff_system.report(staff_view())
+	var specialists: Array = []
+	for employee_v: Variant in report.get("employees", []):
+		var employee: Dictionary = employee_v as Dictionary
+		var role: String = str(employee.get("role", ""))
+		if role == "superintendent" or role == "equipment_technician":
+			specialists.append(employee.duplicate(true))
+	var broken: Array = []
+	for unit_v: Variant in report.get("equipment", []):
+		var unit: Dictionary = unit_v as Dictionary
+		if bool(unit.get("broken", false)):
+			broken.append(unit.duplicate(true))
+	return {"specialists": specialists, "broken_equipment": broken,
+		"technician_work_pm": staff_system.technician_work_permille(),
+		"maintenance_tier": MHStaffView.tier_of(staff_view(), "maintenance")}
+
+
+func maintenance_quality() -> int:
+	if staff_system == null:
+		return 0
+	var report: Dictionary = staff_system.report(staff_view())
+	return clampi(int(report.get("avg_condition", 0)) / 10, 0, 100)
 
 
 func _club_view() -> Dictionary:
 	var g: MHGateView = gate_view()
 	return {"holes": g.holes, "avg_hole_score": g.avg_hole_score, "pace_score": pace_score(),
-		"staff": staff, "tiers": g.tiers}
+		"staff": staff_system.gate_staff_count(staff_view()), "maintenance_quality": maintenance_quality(), "tiers": g.tiers}
 
 
 func _sync_progress() -> void:
@@ -223,11 +323,27 @@ func advance(delta_us: int, wall_unix: int) -> void:
 	for i: int in range(0, events.size(), MHGameClock.EVENT_STRIDE):
 		if events[i] != MHGameClock.EV_HOUR:
 			continue
+		var hour_index: int = maxi(0, clock.hour - 1)
+		var wage: int = staff_system.pay_hour(hour_index)
+		if wage > 0:
+			economy.incur_loss(wage)
 		var tick: Dictionary = economy.tick_hour()
-		_queue_customer_admissions(tick)
+		_queue_pending_customers(tick)
 		_resolve_customer_hour()
 		hourly = true
 		if bool(tick["day_rolled"]):
+			var staff_day: Dictionary = staff_system.on_day(economy.day, staff_view(), save_secret, management_difficulty)
+			if bool(staff_day.get("ran", false)):
+				for incident_v: Variant in staff_day.get("incidents", []):
+					var incident: Dictionary = (incident_v as Dictionary).duplicate(true)
+					incident["day"] = economy.day
+					grounds_events.append(incident)
+				while grounds_events.size() > 24:
+					grounds_events.pop_front()
+				var equipment_cost: int = staff_system.equipment_operating_cost_cents() + staff_system.equipment_repair_cost_cents()
+				if equipment_cost > 0:
+					economy.incur_loss(equipment_cost)
+			economy.set_demand_modifier(staff_system.demand_permille(staff_view()))
 			recent_scores.append(int(_course.get("course_x10", 0)) / 10)
 			if recent_scores.size() > 14:
 				recent_scores.remove_at(0)
@@ -241,7 +357,83 @@ func advance(delta_us: int, wall_unix: int) -> void:
 		changed.emit()
 
 
-func _queue_customer_admissions(tick: Dictionary) -> void:
+
+func set_management_difficulty(value: String) -> bool:
+	if not ["relaxed", "standard", "tycoon"].has(value):
+		return false
+	management_difficulty = value
+	changed.emit()
+	return true
+
+
+func management_report() -> Dictionary:
+	var report: Dictionary = staff_system.report(staff_view())
+	report["difficulty"] = management_difficulty
+	report["automation"] = management_difficulty == "relaxed"
+	report["cash_cents"] = economy.cash
+	var traffic: Dictionary = customer_playback.traffic_state()
+	report["course_traffic"] = traffic
+	report["active_parties"] = (traffic.get("active_parties", []) as Array).size()
+	report["blocked_parties"] = int(traffic.get("blocked_parties", 0))
+	report["pace_score"] = pace_score()
+	var bottleneck: Dictionary = traffic.get("worst_bottleneck", {}) as Dictionary
+	report["worst_bottleneck"] = bottleneck
+	if float(bottleneck.get("average_wait_s", 0.0)) >= 45.0 and int(bottleneck.get("waited_parties", 0)) >= 2:
+		var warnings: Array = report.get("warnings", []) as Array
+		warnings.append("pace_bottleneck")
+		report["warnings"] = warnings
+		report["pace_bottleneck_hole"] = int(bottleneck.get("hole_slot", -1)) + 1
+	var current_staff_view: Dictionary = staff_view()
+	for option_v: Variant in report.get("hire_options", []):
+		var option: Dictionary = option_v
+		option["available"] = bool(option.get("available", false)) and staff_system.check_hire(
+			str(option.get("role", "")), current_staff_view, economy.cash).is_empty()
+	for item_v: Variant in report.get("equipment_catalog", []):
+		var item: Dictionary = item_v
+		item["available"] = economy.can_afford(int(item.get("price_cents", 0))) and int(report.get("equipment_units", 0)) < int(report.get("equipment_capacity", 0))
+	return report
+
+
+func hire_staff(role_id: String) -> Dictionary:
+	var result: Dictionary = staff_system.hire(role_id, economy.day, staff_view(), economy.cash)
+	if not bool(result.get("ok", false)):
+		return result
+	economy.spend(int(result["cost"]))
+	return result
+
+
+func buy_staff_equipment(type_id: String) -> Dictionary:
+	var result: Dictionary = staff_system.buy_equipment(type_id, economy.cash, staff_view())
+	if not bool(result.get("ok", false)):
+		return result
+	economy.spend(int(result["cost"]))
+	return result
+
+
+func fire_staff(employee_serial: int) -> bool:
+	return staff_system.fire(employee_serial)
+
+
+func assign_staff(employee_serial: int, areas: Array) -> Dictionary:
+	var reason: String = staff_system.assign(employee_serial, areas, staff_view())
+	var ok: bool = reason.is_empty()
+	return {"ok": ok, "reason": reason}
+
+
+func assign_staff_equipment(equipment_serial: int, employee_serial: int) -> bool:
+	return staff_system.assign_equipment(equipment_serial, employee_serial)
+
+
+func sell_staff_equipment(equipment_serial: int) -> Dictionary:
+	var result: Dictionary = staff_system.sell_equipment(equipment_serial)
+	if not bool(result.get("ok", false)):
+		return result
+	economy.earn(int(result["value"]))
+	return result
+
+
+
+func _queue_pending_customers(tick: Dictionary) -> void:
 	var n: int = maxi(0, int(tick.get("golfers", 0)))
 	if n == 0 or _holes.is_empty():
 		return
@@ -253,43 +445,121 @@ func _queue_customer_admissions(tick: Dictionary) -> void:
 	while remaining > 0:
 		var group_size: int = mini(remaining, 1 + posmod(_customer_serial + economy.day, 4))
 		var group: Array = golfer_roster.group_for_admission(save_secret, _customer_serial, economy.day, group_size)
+		# Once the club has members, an admitted member may use one already-authorized party slot
+		# for an occasional guest. This never increases economy-authorized headcount or revenue.
+		if group.size() > 1:
+			var anchor: Dictionary = group[0] as Dictionary
+			if bool(anchor.get("member", false)):
+				var guest: Dictionary = golfer_roster.club_guest_for_member(save_secret, int(anchor["id"]), _customer_serial, economy.day)
+				if not guest.is_empty():
+					group[group.size() - 1] = guest
+		var party_id: int = _customer_serial
+		# Normal public/member play enters through the first course hole. Only an active hosted tournament
+		# uses deterministic shotgun starts to distribute groups around the locked course.
+		var party_hole_index: int = posmod(party_id, _holes.size()) if not carts_allowed_now() else 0
 		for identity_v: Variant in group:
+			if remaining <= 0:
+				break
 			var identity: Dictionary = identity_v
-			customer_admissions.append({"serial": _customer_serial, "identity": identity, "group_size": group_size,
+			var hole_index: int = party_hole_index
+			_pending_customers.append({"serial": _customer_serial, "party_id": party_id, "identity": identity, "group_size": group_size,
 				"paid_fee": fee_each, "ancillary": anc_each, "admitted_day": economy.day, "admitted_hour": economy.hour,
-				"hole_slot": int((_holes[0] as Dictionary)["slot_id"])})
+				"hole_slot": int((_holes[hole_index] as Dictionary)["slot_id"])})
 			_customer_serial += 1
 			remaining -= 1
 
 
+func _hole_index_for_slot(slot_id: int) -> int:
+	for i: int in range(_holes.size()):
+		if int((_holes[i] as Dictionary).get("slot_id", -1)) == slot_id:
+			return i
+	return -1
+
+
 func _resolve_customer_hour() -> void:
-	if customer_admissions.is_empty() or _holes.is_empty() or _ratings.is_empty():
+	if _pending_customers.is_empty() or _holes.is_empty() or _ratings.is_empty():
 		return
 	var start: int = customer_outcomes.size()
-	for admission_v: Variant in customer_admissions:
+	# Drain first so each paid admission has exactly one authoritative resolution attempt.
+	# Failed/invalid rounds are not silently replayed on every later hour.
+	var pending: Array = _pending_customers
+	_pending_customers = []
+	for admission_v: Variant in pending:
 		var customer: Dictionary = (admission_v as Dictionary).duplicate(true)
 		var identity: Dictionary = customer.get("identity", {}) as Dictionary
 		var band: int = int(identity.get("skill_band", 1))
-		var hole: Dictionary = _holes[0] as Dictionary
-		var rating: Dictionary = _ratings[0] as Dictionary
-		var round: Dictionary = MHAIRoundRecord.play(hole, {"save_secret": save_secret, "rating_epoch": rating_epoch}, band, 0)
-		if round.is_empty():
+		var hole_index: int = _hole_index_for_slot(int(customer.get("hole_slot", -1)))
+		if hole_index < 0:
 			continue
+		var hole: Dictionary = _holes[hole_index] as Dictionary
+		var rating: Dictionary = _ratings[hole_index] as Dictionary
+		# One paid admission owns one deterministic course round. Keep the first-hole round/rating
+		# fields for compatibility while course_round drives multi-hole presentation.
+		var course_round: Array = []
+		for offset: int in range(_holes.size()):
+			var course_index: int = posmod(hole_index + offset, _holes.size())
+			var course_hole: Dictionary = _holes[course_index] as Dictionary
+			var course_rating: Dictionary = _ratings[course_index] as Dictionary
+			var course_record: Dictionary = MHAIRoundRecord.play(course_hole,
+				{"save_secret": save_secret, "rating_epoch": rating_epoch}, band, offset)
+			if course_record.is_empty():
+				course_round = []
+				break
+			course_round.append({"hole_slot": int(course_hole.get("slot_id", -1)),
+				"round": course_record, "rating": course_rating.duplicate(true)})
+		if course_round.is_empty():
+			continue
+		var round: Dictionary = (course_round[0] as Dictionary)["round"] as Dictionary
+		rating = (course_round[0] as Dictionary)["rating"] as Dictionary
 		var pref: int = int(identity.get("preference", MHGolferPreference.CASUAL))
-		var base: int = MHCustomerRoundQueue.satisfaction(round)
-		var bonus: int = MHGolferPreference.bonus(pref, rating, round)
-		var sat: int = clampi(base + bonus, 0, 100)
+		var base_sum: int = 0
+		var bonus_sum: int = 0
+		var best_hole_slot: int = int(customer.get("hole_slot", 0))
+		var best_hole_score: int = -1
+		var combined_flags: int = 0
+		for course_hole_v: Variant in course_round:
+			var course_hole: Dictionary = course_hole_v
+			var hole_round: Dictionary = course_hole["round"] as Dictionary
+			var hole_rating: Dictionary = course_hole["rating"] as Dictionary
+			var hole_base: int = MHCustomerRoundQueue.satisfaction(hole_round, int(hole_rating.get("par", 3)))
+			var hole_bonus: int = MHGolferPreference.bonus(pref, hole_rating, hole_round)
+			base_sum += hole_base
+			bonus_sum += hole_bonus
+			combined_flags |= int(hole_round.get("flags", 0))
+			var hole_score: int = hole_base + hole_bonus
+			if hole_score > best_hole_score:
+				best_hole_score = hole_score
+				best_hole_slot = int(course_hole.get("hole_slot", best_hole_slot))
+		var base: int = MHRMath.rdiv(base_sum, course_round.size())
+		var bonus: int = MHRMath.rdiv(bonus_sum, course_round.size())
+		# Maintenance and staffed facilities should be felt by the golfer who is actually here, not only
+		# by tomorrow's demand curve. Keep this bounded and separate from the official geometry rating.
+		var condition_penalty: int = MHRMath.rdiv(staff_system.condition_penalty_permille(staff_view()), 10)
+		var service_bonus: int = 0
+		if MHStaffEffects.has_station(staff_system.defs, staff_view()):
+			service_bonus = clampi(MHRMath.rdiv(staff_system.service_avg(staff_view()) - 500, 100), -5, 5)
+		var sat: int = clampi(base + bonus - condition_penalty + service_bonus, 0, 100)
 		customer["round"] = round
 		customer["rating"] = rating.duplicate(true)
+		customer["course_round"] = course_round
 		customer["preference"] = pref
 		customer["base_satisfaction"] = base
 		customer["preference_bonus"] = bonus
+		customer["condition_penalty"] = condition_penalty
+		customer["service_bonus"] = service_bonus
 		customer["satisfaction"] = sat
-		customer["reaction"] = MHCustomerRoundQueue.reaction(sat, int(round.get("flags", 0)))
+		customer["reaction"] = MHCustomerRoundQueue.reaction(sat, combined_flags)
 		customer["preference_reaction"] = MHGolferPreference.describe(pref, bonus)
 		customer["identity"] = golfer_roster.record_visit(int(identity["id"]), economy.day, sat,
-			str(customer["reaction"]), int(customer.get("hole_slot", 0)), int(round.get("flags", 0)))
+			str(customer["reaction"]), best_hole_slot, combined_flags)
 		customer_outcomes.append(customer)
+		var playback_hole: Dictionary = {}
+		for hole_v: Variant in _holes:
+			var hole_def: Dictionary = hole_v
+			if int(hole_def.get("slot_id", -1)) == int(customer.get("hole_slot", -1)):
+				playback_hole = hole_def
+				break
+		customer_playback.admit([customer], playback_hole, rating, {"save_secret": save_secret, "rating_epoch": rating_epoch})
 		customer_feedback_sum += sat
 		customer_feedback_count += 1
 	var count: int = customer_outcomes.size() - start
@@ -302,7 +572,41 @@ func _resolve_customer_hour() -> void:
 		economy.reputation = clampi(economy.reputation + delta, economy.params.c("rep_floor_permille"), 1000)
 
 
-func take_customer_admissions(limit: int = 4) -> Array:
+func apply_playback_pace_experience(customer: Dictionary) -> Dictionary:
+	# Playback may discover real congestion after the authoritative admission/round was resolved.
+	# Apply only that newly observed experience to reputation + golfer memory; never cash, fees or admissions.
+	var serial: int = int(customer.get("serial", -1))
+	if serial < 0:
+		return customer
+	var penalty: int = customer_playback.pace_penalty_for_customer(serial, pace_score())
+	if penalty <= 0:
+		return customer
+	var adjusted: Dictionary = customer.duplicate(true)
+	var original_sat: int = int(customer.get("satisfaction", 50))
+	var sat: int = clampi(original_sat - penalty, 0, 100)
+	adjusted["pace_penalty"] = penalty
+	adjusted["satisfaction"] = sat
+	adjusted["reaction"] = "Slow play took the shine off that round." if penalty >= 6 else "A little wait on the course, but still a good day."
+	var identity: Dictionary = customer.get("identity", {}) as Dictionary
+	if not identity.is_empty() and golfer_roster.golfers.has(int(identity.get("id", -1))):
+		var golfer: Dictionary = golfer_roster.golfers[int(identity["id"])] as Dictionary
+		var memories: Array = golfer.get("memories", []) as Array
+		if not memories.is_empty():
+			var memory: Dictionary = memories[memories.size() - 1] as Dictionary
+			if int(memory.get("day", -1)) == economy.day:
+				memory["satisfaction"] = sat
+				memory["reaction"] = str(adjusted["reaction"])
+		golfer["loyalty"] = clampi(int(golfer.get("loyalty", 0)) - penalty / 2, 0, 100)
+		adjusted["identity"] = golfer.duplicate(true)
+	# Initial resolution already applied reputation from original_sat. Apply only the bounded difference here.
+	var old_delta: int = clampi(MHRMath.rdiv(original_sat - 50, 12), -4, 4)
+	var new_delta: int = clampi(MHRMath.rdiv(sat - 50, 12), -4, 4)
+	economy.reputation = clampi(economy.reputation + (new_delta - old_delta), economy.params.c("rep_floor_permille"), 1000)
+	changed.emit()
+	return adjusted
+
+
+func take_customer_outcomes(limit: int = 4) -> Array:
 	var count: int = mini(maxi(limit, 0), customer_outcomes.size())
 	var out: Array = []
 	for _i: int in range(count):
@@ -312,34 +616,174 @@ func take_customer_admissions(limit: int = 4) -> Array:
 
 ## Completed visible rounds move reputation slowly. 50/100 is neutral; one customer can move at most 4 permille.
 ## Existing MHEconomy arrivals/membership formulas then turn reputation into future demand.
-func record_customer_visit(customer: Dictionary) -> Dictionary:
-	var identity: Dictionary = customer.get("identity", {}) as Dictionary
-	if identity.is_empty():
-		return {}
-	var sat: int = clampi(int(customer.get("satisfaction", 50)), 0, 100)
-	var memory: String = str(customer.get("reaction", "Finished a round."))
-	var round: Dictionary = customer.get("round", {}) as Dictionary
-	var updated: Dictionary = golfer_roster.record_visit(int(identity["id"]), economy.day, sat, memory,
-		int(customer.get("hole_slot", 0)), int(round.get("flags", 0)))
-	# Legacy/UI callers may request the roster record, but authoritative hourly resolution already applies feedback.
-	return updated
+## Customer outcomes are resolved exactly once by _resolve_customer_hour().
+## Presentation receives resolved authoritative outcomes through take_customer_outcomes() and has no mutation API.
 
 
-func record_customer_feedback(satisfaction: int) -> int:
-	var sat: int = clampi(satisfaction, 0, 100)
-	customer_feedback_sum += sat
-	customer_feedback_count += 1
-	var delta: int = clampi(MHRMath.rdiv(sat - 50, 12), -4, 4)
-	economy.reputation = clampi(economy.reputation + delta, economy.params.c("rep_floor_permille"), 1000)
-	_sync_progress()
+
+func membership_capacity() -> int:
+	# Membership must be supported by the actual developed club. This is deliberately derived
+	# from course/facility state instead of an arbitrary global constant.
+	var clubhouse_tier: int = economy.tier_of(economy.params.building_index("clubhouse"))
+	if clubhouse_tier <= 0 or gate_view().holes <= 0:
+		return 0
+	return mini(MHGolferRoster.MAX_ROSTER, gate_view().holes * 12 + clubhouse_tier * 8)
+
+
+func decide_membership_application(identity_id: int, accept: bool) -> Dictionary:
+	if not golfer_roster.golfers.has(identity_id):
+		return _result(false, "golfer")
+	var g: Dictionary = golfer_roster.golfers[identity_id] as Dictionary
+	if str(g.get("membership_status", "none")) != "applied":
+		return _result(false, "not_applied")
+	if accept:
+		if golfer_roster.member_count() >= membership_capacity():
+			return _result(false, "membership_capacity")
+		if int(g.get("loyalty", 0)) < 70 or int(g.get("membership_interest", 0)) < 50:
+			return _result(false, "eligibility")
+	if not golfer_roster.decide_membership(identity_id, accept):
+		return _result(false, "decision")
 	changed.emit()
-	return delta
+	return _result(true)
+
+
+
+func assign_home_to_golfer(identity_id: int) -> Dictionary:
+	if not golfer_roster.golfers.has(identity_id):
+		return _result(false, "golfer")
+	var capacity: int = land.home_slot_capacity()
+	if capacity <= 0 or golfer_roster.home_resident_count() >= capacity:
+		return _result(false, "home_capacity")
+	var used: Dictionary = {}
+	for g_v: Variant in golfer_roster.golfers.values():
+		var g: Dictionary = g_v
+		if str(g.get("home_status", "none")) == "resident":
+			used[int(g.get("home_slot", -1))] = true
+	var slot: int = -1
+	for candidate: int in range(capacity):
+		if not used.has(candidate):
+			slot = candidate
+			break
+	if slot < 0 or not golfer_roster.assign_home(identity_id, slot):
+		return _result(false, "home_eligibility")
+	changed.emit()
+	return {"ok": true, "code": "", "home_slot": slot}
+
+
+
+func available_home_slots() -> int:
+	return maxi(0, land.home_slot_capacity())
+
 
 
 func customer_feedback_average() -> int:
 	if customer_feedback_count <= 0:
 		return 0
 	return MHRMath.rdiv(customer_feedback_sum, customer_feedback_count)
+
+
+## Authoritative placement boundary. Presentation may preview arbitrary candidates, but only
+## structurally valid records for purchased buildings enter session state.
+func set_building_placement(building_id: String, placement: Dictionary) -> bool:
+	var index: int = economy.params.building_index(building_id)
+	if index < 0 or economy.tier_of(index) <= 0:
+		return false
+	if not _valid_building_placement_record(building_id, placement):
+		return false
+	# Legacy callers replace the first instance of a type. New callers can supply a stable instance_id.
+	var instance_id: String = str(placement.get("instance_id", ""))
+	if instance_id.is_empty():
+		instance_id = first_building_instance_id(building_id)
+	if instance_id.is_empty():
+		instance_id = "building_%d" % _next_building_instance_id
+		_next_building_instance_id += 1
+	var stored: Dictionary = placement.duplicate(true)
+	stored["building_id"] = building_id
+	stored["instance_id"] = instance_id
+	building_placements[instance_id] = stored
+	changed.emit()
+	return true
+
+
+func first_building_instance_id(building_id: String) -> String:
+	var ids: Array = building_placements.keys()
+	ids.sort()
+	for id_v: Variant in ids:
+		var p: Dictionary = building_placements[id_v] as Dictionary
+		if str(p.get("building_id", str(id_v))) == building_id:
+			return str(id_v)
+	return ""
+
+
+func building_instance_position(instance_id: String) -> Vector3:
+	if not building_placements.has(instance_id):
+		return Vector3.INF
+	var placement: Dictionary = building_placements[instance_id] as Dictionary
+	var building_id: String = str(placement.get("building_id", ""))
+	if building_id.is_empty() or not _valid_building_placement_record(building_id, placement):
+		return Vector3.INF
+	var center: Array = placement["center_mm"] as Array
+	return Vector3(float(int(center[0])) / 1000.0, float(int(placement["ground_mm"])) / 1000.0,
+		float(int(center[1])) / 1000.0)
+
+
+func building_position(building_id: String) -> Vector3:
+	# Compatibility helper only. New routing/gameplay code must retain permanent instance identity.
+	return building_instance_position(first_building_instance_id(building_id))
+
+
+func restore_building_placements(raw: Variant) -> bool:
+	if typeof(raw) != TYPE_DICTIONARY:
+		return false
+	var restored: Dictionary = {}
+	var rows: Dictionary = raw as Dictionary
+	var next_instance: int = 1
+	for key_v: Variant in rows.keys():
+		if typeof(rows[key_v]) != TYPE_DICTIONARY:
+			return false
+		var placement: Dictionary = (rows[key_v] as Dictionary).duplicate(true)
+		# Reader migration: old checkpoints were keyed by building type and had no instance identity.
+		var building_id: String = str(placement.get("building_id", str(key_v)))
+		var instance_id: String = str(placement.get("instance_id", ""))
+		if instance_id.is_empty():
+			instance_id = "building_%d" % next_instance
+			next_instance += 1
+		placement["building_id"] = building_id
+		placement["instance_id"] = instance_id
+		var index: int = economy.params.building_index(building_id)
+		if index < 0 or economy.tier_of(index) <= 0 or restored.has(instance_id) or not _valid_building_placement_record(building_id, placement):
+			return false
+		restored[instance_id] = placement
+	building_placements = restored
+	_next_building_instance_id = next_instance
+	return true
+
+func _valid_building_placement_record(building_id: String, placement: Dictionary) -> bool:
+	if str(placement.get("building_id", building_id)) != building_id:
+		return false
+	if not bool(placement.get("ok", false)):
+		return false
+	if typeof(placement.get("center_mm", null)) != TYPE_ARRAY or typeof(placement.get("size_m", null)) != TYPE_ARRAY:
+		return false
+	var center: Array = placement["center_mm"] as Array
+	var size: Array = placement["size_m"] as Array
+	if center.size() != 2 or size.size() != 2:
+		return false
+	for value: Variant in center:
+		if not MHRValidate.is_int_value(value):
+			return false
+	for value: Variant in size:
+		if not MHRValidate.is_int_value(value) or int(value) <= 0:
+			return false
+	if not MHRValidate.is_int_value(placement.get("ground_mm", null)) or not MHRValidate.is_int_value(placement.get("rotation_quarters", null)):
+		return false
+	var rotation: int = int(placement["rotation_quarters"])
+	if rotation < 0 or rotation > 3:
+		return false
+	# Exact world-edge, terrain, ownership and conflict checks require the authoritative terrain
+	# grid and are performed by MHLiveConstruction after the terrain blob is decoded. Do not bake
+	# the prototype 128 m world size into persistent session validation.
+	return int(center[0]) >= 0 and int(center[1]) >= 0
 
 
 func handle_intent(id: StringName, args: Dictionary) -> Dictionary:
@@ -376,6 +820,25 @@ func handle_intent(id: StringName, args: Dictionary) -> Dictionary:
 		&"set_green_fee":
 			economy.set_green_fee(int(args.get("cents", economy.fee)))
 			out = _result(true)
+		&"set_management_difficulty":
+			out = _result(set_management_difficulty(str(args.get("difficulty", ""))), "difficulty")
+		&"hire_staff":
+			out = hire_staff(str(args.get("role", "")))
+		&"fire_staff":
+			out = _result(fire_staff(int(args.get("employee_serial", 0))), "employee")
+		&"assign_staff":
+			var areas_value: Variant = args.get("areas", [])
+			if typeof(areas_value) == TYPE_ARRAY:
+				out = assign_staff(int(args.get("employee_serial", 0)), areas_value as Array)
+			else:
+				out = _result(false, "areas")
+		&"buy_staff_equipment":
+			out = buy_staff_equipment(str(args.get("type", "")))
+		&"assign_staff_equipment":
+			out = _result(assign_staff_equipment(int(args.get("equipment_serial", 0)),
+				int(args.get("employee_serial", 0))), "equipment")
+		&"sell_staff_equipment":
+			out = sell_staff_equipment(int(args.get("equipment_serial", 0)))
 		&"recovery_loan":
 			out = _result(economy.take_bank_loan() >= 0, "recovery")
 		&"recovery_tokens":
@@ -435,7 +898,8 @@ func _resolve_tournament() -> void:
 			yards += int(r["L"])
 	var result: Dictionary = bridge.resolve_tournament({"event_seed": MHTournamentSim.event_seed(
 		save_secret, bridge.tournaments.event_id(), 0), "pace_score": pace_score(),
-		"fairness": fair, "maintenance_tier": int(tiers().get("maintenance", 0)),
+		"fairness": fair, "maintenance_tier": int(tiers().get("maintenance", 0)), "maintenance_quality": maintenance_quality(),
+		"course_condition_penalty_pm": staff_system.condition_penalty_permille(staff_view()),
 		"tiers": tiers(), "pars": pars, "total_yards": yards})
 	if not bool(result.get("ok", false)):
 		return

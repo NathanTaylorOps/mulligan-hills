@@ -120,3 +120,110 @@ func test_ball_flies_a_parabola_from_tee_to_green() -> void:
 	assert_float(top.y).is_equal_approx(0.1 + MHSliceRound.BALL_APEX_M, 0.0001)
 	assert_float(start.y).is_equal_approx(0.1, 0.0001)
 	assert_float(end.y).is_equal_approx(0.1, 0.0001)
+
+
+func test_golfer_renderer_uses_authoritative_shot_endpoints() -> void:
+	var golfers: MHSliceGolfers = auto_free(MHSliceGolfers.new())
+	add_child(golfers)
+	golfers.setup(MHArtMaterials.vertex_color())
+	var events: Array = [{"kind": "shot", "shot": 1, "x0": 1000, "y0": 2000, "x1": 2000, "y1": 4000,
+		"z0": 0, "z1": 0, "penalty": 0, "tree": false}]
+	golfers.spawn_group(7, 1, Vector2.ZERO, Vector2(100.0, 100.0), {"events": events})
+	var address: Dictionary = golfers._authoritative_state(events, 0.2, 0, 1)
+	assert_bool(bool(address["done"])).is_false()
+	var address_world: Vector2 = address["world"] as Vector2
+	assert_float(address_world.x).is_equal_approx(9.144, 0.001)
+	assert_float(address_world.y).is_equal_approx(18.288, 0.001)
+	var flight: Dictionary = golfers._authoritative_state(events,
+		MHAIRoundTimeline.ADDRESS_S + MHAIRoundTimeline.SWING_S + 0.7, 0, 1)
+	assert_float(float(flight["ball_u"])).is_greater(0.0)
+	var ball_from: Vector2 = flight["ball_from"] as Vector2
+	var ball_to: Vector2 = flight["ball_to"] as Vector2
+	assert_float(ball_from.x).is_equal_approx(9.144, 0.001)
+	assert_float(ball_from.y).is_equal_approx(18.288, 0.001)
+	assert_float(ball_to.x).is_equal_approx(18.288, 0.001)
+	assert_float(ball_to.y).is_equal_approx(36.576, 0.001)
+
+
+func test_group_does_not_duplicate_one_authoritative_round_trace() -> void:
+	var golfers: MHSliceGolfers = auto_free(MHSliceGolfers.new())
+	add_child(golfers)
+	golfers.setup(MHArtMaterials.vertex_color())
+	var events: Array = [{"kind": "shot", "shot": 1, "x0": 0, "y0": 0, "x1": 1000, "y1": 1000,
+		"z0": 0, "z1": 0, "penalty": 0, "tree": false}]
+	golfers.spawn_group(10, 3, Vector2.ZERO, Vector2(30.0, 30.0), {"events": events})
+	assert_int(golfers.golfer_count()).is_equal(3)
+	assert_int(((golfers.golfers[0] as Dictionary)["events"] as Array).size()).is_equal(1)
+	assert_int(((golfers.golfers[1] as Dictionary)["events"] as Array).size()).is_equal(0)
+	assert_int(((golfers.golfers[2] as Dictionary)["events"] as Array).size()).is_equal(0)
+
+
+func test_authoritative_party_keeps_distinct_round_traces_per_golfer() -> void:
+	var golfers: MHSliceGolfers = auto_free(MHSliceGolfers.new())
+	add_child(golfers)
+	golfers.setup(MHArtMaterials.vertex_color())
+	var a_events: Array = [{"kind": "shot", "shot": 1, "x0": 0, "y0": 0, "x1": 1000, "y1": 1000}]
+	var b_events: Array = [{"kind": "shot", "shot": 1, "x0": 0, "y0": 0, "x1": 2000, "y1": 3000}]
+	golfers.spawn_authoritative_party([
+		{"serial": 1, "party_id": 1, "round": {"events": a_events}},
+		{"serial": 2, "party_id": 1, "round": {"events": b_events}},
+	], Vector2.ZERO, Vector2(30.0, 30.0))
+	assert_int(golfers.golfer_count()).is_equal(2)
+	assert_int(int((((golfers.golfers[0] as Dictionary)["events"] as Array)[0] as Dictionary)["x1"])).is_equal(1000)
+	assert_int(int((((golfers.golfers[1] as Dictionary)["events"] as Array)[0] as Dictionary)["x1"])).is_equal(2000)
+
+
+func test_authoritative_party_preserves_hole_world_origin() -> void:
+	var golfers: MHSliceGolfers = auto_free(MHSliceGolfers.new())
+	add_child(golfers)
+	golfers.setup(MHArtMaterials.vertex_color())
+	golfers.spawn_authoritative_party([{"serial": 1, "party_id": 1, "round": {"events": []}}],
+		Vector2(19.144, 38.288), Vector2(28.288, 56.576), Vector2(10.0, 20.0))
+	var origin: Vector2 = (golfers.golfers[0] as Dictionary)["world_origin"] as Vector2
+	assert_float(origin.x).is_equal_approx(10.0, 0.0001)
+	assert_float(origin.y).is_equal_approx(20.0, 0.0001)
+
+
+func test_authoritative_party_visual_can_be_replaced_between_holes() -> void:
+	var golfers: MHSliceGolfers = auto_free(MHSliceGolfers.new())
+	add_child(golfers)
+	golfers.setup(MHArtMaterials.vertex_color())
+	var customer: Dictionary = {"serial": 30, "party_id": 9, "round": {"events": []}}
+	golfers.spawn_authoritative_party([customer], Vector2.ZERO, Vector2(0, 10))
+	assert_int(golfers.golfer_count()).is_equal(1)
+	golfers.remove_group(9)
+	assert_int(golfers.golfer_count()).is_equal(0)
+	golfers.spawn_authoritative_party([customer], Vector2(20, 20), Vector2(20, 40))
+	assert_int(golfers.golfer_count()).is_equal(1)
+
+
+func test_inter_hole_walk_keeps_every_real_party_member_visible() -> void:
+	var golfers: MHSliceGolfers = auto_free(MHSliceGolfers.new())
+	add_child(golfers)
+	golfers.setup(MHArtMaterials.vertex_color())
+	var customers: Array = [
+		{"serial": 101, "party_id": 44, "identity": {"id": 7, "look_seed": 7001}},
+		{"serial": 102, "party_id": 44, "identity": {"id": 8, "look_seed": 8001}},
+		{"serial": 103, "party_id": 44, "identity": {"id": 9, "look_seed": 9001}},
+	]
+	golfers.spawn_walking_party(customers, Vector3.ZERO, Vector3(20, 0, 20))
+	assert_int(golfers.golfer_count()).is_equal(3)
+	golfers.update_walking_party(44, Vector3(5, 0, 5), Vector3(1, 0, 1))
+	for golfer_v: Variant in golfers.golfers:
+		var golfer: Dictionary = golfer_v
+		assert_int(int(golfer["group"])).is_equal(44)
+		assert_bool(bool(golfer["walk_only"])).is_true()
+	golfers.remove_group(44)
+	assert_int(golfers.golfer_count()).is_equal(0)
+
+
+func test_same_look_golfers_keep_distinct_detailed_figure_instances() -> void:
+	var golfers: MHSliceGolfers = auto_free(MHSliceGolfers.new())
+	add_child(golfers)
+	golfers.setup(MHArtMaterials.vertex_color())
+	golfers.set_caps(4, 4)
+	var shared_identity: Dictionary = {"look_seed": 1234}
+	golfers.spawn_walking_party([{"serial": 1, "party_id": 1, "identity": shared_identity}], Vector3.ZERO, Vector3(10, 0, 0))
+	golfers.spawn_walking_party([{"serial": 2, "party_id": 2, "identity": shared_identity}], Vector3(0, 0, 5), Vector3(10, 0, 5))
+	golfers.advance(0.1, Vector3.ZERO)
+	assert_int(golfers._figures.size()).is_equal(2)

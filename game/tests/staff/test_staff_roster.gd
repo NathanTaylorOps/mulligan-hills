@@ -198,3 +198,20 @@ func test_legacy_counts_sum_to_head_count() -> void:
 	assert_int(int(lc["marshals"])).is_equal(4)
 	assert_int(int(lc["pro_shop_staff"])).is_equal(4)
 	assert_int(int(lc["caterers"])).is_equal(10)
+
+
+func test_relaxed_mode_auto_assigns_idle_area_staff_only() -> void:
+	var v: Dictionary = _view(2, 2)
+	_staff.hire("groundskeeper", 0, v, RICH)
+	_staff.hire("marshal", 0, v, RICH)
+	assert_bool((_staff.roster.employee(1)["areas"] as Array).is_empty()).is_true()
+	_staff.on_day(1, v, 7, "relaxed")
+	assert_bool((_staff.roster.employee(1)["areas"] as Array).is_empty()).is_false()
+	assert_bool((_staff.roster.employee(2)["areas"] as Array).is_empty()).is_true()
+
+
+func test_standard_mode_leaves_idle_area_staff_for_player_assignment() -> void:
+	var v: Dictionary = _view(2)
+	_staff.hire("groundskeeper", 0, v, RICH)
+	_staff.on_day(1, v, 7, "standard")
+	assert_bool((_staff.roster.employee(1)["areas"] as Array).is_empty()).is_true()

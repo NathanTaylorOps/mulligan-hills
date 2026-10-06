@@ -28,6 +28,8 @@ static func capture(session: MHGameSession, source: Dictionary) -> MHSaveResult:
 	club["lifetime_earned"] = session.economy.total_revenue / 100
 	club["members"] = session.economy.members()
 	club["reputation"] = session.economy.reputation
+	club["staff"] = session.staff_system.legacy_counts()
+	club["staff_roster"] = session.staff_system.to_save_block()
 	club["prestige"] = session.bridge.club_points()
 	doc["club"] = club
 	var tiers: Dictionary = session.tiers()
@@ -51,8 +53,8 @@ static func capture(session: MHGameSession, source: Dictionary) -> MHSaveResult:
 	doc["runtime"] = {"v": 1, "clock": session.clock.to_dict(), "economy": session.economy.to_dict(),
 		"save_secret": session.save_secret, "recent_scores": session.recent_scores.duplicate(),
 		"golfer_roster": session.golfer_roster.to_dict(), "customer_serial": session._customer_serial,
-		"customer_feedback_sum": session.customer_feedback_sum, "customer_feedback_count": session.customer_feedback_count,
-		"building_placements": session.building_placements.duplicate(true),
+		"customer_feedback_sum": session.customer_feedback_sum, "customer_feedback_count": session.customer_feedback_count, "management_difficulty": session.management_difficulty,
+		"pending_customers": session._pending_customers.duplicate(true), "building_placements": session.building_placements.duplicate(true),
 		"ledger_hash": MHSaveGame.canonical_json(session.ledger.to_dict()).sha256_text(),
 		"terrain_bytes_hash": str((source.get("runtime", {}) as Dictionary).get("terrain_bytes_hash", "0".repeat(64)))}
 	if session.practice != null:
@@ -112,6 +114,11 @@ static func restore(source: Dictionary, ledger: MHTokenLedger) -> MHSaveResult:
 		return _bad("clock and accounting disagree")
 	s.save_secret = int(rt["save_secret"])
 	s.rating_epoch = int(doc["sim"]["rating_epoch"])
+	# create() seeds the default empty course state; restore_course() intentionally requires
+	# a fresh course container so checkpoint geometry cannot merge with live/default geometry.
+	s._holes.clear()
+	s._ratings.clear()
+	s._course.clear()
 	if not s.restore_course(layouts.value as Array):
 		return _bad("saved course cannot be officially rated")
 	if s.economy.holes != s.hole_scores().size() or s.economy.rating != int(s.course_result().get("course_x10", 0)) / 10 or s.economy.parcels != s.land.owned_count():
@@ -131,12 +138,18 @@ static func restore(source: Dictionary, ledger: MHTokenLedger) -> MHSaveResult:
 		return _bad("building tiers disagree")
 	if not s.bridge.load_save_progress(doc["progress"] as Dictionary):
 		return _bad("progress checkpoint invalid")
-	# Until real staffing exists, do not manufacture an aggregate from a legacy model.
 	if typeof(club.get("staff", null)) != TYPE_DICTIONARY:
 		return _bad("staff checkpoint missing")
-	for v: Variant in (club["staff"] as Dictionary).values():
-		if int(v) != 0:
-			return _bad("live staffing is not implemented")
+	if club.has("staff_roster"):
+		if typeof(club["staff_roster"]) != TYPE_DICTIONARY or not s.staff_system.from_save_block(club["staff_roster"] as Dictionary):
+			return _bad("staff roster checkpoint invalid")
+		if (club["staff"] as Dictionary) != s.staff_system.legacy_counts():
+			return _bad("staff roster and legacy counts disagree")
+	else:
+		# Pre-staff live checkpoints remain readable only when their legacy aggregate is empty.
+		for v: Variant in (club["staff"] as Dictionary).values():
+			if int(v) != 0:
+				return _bad("staff roster checkpoint missing")
 	s.ledger = ledger
 	s.save_secret = int(rt["save_secret"])
 	s.rating_epoch = int(doc["sim"]["rating_epoch"])
@@ -147,7 +160,17 @@ static func restore(source: Dictionary, ledger: MHTokenLedger) -> MHSaveResult:
 	s._customer_serial = maxi(0, int(rt.get("customer_serial", 0)))
 	s.customer_feedback_sum = maxi(0, int(rt.get("customer_feedback_sum", 0)))
 	s.customer_feedback_count = maxi(0, int(rt.get("customer_feedback_count", 0)))
-	s.building_placements = (rt.get("building_placements", {}) as Dictionary).duplicate(true)
+	var difficulty: String = str(rt.get("management_difficulty", "standard"))
+	if not ["relaxed", "standard", "tycoon"].has(difficulty):
+		return _bad("management difficulty invalid")
+	s.management_difficulty = difficulty
+	if typeof(rt.get("pending_customers", [])) != TYPE_ARRAY:
+		return _bad("pending customer checkpoint invalid")
+	s._pending_customers = (rt.get("pending_customers", []) as Array).duplicate(true)
+	if s._pending_customers.size() > 10000:
+		return _bad("pending customer checkpoint too large")
+	if not s.restore_building_placements(rt.get("building_placements", {})):
+		return _bad("building placement checkpoint invalid")
 	if s.customer_feedback_count == 0 and s.customer_feedback_sum != 0:
 		return _bad("customer feedback checkpoint invalid")
 	if rt.has("practice"):

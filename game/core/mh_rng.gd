@@ -69,6 +69,7 @@ func next_u32() -> int:
 
 ## Uniform in [0, n), 1 <= n <= 2^32, unbiased by rejection.
 func bounded(n: int) -> int:
+	assert(n >= 1 and n <= 4294967296, "bounded() requires 1 <= n <= 2^32")
 	var threshold: int = (4294967296 - n) % n
 	while true:
 		var r: int = next_u32()
@@ -79,7 +80,10 @@ func bounded(n: int) -> int:
 
 ## Uniform in [lo, hi] inclusive.
 func range_incl(lo: int, hi: int) -> int:
-	return lo + bounded(hi - lo + 1)
+	assert(hi >= lo, "range_incl() requires hi >= lo")
+	var width: int = hi - lo + 1
+	assert(width <= 4294967296, "range_incl() width exceeds 2^32")
+	return lo + bounded(width)
 
 
 ## Gaussian-like: sum of four uniforms in [0,65536) minus 131070 -> range +-131070, sd about 37837 (0.577 in Q16.16).
