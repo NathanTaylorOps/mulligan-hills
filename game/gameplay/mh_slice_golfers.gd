@@ -36,6 +36,7 @@ var _baked_cache: Dictionary = {}
 var _baked_pool: Array = []
 var _balls: Array = []
 var _ball_mesh: Mesh
+var terrain_grid: MHHeightGrid
 
 
 func setup(material: Material) -> void:
@@ -96,6 +97,7 @@ func _render(states: Array, cam_pos: Vector3) -> void:
 		var p2: Vector2 = MHSliceRound.ground_point(d["tee"] as Vector2, d["dir"] as Vector2, float(st["along"]),
 			int(d["member"]), int(d["size"]))
 		var p3: Vector3 = Vector3(p2.x, 0.0, p2.y)
+		p3 = MHClubPedestrian.apply_ground_height(p3, terrain_grid)
 		positions.append(p3)
 		dist2.append(p3.distance_squared_to(cam_pos))
 		looks.append(int(d["look"]))
@@ -140,6 +142,8 @@ func _render(states: Array, cam_pos: Vector3) -> void:
 			var tee: Vector2 = d2["tee"] as Vector2
 			var green: Vector2 = d2["green"] as Vector2
 			b.position = MHSliceRound.ball_point(tee, green, u)
+			var ground: Vector3 = MHClubPedestrian.apply_ground_height(Vector3(b.position.x, 0.0, b.position.z), terrain_grid)
+			b.position.y += ground.y
 			b.visible = true
 	for k: Variant in _figures.keys():
 		if not used_figures.has(k):
