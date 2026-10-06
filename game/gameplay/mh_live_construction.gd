@@ -765,6 +765,14 @@ func _make_staff_visual(assignment: Dictionary) -> Node3D:
 		machine.mesh = machine_mesh
 		machine.position = Vector3(0.0, 0.35, -0.9)
 		root.add_child(machine)
+	elif not equipment.is_empty() and bool(equipment.get("broken", false)):
+		var status: Label3D = Label3D.new()
+		status.text = "Machine down"
+		status.font_size = 18
+		status.outline_size = 5
+		status.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+		status.position = Vector3(0.0, 2.1, 0.0)
+		root.add_child(status)
 	return root
 
 
