@@ -20,6 +20,7 @@ const MAX_DAY: int = 1000000
 var defs: MHStaffDefs
 var roster: MHStaffRoster = MHStaffRoster.new()
 var grounds: MHStaffGrounds = MHStaffGrounds.new()
+var equipment: MHStaffEquipment = MHStaffEquipment.new()
 
 
 ## A fresh club with no employees. Returns null when the defs are not loaded.
@@ -95,7 +96,9 @@ func personal_patrol(parcel: int, cells: int, cells_per_parcel: int, view: Dicti
 ## One game day: grounds update with the incident rolls, then every employee gets one day of tenure. Idempotent per day.
 ## Returns {"ran": bool, "incidents": Array of {parcel, kind, positive, handled}}.
 func on_day(day: int, view: Dictionary, secret: int) -> Dictionary:
-	var res: Dictionary = grounds.on_day(defs, roster, day, view, secret)
+	var res: Dictionary = grounds.on_day(defs, roster, day, view, secret, equipment)
+	if bool(res["ran"]):
+		equipment.on_day(MHStaffView.tier_of(view, "maintenance"))
 	if bool(res["ran"]):
 		roster.age_one_day()
 	return res
@@ -195,6 +198,7 @@ func to_save_block() -> Dictionary:
 		"personal_work": grounds.personal_work.duplicate(),
 		"personal_pest": grounds.personal_pest.duplicate(),
 		"stats": stats(),
+		"equipment": equipment.to_save_block(),
 	}
 
 
@@ -232,6 +236,9 @@ func from_save_block(block: Dictionary) -> bool:
 	if cond == null or pst == null or pw == null or pp == null:
 		return false
 	if typeof(b.get("stats", null)) != TYPE_DICTIONARY:
+		return false
+	var equipment_block: Variant = b.get("equipment", null)
+	if equipment_block != null and (typeof(equipment_block) != TYPE_DICTIONARY or not equipment.from_save_block(equipment_block as Dictionary)):
 		return false
 	var st: Dictionary = b["stats"]
 	if st.size() != STAT_KEYS.size():
