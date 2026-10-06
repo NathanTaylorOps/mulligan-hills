@@ -393,9 +393,24 @@ func _resolve_customer_hour() -> void:
 			continue
 		var hole: Dictionary = _holes[hole_index] as Dictionary
 		var rating: Dictionary = _ratings[hole_index] as Dictionary
-		var round: Dictionary = MHAIRoundRecord.play(hole, {"save_secret": save_secret, "rating_epoch": rating_epoch}, band, 0)
-		if round.is_empty():
+		# One paid admission owns one deterministic course round. Keep the first-hole round/rating
+		# fields for compatibility while course_round drives multi-hole presentation.
+		var course_round: Array = []
+		for offset: int in range(_holes.size()):
+			var course_index: int = posmod(hole_index + offset, _holes.size())
+			var course_hole: Dictionary = _holes[course_index] as Dictionary
+			var course_rating: Dictionary = _ratings[course_index] as Dictionary
+			var course_record: Dictionary = MHAIRoundRecord.play(course_hole,
+				{"save_secret": save_secret, "rating_epoch": rating_epoch}, band, offset)
+			if course_record.is_empty():
+				course_round = []
+				break
+			course_round.append({"hole_slot": int(course_hole.get("slot_id", -1)),
+				"round": course_record, "rating": course_rating.duplicate(true)})
+		if course_round.is_empty():
 			continue
+		var round: Dictionary = (course_round[0] as Dictionary)["round"] as Dictionary
+		rating = (course_round[0] as Dictionary)["rating"] as Dictionary
 		var pref: int = int(identity.get("preference", MHGolferPreference.CASUAL))
 		var base: int = MHCustomerRoundQueue.satisfaction(round, int(rating.get("par", 3)))
 		var bonus: int = MHGolferPreference.bonus(pref, rating, round)
@@ -408,6 +423,7 @@ func _resolve_customer_hour() -> void:
 		var sat: int = clampi(base + bonus - condition_penalty + service_bonus, 0, 100)
 		customer["round"] = round
 		customer["rating"] = rating.duplicate(true)
+		customer["course_round"] = course_round
 		customer["preference"] = pref
 		customer["base_satisfaction"] = base
 		customer["preference_bonus"] = bonus
