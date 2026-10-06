@@ -197,15 +197,24 @@ func _relayout() -> void:
 		_layout_key = []
 	if _dock.theme != shell.theme:
 		_dock.theme = shell.theme # Text-size changes build a new theme.
-	var on: bool = shell.overlay_active()
+	var on: bool = shell.overlay_active() and shell.current_screen_id() == MHScreenIds.HUD
 	_dock.visible = on
 	if not on:
 		_layout_key = []
 		return
 	var free: Rect2 = shell.overlay_free_rect()
-	if free.size.x <= 0.0 or free.size.y <= 0.0:
-		return # Not laid out yet; the next frame asks again.
 	var tm: float = shell.ctx.touch_min()
+	if free.size.x <= 0.0 or free.size.y <= 0.0:
+		# Do not leave controls at their default (0,0) if the shell has not produced
+		# its spacer rect yet. Use a conservative HUD-shaped fallback until the real
+		# rectangle arrives on a later frame.
+		var gutter: float = float(MHTheme.GUTTER)
+		var top_h: float = gutter + tm * 2.0 + 24.0
+		var bottom_h: float = gutter + tm + 8.0
+		free = Rect2(gutter, top_h, maxf(0.0, viewport_size.x - gutter * 2.0),
+			maxf(0.0, viewport_size.y - top_h - bottom_h))
+		if free.size.x <= 0.0 or free.size.y <= 0.0:
+			return
 	var state: int = _panel_state()
 	var key: Array = [free, tm, state, shell.ctx.scaled(MHTheme.FONT_SMALL), shell.ctx.left_handed()]
 	if key == _layout_key:
