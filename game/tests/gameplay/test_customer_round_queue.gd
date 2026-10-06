@@ -571,3 +571,21 @@ func test_traffic_state_is_read_only_snapshot_of_concurrent_course_use() -> void
 	assert_int((traffic["occupied_holes"] as Dictionary).size()).is_equal(2)
 	(traffic["occupied_holes"] as Dictionary).clear()
 	assert_int(q.occupied_holes.size()).is_equal(2)
+
+
+func test_real_tee_wait_creates_bounded_pace_penalty_and_staff_relief() -> void:
+	var q: MHCustomerRoundQueue = MHCustomerRoundQueue.new()
+	q.active_parties[1] = {"party_id": 1, "transitioning": true, "transition_hole_index": 1,
+		"transition_customers": [{"serial": 101, "party_id": 1, "hole_slot": 5, "round": {"events": []}}]}
+	q.occupied_holes[5] = 2
+	assert_dict(q.begin_next_hole(100.0, 1)).is_empty()
+	assert_dict(q.begin_next_hole(160.0, 1)).is_empty()
+	q.occupied_holes.erase(5)
+	var started: Dictionary = q.begin_next_hole(160.0, 1)
+	assert_str(str(started.get("kind", ""))).is_equal("hole_started")
+	assert_float(q.wait_seconds_for_customer(101)).is_equal(60.0)
+	var no_staff: int = q.pace_penalty_for_customer(101, 0)
+	var strong_staff: int = q.pace_penalty_for_customer(101, 100)
+	assert_int(no_staff).is_greater(0)
+	assert_int(strong_staff).is_less(no_staff)
+	assert_int(no_staff).is_less_equal(20)
