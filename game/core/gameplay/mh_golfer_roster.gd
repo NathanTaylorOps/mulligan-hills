@@ -12,6 +12,9 @@ const FACILITIES: Array[String] = ["clubhouse","driving_range","restaurant","pro
 var golfers: Dictionary = {}
 var next_id: int = 0
 
+## Relationship identity is persistent (associates/social_circle_id). group_id is presentation-only
+## and must never be written back as the identity of a lasting friendship.
+
 
 func group_for_admission(save_secret: int, admission_serial: int, day: int, size: int) -> Array:
 	var out: Array = []
@@ -26,19 +29,20 @@ func group_for_admission(save_secret: int, admission_serial: int, day: int, size
 			g = identity_for_admission(save_secret, admission_serial + i + salt * 104729, day)
 			salt += 1
 		used[int(g["id"])] = true
+		# A visiting party gets a transient group id. Do not persist it into the golfer record:
+		# the same associate can legitimately appear in a different party next visit.
 		g["group_id"] = int(anchor["group_id"])
 		g["relationship_role"] = ["friend", "partner", "family"][posmod(int(g["id"]) + i, 3)]
-		if golfers.has(int(g["id"])):
-			golfers[int(g["id"])] = g.duplicate(true)
 		link_associates(int(anchor["id"]), int(g["id"]))
-		out.append((golfers[int(g["id"])] as Dictionary).duplicate(true))
+		out.append(g.duplicate(true))
 	# Once an anchor has a social graph, vary future public parties among those known associates.
 	if int(anchor.get("visits", 0)) > 0:
 		var social: Array = public_party(int(anchor["id"]), n, admission_serial + day)
 		if social.size() == n:
+			var party_group_id: int = int(anchor["group_id"])
 			for member_v: Variant in social:
 				var member: Dictionary = member_v
-				member["group_id"] = int(anchor["group_id"])
+				member["group_id"] = party_group_id
 			return social
 	return out
 
