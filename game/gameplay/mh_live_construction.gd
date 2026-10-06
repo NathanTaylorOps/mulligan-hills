@@ -608,6 +608,16 @@ func _advance_facility_walkers(delta_s: float) -> void:
 		var node: Node3D = Node3D.new()
 		node.name = "FacilityWalker_%d" % serial
 		node.position = start
+		var body: MeshInstance3D = MeshInstance3D.new()
+		var capsule: CapsuleMesh = CapsuleMesh.new()
+		capsule.radius = 0.32
+		capsule.height = 1.7
+		capsule.radial_segments = 8
+		capsule.rings = 2
+		body.mesh = capsule
+		body.position.y = 0.85
+		body.material_override = _building_mat
+		node.add_child(body)
 		add_child(node)
 		_facility_walkers[serial] = {"node": node, "route": MHClubPedestrian.route(start, positions[facility_id] as Vector3, serial),
 			"segment": 1}
