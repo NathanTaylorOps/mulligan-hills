@@ -318,7 +318,7 @@ func _draw() -> void:
 	_box(_position(int(g[0]) * 100, int(g[1]) * 100, 1.0), Vector3(0.12, 2, 0.12), Color.WHITE)
 	_ball = _marker(Color.WHITE, 0.35)
 	var r: MHPracticeRound = live.session.practice
-	_ball.position = _position(r.x if r != null and not _preview_draft else 0, r.y if r != null and not _preview_draft else 0, 0.45)
+	_ball.position = _position_on_ground(r.x if r != null and not _preview_draft else 0, r.y if r != null and not _preview_draft else 0, 0.45)
 	_aim = _marker(Color(1, 0.8, 0.1), 0.55)
 	_move_aim()
 
@@ -361,8 +361,19 @@ func _marker_at(pos: Vector3, color: Color, radius: float) -> MeshInstance3D:
 
 func _move_aim() -> void:
 	if _aim != null:
-		_aim.position = _position(aim_x, aim_y, 0.7)
+		_aim.position = _position_on_ground(aim_x, aim_y, 0.7)
 	_refresh_path()
+
+func _ground_height(cx: int, cy: int) -> float:
+	var layouts: Array = live.session.hole_definitions() if live != null else []
+	var h: Dictionary = _layout() if _preview_draft or layouts.is_empty() else layouts[0]
+	if h.has("relief"):
+		var hole: MHRHole = MHRHole.from_def(h)
+		return float(hole.z_at(cx, cy)) / 1000.0
+	return 0.0
+
+func _position_on_ground(cx: int, cy: int, offset: float) -> Vector3:
+	return _position(cx, cy, _ground_height(cx, cy) + offset)
 
 func _position(cx: int, cy: int, height: float) -> Vector3:
 	return Vector3(float(MHCourseLayout.world_mm(int(ORIGIN[0]), cx)) / 1000.0, height,
@@ -494,10 +505,10 @@ func _refresh_path() -> void:
 	if r.finished:
 		_feedback.text = "Round finished. Start another practice round."
 		return
-	var a: Vector3 = _position(r.x, r.y, 0.18)
-	var b: Vector3 = _position(aim_x, aim_y, 0.18)
+	var a: Vector3 = _position_on_ground(r.x, r.y, 0.18)
+	var b: Vector3 = _position_on_ground(aim_x, aim_y, 0.18)
 	_path_line(a, b, Color(1, 0.8, 0.1))
-	var landing: Vector3 = _position(int(preview["landing_x"]), int(preview["landing_y"]), 0.22)
+	var landing: Vector3 = _position_on_ground(int(preview["landing_x"]), int(preview["landing_y"]), 0.22)
 	var radius: float = maxf(0.5, float(preview["spread_cy"]) * 0.009144)
 	for i: int in range(16):
 		var t0: float = float(i) * TAU / 16.0
