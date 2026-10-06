@@ -270,7 +270,9 @@ func record_customer_visit(customer: Dictionary) -> Dictionary:
 		return {}
 	var sat: int = clampi(int(customer.get("satisfaction", 50)), 0, 100)
 	var memory: String = str(customer.get("reaction", "Finished a round."))
-	var updated: Dictionary = golfer_roster.record_visit(int(identity["id"]), economy.day, sat, memory)
+	var round: Dictionary = customer.get("round", {}) as Dictionary
+	var updated: Dictionary = golfer_roster.record_visit(int(identity["id"]), economy.day, sat, memory,
+		int(customer.get("hole_slot", 0)), int(round.get("flags", 0)))
 	record_customer_feedback(sat)
 	return updated
 
