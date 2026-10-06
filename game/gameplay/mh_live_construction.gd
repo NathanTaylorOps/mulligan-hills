@@ -700,8 +700,13 @@ func _sync_visible_staff() -> void:
 			continue
 		used[serial] = true
 		var node: Node3D = _visible_staff_nodes.get(serial, null) as Node3D
-		if node == null:
+		var equipment: Dictionary = assignment.get("equipment", {}) as Dictionary
+		var visual_key: String = str(equipment.get("type", "walking")) + (":broken" if bool(equipment.get("broken", false)) else "")
+		if node == null or str(node.get_meta("visual_key", "")) != visual_key:
+			if node != null:
+				node.queue_free()
 			node = _make_staff_visual(assignment)
+			node.set_meta("visual_key", visual_key)
 			_visible_staff_root.add_child(node)
 			_visible_staff_nodes[serial] = node
 		var phase: float = fmod(float(session.clock.total_minutes() + serial * 7), 60.0) / 60.0
@@ -724,7 +729,7 @@ func _make_staff_visual(assignment: Dictionary) -> Node3D:
 	worker.position.y = 0.82
 	root.add_child(worker)
 	var equipment: Dictionary = assignment.get("equipment", {}) as Dictionary
-	if not equipment.is_empty():
+	if not equipment.is_empty() and not bool(equipment.get("broken", false)):
 		var machine: MeshInstance3D = MeshInstance3D.new()
 		var machine_mesh: BoxMesh = BoxMesh.new()
 		machine_mesh.size = Vector3(1.3, 0.55, 1.8)
