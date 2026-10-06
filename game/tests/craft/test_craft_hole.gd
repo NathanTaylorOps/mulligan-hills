@@ -36,6 +36,26 @@ func test_heights_are_clamped_to_the_range() -> void:
 	assert_int(h.get_height(8, 8)).is_equal(MHCraftHole.HEIGHT_MAX_M)
 
 
+func test_level_and_smooth_are_stroke_safe_and_order_independent_per_dab() -> void:
+	var h: MHCraftHole = MHCraftHole.new(24, 40)
+	h.set_height_tile(10, 10, 6)
+	h.set_height_tile(11, 10, 0)
+	h.set_height_tile(10, 11, 0)
+	h.begin_stroke()
+	h.level_disc(10, 10, 1, 3)
+	assert_bool(h.commit_stroke()).is_true()
+	assert_int(h.get_height(10, 10)).is_equal(3)
+	assert_int(h.get_height(11, 10)).is_equal(3)
+	assert_bool(h.undo()).is_true()
+	assert_int(h.get_height(10, 10)).is_equal(6)
+	assert_int(h.get_height(11, 10)).is_equal(0)
+	h.begin_stroke()
+	h.smooth_disc(10, 10, 1)
+	assert_bool(h.commit_stroke()).is_true()
+	assert_bool(h.get_height(10, 10) < 6).is_true()
+	assert_bool(h.get_height(11, 10) > 0).is_true()
+
+
 func test_a_stroke_undoes_and_redoes_as_one_step() -> void:
 	var h: MHCraftHole = MHCraftHole.new(24, 40)
 	assert_bool(h.begin_stroke()).is_true()
