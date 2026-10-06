@@ -93,6 +93,13 @@ func upkeep_per_day() -> int:
 	return 0
 
 
+## Read-only management snapshot. Empty in views that do not provide the live staff simulation.
+## Keys include difficulty, automation, head_count, payroll_cents, course condition/service,
+## equipment counts/costs and player-facing warnings.
+func management_report() -> Dictionary:
+	return {}
+
+
 ## Per-hole scores 0..100 (valid holes only, dead ones included). Empty array when no holes exist.
 func hole_scores() -> Array:
 	return []
