@@ -489,8 +489,15 @@ func apply_playback_pace_experience(customer: Dictionary) -> Dictionary:
 	adjusted["reaction"] = "Slow play took the shine off that round." if penalty >= 6 else "A little wait on the course, but still a good day."
 	var identity: Dictionary = customer.get("identity", {}) as Dictionary
 	if not identity.is_empty() and golfer_roster.golfers.has(int(identity.get("id", -1))):
-		adjusted["identity"] = golfer_roster.record_visit(int(identity["id"]), economy.day, sat,
-			str(adjusted["reaction"]), int(customer.get("hole_slot", 0)), int((customer.get("round", {}) as Dictionary).get("flags", 0)))
+		var golfer: Dictionary = golfer_roster.golfers[int(identity["id"])] as Dictionary
+		var memories: Array = golfer.get("memories", []) as Array
+		if not memories.is_empty():
+			var memory: Dictionary = memories[memories.size() - 1] as Dictionary
+			if int(memory.get("day", -1)) == economy.day:
+				memory["satisfaction"] = sat
+				memory["reaction"] = str(adjusted["reaction"])
+		golfer["loyalty"] = clampi(int(golfer.get("loyalty", 0)) - penalty / 2, 0, 100)
+		adjusted["identity"] = golfer.duplicate(true)
 	# Initial resolution already applied reputation from original_sat. Apply only the bounded difference here.
 	var old_delta: int = clampi(MHRMath.rdiv(original_sat - 50, 12), -4, 4)
 	var new_delta: int = clampi(MHRMath.rdiv(sat - 50, 12), -4, 4)
