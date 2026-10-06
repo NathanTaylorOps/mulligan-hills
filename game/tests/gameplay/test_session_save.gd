@@ -915,3 +915,25 @@ func test_star_cart_profiles_are_data_driven_and_have_safe_fallback() -> void:
 	assert_str(str(unknown["body"])).is_equal("golf_cart")
 	assert_str(str(unknown["behavior"])).is_equal("park_nearby")
 	assert_str(str(unknown["skin"])).is_equal("future_star_skin")
+
+
+func test_star_cart_profiles_validate_safe_content_bounds() -> void:
+	var lion: Dictionary = MHStarCartProfiles.profile_for("lion_black_suv")
+	assert_bool(MHStarCartProfiles.validate_profile(lion)).is_true()
+	var invalid: Dictionary = lion.duplicate(true)
+	invalid["behavior"] = "launch_into_crowd"
+	assert_bool(MHStarCartProfiles.validate_profile(invalid)).is_false()
+	invalid = lion.duplicate(true)
+	invalid["scale_x10"] = 100
+	assert_bool(MHStarCartProfiles.validate_profile(invalid)).is_false()
+
+
+func test_star_cart_reusable_vehicle_silhouettes_are_distinct() -> void:
+	var base: Dictionary = MHStarCartProfiles.DEFAULT_PROFILE.duplicate(true)
+	var golf: Vector3 = MHStarCartProfiles.body_size(base)
+	base["body"] = "suv"
+	var suv: Vector3 = MHStarCartProfiles.body_size(base)
+	base["body"] = "limo"
+	var limo: Vector3 = MHStarCartProfiles.body_size(base)
+	assert_bool(suv.z > golf.z).is_true()
+	assert_bool(limo.z > suv.z).is_true()
