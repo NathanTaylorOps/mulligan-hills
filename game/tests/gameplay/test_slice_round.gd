@@ -215,3 +215,15 @@ func test_inter_hole_walk_keeps_every_real_party_member_visible() -> void:
 		assert_bool(bool(golfer["walk_only"])).is_true()
 	golfers.remove_group(44)
 	assert_int(golfers.golfer_count()).is_equal(0)
+
+
+func test_same_look_golfers_keep_distinct_detailed_figure_instances() -> void:
+	var golfers: MHSliceGolfers = auto_free(MHSliceGolfers.new())
+	add_child(golfers)
+	golfers.setup(MHArtMaterials.vertex_color())
+	golfers.set_caps(4, 4)
+	var shared_identity: Dictionary = {"look_seed": 1234}
+	golfers.spawn_walking_party([{"serial": 1, "party_id": 1, "identity": shared_identity}], Vector3.ZERO, Vector3(10, 0, 0))
+	golfers.spawn_walking_party([{"serial": 2, "party_id": 2, "identity": shared_identity}], Vector3(0, 0, 5), Vector3(10, 0, 5))
+	golfers.advance(0.1, Vector3.ZERO)
+	assert_int(golfers._figures.size()).is_equal(2)
