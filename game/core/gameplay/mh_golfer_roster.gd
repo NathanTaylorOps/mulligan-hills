@@ -7,6 +7,10 @@ const LAST: Array[String] = ["Adams","Brooks","Carter","Diaz","Evans","Foster","
 const MAX_ROSTER: int = 128
 const MEMORY_LIMIT: int = 8
 const ASSOCIATE_LIMIT: int = 8
+const REGULAR_VISITS: int = 5
+const HAPPY_SATISFACTION: int = 70
+const MEMBERSHIP_HAPPY_ROUNDS_AFTER_REGULAR: int = 2
+const HOME_HAPPY_VISITS: int = 5
 const FACILITIES: Array[String] = ["clubhouse","driving_range","restaurant","pro_shop","pool_spa","lodging","homes","landmark"]
 
 var golfers: Dictionary = {}
@@ -70,7 +74,8 @@ func identity_for_admission(save_secret: int, admission_serial: int, day: int) -
 		"look_seed": MHRMath.h32d(save_secret, id, 0x4C4F4F4B, 1), "identity_type": "ordinary",
 		"favorite_facility": FACILITIES[posmod(h >> 24, FACILITIES.size())], "favorite_hole_slot": -1,
 		"social_circle_id": id, "group_id": -1, "relationship_role": ["friend","partner","family"][posmod(h >> 12, 3)],
-		"member": false, "membership_status": "none", "associates": [], "home_interest": 0, "home_status": "none", "home_slot": -1, "membership_interest": 0, "visits": 0, "loyalty": 50, "best_satisfaction": -1, "worst_satisfaction": 101,
+		"member": false, "membership_status": "none", "associates": [], "home_interest": 0, "home_status": "none", "home_slot": -1, "membership_interest": 0,
+		"happy_visit_streak": 0, "happy_rounds_as_regular": 0, "home_request": false, "visits": 0, "loyalty": 50, "best_satisfaction": -1, "worst_satisfaction": 101,
 		"last_satisfaction": 50, "last_day": -1, "favorite_memory": "", "worst_memory": "", "memories": []}
 	golfers[id] = g
 	return g.duplicate(true)
@@ -181,19 +186,28 @@ func record_visit(identity_id: int, day: int, satisfaction: int, memory: String,
 	if sat < int(g["worst_satisfaction"]):
 		g["worst_satisfaction"] = sat
 		g["worst_memory"] = memory
-	# Strong repeat visits create interest/application intent; membership itself is a club decision.
-	var interest: int = clampi(int(g.get("membership_interest", 0)) + maxi(0, sat - 60) / 4, 0, 100)
+	# Character progression is visit-based and observable: five visits establishes a regular.
+	# From then on, two further happy rounds earn a membership application. A separate five-visit
+	# happiness streak earns a request to buy a home; neither request is automatically approved.
+	var happy: bool = sat >= HAPPY_SATISFACTION
+	g["happy_visit_streak"] = int(g.get("happy_visit_streak", 0)) + 1 if happy else 0
+	var visits: int = int(g["visits"])
+	if visits > REGULAR_VISITS:
+		g["happy_rounds_as_regular"] = int(g.get("happy_rounds_as_regular", 0)) + 1 if happy else 0
+	else:
+		g["happy_rounds_as_regular"] = 0
+	var interest: int = clampi(int(g.get("membership_interest", 0)) + (maxi(0, sat - 60) / 4 if happy else 0), 0, 100)
 	g["membership_interest"] = interest
-	# Home demand is separate from membership. Repeated excellent visits can create housing
-	# interest, but actual allocation is constrained by the club's owned homes capacity.
-	var home_gain: int = maxi(0, sat - 70) / 5
-	if str(g.get("favorite_facility", "")) == "homes":
+	if str(g.get("membership_status", "none")) == "none" and visits >= REGULAR_VISITS:
+		g["membership_status"] = "interested"
+	if str(g.get("membership_status", "none")) == "interested" and int(g["happy_rounds_as_regular"]) >= MEMBERSHIP_HAPPY_ROUNDS_AFTER_REGULAR:
+		g["membership_status"] = "applied"
+	var home_gain: int = maxi(0, sat - HAPPY_SATISFACTION) / 5 if happy else 0
+	if happy and str(g.get("favorite_facility", "")) == "homes":
 		home_gain += 2
 	g["home_interest"] = clampi(int(g.get("home_interest", 0)) + home_gain, 0, 100)
-	if str(g.get("membership_status", "none")) == "none" and int(g["visits"]) >= 3 and int(g["loyalty"]) >= 72 and interest >= 35:
-		g["membership_status"] = "interested"
-	if str(g.get("membership_status", "none")) == "interested" and int(g["visits"]) >= 4 and interest >= 50:
-		g["membership_status"] = "applied"
+	if int(g["happy_visit_streak"]) >= HOME_HAPPY_VISITS and str(g.get("home_status", "none")) == "none":
+		g["home_request"] = true
 	g["member"] = str(g.get("membership_status", "none")) == "member"
 	golfers[identity_id] = g
 	return g.duplicate(true)
@@ -316,6 +330,12 @@ func from_dict(raw: Dictionary) -> bool:
 			g["home_slot"] = -1
 		if not g.has("membership_interest"):
 			g["membership_interest"] = 0
+		if not g.has("happy_visit_streak"):
+			g["happy_visit_streak"] = 0
+		if not g.has("happy_rounds_as_regular"):
+			g["happy_rounds_as_regular"] = 0
+		if not g.has("home_request"):
+			g["home_request"] = false
 		var id: int = int(g["id"])
 		var membership_status: String = str(g["membership_status"])
 		var home_status: String = str(g["home_status"])
