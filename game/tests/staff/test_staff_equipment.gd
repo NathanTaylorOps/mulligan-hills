@@ -108,3 +108,20 @@ func test_selling_equipment_is_simple_and_removes_it() -> void:
 	assert_bool(value > 0).is_true()
 	assert_int(fleet.units.size()).is_equal(0)
 	assert_int(fleet.sell_unit(serial)).is_equal(0)
+
+
+func test_difficulty_changes_pressure_without_extra_player_controls() -> void:
+	var relaxed: MHStaffEquipment = MHStaffEquipment.new()
+	var standard: MHStaffEquipment = MHStaffEquipment.new()
+	var tycoon: MHStaffEquipment = MHStaffEquipment.new()
+	for fleet: MHStaffEquipment in [relaxed, standard, tycoon]:
+		var bought: Dictionary = fleet.add_unit("greens_mower")
+		fleet.assign_unit(int(bought["serial"]), 5, "grounds")
+	relaxed.on_day(1, 0, [5], 650, 1350)
+	standard.on_day(1, 0, [5], 1000, 1000)
+	tycoon.on_day(1, 0, [5], 1350, 850)
+	var relaxed_condition: int = int((relaxed.units[0] as Dictionary)["condition"])
+	var standard_condition: int = int((standard.units[0] as Dictionary)["condition"])
+	var tycoon_condition: int = int((tycoon.units[0] as Dictionary)["condition"])
+	assert_bool(relaxed_condition > standard_condition).is_true()
+	assert_bool(standard_condition > tycoon_condition).is_true()
