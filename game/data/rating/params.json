@@ -659,6 +659,7 @@
 1000
 ]
 ],
+"relief": {"cy_div": 10, "delta_clamp_pm": 500, "roll_k": 3, "roll_lie_pm": [1000, 1000, 1000, 350, 120, 0, 1500], "roll_cap_cy": 400, "slope_p1": 10, "slope_p1_cap": 400, "slope_p3": 5, "slope_p3_cap": 300, "drop_div": 4, "drop_cap": 150, "range_pm": 600, "max_nodes": 16384, "z_abs_mm": 40000},
 "plan_samples": [
 [
 -157,

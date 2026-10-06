@@ -153,6 +153,8 @@ class Hole:
         self.tree_buckets = {}
         self.tee_z = d.get("tee_z_mm", 0)
         self.green_z = d.get("green_z_mm", 0)
+        self.relief = d.get("relief")
+        self.relief_range = 0
         if tee is None:
             self.valid = False
             self.reasons.append("RC001")
@@ -167,6 +169,11 @@ class Hole:
         self.tee = (tee[0] * CY, tee[1] * CY)
         self.gc = (green[0] * CY, green[1] * CY)
         self.gr = green[2]
+        if self.relief is not None:
+            zs = self.relief["z"]
+            self.relief_range = max(zs) - min(zs)
+            self.tee_z = self.z_at(self.tee[0], self.tee[1])
+            self.green_z = self.z_at(self.gc[0], self.gc[1])
         dx, dy = green[0] - tee[0], green[1] - tee[1]
         self.L = isqrt(dx * dx + dy * dy)
         self.par = par_for(self.L)
@@ -201,6 +208,33 @@ class Hole:
             self.valid = False
             self.reasons.append("RC006")
 
+    def z_at(self, xcy, ycy):
+        """Bilinear height in mm at a centi-yard point; clamped to the grid edge. 0 with no relief."""
+        r = self.relief
+        if r is None:
+            return 0
+        sc = r["step"] * CY
+        cols, rows, zs = r["cols"], r["rows"], r["z"]
+        fx = xcy - r["x0"] * CY
+        fy = ycy - r["y0"] * CY
+        i = clamp(fx // sc, 0, cols - 2)
+        j = clamp(fy // sc, 0, rows - 2)
+        fu = clamp(fx - i * sc, 0, sc)
+        fv = clamp(fy - j * sc, 0, sc)
+        z00, z10 = zs[j * cols + i], zs[j * cols + i + 1]
+        z01, z11 = zs[(j + 1) * cols + i], zs[(j + 1) * cols + i + 1]
+        return (z00 * (sc - fu) * (sc - fv) + z10 * fu * (sc - fv) + z01 * (sc - fu) * fv + z11 * fu * fv) // (sc * sc)
+
+    def grad_l1(self, xcy, ycy):
+        """|dz/dx| + |dz/dy| in mm per yard, central difference over one yard."""
+        gx = (self.z_at(xcy + CY, ycy) - self.z_at(xcy - CY, ycy)) // 2
+        gy = (self.z_at(xcy, ycy + CY) - self.z_at(xcy, ycy - CY)) // 2
+        return gx, gy
+
+    def elev_mm(self):
+        """Height change that drives the elevation axes: end to end, or 60% of the relief range if larger."""
+        return max(abs(self.green_z - self.tee_z), self.relief_range * P["relief"]["range_pm"] // 1000)
+
     def canonical_bytes(self):
         """Spec 2.1 canonical content: tee, green, z, sorted features, rock/flower counts, sorted trees."""
         b = bytearray()
@@ -221,6 +255,11 @@ class Hole:
         b += i32le(self.counts["rock"]) + i32le(self.counts["flower"]) + i32le(len(self.trees))
         for (tx, ty) in self.trees:
             b += i32le(tx // CY) + i32le(ty // CY)
+        if self.relief is not None:
+            r = self.relief
+            b += b"RLF1" + i32le(r["x0"]) + i32le(r["y0"]) + i32le(r["step"]) + i32le(r["cols"]) + i32le(r["rows"])
+            for v in r["z"]:
+                b += i32le(v)
         return bytes(b)
 
     def content_hash(self):
@@ -367,6 +406,32 @@ def validate_input(raw):
             trees += f["count"] if "count" in f else len(f.get("at", []))
             if trees > LIMITS["max_trees"]:
                 return False, "E05_TOO_MANY_OBJECTS"
+    rl = h.get("relief")
+    if rl is not None:
+        rp = P["relief"]
+        if not isinstance(rl, dict):
+            return False, "E06_TRUNCATED_OR_SHAPE"
+        for k in ("x0", "y0", "step", "cols", "rows", "z"):
+            if k not in rl:
+                return False, "E04_MISSING_FIELD"
+        if not isinstance(rl["z"], list):
+            return False, "E06_TRUNCATED_OR_SHAPE"
+        for k in ("x0", "y0", "step", "cols", "rows"):
+            if not is_int(rl[k]):
+                return False, "E07_NON_INTEGER"
+        if rl["cols"] < 2 or rl["rows"] < 2 or rl["step"] < 1:
+            return False, "E09_NEGATIVE_SIZE"
+        if rl["cols"] * rl["rows"] > rp["max_nodes"]:
+            return False, "E05_TOO_MANY_OBJECTS"
+        if len(rl["z"]) != rl["cols"] * rl["rows"]:
+            return False, "E06_TRUNCATED_OR_SHAPE"
+        if abs(rl["x0"]) > LIMITS["coord_abs"] or abs(rl["y0"]) > LIMITS["coord_abs"] or rl["step"] > 64:
+            return False, "E08_OUT_OF_RANGE"
+        for v in rl["z"]:
+            if not is_int(v):
+                return False, "E07_NON_INTEGER"
+            if abs(v) > rp["z_abs_mm"]:
+                return False, "E08_OUT_OF_RANGE"
     return True, "OK"
 
 
@@ -412,8 +477,15 @@ def mishit_pm(skill):
 def land(hole, bx, by, lie0, ax, ay, skill, cond, noise):
     """One ball flight. Returns (x, y, lie, pen, pen_kind, treehit, walk). pen_kind 1 water, 2 ob."""
     ux, uy, D = unit(ax - bx, ay - by)
-    ci = pick_club(D, skill, lie0)
-    Deff = min(D, carry_max(ci, skill, lie0))
+    rp = P["relief"]
+    delta = 0
+    if hole.relief is not None:
+        delta = (hole.z_at(ax, ay) - hole.z_at(bx, by)) // rp["cy_div"]
+        lim = D * rp["delta_clamp_pm"] // 1000
+        delta = clamp(delta, -lim, lim)
+    want = D + delta
+    ci = pick_club(want, skill, lie0)
+    Deff = min(want, carry_max(ci, skill, lie0))
     disp = LIES[lie0][1]
     sgm = interp(P["short_game_mult"], Deff // CY)
     sl = Deff * spread_pm(skill) // 1000 * disp // 1000 * sgm // 1000
@@ -429,7 +501,7 @@ def land(hole, bx, by, lie0, ax, ay, skill, cond, noise):
     wc = (cond["wx"] * (-uy) + cond["wy"] * ux) // 1024
     along_shift = Deff * wa * 8 * loft // 1000000
     lat_shift = Deff * wc * 6 * loft // 1000000
-    along = max(0, Deff + dd + along_shift) * (1000 - 40 * cond.get("rain", 0)) // 1000
+    along = max(0, Deff - delta + dd + along_shift) * (1000 - 40 * cond.get("rain", 0)) // 1000
     lat = dl + lat_shift
     px, py = -uy, ux
     tx = bx + rdiv(ux * along + px * lat, 1024)
@@ -448,6 +520,18 @@ def land(hole, bx, by, lie0, ax, ay, skill, cond, noise):
             lie = LIE_DEEP
     else:
         lie = hole.lie_at((tx, ty))
+        if hole.relief is not None and lie not in (LIE_WATER, LIE_OB, LIE_BUNKER):
+            gx, gy = hole.grad_l1(tx, ty)
+            f = rp["roll_lie_pm"][lie] * (2000 - loft) // 1000
+            cap = rp["roll_cap_cy"]
+            rx = clamp(-gx * rp["roll_k"] * f // 1000, -cap, cap)
+            ry = clamp(-gy * rp["roll_k"] * f // 1000, -cap, cap)
+            if rx != 0 or ry != 0:
+                tx += rx
+                ty += ry
+                lie = hole.lie_at((tx, ty))
+                if lie == LIE_TEE:
+                    lie = LIE_FAIRWAY
     walk = dist(bx, by, tx, ty)
     if lie == LIE_OB:
         return bx, by, lie0, 1, 2, treehit, walk
@@ -520,7 +604,7 @@ def band_mid(b):
     return (lo + hi) // 2
 
 
-def putt_count(d_cy, skill, roll):
+def putt_count(d_cy, skill, roll, slope=0, drop=0):
     ft = d_cy * 3 // CY
     base = 25
     for lim, p in P["putt_p1_base"]:
@@ -529,6 +613,10 @@ def putt_count(d_cy, skill, roll):
             break
     p1 = base * (500 + skill // 2) // 1000
     p3 = min(600, ft * 6 * (1100 - skill) // 1000)
+    if slope or drop:
+        rp = P["relief"]
+        p1 = p1 * (1000 - min(rp["slope_p1_cap"], slope * rp["slope_p1"])) // 1000
+        p3 += min(rp["slope_p3_cap"], slope * rp["slope_p3"]) + clamp(drop // rp["drop_div"], 0, rp["drop_cap"])
     if roll < p1:
         return 1
     if roll >= 1000 - p3:
@@ -556,7 +644,13 @@ def simulate(hole, seed, cond, counts=None):
         amp = (1000 - skill) * 30 // 1000
         while True:
             if lie == LIE_GREEN:
-                n = putt_count(dist(x, y, hole.gc[0], hole.gc[1]), skill, H32(seed, nid, shot, 4) % 1000)
+                slope = drop = 0
+                if hole.relief is not None:
+                    g1x, g1y = hole.grad_l1(x, y)
+                    g2x, g2y = hole.grad_l1(hole.gc[0], hole.gc[1])
+                    slope = (abs(g1x) + abs(g1y) + abs(g2x) + abs(g2y)) // 2
+                    drop = hole.z_at(x, y) - hole.z_at(hole.gc[0], hole.gc[1])
+                n = putt_count(dist(x, y, hole.gc[0], hole.gc[1]), skill, H32(seed, nid, shot, 4) % 1000, slope, drop)
                 strokes += n
                 tsec += 25 * n
                 if strokes > cap:

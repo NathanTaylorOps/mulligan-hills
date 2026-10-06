@@ -180,7 +180,7 @@ static func rate_parsed(h: MHRHole, ctx: Dictionary) -> Dictionary:
 		if la > 0 and lb > 0:
 			bend = absi(ax * by - ay * bx) * 1000 / (la * lb)
 	var bend_s: int = mini(1000, maxi(0, bend - 60) * 1000 / 240)
-	var elev: int = mini(1000, absi(h.green_z - h.tee_z) * 1000 / 5486)
+	var elev: int = mini(1000, h.elev_mm() * 1000 / 5486)
 	var shape: int = (600 * bend_s + 400 * elev) / 1000
 	var imag: int = (450 * oc + 350 * rr + 200 * shape) / 1000
 	imag = imag * mini(1000, 2 * fair) / 1000
@@ -292,7 +292,7 @@ static func beauty_parts(h: MHRHole) -> Dictionary:
 		cats += 1
 	if h.has_bunker():
 		cats += 1
-	var rel2: int = mini(100, absi(h.green_z - h.tee_z) * 100 / 5486)
+	var rel2: int = mini(100, h.elev_mm() * 100 / 5486)
 	var braw: int = mini(700, pol + tr + wat + 25 * cats + rel2)
 	return {"pol": pol, "tr": tr, "wat": wat, "var": 25 * cats, "rel": rel2, "n_tree": nt, "wa": wa, "cats": cats,
 		"stacked": stacked, "braw": braw}

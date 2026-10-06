@@ -92,7 +92,7 @@ static func style_of(gid: int) -> int:
 	return 2
 
 
-static func putt_count(d_cy: int, skill: int, roll: int) -> int:
+static func putt_count(d_cy: int, skill: int, roll: int, slope: int = 0, drop: int = 0) -> int:
 	var ft: int = d_cy * 3 / CY
 	var base: int = 25
 	var pb: PackedInt32Array = MHRParams.putt_base
@@ -102,6 +102,9 @@ static func putt_count(d_cy: int, skill: int, roll: int) -> int:
 			break
 	var p1: int = base * (500 + skill / 2) / 1000
 	var p3: int = mini(600, ft * 6 * (1100 - skill) / 1000)
+	if slope != 0 or drop != 0:
+		p1 = p1 * (1000 - mini(MHRParams.rl_slope_p1_cap, slope * MHRParams.rl_slope_p1)) / 1000
+		p3 += mini(MHRParams.rl_slope_p3_cap, slope * MHRParams.rl_slope_p3) + MHRMath.clampi_inc(MHRMath.fdiv(drop, MHRParams.rl_drop_div), 0, MHRParams.rl_drop_cap)
 	if roll < p1:
 		return 1
 	if roll >= 1000 - p3:
@@ -114,8 +117,14 @@ func land(bx: int, by: int, lie0: int, ax: int, ay: int, skill: int, zl: int, zd
 	var u: Vector3i = MHRMath.unit(ax - bx, ay - by)
 	var ux: int = u.x
 	var uy: int = u.y
-	var ci: int = pick_club(u.z, skill, lie0)
-	var deff: int = mini(u.z, carry_max(ci, skill, lie0))
+	var delta: int = 0
+	if hole.has_relief:
+		delta = MHRMath.fdiv(hole.z_at(ax, ay) - hole.z_at(bx, by), MHRParams.rl_cy_div)
+		var dlim: int = u.z * MHRParams.rl_delta_clamp_pm / 1000
+		delta = MHRMath.clampi_inc(delta, -dlim, dlim)
+	var want: int = u.z + delta
+	var ci: int = pick_club(want, skill, lie0)
+	var deff: int = mini(want, carry_max(ci, skill, lie0))
 	var disp: int = MHRParams.lie_disp[lie0]
 	var sgm: int = MHRMath.interp(MHRParams.short_game, deff / CY)
 	var sl: int = deff * spread_pm(skill) / 1000 * disp / 1000 * sgm / 1000
@@ -130,7 +139,7 @@ func land(bx: int, by: int, lie0: int, ax: int, ay: int, skill: int, zl: int, zd
 	var wc: int = MHRMath.fdiv(wx * (-uy) + wy * ux, 1024)
 	var along_shift: int = MHRMath.fdiv(deff * wa * 8 * loft, 1000000)
 	var lat_shift: int = MHRMath.fdiv(deff * wc * 6 * loft, 1000000)
-	var along: int = maxi(0, deff + dd + along_shift) * (1000 - 40 * rain) / 1000
+	var along: int = maxi(0, deff - delta + dd + along_shift) * (1000 - 40 * rain) / 1000
 	var lat: int = dl + lat_shift
 	var px: int = -uy
 	var py: int = ux
@@ -151,6 +160,18 @@ func land(bx: int, by: int, lie0: int, ax: int, ay: int, skill: int, zl: int, zd
 			lie = MHRHole.LIE_DEEP
 	else:
 		lie = hole.lie_at(tx, ty)
+		if hole.has_relief and lie != MHRHole.LIE_WATER and lie != MHRHole.LIE_OB and lie != MHRHole.LIE_BUNKER:
+			var gr2: Vector2i = hole.grad(tx, ty)
+			var rf: int = MHRParams.rl_roll_lie_pm[lie] * (2000 - loft) / 1000
+			var cap: int = MHRParams.rl_roll_cap_cy
+			var rx: int = MHRMath.clampi_inc(MHRMath.fdiv(-gr2.x * MHRParams.rl_roll_k * rf, 1000), -cap, cap)
+			var ry: int = MHRMath.clampi_inc(MHRMath.fdiv(-gr2.y * MHRParams.rl_roll_k * rf, 1000), -cap, cap)
+			if rx != 0 or ry != 0:
+				tx += rx
+				ty += ry
+				lie = hole.lie_at(tx, ty)
+				if lie == MHRHole.LIE_TEE:
+					lie = MHRHole.LIE_FAIRWAY
 	var wdx: int = tx - bx
 	var wdy: int = ty - by
 	r_walk = MHRMath.isqrt(wdx * wdx + wdy * wdy)
@@ -272,7 +293,14 @@ func simulate(seed_v: int, counts: PackedInt32Array) -> void:
 				if lie == MHRHole.LIE_GREEN:
 					var gdx: int = x - hole.gx
 					var gdy: int = y - hole.gy
-					var np: int = putt_count(MHRMath.isqrt(gdx * gdx + gdy * gdy), skill, MHRMath.h32d(seed_v, nid, shot, 4) % 1000)
+					var slope: int = 0
+					var drop: int = 0
+					if hole.has_relief:
+						var g1: Vector2i = hole.grad(x, y)
+						var g2: Vector2i = hole.grad(hole.gx, hole.gy)
+						slope = (absi(g1.x) + absi(g1.y) + absi(g2.x) + absi(g2.y)) / 2
+						drop = hole.z_at(x, y) - hole.z_at(hole.gx, hole.gy)
+					var np: int = putt_count(MHRMath.isqrt(gdx * gdx + gdy * gdy), skill, MHRMath.h32d(seed_v, nid, shot, 4) % 1000, slope, drop)
 					strokes += np
 					tsec += 25 * np
 					if strokes > cap:

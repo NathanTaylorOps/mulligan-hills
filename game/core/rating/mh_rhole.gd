@@ -42,6 +42,15 @@ var rock_count: int = 0
 var flower_count: int = 0
 var trees: PackedInt32Array = PackedInt32Array()   # flat [x, y, ...] cy, sorted by (x, y)
 var buckets: Dictionary = {}                        # key -> PackedInt32Array flat trees (lookup only)
+## Relief grid (optional): nodes at (x0 + i*step, y0 + j*step) yards, heights in mm, row-major.
+var has_relief: bool = false
+var rl_x0: int = 0
+var rl_y0: int = 0
+var rl_step: int = 1
+var rl_cols: int = 0
+var rl_rows: int = 0
+var rl_z: PackedInt32Array = PackedInt32Array()
+var relief_range: int = 0
 var hit_t: int = 0
 var hit_x: int = 0
 var hit_y: int = 0
@@ -127,6 +136,10 @@ func _build(d: Dictionary) -> void:
 	gx = int(ga[0]) * CY
 	gy = int(ga[1]) * CY
 	gr = int(ga[2])
+	if d.has("relief") and typeof(d["relief"]) == TYPE_DICTIONARY:
+		_load_relief(d["relief"] as Dictionary)
+		tee_z = z_at(tee_x, tee_y)
+		green_z = z_at(gx, gy)
 	var dx: int = int(ga[0]) - int(ta[0])
 	var dy: int = int(ga[1]) - int(ta[1])
 	L = MHRMath.isqrt(dx * dx + dy * dy)
@@ -179,6 +192,58 @@ func _build(d: Dictionary) -> void:
 	if gr < 5 or gr > 30:
 		valid = false
 		reasons.append("RC006")
+
+
+func _load_relief(r: Dictionary) -> void:
+	has_relief = true
+	rl_x0 = int(r["x0"])
+	rl_y0 = int(r["y0"])
+	rl_step = int(r["step"])
+	rl_cols = int(r["cols"])
+	rl_rows = int(r["rows"])
+	rl_z = PackedInt32Array()
+	var lo: int = 0
+	var hi: int = 0
+	var first: bool = true
+	for v in (r["z"] as Array):
+		var zi: int = int(v)
+		rl_z.append(zi)
+		if first or zi < lo:
+			lo = zi
+		if first or zi > hi:
+			hi = zi
+		first = false
+	relief_range = hi - lo
+
+
+## Bilinear height in mm at a centiyard point, clamped to the grid edge. 0 with no relief.
+func z_at(xcy: int, ycy: int) -> int:
+	if not has_relief:
+		return 0
+	var sc: int = rl_step * CY
+	var fx: int = xcy - rl_x0 * CY
+	var fy: int = ycy - rl_y0 * CY
+	var i: int = MHRMath.clampi_inc(MHRMath.fdiv(fx, sc), 0, rl_cols - 2)
+	var j: int = MHRMath.clampi_inc(MHRMath.fdiv(fy, sc), 0, rl_rows - 2)
+	var fu: int = MHRMath.clampi_inc(fx - i * sc, 0, sc)
+	var fv: int = MHRMath.clampi_inc(fy - j * sc, 0, sc)
+	var z00: int = rl_z[j * rl_cols + i]
+	var z10: int = rl_z[j * rl_cols + i + 1]
+	var z01: int = rl_z[(j + 1) * rl_cols + i]
+	var z11: int = rl_z[(j + 1) * rl_cols + i + 1]
+	return MHRMath.fdiv(z00 * (sc - fu) * (sc - fv) + z10 * fu * (sc - fv) + z01 * (sc - fu) * fv + z11 * fu * fv, sc * sc)
+
+
+## Central-difference slope in mm per yard; returns Vector2i(dz/dx, dz/dy).
+func grad(xcy: int, ycy: int) -> Vector2i:
+	var gdx: int = MHRMath.fdiv(z_at(xcy + CY, ycy) - z_at(xcy - CY, ycy), 2)
+	var gdy: int = MHRMath.fdiv(z_at(xcy, ycy + CY) - z_at(xcy, ycy - CY), 2)
+	return Vector2i(gdx, gdy)
+
+
+## Height change that drives the elevation axes: end to end, or the relief share of the range if larger.
+func elev_mm() -> int:
+	return maxi(absi(green_z - tee_z), MHRMath.fdiv(relief_range * MHRParams.rl_range_pm, 1000))
 
 
 func _sort_trees(pts_yd: PackedInt32Array) -> void:
@@ -240,6 +305,15 @@ func canonical_bytes() -> PackedByteArray:
 	for i in range(tree_count()):
 		MHRMath.push_i32(b, MHRMath.fdiv(trees[i * 2], CY))
 		MHRMath.push_i32(b, MHRMath.fdiv(trees[i * 2 + 1], CY))
+	if has_relief:
+		MHRMath.push_ascii(b, "RLF1")
+		MHRMath.push_i32(b, rl_x0)
+		MHRMath.push_i32(b, rl_y0)
+		MHRMath.push_i32(b, rl_step)
+		MHRMath.push_i32(b, rl_cols)
+		MHRMath.push_i32(b, rl_rows)
+		for v in rl_z:
+			MHRMath.push_i32(b, v)
 	return b
 
 

@@ -122,6 +122,35 @@ static func validate_input(raw: Variant) -> Dictionary:
 				trees += (f["at"] as Array).size()
 			if trees > MAX_TREES:
 				return _res("E05_TOO_MANY_OBJECTS")
+	if h.has("relief") and h["relief"] != null:
+		var rl: Variant = h["relief"]
+		if typeof(rl) != TYPE_DICTIONARY:
+			return _res("E06_TRUNCATED_OR_SHAPE")
+		var rd: Dictionary = rl
+		for k in ["x0", "y0", "step", "cols", "rows", "z"]:
+			if not rd.has(k):
+				return _res("E04_MISSING_FIELD")
+		if typeof(rd["z"]) != TYPE_ARRAY:
+			return _res("E06_TRUNCATED_OR_SHAPE")
+		for k2 in ["x0", "y0", "step", "cols", "rows"]:
+			if not is_int_value(rd[k2]):
+				return _res("E07_NON_INTEGER")
+		var cols: int = _num(rd["cols"])
+		var rows: int = _num(rd["rows"])
+		if cols < 2 or rows < 2 or _num(rd["step"]) < 1:
+			return _res("E09_NEGATIVE_SIZE")
+		if cols * rows > MHRParams.rl_max_nodes:
+			return _res("E05_TOO_MANY_OBJECTS")
+		var zs: Array = rd["z"]
+		if zs.size() != cols * rows:
+			return _res("E06_TRUNCATED_OR_SHAPE")
+		if absi(_num(rd["x0"])) > COORD_ABS or absi(_num(rd["y0"])) > COORD_ABS or _num(rd["step"]) > 64:
+			return _res("E08_OUT_OF_RANGE")
+		for zv in zs:
+			if not is_int_value(zv):
+				return _res("E07_NON_INTEGER")
+			if absi(_num(zv)) > MHRParams.rl_z_abs_mm:
+				return _res("E08_OUT_OF_RANGE")
 	return {"ok": true, "code": "OK"}
 
 

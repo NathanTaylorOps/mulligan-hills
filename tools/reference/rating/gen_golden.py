@@ -13,6 +13,7 @@ import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import rating_eng as E  # noqa: E402
+import relief_fix as RF  # noqa: E402
 from rating_core import (ROOT, Hole, H32, hash64, i32le, Z, hole_seed, daily_seed, tournament_seed, rdiv, interp,
                          isqrt, validate_input, expand_tree_rect, PARAMS_HASH, ENGINE, SIM, P, PARAMS_PATH,
                          PREVIEW_COUNTS)  # noqa: E402
@@ -117,9 +118,35 @@ def main():
         sim_case("headwind", f14["holes"]["base"], cond=f14["conds"]["head15"]),
         sim_case("rain2_epoch3", f14["holes"]["base"], cond=f14["conds"]["wet2"], epoch=3),
     ]
+    for k, v in RF.fixtures().items():
+        if k != "uphill_step2":
+            sims.append(sim_case("relief_" + k, v))
     for k, v in f12["holes"].items():
         sims.append(sim_case("unplayable_" + k, v))
     g["sims"] = sims
+    pts = [[0, 0], [3, 7], [-100, 5], [0, 17000], [250, 12000], [-4800, -1600], [123, 4567], [9999, 99999], [-9999, -9999]]
+    g["relief_z"] = []
+    for k in ("hump", "sidehill", "green_tilt"):
+        hh = hole_obj(RF.fixtures()[k])
+        g["relief_z"].append(dict(name=k, hole=RF.fixtures()[k], pts=[[x, y, hh.z_at(x, y)] for x, y in pts],
+                                  grad=[[x, y] + list(hh.grad_l1(x, y)) for x, y in pts], elev_mm=hh.elev_mm(),
+                                  tee_z=hh.tee_z, green_z=hh.green_z))
+    bad = []
+    hp = RF.fixtures()["hump"]
+    def mut(name, fn):
+        import copy
+        h = copy.deepcopy(hp)
+        fn(h["relief"])
+        bad.append(dict(name=name, input={"schema": 1, "engine": ENGINE, "hole": dict(h)}, code=validate_input({"schema": 1, "engine": ENGINE, "hole": h})[1]))
+    mut("relief_ok", lambda r: None)
+    mut("relief_short_z", lambda r: r["z"].pop())
+    mut("relief_float_z", lambda r: r["z"].__setitem__(0, 1.5))
+    mut("relief_huge_z", lambda r: r["z"].__setitem__(3, 99999))
+    mut("relief_one_col", lambda r: r.update(cols=1))
+    mut("relief_zero_step", lambda r: r.update(step=0))
+    mut("relief_missing", lambda r: r.pop("rows"))
+    mut("relief_far_origin", lambda r: r.update(x0=5000))
+    g["relief_validate"] = bad
     f01 = fx("01")
     g["invalid_holes"] = [dict(name=k, hole=v, reasons=hole_obj(v).reasons) for k, v in f01["holes"].items()]
     extra = {"far": {"slot_id": 9, "tee": [0, 0], "green": [0, 1100, 12], "features": []},

@@ -93,7 +93,7 @@ def beauty_parts(hole):
     has_bunker = len(hole.rects["bunker"]) + len(hole.circles["bunker"]) > 0
     cats = (1 if n_tree >= 3 else 0) + (1 if hole.counts["rock"] >= 1 else 0) + (1 if hole.counts["flower"] >= 3 else 0) \
         + (1 if wa >= 200 else 0) + (1 if has_bunker else 0)
-    rel_ = min(100, abs(hole.green_z - hole.tee_z) * 100 // 5486)
+    rel_ = min(100, hole.elev_mm() * 100 // 5486)
     braw = min(700, pol + tr + wat + 25 * cats + rel_)
     return dict(pol=pol, tr=tr, wat=wat, var=25 * cats, rel=rel_, n_tree=n_tree, wa=wa, cats=cats,
                 stacked=stacked, braw=braw)
@@ -162,7 +162,7 @@ def rate_hole(hole, seed, cond=CALM, counts=None, epoch=0, want_recs=False):
         if la > 0 and lb > 0:
             bend = abs(ax_ * by_ - ay_ * bx_) * 1000 // (la * lb)
     bend_s = min(1000, max(0, bend - 60) * 1000 // 240)
-    elev = min(1000, abs(hole.green_z - hole.tee_z) * 1000 // 5486)
+    elev = min(1000, hole.elev_mm() * 1000 // 5486)
     shape = (600 * bend_s + 400 * elev) // 1000
     Ival = (450 * Oc + 350 * R + 200 * shape) // 1000
     Ival = Ival * min(1000, 2 * F) // 1000

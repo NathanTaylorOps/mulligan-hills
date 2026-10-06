@@ -45,6 +45,21 @@ static var w_i: int = 350
 static var w_l: int = 200
 static var w_b: int = 200
 static var score_gates: PackedInt32Array = PackedInt32Array()   # tiers 2..5 (index 0 = tier 2)
+## Relief (elevation) tables, params.json "relief".
+static var rl_cy_div: int = 10
+static var rl_delta_clamp_pm: int = 500
+static var rl_roll_k: int = 3
+static var rl_roll_lie_pm: PackedInt32Array = PackedInt32Array()   # tee, fairway, fringe, rough, deep, bunker, green
+static var rl_roll_cap_cy: int = 400
+static var rl_slope_p1: int = 10
+static var rl_slope_p1_cap: int = 400
+static var rl_slope_p3: int = 5
+static var rl_slope_p3_cap: int = 300
+static var rl_drop_div: int = 4
+static var rl_drop_cap: int = 150
+static var rl_range_pm: int = 600
+static var rl_max_nodes: int = 16384
+static var rl_z_abs_mm: int = 40000
 
 
 static func _flat(v: Variant) -> PackedInt32Array:
@@ -127,5 +142,20 @@ static func ensure_loaded() -> bool:
 	w_b = int(hw["B"])
 	var gt: Dictionary = d["gates_avg_score_x10"]
 	score_gates = PackedInt32Array([int(gt["2"]), int(gt["3"]), int(gt["4"]), int(gt["5"])])
+	var rl: Dictionary = d["relief"]
+	rl_cy_div = int(rl["cy_div"])
+	rl_delta_clamp_pm = int(rl["delta_clamp_pm"])
+	rl_roll_k = int(rl["roll_k"])
+	rl_roll_lie_pm = _ints(rl["roll_lie_pm"])
+	rl_roll_cap_cy = int(rl["roll_cap_cy"])
+	rl_slope_p1 = int(rl["slope_p1"])
+	rl_slope_p1_cap = int(rl["slope_p1_cap"])
+	rl_slope_p3 = int(rl["slope_p3"])
+	rl_slope_p3_cap = int(rl["slope_p3_cap"])
+	rl_drop_div = int(rl["drop_div"])
+	rl_drop_cap = int(rl["drop_cap"])
+	rl_range_pm = int(rl["range_pm"])
+	rl_max_nodes = int(rl["max_nodes"])
+	rl_z_abs_mm = int(rl["z_abs_mm"])
 	ok = (z256.size() == 256 and band_counts.size() == 6 and club_base.size() == 12 and plan_samples.size() == 16)
 	return ok
