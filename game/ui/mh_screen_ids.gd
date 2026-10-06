@@ -12,6 +12,7 @@ const SCORE: String = "score"
 const DAILY: String = "daily"
 const TOURNAMENT: String = "tournament"
 const ACHIEVEMENTS: String = "achievements"
+const MANAGEMENT: String = "management"
 const SETTINGS: String = "settings"
 const CONSENT: String = "consent"
 const TOKENS: String = "tokens"
@@ -21,7 +22,7 @@ const CONFIRM_DELETE: String = "confirm_delete"
 
 const ALL: Array = [
 	"hud", "build", "land", "editor", "rating", "score", "daily", "tournament", "achievements",
-	"settings", "consent", "tokens", "tutorial_overlay", "bankruptcy", "confirm_delete",
+	"management", "settings", "consent", "tokens", "tutorial_overlay", "bankruptcy", "confirm_delete",
 ]
 
 ## Ids shown as dialogs on top of the current screen (the shell treats them as modals).
