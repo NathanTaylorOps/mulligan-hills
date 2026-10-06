@@ -153,3 +153,26 @@ func test_equipment_restore_rejects_wrong_types_and_impossible_state() -> void:
 	var extra_key: Dictionary = good.duplicate(true)
 	(extra_key["units"][0] as Dictionary)["free_upgrade"] = true
 	assert_bool(MHStaffEquipment.new().from_save_block(extra_key)).is_false()
+
+
+func test_assigning_second_machine_moves_operator_instead_of_double_using() -> void:
+	var fleet: MHStaffEquipment = MHStaffEquipment.new()
+	var first: Dictionary = fleet.add_unit("greens_mower")
+	var second: Dictionary = fleet.add_unit("utility_vehicle")
+	assert_bool(fleet.assign_unit(int(first["serial"]), 12, MHStaffDefs.KIND_GROUNDS)).is_true()
+	assert_bool(fleet.assign_unit(int(second["serial"]), 12, MHStaffDefs.KIND_GROUNDS)).is_true()
+	assert_int(int((fleet.units[0] as Dictionary)["assigned_employee"])).is_equal(0)
+	assert_int(int((fleet.units[1] as Dictionary)["assigned_employee"])).is_equal(12)
+	fleet.on_day(0, 0, [12])
+	assert_int(int((fleet.units[0] as Dictionary)["condition"])).is_equal(1000)
+	assert_bool(int((fleet.units[1] as Dictionary)["condition"]) < 1000).is_true()
+
+
+func test_equipment_restore_rejects_duplicate_operator_assignment() -> void:
+	var fleet: MHStaffEquipment = MHStaffEquipment.new()
+	fleet.add_unit("greens_mower")
+	fleet.add_unit("utility_vehicle")
+	var bad: Dictionary = fleet.to_save_block()
+	(bad["units"][0] as Dictionary)["assigned_employee"] = 4
+	(bad["units"][1] as Dictionary)["assigned_employee"] = 4
+	assert_bool(MHStaffEquipment.new().from_save_block(bad)).is_false()
