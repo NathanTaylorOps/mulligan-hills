@@ -42,6 +42,9 @@ var _placement_last: Dictionary = {}
 var _placement_controls: HFlowContainer
 var _ghost_valid_mat: StandardMaterial3D
 var _ghost_invalid_mat: StandardMaterial3D
+var _placed_buildings_root: Node3D
+var _placed_building_nodes: Dictionary = {}
+var _building_mat: StandardMaterial3D
 
 func _ready() -> void:
 	MHOrientation.apply_game() # No-op off mobile; one switch, see MHOrientation.
@@ -81,6 +84,10 @@ func _ready() -> void:
 	chunks = MHTerrainChunks.new()
 	add_child(chunks)
 	chunks.setup(editor.grid, editor.splat, 32)
+	_placed_buildings_root = Node3D.new()
+	_placed_buildings_root.name = "PlacedBuildings"
+	add_child(_placed_buildings_root)
+	_building_mat = MHArtMaterials.vertex_color()
 	var sun: DirectionalLight3D = DirectionalLight3D.new()
 	sun.rotation_degrees = Vector3(-50, 30, 0)
 	add_child(sun)
@@ -197,6 +204,7 @@ func _ready() -> void:
 	add_child(building_input)
 	_active = true
 	_last_usec = Time.get_ticks_usec()
+	_sync_placed_buildings()
 	_request_save()
 	_relayout()
 
@@ -298,6 +306,7 @@ func confirm_building_preview() -> Dictionary:
 		_placement_ghost = null
 	_placement_status.text = ""
 	_placement_controls.hide()
+	_sync_placed_buildings()
 	_request_save()
 	return result
 
@@ -316,8 +325,43 @@ func place_building(building_id: String, tier: int, world_m: Vector2) -> Diction
 		return result
 	if not session.set_building_placement(building_id, result):
 		return {"ok": false, "reason": "building"}
+	_sync_placed_buildings()
 	_request_save()
 	return result
+
+func _sync_placed_buildings() -> void:
+	if _placed_buildings_root == null or session == null:
+		return
+	var keep: Dictionary = {}
+	for idv: Variant in session.building_placements.keys():
+		var id: String = str(idv)
+		var placement: Dictionary = session.building_placements[id] as Dictionary
+		var tier: int = session.economy.tier_of(session.economy.params.building_index(id))
+		if tier <= 0:
+			continue
+		var node: MeshInstance3D
+		if _placed_building_nodes.has(id) and is_instance_valid(_placed_building_nodes[id]):
+			node = _placed_building_nodes[id] as MeshInstance3D
+		else:
+			node = MHArtMaterials.make_instance(null, _building_mat, false)
+			_placed_buildings_root.add_child(node)
+			_placed_building_nodes[id] = node
+		node.mesh = MHBuildingMeshes.build(id, tier, "a")
+		var center: Array = placement.get("center_mm", []) as Array
+		if center.size() != 2:
+			continue
+		var ground: float = float(int(placement.get("ground_mm", 0))) / 1000.0
+		node.position = Vector3(float(int(center[0])) / 1000.0, ground, float(int(center[1])) / 1000.0)
+		node.rotation.y = float(int(placement.get("rotation_quarters", 0))) * PI * 0.5
+		keep[id] = true
+	for idv: Variant in _placed_building_nodes.keys():
+		var id: String = str(idv)
+		if not keep.has(id):
+			var old: Node = _placed_building_nodes[id] as Node
+			if old != null and is_instance_valid(old):
+				old.queue_free()
+			_placed_building_nodes.erase(id)
+
 
 ## Rect getter for router UI regions that is empty while the button is hidden (dock hidden, panel closed).
 func _button_rect(b: Control) -> Rect2:
