@@ -753,3 +753,10 @@ func test_preference_reactions_are_distinct_and_bounded_to_existing_archetypes()
 	assert_str(MHLiveConstruction._preference_praise(MHGolferPreference.CASUAL)).is_equal("Beautiful, fair course.")
 	assert_str(MHLiveConstruction._preference_praise(MHGolferPreference.THRILL_SEEKER)).is_equal("Now that was exciting!")
 	assert_str(MHLiveConstruction._preference_complaint(MHGolferPreference.PURIST)).is_equal("That didn't feel quite fair.")
+
+
+func test_arrival_identity_only_calls_out_established_golfers() -> void:
+	assert_str(MHLiveConstruction._arrival_identity_text({"name": "Alex Brooks", "visits": 0})).is_equal("")
+	assert_str(MHLiveConstruction._arrival_identity_text({"name": "Alex Brooks", "visits": 2})).is_equal("Alex Brooks • Returning golfer")
+	assert_str(MHLiveConstruction._arrival_identity_text({"name": "Alex Brooks", "visits": 5})).is_equal("Alex Brooks • Club regular")
+	assert_str(MHLiveConstruction._arrival_identity_text({"name": "Alex Brooks", "visits": 1, "member": true})).is_equal("Alex Brooks • Member")
