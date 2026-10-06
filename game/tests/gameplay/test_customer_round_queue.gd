@@ -303,3 +303,31 @@ func test_membership_application_requires_explicit_club_decision() -> void:
 	assert_str(str(roster.golfers[id]["membership_status"])).is_equal("member")
 	assert_bool(bool(roster.golfers[id]["member"])).is_true()
 	assert_bool(roster.decide_membership(id, false)).is_false()
+
+
+func test_home_interest_grows_from_strong_visits_and_candidates_rank() -> void:
+	var roster: MHGolferRoster = MHGolferRoster.new()
+	var g: Dictionary = roster.identity_for_admission(333, 1, 1)
+	var id: int = int(g["id"])
+	for day: int in range(1, 8):
+		roster.record_visit(id, day, 100, "Loved the club")
+	assert_bool(int(roster.golfers[id]["home_interest"]) > 0).is_true()
+	var candidates: Array = roster.home_candidates(1)
+	assert_int(candidates.size()).is_equal(1)
+	assert_int(int((candidates[0] as Dictionary)["id"])).is_equal(id)
+
+
+func test_session_membership_acceptance_requires_developed_capacity() -> void:
+	var s: MHGameSession = MHGameSession.create()
+	var g: Dictionary = s.golfer_roster.identity_for_admission(444, 1, 1)
+	var id: int = int(g["id"])
+	for day: int in range(1, 6):
+		s.golfer_roster.record_visit(id, day, 100, "Loved the course")
+	assert_int(s.membership_capacity()).is_equal(0)
+	assert_bool(bool(s.decide_membership_application(id, true)["ok"])).is_false()
+	s.economy.set_tier(0, 1)
+	var hole: Dictionary = {"slot_id": 0, "tee": [0, 0], "green": [0, 60, 5],
+		"features": [{"t": "fairway", "rect": [-8, 0, 8, 60]}]}
+	assert_bool(bool(s.submit_course([hole])["ok"])).is_true()
+	assert_bool(s.membership_capacity() > 0).is_true()
+	assert_bool(bool(s.decide_membership_application(id, true)["ok"])).is_true()
