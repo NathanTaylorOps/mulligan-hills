@@ -14,6 +14,7 @@ var _world: Node3D
 var _ball: MeshInstance3D
 var _path: Node3D
 var _feedback: Label
+var _ai_record: Dictionary = {}
 var _scroll: MHScrollBox
 var _toggle: MHTapButton
 ## Header only (body hidden). Layout is recomputed by the scene on `layout_changed`.
@@ -177,6 +178,7 @@ func _finalize() -> void:
 	live.document["min_reader_version"] = 3
 	live.session.practice = null # A redesign cannot continue a round on a previous layout.
 	_restart()
+	_refresh_ai_record()
 	live._request_save()
 	_draw()
 	_describe()
@@ -229,6 +231,15 @@ func _shoot() -> void:
 	elif bool(result["tree"]):
 		_info.text += " | Tree hit"
 
+func _refresh_ai_record() -> void:
+	var layouts: Array = live.session.hole_definitions()
+	_ai_record = {}
+	if layouts.is_empty():
+		return
+	_ai_record = MHAIRoundRecord.play(layouts[0] as Dictionary,
+		{"save_secret": live.session.save_secret, "rating_epoch": live.session.rating_epoch})
+
+
 func _describe() -> void:
 	var price: int = 0 if not live.session.hole_definitions().is_empty() else live.session.economy.hole_cost_cents()
 	_info.text = "Draft: %d yd, fairway %d yd wide. Finalize $%d; redesign free." % [length_yd, half_width_yd * 2, price / 100]
@@ -238,6 +249,8 @@ func _describe() -> void:
 	var scores: Array = live.session.hole_results()
 	if not scores.is_empty():
 		_info.text += " | Official hole score %d/100" % int(scores[0]["score"])
+	if not _ai_record.is_empty():
+		_info.text += " | AI: %d strokes, first shot %d yd" % [int(_ai_record["strokes"]), MHRMath.isqrt(int(_ai_record["first_x"]) * int(_ai_record["first_x"]) + int(_ai_record["first_y"]) * int(_ai_record["first_y"])) / 100]
 
 func _draw() -> void:
 	_path = null
