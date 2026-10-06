@@ -439,3 +439,42 @@ func test_grouped_admissions_never_exceed_paid_golfer_count() -> void:
 	for v: Variant in admissions:
 		var customer: Dictionary = v
 		assert_bool(int(customer.get("group_size", 0)) >= 1 and int(customer.get("group_size", 0)) <= 4).is_true()
+
+
+func test_corrupt_building_placement_checkpoint_is_rejected() -> void:
+	var s: MHGameSession = MHGameSession.create()
+	s.economy.set_tier(0, 1)
+	var placed: Dictionary = {"ok": true, "center_mm": [30000, 42000], "size_m": [18, 14],
+		"ground_mm": 1250, "rotation_quarters": 0}
+	assert_bool(s.set_building_placement("clubhouse", placed)).is_true()
+	var base: Dictionary = _checkpoint(s)
+	for kind: String in ["outside", "bad_rotation", "bad_size", "unknown", "unpurchased"]:
+		var doc: Dictionary = base.duplicate(true)
+		if kind == "outside":
+			doc["runtime"]["building_placements"]["clubhouse"]["center_mm"] = [-1000, 42000]
+		elif kind == "bad_rotation":
+			doc["runtime"]["building_placements"]["clubhouse"]["rotation_quarters"] = 9
+		elif kind == "bad_size":
+			doc["runtime"]["building_placements"]["clubhouse"]["size_m"] = [0, 14]
+		elif kind == "unknown":
+			doc["runtime"]["building_placements"]["mystery"] = doc["runtime"]["building_placements"]["clubhouse"].duplicate(true)
+		else:
+			doc["runtime"]["economy"]["tiers"][0] = 0
+			doc["buildings"][0]["tier"] = 0
+		MHSaveGame.seal(doc)
+		assert_bool(MHSessionSave.restore(doc, s.ledger).is_ok()).is_false()
+
+
+func test_building_placement_survives_checkpoint_exactly() -> void:
+	var s: MHGameSession = MHGameSession.create()
+	s.economy.set_tier(0, 1)
+	var placed: Dictionary = {"ok": true, "center_mm": [30000, 42000], "size_m": [18, 14],
+		"ground_mm": 1250, "rotation_quarters": 1}
+	assert_bool(s.set_building_placement("clubhouse", placed)).is_true()
+	var doc: Dictionary = _checkpoint(s)
+	var restored: MHSaveResult = MHSessionSave.restore(doc, s.ledger)
+	assert_bool(restored.is_ok()).is_true()
+	if restored.is_ok():
+		var loaded: MHGameSession = restored.value
+		assert_dict(loaded.building_placements).is_equal(s.building_placements)
+		assert_bool(loaded.building_position("clubhouse").is_equal_approx(Vector3(30.0, 1.25, 42.0))).is_true()
