@@ -741,12 +741,7 @@ func respawn_player_cart() -> bool:
 	_player_cart.splat = editor.splat
 	_player_cart.grid = editor.grid
 	_player_cart.debris_root = _player_cart_debris
-	var body: MeshInstance3D = MeshInstance3D.new()
-	var mesh: BoxMesh = BoxMesh.new()
-	mesh.size = Vector3(1.25, 0.75, 2.0)
-	body.mesh = mesh
-	body.position.y = 0.5
-	_player_cart.add_child(body)
+	_add_player_cart_visual(_player_cart)
 	var collision: CollisionShape3D = CollisionShape3D.new()
 	var shape: BoxShape3D = BoxShape3D.new()
 	shape.size = Vector3(1.25, 0.75, 2.0)
@@ -759,6 +754,42 @@ func respawn_player_cart() -> bool:
 	_player_cart.tipped.connect(func() -> void: _status.text = "Cart rolled over.")
 	_player_cart.clubs_lost.connect(func(count: int) -> void: _status.text = "%d clubs fell off the cart." % count)
 	return true
+
+
+static func _add_player_cart_visual(cart: Node3D) -> void:
+	var body: MeshInstance3D = MeshInstance3D.new()
+	var body_mesh: BoxMesh = BoxMesh.new()
+	body_mesh.size = Vector3(1.25, 0.55, 2.0)
+	body.mesh = body_mesh
+	body.position.y = 0.65
+	cart.add_child(body)
+	var roof: MeshInstance3D = MeshInstance3D.new()
+	var roof_mesh: BoxMesh = BoxMesh.new()
+	roof_mesh.size = Vector3(1.35, 0.10, 1.65)
+	roof.mesh = roof_mesh
+	roof.position = Vector3(0.0, 1.65, -0.05)
+	cart.add_child(roof)
+	for x: float in [-0.72, 0.72]:
+		for z: float in [-0.68, 0.68]:
+			var wheel: MeshInstance3D = MeshInstance3D.new()
+			var wheel_mesh: CylinderMesh = CylinderMesh.new()
+			wheel_mesh.top_radius = 0.28
+			wheel_mesh.bottom_radius = 0.28
+			wheel_mesh.height = 0.18
+			wheel.mesh = wheel_mesh
+			wheel.rotation_degrees.z = 90.0
+			wheel.position = Vector3(x, 0.28, z)
+			cart.add_child(wheel)
+	var bag: MeshInstance3D = MeshInstance3D.new()
+	var bag_mesh: CylinderMesh = CylinderMesh.new()
+	bag_mesh.top_radius = 0.18
+	bag_mesh.bottom_radius = 0.24
+	bag_mesh.height = 0.9
+	bag.mesh = bag_mesh
+	bag.rotation_degrees.x = -18.0
+	bag.position = Vector3(0.0, 1.05, 1.05)
+	bag.name = "GolfBag"
+	cart.add_child(bag)
 
 
 func drive_player_cart(throttle: float, steer: float) -> bool:
