@@ -42,9 +42,17 @@ static func validate_profile(profile: Dictionary) -> bool:
 
 static func body_size(profile: Dictionary) -> Vector3:
 	var scale: float = float(int(profile.get("scale_x10", 10))) / 10.0
-	if str(profile.get("body", "golf_cart")) == "suv":
-		return Vector3(1.8, 1.05, 3.4) * scale
-	return Vector3(1.25, 0.75, 2.0) * scale
+	match str(profile.get("body", "golf_cart")):
+		"suv":
+			return Vector3(1.8, 1.05, 3.4) * scale
+		"roadster":
+			return Vector3(1.55, 0.65, 2.8) * scale
+		"utility":
+			return Vector3(1.55, 0.9, 2.65) * scale
+		"limo":
+			return Vector3(1.8, 0.95, 4.5) * scale
+		_:
+			return Vector3(1.25, 0.75, 2.0) * scale
 
 
 static func park_offset(profile: Dictionary) -> Vector3:
