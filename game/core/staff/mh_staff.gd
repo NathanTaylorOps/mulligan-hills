@@ -295,8 +295,9 @@ func from_save_block(block: Dictionary) -> bool:
 		return false
 	if typeof(b.get("stats", null)) != TYPE_DICTIONARY:
 		return false
+	var restored_equipment: MHStaffEquipment = MHStaffEquipment.new()
 	var equipment_block: Variant = b.get("equipment", null)
-	if equipment_block != null and (typeof(equipment_block) != TYPE_DICTIONARY or not equipment.from_save_block(equipment_block as Dictionary)):
+	if equipment_block != null and (typeof(equipment_block) != TYPE_DICTIONARY or not restored_equipment.from_save_block(equipment_block as Dictionary)):
 		return false
 	var st: Dictionary = b["stats"]
 	if st.size() != STAT_KEYS.size():
@@ -304,6 +305,7 @@ func from_save_block(block: Dictionary) -> bool:
 	for k: Variant in STAT_KEYS:
 		if not MHDataJson.is_int_in(st.get(str(k), null), 0, MAX_STAT):
 			return false
+	equipment = restored_equipment
 	roster.employees = emps
 	roster.next_serial = int(b["next_serial"])
 	roster.hires = int(st["hires"])
