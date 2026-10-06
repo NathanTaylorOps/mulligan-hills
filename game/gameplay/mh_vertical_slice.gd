@@ -31,7 +31,7 @@ const TIERS_ORDER: Array = ["low", "medium", "high"]
 
 var session: MHGameSession
 var view: MHLiveGameStateView
-var controller: MHCameraController
+var controller: MHIsoCameraController
 var golfers: MHSliceGolfers
 var schedule: MHSliceSchedule
 var tier_name: String = "low"
@@ -211,9 +211,9 @@ func _spawn_group(g: Dictionary) -> void:
 
 
 func _camera_position() -> Vector3:
-	if controller == null or controller.camera == null:
+	if controller == null:
 		return Vector3(64.0, 80.0, 160.0)
-	return controller.camera.global_position
+	return controller.rig.lod_eye()
 
 
 func _on_session_changed() -> void:
@@ -358,17 +358,11 @@ func _build_nature() -> void:
 
 
 func _build_camera() -> void:
-	var cfg: MHCameraConfig = MHCameraConfig.new()
-	cfg.min_distance = 20.0
-	cfg.max_distance = 260.0
-	cfg.start_distance = 150.0
-	controller = MHCameraController.new()
-	controller.config = cfg
+	controller = MHIsoCameraController.new()
+	controller.rig.bounds = Rect2(0.0, 0.0, MHSliceLayout.MAP_M, MHSliceLayout.MAP_M + 24.0)
 	add_child(controller)
-	controller.rig.target = Vector3(64.0, 0.0, 70.0)
-	controller.desktop_pan(Vector2.ZERO)
-	controller.camera.near = 0.5
-	controller.camera.far = 900.0
+	controller.rig.target = Vector3(64.0, 0.0, 64.0)
+	controller.apply_now()
 
 
 func _apply_quality() -> void:
@@ -422,7 +416,8 @@ func _build_hud() -> void:
 	_chip_button(bar, "Buildings", _on_toggle_menu)
 	_chip_button(bar, "Zoom +", func() -> void: controller.desktop_zoom(1))
 	_chip_button(bar, "Zoom -", func() -> void: controller.desktop_zoom(-1))
-	_chip_button(bar, "Rotate", func() -> void: controller.desktop_rotate(Vector2(60.0, 0.0)))
+	_chip_button(bar, "Turn <", func() -> void: controller.rotate_step(-1))
+	_chip_button(bar, "Turn >", func() -> void: controller.rotate_step(1))
 	_quality_button = _chip_button(bar, "Quality: " + tier_name, _on_quality)
 	_chip_button(bar, "Back", _on_back)
 
