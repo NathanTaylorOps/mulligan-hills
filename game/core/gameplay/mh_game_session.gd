@@ -256,11 +256,19 @@ func _queue__pending_customers(tick: Dictionary) -> void:
 		var group: Array = golfer_roster.group_for_admission(save_secret, _customer_serial, economy.day, group_size)
 		for identity_v: Variant in group:
 			var identity: Dictionary = identity_v
+			var hole_index: int = posmod(_customer_serial, _holes.size())
 			_pending_customers.append({"serial": _customer_serial, "identity": identity, "group_size": group_size,
 				"paid_fee": fee_each, "ancillary": anc_each, "admitted_day": economy.day, "admitted_hour": economy.hour,
-				"hole_slot": int((_holes[0] as Dictionary)["slot_id"])})
+				"hole_slot": int((_holes[hole_index] as Dictionary)["slot_id"])})
 			_customer_serial += 1
 			remaining -= 1
+
+
+func _hole_index_for_slot(slot_id: int) -> int:
+	for i: int in range(_holes.size()):
+		if int((_holes[i] as Dictionary).get("slot_id", -1)) == slot_id:
+			return i
+	return -1
 
 
 func _resolve_customer_hour() -> void:
@@ -271,8 +279,11 @@ func _resolve_customer_hour() -> void:
 		var customer: Dictionary = (admission_v as Dictionary).duplicate(true)
 		var identity: Dictionary = customer.get("identity", {}) as Dictionary
 		var band: int = int(identity.get("skill_band", 1))
-		var hole: Dictionary = _holes[0] as Dictionary
-		var rating: Dictionary = _ratings[0] as Dictionary
+		var hole_index: int = _hole_index_for_slot(int(customer.get("hole_slot", -1)))
+		if hole_index < 0:
+			continue
+		var hole: Dictionary = _holes[hole_index] as Dictionary
+		var rating: Dictionary = _ratings[hole_index] as Dictionary
 		var round: Dictionary = MHAIRoundRecord.play(hole, {"save_secret": save_secret, "rating_epoch": rating_epoch}, band, 0)
 		if round.is_empty():
 			continue
