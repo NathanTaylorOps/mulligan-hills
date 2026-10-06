@@ -21,10 +21,13 @@ static func footprint_m(building_id: String, tier: int) -> Vector2i:
 
 
 static func validate(grid: MHHeightGrid, splat: MHSplatMap, land: MHLandModel, building_id: String, tier: int,
-		center_mm: Vector2i, existing: Array = []) -> Dictionary:
+		center_mm: Vector2i, existing: Array = [], rotation_quarters: int = 0, holes: Array = []) -> Dictionary:
 	if grid == null or splat == null or land == null:
 		return _bad("missing_world")
 	var size_m: Vector2i = footprint_m(building_id, tier)
+	var rotation: int = posmod(rotation_quarters, 4)
+	if rotation % 2 == 1:
+		size_m = Vector2i(size_m.y, size_m.x)
 	var half_x: int = size_m.x * 500
 	var half_y: int = size_m.y * 500
 	var x0: int = center_mm.x - half_x
@@ -37,6 +40,8 @@ static func validate(grid: MHHeightGrid, splat: MHSplatMap, land: MHLandModel, b
 		return _bad("world_edge")
 	if not _owned_rect(land, x0, y0, x1, y1, world_x, world_y):
 		return _bad("unowned_land")
+	if _hits_golf_features(x0, y0, x1, y1, holes):
+		return _bad("golf_feature")
 	for v: Variant in existing:
 		var b: Dictionary = v
 		var c: Array = b.get("center_mm", [])
@@ -75,7 +80,42 @@ static func validate(grid: MHHeightGrid, splat: MHSplatMap, land: MHLandModel, b
 	if relief * 1000 > run_mm * MAX_SLOPE_PER_MILLE:
 		return _bad("terrain_slope")
 	return {"ok": true, "reason": "", "center_mm": [center_mm.x, center_mm.y], "size_m": [size_m.x, size_m.y],
-		"ground_mm": MHRMath.rdiv(sum_h, samples), "min_h_mm": min_h, "max_h_mm": max_h}
+		"ground_mm": MHRMath.rdiv(sum_h, samples), "min_h_mm": min_h, "max_h_mm": max_h, "rotation_quarters": rotation}
+
+
+static func _hits_golf_features(x0: int, y0: int, x1: int, y1: int, holes: Array) -> bool:
+	for hv: Variant in holes:
+		if typeof(hv) != TYPE_DICTIONARY:
+			continue
+		var h: Dictionary = hv
+		# RHI hole coordinates are yards relative to the live course origin used by First Real Round.
+		for fv: Variant in h.get("features", []):
+			if typeof(fv) != TYPE_DICTIONARY:
+				continue
+			var feature: Dictionary = fv
+			var rect: Array = feature.get("rect", [])
+			if rect.size() != 4:
+				continue
+			var fx0: int = MHCourseLayout.world_mm(480, int(rect[0]) * 100)
+			var fy0: int = MHCourseLayout.world_mm(340, int(rect[1]) * 100)
+			var fx1: int = MHCourseLayout.world_mm(480, int(rect[2]) * 100)
+			var fy1: int = MHCourseLayout.world_mm(340, int(rect[3]) * 100)
+			if _rect_overlap(x0, y0, x1, y1, mini(fx0, fx1), mini(fy0, fy1), maxi(fx0, fx1), maxi(fy0, fy1)):
+				return true
+		var tee: Array = h.get("tee", [])
+		var green: Array = h.get("green", [])
+		if tee.size() >= 2:
+			var tx: int = MHCourseLayout.world_mm(480, int(tee[0]) * 100)
+			var ty: int = MHCourseLayout.world_mm(340, int(tee[1]) * 100)
+			if tx >= x0 and tx <= x1 and ty >= y0 and ty <= y1:
+				return true
+		if green.size() >= 3:
+			var gx: int = MHCourseLayout.world_mm(480, int(green[0]) * 100)
+			var gy: int = MHCourseLayout.world_mm(340, int(green[1]) * 100)
+			var gr: int = int(green[2]) * 914
+			if _rect_overlap(x0, y0, x1, y1, gx - gr, gy - gr, gx + gr, gy + gr):
+				return true
+	return false
 
 
 static func _hazard_at(splat: MHSplatMap, x: int, y: int) -> bool:
