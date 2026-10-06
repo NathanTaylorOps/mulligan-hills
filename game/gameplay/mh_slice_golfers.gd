@@ -211,10 +211,22 @@ func _render(states: Array, cam_pos: Vector3) -> void:
 		positions.append(p3)
 		dist2.append(p3.distance_squared_to(cam_pos))
 		looks.append(int(d["look"]))
-	var vis: PackedInt32Array = MHSliceVisibility.classify(dist2, looks, near_cap, total_cap)
+	# Transport-hidden riders must not consume the limited figure/baked visibility budget.
+	var eligible_dist2: Array = []
+	var eligible_looks: Array = []
+	var eligible_indices: Array = []
 	for i: int in range(golfers.size()):
 		if bool((golfers[i] as Dictionary).get("transport_hidden", false)):
-			vis[i] = MHSliceVisibility.HIDDEN
+			continue
+		eligible_indices.append(i)
+		eligible_dist2.append(dist2[i])
+		eligible_looks.append(looks[i])
+	var eligible_vis: PackedInt32Array = MHSliceVisibility.classify(eligible_dist2, eligible_looks, near_cap, total_cap)
+	var vis: PackedInt32Array = PackedInt32Array()
+	vis.resize(golfers.size())
+	vis.fill(MHSliceVisibility.HIDDEN)
+	for j: int in range(eligible_indices.size()):
+		vis[int(eligible_indices[j])] = eligible_vis[j]
 	last_figures = MHSliceVisibility.count_state(vis, MHSliceVisibility.FIGURE)
 	last_baked = MHSliceVisibility.count_state(vis, MHSliceVisibility.BAKED)
 	last_hidden = MHSliceVisibility.count_state(vis, MHSliceVisibility.HIDDEN)
