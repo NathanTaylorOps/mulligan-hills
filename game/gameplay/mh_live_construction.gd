@@ -575,6 +575,8 @@ func _advance_customer_playback(delta_s: float) -> void:
 				_show_golfer_reaction(customer)
 				_queue_finished_customer_facility(customer, now_s)
 		elif kind == "hole_transition":
+			for customer_v: Variant in event.get("customers", [event.get("customer", {})]):
+				_show_hole_reaction(customer_v as Dictionary)
 			_begin_hole_transition(event)
 		elif kind == "started" or kind == "hole_started":
 			_render_customer_hole(event)
@@ -672,14 +674,30 @@ func _render_customer_hole(event: Dictionary) -> void:
 	_visible_golfers.spawn_authoritative_party(customers, tee, green, world_origin)
 
 
-func _show_golfer_reaction(customer: Dictionary) -> void:
-	var slot: int = int(customer.get("hole_slot", -1))
-	var position: Vector3 = _hole_world_point(slot, "green")
-	if position == Vector3.INF:
-		return
-	var text: String = _reaction_text(customer)
+func _show_hole_reaction(customer: Dictionary) -> void:
+	var round: Dictionary = customer.get("round", {}) as Dictionary
+	var rating: Dictionary = customer.get("rating", {}) as Dictionary
+	var text: String = _hole_reaction_text(round, int(rating.get("par", 3)))
 	if text.is_empty():
 		return
+	var position: Vector3 = _hole_world_point(int(customer.get("hole_slot", -1)), "green")
+	if position == Vector3.INF:
+		return
+	_spawn_reaction_label(text, position)
+
+
+static func _hole_reaction_text(round: Dictionary, par: int) -> String:
+	var strokes: int = int(round.get("strokes", par))
+	if strokes <= par - 2:
+		return "What a hole!"
+	if strokes == par - 1:
+		return "Birdie!"
+	if strokes >= par + 3:
+		return "Forget that one..."
+	return ""
+
+
+func _spawn_reaction_label(text: String, position: Vector3) -> void:
 	var label: Label3D = Label3D.new()
 	label.text = text
 	label.font_size = 24
@@ -692,6 +710,17 @@ func _show_golfer_reaction(customer: Dictionary) -> void:
 	while _golfer_reactions.size() > MAX_GOLFER_REACTIONS:
 		var oldest: Dictionary = _golfer_reactions.pop_front() as Dictionary
 		(oldest["node"] as Label3D).queue_free()
+
+
+func _show_golfer_reaction(customer: Dictionary) -> void:
+	var slot: int = int(customer.get("hole_slot", -1))
+	var position: Vector3 = _hole_world_point(slot, "green")
+	if position == Vector3.INF:
+		return
+	var text: String = _reaction_text(customer)
+	if text.is_empty():
+		return
+	_spawn_reaction_label(text, position)
 
 
 static func _reaction_text(customer: Dictionary) -> String:
