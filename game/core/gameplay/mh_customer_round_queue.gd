@@ -18,13 +18,10 @@ func admit(rows: Array, hole_def: Dictionary, rating: Dictionary, ctx: Dictionar
 		if waiting.size() >= MAX_WAITING:
 			break
 		var customer: Dictionary = (v as Dictionary).duplicate(true)
-		var serial: int = int(customer.get("serial", 0))
-		var identity: Dictionary = customer.get("identity", {}) as Dictionary
-		var band: int = int(identity.get("skill_band", 1 + (serial % 4)))
-		customer["preference"] = int(identity.get("preference", MHGolferPreference.archetype(serial)))
-		customer["rating"] = rating.duplicate(true)
-		customer["round"] = MHAIRoundRecord.play(hole_def, ctx, band, 0)
-		if not (customer["round"] as Dictionary).is_empty():
+		# Authoritative session already resolved the round and customer outcome.
+		# This queue only schedules playback; never re-simulate or mutate satisfaction/economy.
+		var round: Dictionary = customer.get("round", {}) as Dictionary
+		if not round.is_empty():
 			waiting.append(customer)
 
 
@@ -63,14 +60,6 @@ func advance(now_s: float) -> Dictionary:
 		var state: Dictionary = MHAIRoundTimeline.state(round["events"] as Array, elapsed)
 		if bool(state.get("done", false)):
 			var done: Dictionary = active.duplicate(true)
-			var base: int = satisfaction(round)
-			var pref: int = int(done.get("preference", MHGolferPreference.CASUAL))
-			var pref_bonus: int = MHGolferPreference.bonus(pref, done.get("rating", {}) as Dictionary, round)
-			done["base_satisfaction"] = base
-			done["preference_bonus"] = pref_bonus
-			done["satisfaction"] = clampi(base + pref_bonus, 0, 100)
-			done["reaction"] = reaction(int(done["satisfaction"]), int(round.get("flags", 0)))
-			done["preference_reaction"] = MHGolferPreference.describe(pref, pref_bonus)
 			completed.append(done)
 			active = {}
 			event = {"kind": "finished", "customer": done}
