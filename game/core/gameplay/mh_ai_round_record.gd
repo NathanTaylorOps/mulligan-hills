@@ -24,11 +24,12 @@ static func play(hole_def: Dictionary, ctx: Dictionary, band: int = DEFAULT_BAND
 	counts[band] = golfer_index + 1
 	var seed_value: int = MHRatingEngine.seed_for(hole.slot, ctx)
 	sim.simulate(seed_value, counts)
-	if golfer_index >= sim.n_golfers:
+	var record_index: int = golfer_index
+	if record_index >= sim.n_golfers or sim.rec_band[record_index] != band:
 		return {}
 	return {"slot_id": hole.slot, "seed": seed_value, "band": band, "golfer_index": golfer_index,
-		"skill": sim.rec_skill[golfer_index], "strokes": sim.rec_strokes[golfer_index],
-		"flags": sim.rec_flags[golfer_index], "time_s": sim.rec_time[golfer_index],
-		"first_x": sim.rec_fx[golfer_index], "first_y": sim.rec_fy[golfer_index],
+		"skill": sim.rec_skill[record_index], "strokes": sim.rec_strokes[record_index],
+		"flags": sim.rec_flags[record_index], "time_s": sim.rec_time[record_index],
+		"first_x": sim.rec_fx[record_index], "first_y": sim.rec_fy[record_index],
 		"tee_x": hole.tee_x, "tee_y": hole.tee_y, "green_x": hole.gx, "green_y": hole.gy,
 		"has_relief": hole.has_relief, "content_hash": hole.content_hash()}
