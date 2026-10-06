@@ -880,3 +880,16 @@ func test_take_grounds_events_is_consuming_and_immutable() -> void:
 	assert_int(s.grounds_events.size()).is_equal(0)
 	(events[0] as Dictionary)["parcel"] = 9
 	assert_int(s.take_grounds_events().size()).is_equal(0)
+
+
+func test_cart_transport_hidden_golfers_remain_in_party_state() -> void:
+	var golfers: MHSliceGolfers = MHSliceGolfers.new()
+	var customers: Array = [{"serial": 1, "party_id": 44, "identity": {"id": 1, "look_seed": 10}},
+		{"serial": 2, "party_id": 44, "identity": {"id": 2, "look_seed": 20}}]
+	golfers.spawn_walking_party(customers, Vector3.ZERO, Vector3(10, 0, 0))
+	assert_int(golfers.golfer_count()).is_equal(2)
+	golfers.set_walking_party_hidden(44, true)
+	assert_bool(bool((golfers.golfers[0] as Dictionary).get("transport_hidden", false))).is_true()
+	assert_bool(bool((golfers.golfers[1] as Dictionary).get("transport_hidden", false))).is_true()
+	golfers.remove_group(44)
+	assert_int(golfers.golfer_count()).is_equal(0)
