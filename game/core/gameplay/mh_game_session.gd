@@ -290,6 +290,12 @@ func management_report() -> Dictionary:
 	report["active_parties"] = (traffic.get("active_parties", []) as Array).size()
 	report["blocked_parties"] = int(traffic.get("blocked_parties", 0))
 	report["pace_score"] = pace_score()
+	var bottleneck: Dictionary = traffic.get("worst_bottleneck", {}) as Dictionary
+	report["worst_bottleneck"] = bottleneck
+	if float(bottleneck.get("average_wait_s", 0.0)) >= 45.0 and int(bottleneck.get("waited_parties", 0)) >= 2:
+		var warnings: Array = report.get("warnings", []) as Array
+		warnings.append("pace_bottleneck_hole_%d" % (int(bottleneck.get("hole_slot", -1)) + 1))
+		report["warnings"] = warnings
 	var current_staff_view: Dictionary = staff_view()
 	for option_v: Variant in report.get("hire_options", []):
 		var option: Dictionary = option_v
