@@ -280,7 +280,8 @@ func test_craft_preview_builds_surface_meshes_and_positioned_trees() -> void:
 	for child: Node in scene.one_hole._world.get_children():
 		if child is MeshInstance3D:
 			mesh_count += 1
-	assert_bool(mesh_count >= scene.craft_hole.cols * scene.craft_hole.rows).is_true()
+	assert_bool(mesh_count > 0).is_true()
+	assert_bool(mesh_count < scene.craft_hole.cols * scene.craft_hole.rows).is_true()
 	var tree_ground: float = scene.one_hole._ground_height(600, 2000)
 	assert_float(tree_ground).is_equal_approx(float(MHRHole.from_def(scene.canonical_craft_draft()).z_at(600, 2000)) / 1000.0, 0.001)
 	scene._active = false
