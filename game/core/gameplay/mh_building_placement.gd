@@ -108,9 +108,10 @@ static func _hits_golf_features(x0: int, y0: int, x1: int, y1: int, holes: Array
 		var h: Dictionary = hv
 		var slot: int = int(h.get("slot_id", -1))
 		var origin: Array = MHCourseLayout.origin_for_slot(course, slot)
+		# A finalized hole without an authoritative world origin is not safe to build around.
+		# Do not resurrect the First Real Round [480,340] compatibility origin here.
 		if origin.size() != 2:
-			# Backward-compatible prototype fallback; persisted course documents should always supply the origin.
-			origin = [480, 340]
+			return true
 		for fv: Variant in h.get("features", []):
 			if typeof(fv) != TYPE_DICTIONARY:
 				continue
@@ -151,9 +152,7 @@ static func _owned_rect(land: MHLandModel, x0: int, y0: int, x1: int, y1: int, w
 	# Land remains the ownership/economy boundary, not a placement grid. Check footprint corners + centre.
 	for p: Vector2i in [Vector2i(x0, y0), Vector2i(x1 - 1, y0), Vector2i(x0, y1 - 1), Vector2i(x1 - 1, y1 - 1),
 			Vector2i((x0 + x1) / 2, (y0 + y1) / 2)]:
-		var col: int = clampi((p.x * 4) / maxi(world_x, 1), 0, 3)
-		var row: int = clampi((p.y * 4) / maxi(world_y, 1), 0, 3)
-		if not land.is_owned(row * 4 + col):
+		if not land.owns_world_mm(p.x, p.y, world_x, world_y):
 			return false
 	return true
 
