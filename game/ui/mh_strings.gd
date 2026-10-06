@@ -360,6 +360,7 @@ const TABLE: Dictionary = {
 	"management.operations": "Course operations",
 	"management.staff_payroll": "Staff {staff}   Payroll {payroll}/day",
 	"management.condition_service": "Course condition {condition}/1000   Service {service}/1000",
+	"management.course_traffic": "Course traffic: {active} groups playing • {blocked} waiting • Pace support {pace}/100",
 	"management.equipment_costs": "Equipment {units}/{capacity}   Operating {operating}   Repairs {repairs}",
 	"management.difficulty.relaxed": "Relaxed",
 	"management.difficulty.standard": "Standard",
