@@ -61,7 +61,8 @@ static func _safe_approach(ball: Vector3, start: Vector3, splat: MHSplatMap, gri
 	return MHClubPedestrian.apply_ground_height(ball + back.normalized() * 5.0, grid)
 
 static func _path_search(start: Vector3, goal: Vector3, splat: MHSplatMap, grid: MHHeightGrid) -> Array:
-	var step: int = maxi(1, roundi(2000.0 / float(grid.cell_size_mm)))
+	# Search at terrain-cell resolution so one-cell-wide and diagonal painted paths remain connected.
+	var step: int = 1
 	var first: Vector2i = _nearest_path(start, splat, grid, step)
 	var last: Vector2i = _nearest_path(goal, splat, grid, step)
 	if first.x < 0 or last.x < 0:
@@ -69,7 +70,8 @@ static func _path_search(start: Vector3, goal: Vector3, splat: MHSplatMap, grid:
 	var queue: Array = [first]
 	var came: Dictionary = {first: first}
 	var head: int = 0
-	var dirs: Array = [Vector2i(step, 0), Vector2i(-step, 0), Vector2i(0, step), Vector2i(0, -step)]
+	var dirs: Array = [Vector2i(step, 0), Vector2i(-step, 0), Vector2i(0, step), Vector2i(0, -step),
+		Vector2i(step, step), Vector2i(step, -step), Vector2i(-step, step), Vector2i(-step, -step)]
 	while head < queue.size() and queue.size() < 4096:
 		var cur: Vector2i = queue[head]
 		head += 1
@@ -100,7 +102,8 @@ static func _path_search(start: Vector3, goal: Vector3, splat: MHSplatMap, grid:
 static func _nearest_path(world: Vector3, splat: MHSplatMap, grid: MHHeightGrid, step: int) -> Vector2i:
 	var cx: int = clampi(roundi(world.x * 1000.0) / grid.cell_size_mm, 0, splat.samples_x - 1)
 	var cy: int = clampi(roundi(world.z * 1000.0) / grid.cell_size_mm, 0, splat.samples_y - 1)
-	for radius: int in range(0, 13, step):
+	# Look farther than the old 12-cell bound so buildings/tees slightly away from a path can still join it.
+	for radius: int in range(0, 21, step):
 		for y: int in range(maxi(0, cy - radius), mini(splat.samples_y - 1, cy + radius) + 1, step):
 			for x: int in range(maxi(0, cx - radius), mini(splat.samples_x - 1, cx + radius) + 1, step):
 				var cell: Vector2i = Vector2i(x, y)
