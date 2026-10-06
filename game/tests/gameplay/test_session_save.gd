@@ -451,13 +451,19 @@ func test_corrupt_building_placement_checkpoint_is_rejected() -> void:
 	for kind: String in ["outside", "bad_rotation", "bad_size", "unknown", "unpurchased"]:
 		var doc: Dictionary = base.duplicate(true)
 		if kind == "outside":
-			doc["runtime"]["building_placements"]["clubhouse"]["center_mm"] = [-1000, 42000]
+			var key: Variant = (doc["runtime"]["building_placements"] as Dictionary).keys()[0]
+			doc["runtime"]["building_placements"][key]["center_mm"] = [-1000, 42000]
 		elif kind == "bad_rotation":
-			doc["runtime"]["building_placements"]["clubhouse"]["rotation_quarters"] = 9
+			var key: Variant = (doc["runtime"]["building_placements"] as Dictionary).keys()[0]
+			doc["runtime"]["building_placements"][key]["rotation_quarters"] = 9
 		elif kind == "bad_size":
-			doc["runtime"]["building_placements"]["clubhouse"]["size_m"] = [0, 14]
+			var key: Variant = (doc["runtime"]["building_placements"] as Dictionary).keys()[0]
+			doc["runtime"]["building_placements"][key]["size_m"] = [0, 14]
 		elif kind == "unknown":
-			doc["runtime"]["building_placements"]["mystery"] = doc["runtime"]["building_placements"]["clubhouse"].duplicate(true)
+			var key: Variant = (doc["runtime"]["building_placements"] as Dictionary).keys()[0]
+			doc["runtime"]["building_placements"]["mystery"] = doc["runtime"]["building_placements"][key].duplicate(true)
+			doc["runtime"]["building_placements"]["mystery"]["building_id"] = "mystery"
+			doc["runtime"]["building_placements"]["mystery"]["instance_id"] = "mystery"
 		else:
 			doc["runtime"]["economy"]["tiers"][0] = 0
 			doc["buildings"][0]["tier"] = 0
@@ -478,3 +484,17 @@ func test_building_placement_survives_checkpoint_exactly() -> void:
 		var loaded: MHGameSession = restored.value
 		assert_dict(loaded.building_placements).is_equal(s.building_placements)
 		assert_bool(loaded.building_position("clubhouse").is_equal_approx(Vector3(30.0, 1.25, 42.0))).is_true()
+
+
+func test_multiple_building_instances_keep_distinct_identity() -> void:
+	var s: MHGameSession = MHGameSession.create()
+	s.economy.set_tier(0, 1)
+	var first: Dictionary = {"ok": true, "center_mm": [30000, 42000], "size_m": [18, 14],
+		"ground_mm": 1000, "rotation_quarters": 0, "instance_id": "clubhouse_a"}
+	var second: Dictionary = {"ok": true, "center_mm": [60000, 42000], "size_m": [18, 14],
+		"ground_mm": 1200, "rotation_quarters": 0, "instance_id": "clubhouse_b"}
+	assert_bool(s.set_building_placement("clubhouse", first)).is_true()
+	assert_bool(s.set_building_placement("clubhouse", second)).is_true()
+	assert_int(s.building_placements.size()).is_equal(2)
+	assert_bool(s.building_placements.has("clubhouse_a")).is_true()
+	assert_bool(s.building_placements.has("clubhouse_b")).is_true()
