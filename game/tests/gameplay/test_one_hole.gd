@@ -185,3 +185,21 @@ func test_live_build_play_entry_uses_owned_canonical_craft_draft() -> void:
 	scene.one_hole._finalize()
 	assert_array(scene.session.hole_definitions()).contains_exactly([expected])
 	scene._active = false
+
+
+func test_reopening_build_play_does_not_replace_finalized_layout_with_default_craft() -> void:
+	var scene: MHLiveConstruction = auto_free(MHLiveConstruction.new())
+	scene.store = MHSaveStore.new("user://test_one_hole_reopen")
+	scene.ledger_dir = "user://test_one_hole_reopen_ledgers"
+	add_child(scene)
+	assert_bool(scene._active).is_true()
+	scene.craft_hole.set_height_tile(11, 15, 6)
+	var finalized: Dictionary = scene.canonical_craft_draft()
+	assert_bool(scene.one_hole.set_canonical_draft(finalized)).is_true()
+	scene.one_hole._finalize()
+	scene.craft_hole = scene._default_craft_hole()
+	scene.one_hole.hide()
+	scene._open_craft_hole()
+	assert_bool(scene.one_hole.canonical_draft.is_empty()).is_true()
+	assert_array(scene.session.hole_definitions()).contains_exactly([finalized])
+	scene._active = false
