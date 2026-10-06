@@ -753,7 +753,7 @@ func respawn_player_cart() -> bool:
 	_player_cart.sunk.connect(func() -> void: _status.text = "Cart sunk — respawn it at the clubhouse.")
 	_player_cart.tipped.connect(func() -> void: _status.text = "Cart rolled over.")
 	_player_cart.clubs_lost.connect(func(count: int) -> void: _status.text = "%d clubs fell off the cart." % count)
-	_player_cart.green_violation.connect(func() -> void: _status.text = "You drove onto a green — the grounds crew will not be happy.")
+	_player_cart.green_violation.connect(_on_player_cart_green_violation)
 	return true
 
 
@@ -791,6 +791,19 @@ static func _add_player_cart_visual(cart: Node3D) -> void:
 	bag.position = Vector3(0.0, 1.05, 1.05)
 	bag.name = "GolfBag"
 	cart.add_child(bag)
+
+
+func _on_player_cart_green_violation() -> void:
+	if _player_cart == null or editor == null or editor.grid == null:
+		return
+	var cell_mm: int = editor.grid.cell_size_mm
+	if cell_mm <= 0:
+		return
+	var cx: int = clampi(roundi(_player_cart.global_position.x * 1000.0) / cell_mm, 0, editor.grid.cells_x - 1)
+	var cy: int = clampi(roundi(_player_cart.global_position.z * 1000.0) / cell_mm, 0, editor.grid.cells_y - 1)
+	var result: Dictionary = session.damage_turf_at_cell(cx, cy, editor.grid.cells_x, editor.grid.cells_y)
+	var damage: int = int(result.get("damage", 0))
+	_status.text = "Green damaged (-%d condition). Grounds staff will need to repair it." % damage if damage > 0 else "You drove onto a green."
 
 
 func drive_player_cart(throttle: float, steer: float) -> bool:
