@@ -49,6 +49,12 @@ func _build() -> void:
 		margin.add_theme_constant_override("margin_" + side, MHTheme.GUTTER)
 	add_child(margin)
 	var root: VBoxContainer = MHUIKit.vbox(8)
+	# This overlay uses an expanding spacer as the authoritative world/free zone.
+	# The VBox itself must fill the full MarginContainer or the spacer collapses,
+	# causing live-construction controls and the one-hole panel to overlap the
+	# editor toolbar at the top of the viewport.
+	root.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	root.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	margin.add_child(root)
 
 	var top: HFlowContainer = MHUIKit.flow(8)
