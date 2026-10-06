@@ -828,3 +828,13 @@ func test_live_staff_assignments_only_include_real_assigned_work_and_equipment()
 	assert_int(live.size()).is_equal(1)
 	assert_int(int((live[0] as Dictionary)["serial"])).is_equal(serial)
 	assert_str(str(((live[0] as Dictionary)["equipment"] as Dictionary)["type"])).is_equal("greens_mower")
+
+
+func test_staff_route_state_moves_deterministically_across_work_route() -> void:
+	var route: Array = [Vector3(0, 0, 0), Vector3(10, 0, 0), Vector3(10, 0, 10)]
+	var first: Dictionary = MHLiveConstruction._route_state(route, 0.25)
+	assert_float((first["position"] as Vector3).x).is_equal(5.0)
+	assert_float((first["position"] as Vector3).z).is_equal(0.0)
+	var second: Dictionary = MHLiveConstruction._route_state(route, 0.75)
+	assert_float((second["position"] as Vector3).x).is_equal(10.0)
+	assert_float((second["position"] as Vector3).z).is_equal(5.0)
