@@ -130,3 +130,26 @@ func test_difficulty_changes_pressure_without_extra_player_controls() -> void:
 	var tycoon_condition: int = int((tycoon.units[0] as Dictionary)["condition"])
 	assert_bool(relaxed_condition > standard_condition).is_true()
 	assert_bool(standard_condition > tycoon_condition).is_true()
+
+
+func test_equipment_restore_rejects_wrong_types_and_impossible_state() -> void:
+	var fleet: MHStaffEquipment = MHStaffEquipment.new()
+	fleet.add_unit("greens_mower")
+	var good: Dictionary = fleet.to_save_block()
+
+	var fractional_serial: Dictionary = good.duplicate(true)
+	(fractional_serial["units"][0] as Dictionary)["serial"] = 1.5
+	assert_bool(MHStaffEquipment.new().from_save_block(fractional_serial)).is_false()
+
+	var string_assignment: Dictionary = good.duplicate(true)
+	(string_assignment["units"][0] as Dictionary)["assigned_employee"] = "7"
+	assert_bool(MHStaffEquipment.new().from_save_block(string_assignment)).is_false()
+
+	var impossible_broken: Dictionary = good.duplicate(true)
+	(impossible_broken["units"][0] as Dictionary)["broken"] = true
+	(impossible_broken["units"][0] as Dictionary)["condition"] = 900
+	assert_bool(MHStaffEquipment.new().from_save_block(impossible_broken)).is_false()
+
+	var extra_key: Dictionary = good.duplicate(true)
+	(extra_key["units"][0] as Dictionary)["free_upgrade"] = true
+	assert_bool(MHStaffEquipment.new().from_save_block(extra_key)).is_false()
