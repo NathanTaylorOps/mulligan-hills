@@ -728,3 +728,11 @@ func test_management_warns_only_after_repeated_sustained_hole_congestion() -> vo
 	clean.customer_playback.hole_wait_s = {4: 44.0}
 	clean.customer_playback.hole_wait_count = {4: 3}
 	assert_bool((clean.management_report()["warnings"] as Array).has("pace_bottleneck")).is_false()
+
+
+func test_live_reaction_text_prioritizes_real_pace_and_extreme_rounds() -> void:
+	assert_str(MHLiveConstruction._reaction_text({"satisfaction": 90})).is_equal("What a round!")
+	assert_str(MHLiveConstruction._reaction_text({"satisfaction": 20})).is_equal("Rough day out there.")
+	assert_str(MHLiveConstruction._reaction_text({"satisfaction": 90, "pace_penalty": 8})).is_equal("That was slow...")
+	assert_str(MHLiveConstruction._reaction_text({"satisfaction": 70, "pace_penalty": 2})).is_equal("Bit of a wait.")
+	assert_str(MHLiveConstruction._reaction_text({"satisfaction": 70})).is_equal("")
