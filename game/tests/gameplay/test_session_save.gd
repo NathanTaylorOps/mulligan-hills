@@ -870,3 +870,13 @@ func test_live_course_condition_is_read_only_copy_of_authoritative_grounds() -> 
 	(live["pest"] as Array)[0] = 999
 	assert_int(s.staff_system.condition_of(0)).is_equal(321)
 	assert_int(s.staff_system.pest_of(0)).is_equal(654)
+
+
+func test_take_grounds_events_is_consuming_and_immutable() -> void:
+	var s: MHGameSession = MHGameSession.create()
+	s.grounds_events = [{"day": 3, "parcel": 2, "kind": "test_issue", "positive": false, "handled": true}]
+	var events: Array = s.take_grounds_events()
+	assert_int(events.size()).is_equal(1)
+	assert_int(s.grounds_events.size()).is_equal(0)
+	(events[0] as Dictionary)["parcel"] = 9
+	assert_int(s.take_grounds_events().size()).is_equal(0)
