@@ -264,3 +264,37 @@ func test_camera_follow_and_overview_preserve_gameplay_state() -> void:
 	scene.one_hole._shoot()
 	assert_bool(scene.controller.rig.target == overview).is_true()
 	scene._active = false
+
+
+func test_elevated_craft_hole_practice_state_survives_checkpoint_exactly() -> void:
+	var s: MHGameSession = MHGameSession.create()
+	var craft: MHCraftHole = MHCraftHole.new(24, 40)
+	craft.paint_rect(10, 0, 13, 29, MHCraftHole.Surface.FAIRWAY)
+	craft.paint_rect(11, 30, 12, 31, MHCraftHole.Surface.GREEN)
+	craft.add_tee(11, 0)
+	craft.add_pin(11, 30)
+	craft.set_height_tile(11, 15, 6)
+	var layout: Dictionary = MHCraftConvert.to_hole_def(craft, 0, 0, 0)
+	assert_bool(layout.has("relief")).is_true()
+	assert_bool(s.submit_course([layout])["ok"]).is_true()
+	s.practice = MHPracticeRound.create(layout, 123456, 500)
+	assert_object(s.practice).is_not_null()
+	var shot: Dictionary = s.practice.play(s.practice.hole.gx, s.practice.hole.gy)
+	assert_bool(bool(shot["ok"])).is_true()
+	var doc: Dictionary = _document(s)
+	var encoded: MHSaveResult = MHCourseLayout.encode([layout], doc["course"] as Dictionary, [[100, 100]])
+	assert_bool(encoded.is_ok()).override_failure_message(encoded.message).is_true()
+	if not encoded.is_ok():
+		return
+	doc["course"] = encoded.value
+	doc["min_reader_version"] = 3
+	var captured: MHSaveResult = MHSessionSave.capture(s, doc)
+	assert_bool(captured.is_ok()).override_failure_message(captured.message).is_true()
+	if not captured.is_ok():
+		return
+	var restored: MHSaveResult = MHSessionSave.restore(captured.value as Dictionary, s.ledger)
+	assert_bool(restored.is_ok()).override_failure_message(restored.message).is_true()
+	if restored.is_ok():
+		var rs: MHGameSession = restored.value
+		assert_array(rs.hole_definitions()).contains_exactly([layout])
+		assert_dict(rs.practice.to_dict()).is_equal(s.practice.to_dict())
