@@ -454,7 +454,9 @@ func _queue_pending_customers(tick: Dictionary) -> void:
 				if not guest.is_empty():
 					group[group.size() - 1] = guest
 		var party_id: int = _customer_serial
-		var party_hole_index: int = posmod(party_id, _holes.size())
+		# Normal public/member play enters through the first course hole. Only an active hosted tournament
+		# uses deterministic shotgun starts to distribute groups around the locked course.
+		var party_hole_index: int = posmod(party_id, _holes.size()) if not carts_allowed_now() else 0
 		for identity_v: Variant in group:
 			if remaining <= 0:
 				break
