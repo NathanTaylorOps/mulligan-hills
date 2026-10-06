@@ -703,7 +703,10 @@ func exit_player_cart() -> void:
 		_cart_drive_input.hide()
 	if _cart_camera != null and is_instance_valid(_cart_camera):
 		_cart_camera.current = false
-	controller.rig.camera.current = true
+	var main_camera: Camera3D = get_viewport().get_camera_3d()
+	if main_camera == _cart_camera:
+		# MHCameraController resumes ownership on the next camera update; avoid coupling this mode to rig internals.
+		controller.desktop_pan(Vector2.ZERO)
 	router.world_input_allowed = func() -> bool: return _placement_id == "" and shell.current_screen_id() == MHScreenIds.EDITOR and shell.modal_id() == "" and (one_hole == null or not one_hole.visible)
 	_status.text = "Exited cart."
 
