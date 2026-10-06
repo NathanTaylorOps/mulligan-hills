@@ -18,6 +18,8 @@ var pending_facility_visits: Array = []
 var next_tee_s: float = 0.0
 var wait_started_s: Dictionary = {} # party_id -> time it first became blocked at a next tee.
 var completed_wait_s: Dictionary = {} # customer serial -> accumulated visible tee wait for this playback.
+var hole_wait_s: Dictionary = {} # hole_slot -> accumulated resolved wait seconds across parties.
+var hole_wait_count: Dictionary = {} # hole_slot -> number of parties that experienced a resolved wait.
 
 
 func admit(rows: Array, hole_def: Dictionary, rating: Dictionary, ctx: Dictionary) -> void:
@@ -215,6 +217,9 @@ func begin_next_hole(now_s: float, party_id: int = -1) -> Dictionary:
 			var serial: int = int((customer_v as Dictionary).get("serial", -1))
 			if serial >= 0:
 				completed_wait_s[serial] = float(completed_wait_s.get(serial, 0.0)) + waited
+		if waited > 0.0:
+			hole_wait_s[slot] = float(hole_wait_s.get(slot, 0.0)) + waited
+			hole_wait_count[slot] = int(hole_wait_count.get(slot, 0)) + 1
 		wait_started_s.erase(party_id)
 	state["hole_index"] = next_hole
 	state["started_s"] = now_s
@@ -261,6 +266,23 @@ func pace_penalty_for_customer(serial: int, marshal_pace_points: int) -> int:
 	return MHRMath.rdiv(raw * (1000 - relief_pm), 1000)
 
 
+func worst_bottleneck() -> Dictionary:
+	var best_slot: int = -1
+	var best_avg: float = 0.0
+	var best_count: int = 0
+	var slots: Array = hole_wait_s.keys()
+	slots.sort()
+	for slot_v: Variant in slots:
+		var slot: int = int(slot_v)
+		var count: int = maxi(1, int(hole_wait_count.get(slot, 0)))
+		var avg: float = float(hole_wait_s.get(slot, 0.0)) / float(count)
+		if avg > best_avg:
+			best_slot = slot
+			best_avg = avg
+			best_count = count
+	return {"hole_slot": best_slot, "average_wait_s": best_avg, "waited_parties": best_count}
+
+
 func traffic_state() -> Dictionary:
 	# Read-only presentation/debug view. No economy or simulation authority lives here.
 	var parties: Array = []
@@ -277,7 +299,7 @@ func traffic_state() -> Dictionary:
 		reservations[int(slot_v)] = (tee_reservations[slot_v] as Array).duplicate()
 	return {"active_parties": parties, "occupied_holes": occupied_holes.duplicate(),
 		"tee_reservations": reservations, "waiting_customers": waiting.size(),
-		"blocked_parties": wait_started_s.size()}
+		"blocked_parties": wait_started_s.size(), "worst_bottleneck": worst_bottleneck()}
 
 
 func visual_state(now_s: float) -> Dictionary:
