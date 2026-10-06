@@ -580,7 +580,7 @@ func _begin_hole_transition(event: Dictionary) -> void:
 	var party_id: int = int(customer.get("party_id", customer.get("serial", -1)))
 	if party_id < 0 or _hole_transition_walkers.has(party_id):
 		return
-	var previous_slot: int = int((session.customer_playback.active.get("customers", [customer]) as Array)[0].get("hole_slot", -1))
+	var previous_slot: int = int(session.customer_playback.active.get("transition_from_hole_slot", -1))
 	var next_slot: int = int(customer.get("hole_slot", -1))
 	var from_pos: Vector3 = _hole_world_point(previous_slot, "green")
 	var to_pos: Vector3 = _hole_world_point(next_slot, "tee")
