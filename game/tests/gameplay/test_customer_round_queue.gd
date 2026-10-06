@@ -169,13 +169,13 @@ func test_pedestrian_route_ends_at_exact_building_destination() -> void:
 	assert_bool(pos.is_equal_approx(destination)).is_true()
 
 
-func test_building_positions_only_include_purchased_tiers() -> void:
+func test_building_positions_require_purchased_and_player_placed_building() -> void:
 	var s: MHGameSession = MHGameSession.create()
-	var none: Dictionary = MHClubPedestrian.building_positions(s)
-	assert_bool(none.has("restaurant")).is_false()
-	s.economy.set_tier(0, 1)
-	s.economy.set_tier(3, 1)
+	s.economy.set_tier(0, 1) # clubhouse purchased, but not placed yet
+	assert_bool(MHClubPedestrian.building_positions(s).has("clubhouse")).is_false()
+	var placed: Dictionary = {"ok": true, "center_mm": [30000, 42000], "size_m": [18, 14], "ground_mm": 1250,
+		"rotation_quarters": 0}
+	assert_bool(s.set_building_placement("clubhouse", placed)).is_true()
 	var positions: Dictionary = MHClubPedestrian.building_positions(s)
 	assert_bool(positions.has("clubhouse")).is_true()
-	assert_bool(positions.has("restaurant")).is_true()
-	assert_bool((positions["clubhouse"] as Vector3).distance_to(positions["restaurant"] as Vector3) > 0.0).is_true()
+	assert_bool((positions["clubhouse"] as Vector3).is_equal_approx(Vector3(30.0, 1.25, 42.0))).is_true()
