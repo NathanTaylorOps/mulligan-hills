@@ -38,8 +38,8 @@ func _add_hold_button(label: String, offset: Vector2, size: Vector2, setter: Cal
 	var b := Button.new()
 	b.text = label
 	b.custom_minimum_size = size
-	b.position = Vector2(offset.x if offset.x >= 0 else get_viewport_rect().size.x + offset.x,
-		get_viewport_rect().size.y + offset.y)
+	b.set_anchors_preset(Control.PRESET_BOTTOM_LEFT if offset.x >= 0 else Control.PRESET_BOTTOM_RIGHT)
+	b.position = offset if offset.x >= 0 else Vector2(offset.x, offset.y)
 	b.mouse_filter = Control.MOUSE_FILTER_STOP
 	b.button_down.connect(func() -> void: setter.call(true))
 	b.button_up.connect(func() -> void: setter.call(false))
@@ -49,7 +49,8 @@ func _add_action_button(label: String, offset: Vector2, action: Callable) -> voi
 	var b := Button.new()
 	b.text = label
 	b.custom_minimum_size = Vector2(92, 54)
-	b.position = Vector2(get_viewport_rect().size.x + offset.x, offset.y)
+	b.set_anchors_preset(Control.PRESET_TOP_RIGHT)
+	b.position = offset
 	b.mouse_filter = Control.MOUSE_FILTER_STOP
 	b.pressed.connect(action)
 	add_child(b)
