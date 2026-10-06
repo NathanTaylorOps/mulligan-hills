@@ -71,7 +71,13 @@
     "sat_pen_span": 350,
     "overlay_beauty_k": 100,
     "overlay_fairness_k": 50,
-    "service_rec_by_tier": [1, 1, 1, 2, 2]
+    "service_rec_by_tier": [
+      1,
+      1,
+      1,
+      2,
+      2
+    ]
   },
   "decay_by_parcel_kind": {
     "golf": 60,
@@ -79,26 +85,243 @@
     "homes": 20
   },
   "roles": [
-    {"id": "groundskeeper", "name_key": "staff.role.groundskeeper", "building": "maintenance", "kind": "grounds", "legacy": "greenkeepers", "daily_wage_cents": 2200, "caps_by_tier": [2, 3, 4, 6, 8], "pace_each": 0, "pace_max": 0},
-    {"id": "wildlife_ranger", "name_key": "staff.role.wildlife_ranger", "building": "maintenance", "kind": "pest", "legacy": "greenkeepers", "daily_wage_cents": 2800, "caps_by_tier": [0, 1, 2, 3, 4], "pace_each": 0, "pace_max": 0},
-    {"id": "marshal", "name_key": "staff.role.marshal", "building": "clubhouse", "kind": "station", "legacy": "marshals", "daily_wage_cents": 2000, "caps_by_tier": [1, 1, 2, 2, 2], "pace_each": 3, "pace_max": 9},
-    {"id": "caddie", "name_key": "staff.role.caddie", "building": "cart_barn", "kind": "station", "legacy": "marshals", "daily_wage_cents": 2000, "caps_by_tier": [1, 1, 2, 2, 2], "pace_each": 3, "pace_max": 6},
-    {"id": "pro_shop_assistant", "name_key": "staff.role.pro_shop_assistant", "building": "pro_shop", "kind": "station", "legacy": "pro_shop_staff", "daily_wage_cents": 1900, "caps_by_tier": [1, 1, 2, 2, 2], "pace_each": 0, "pace_max": 0},
-    {"id": "range_attendant", "name_key": "staff.role.range_attendant", "building": "driving_range", "kind": "station", "legacy": "pro_shop_staff", "daily_wage_cents": 1800, "caps_by_tier": [1, 1, 2, 2, 2], "pace_each": 0, "pace_max": 0},
-    {"id": "server", "name_key": "staff.role.server", "building": "restaurant", "kind": "station", "legacy": "caterers", "daily_wage_cents": 1800, "caps_by_tier": [1, 1, 2, 2, 2], "pace_each": 0, "pace_max": 0},
-    {"id": "spa_attendant", "name_key": "staff.role.spa_attendant", "building": "pool_spa", "kind": "station", "legacy": "caterers", "daily_wage_cents": 2400, "caps_by_tier": [1, 1, 2, 2, 2], "pace_each": 0, "pace_max": 0},
-    {"id": "housekeeper", "name_key": "staff.role.housekeeper", "building": "lodging", "kind": "station", "legacy": "caterers", "daily_wage_cents": 1900, "caps_by_tier": [1, 1, 2, 2, 2], "pace_each": 0, "pace_max": 0},
-    {"id": "concierge", "name_key": "staff.role.concierge", "building": "homes", "kind": "station", "legacy": "caterers", "daily_wage_cents": 3000, "caps_by_tier": [1, 1, 2, 2, 2], "pace_each": 0, "pace_max": 0},
-    {"id": "guide", "name_key": "staff.role.guide", "building": "landmark", "kind": "station", "legacy": "caterers", "daily_wage_cents": 2500, "caps_by_tier": [1, 1, 2, 2, 2], "pace_each": 0, "pace_max": 0}
+    {
+      "id": "groundskeeper",
+      "name_key": "staff.role.groundskeeper",
+      "building": "maintenance",
+      "kind": "grounds",
+      "legacy": "greenkeepers",
+      "daily_wage_cents": 2200,
+      "caps_by_tier": [
+        2,
+        3,
+        4,
+        6,
+        8
+      ],
+      "pace_each": 0,
+      "pace_max": 0
+    },
+    {
+      "id": "superintendent",
+      "name_key": "staff.role.superintendent",
+      "building": "maintenance",
+      "kind": "station",
+      "legacy": "greenkeepers",
+      "daily_wage_cents": 5200,
+      "caps_by_tier": [
+        0,
+        1,
+        1,
+        1,
+        1
+      ],
+      "pace_each": 0,
+      "pace_max": 0
+    },
+    {
+      "id": "wildlife_ranger",
+      "name_key": "staff.role.wildlife_ranger",
+      "building": "maintenance",
+      "kind": "pest",
+      "legacy": "greenkeepers",
+      "daily_wage_cents": 2800,
+      "caps_by_tier": [
+        0,
+        1,
+        2,
+        3,
+        4
+      ],
+      "pace_each": 0,
+      "pace_max": 0
+    },
+    {
+      "id": "marshal",
+      "name_key": "staff.role.marshal",
+      "building": "clubhouse",
+      "kind": "station",
+      "legacy": "marshals",
+      "daily_wage_cents": 2000,
+      "caps_by_tier": [
+        1,
+        1,
+        2,
+        2,
+        2
+      ],
+      "pace_each": 3,
+      "pace_max": 9
+    },
+    {
+      "id": "caddie",
+      "name_key": "staff.role.caddie",
+      "building": "cart_barn",
+      "kind": "station",
+      "legacy": "marshals",
+      "daily_wage_cents": 2000,
+      "caps_by_tier": [
+        1,
+        1,
+        2,
+        2,
+        2
+      ],
+      "pace_each": 3,
+      "pace_max": 6
+    },
+    {
+      "id": "pro_shop_assistant",
+      "name_key": "staff.role.pro_shop_assistant",
+      "building": "pro_shop",
+      "kind": "station",
+      "legacy": "pro_shop_staff",
+      "daily_wage_cents": 1900,
+      "caps_by_tier": [
+        1,
+        1,
+        2,
+        2,
+        2
+      ],
+      "pace_each": 0,
+      "pace_max": 0
+    },
+    {
+      "id": "range_attendant",
+      "name_key": "staff.role.range_attendant",
+      "building": "driving_range",
+      "kind": "station",
+      "legacy": "pro_shop_staff",
+      "daily_wage_cents": 1800,
+      "caps_by_tier": [
+        1,
+        1,
+        2,
+        2,
+        2
+      ],
+      "pace_each": 0,
+      "pace_max": 0
+    },
+    {
+      "id": "server",
+      "name_key": "staff.role.server",
+      "building": "restaurant",
+      "kind": "station",
+      "legacy": "caterers",
+      "daily_wage_cents": 1800,
+      "caps_by_tier": [
+        1,
+        1,
+        2,
+        2,
+        2
+      ],
+      "pace_each": 0,
+      "pace_max": 0
+    },
+    {
+      "id": "spa_attendant",
+      "name_key": "staff.role.spa_attendant",
+      "building": "pool_spa",
+      "kind": "station",
+      "legacy": "caterers",
+      "daily_wage_cents": 2400,
+      "caps_by_tier": [
+        1,
+        1,
+        2,
+        2,
+        2
+      ],
+      "pace_each": 0,
+      "pace_max": 0
+    },
+    {
+      "id": "housekeeper",
+      "name_key": "staff.role.housekeeper",
+      "building": "lodging",
+      "kind": "station",
+      "legacy": "caterers",
+      "daily_wage_cents": 1900,
+      "caps_by_tier": [
+        1,
+        1,
+        2,
+        2,
+        2
+      ],
+      "pace_each": 0,
+      "pace_max": 0
+    },
+    {
+      "id": "concierge",
+      "name_key": "staff.role.concierge",
+      "building": "homes",
+      "kind": "station",
+      "legacy": "caterers",
+      "daily_wage_cents": 3000,
+      "caps_by_tier": [
+        1,
+        1,
+        2,
+        2,
+        2
+      ],
+      "pace_each": 0,
+      "pace_max": 0
+    },
+    {
+      "id": "guide",
+      "name_key": "staff.role.guide",
+      "building": "landmark",
+      "kind": "station",
+      "legacy": "caterers",
+      "daily_wage_cents": 2500,
+      "caps_by_tier": [
+        1,
+        1,
+        2,
+        2,
+        2
+      ],
+      "pace_each": 0,
+      "pace_max": 0
+    }
   ],
   "incident_kinds": [
-    {"id": "burrowers", "name_key": "staff.incident.burrowers", "cond_damage": 140, "pest_add": 80},
-    {"id": "goose_flock", "name_key": "staff.incident.goose_flock", "cond_damage": 60, "pest_add": 40},
-    {"id": "insect_swarm", "name_key": "staff.incident.insect_swarm", "cond_damage": 100, "pest_add": 120}
+    {
+      "id": "burrowers",
+      "name_key": "staff.incident.burrowers",
+      "cond_damage": 140,
+      "pest_add": 80
+    },
+    {
+      "id": "goose_flock",
+      "name_key": "staff.incident.goose_flock",
+      "cond_damage": 60,
+      "pest_add": 40
+    },
+    {
+      "id": "insect_swarm",
+      "name_key": "staff.incident.insect_swarm",
+      "cond_damage": 100,
+      "pest_add": 120
+    }
   ],
   "sighting_kinds": [
-    {"id": "deer", "name_key": "staff.sighting.deer"},
-    {"id": "heron", "name_key": "staff.sighting.heron"},
-    {"id": "fox", "name_key": "staff.sighting.fox"}
+    {
+      "id": "deer",
+      "name_key": "staff.sighting.deer"
+    },
+    {
+      "id": "heron",
+      "name_key": "staff.sighting.heron"
+    },
+    {
+      "id": "fox",
+      "name_key": "staff.sighting.fox"
+    }
   ]
 }
