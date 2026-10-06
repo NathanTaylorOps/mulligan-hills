@@ -190,3 +190,28 @@ func test_router_suppression_clears_latched_mouse_and_touch_state() -> void:
 	press.pressed = true
 	router._input(press)
 	assert_int(router._mouse_mode).is_equal(MHInputRouter.MouseMode.NONE)
+
+
+func test_live_session_exposes_staff_assignment_firing_and_equipment_sale() -> void:
+	var s: MHGameSession = MHGameSession.create()
+	var hired: Dictionary = s.hire_staff("groundskeeper")
+	assert_bool(bool(hired["ok"])).is_true()
+	var employee_serial: int = int(hired["serial"])
+	var assignment: Dictionary = s.assign_staff(employee_serial, [0])
+	assert_bool(bool(assignment["ok"])).is_true()
+	assert_array((s.staff_system.roster.employee(employee_serial)["areas"] as Array)).is_equal([0])
+
+	var bought: Dictionary = s.staff_system.equipment.add_unit("greens_mower")
+	var equipment_serial: int = int(bought["serial"])
+	assert_bool(s.assign_staff_equipment(equipment_serial, employee_serial)).is_true()
+	assert_int(int((s.staff_system.equipment.units[0] as Dictionary)["assigned_employee"])).is_equal(employee_serial)
+	assert_bool(s.fire_staff(employee_serial)).is_true()
+	assert_int(int((s.staff_system.equipment.units[0] as Dictionary)["assigned_employee"])).is_equal(0)
+
+	var cash_before_sale: int = s.economy.cash
+	var expected_value: int = s.staff_system.equipment.sale_value(equipment_serial)
+	var sold: Dictionary = s.sell_staff_equipment(equipment_serial)
+	assert_bool(bool(sold["ok"])).is_true()
+	assert_int(int(sold["value"])).is_equal(expected_value)
+	assert_int(s.economy.cash).is_equal(cash_before_sale + expected_value)
+	assert_int(s.staff_system.equipment.units.size()).is_equal(0)
