@@ -132,17 +132,17 @@ func test_golfer_renderer_uses_authoritative_shot_endpoints() -> void:
 	var address: Dictionary = golfers._authoritative_state(events, 0.2, 0, 1)
 	assert_bool(bool(address["done"])).is_false()
 	var address_world: Vector2 = address["world"] as Vector2
-	assert_float(address_world.x).is_equal_approx(9.144, 0.001)
-	assert_float(address_world.y).is_equal_approx(18.288, 0.001)
+	assert_float(address_world.x).is_equal_approx(10.0, 0.001)
+	assert_float(address_world.y).is_equal_approx(20.0, 0.001)
 	var flight: Dictionary = golfers._authoritative_state(events,
 		MHAIRoundTimeline.ADDRESS_S + MHAIRoundTimeline.SWING_S + 0.7, 0, 1)
 	assert_float(float(flight["ball_u"])).is_greater(0.0)
 	var ball_from: Vector2 = flight["ball_from"] as Vector2
 	var ball_to: Vector2 = flight["ball_to"] as Vector2
-	assert_float(ball_from.x).is_equal_approx(9.144, 0.001)
-	assert_float(ball_from.y).is_equal_approx(18.288, 0.001)
-	assert_float(ball_to.x).is_equal_approx(18.288, 0.001)
-	assert_float(ball_to.y).is_equal_approx(36.576, 0.001)
+	assert_float(ball_from.x).is_equal_approx(10.0, 0.001)
+	assert_float(ball_from.y).is_equal_approx(20.0, 0.001)
+	assert_float(ball_to.x).is_equal_approx(20.0, 0.001)
+	assert_float(ball_to.y).is_equal_approx(40.0, 0.001)
 
 
 func test_group_does_not_duplicate_one_authoritative_round_trace() -> void:
