@@ -137,3 +137,13 @@ func test_management_report_exposes_authoritative_purchase_options() -> void:
 	assert_int(int(superintendent["cap"])).is_equal(1)
 	assert_int((r["equipment_catalog"] as Array).size()).is_equal(MHStaffEquipment.TYPES.size())
 	assert_int(int(r["equipment_capacity"])).is_equal(6)
+
+
+func test_maintenance_specialists_do_not_dilute_guest_service() -> void:
+	var v: Dictionary = MHStaffFixture.view({"maintenance": 2, "clubhouse": 1}, MHStaffFixture.start_owned())
+	assert_bool(bool(_staff.hire("marshal", 0, v, RICH)["ok"])).is_true()
+	assert_int(_staff.service_avg(v)).is_equal(1000)
+	assert_bool(bool(_staff.hire("superintendent", 0, v, RICH)["ok"])).is_true()
+	assert_bool(bool(_staff.hire("equipment_technician", 0, v, RICH)["ok"])).is_true()
+	assert_int(_staff.service_avg(v)).is_equal(1000)
+	assert_int(_staff.demand_permille(v)).is_equal(1036)
