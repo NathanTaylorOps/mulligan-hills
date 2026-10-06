@@ -265,3 +265,22 @@ func test_live_preview_ground_height_matches_rating_relief() -> void:
 	assert_float(scene.one_hole._ground_height(cx, cy)).is_equal_approx(float(hole.z_at(cx, cy)) / 1000.0, 0.001)
 	assert_float(scene.one_hole._ground_height(cx, cy)).is_equal_approx(6.0, 0.001)
 	scene._active = false
+
+
+func test_craft_preview_builds_surface_meshes_and_positioned_trees() -> void:
+	var scene: MHLiveConstruction = auto_free(MHLiveConstruction.new())
+	scene.store = MHSaveStore.new("user://test_craft_mesh")
+	scene.ledger_dir = "user://test_craft_mesh_ledgers"
+	add_child(scene)
+	assert_bool(scene._active).is_true()
+	scene.craft_hole.set_height_tile(11, 15, 6)
+	scene.craft_hole.add_tree_yd(6, 20)
+	scene._open_craft_hole()
+	var mesh_count: int = 0
+	for child: Node in scene.one_hole._world.get_children():
+		if child is MeshInstance3D:
+			mesh_count += 1
+	assert_bool(mesh_count >= scene.craft_hole.cols * scene.craft_hole.rows).is_true()
+	var tree_ground: float = scene.one_hole._ground_height(600, 2000)
+	assert_float(tree_ground).is_equal_approx(float(MHRHole.from_def(scene.canonical_craft_draft()).z_at(600, 2000)) / 1000.0, 0.001)
+	scene._active = false
