@@ -351,6 +351,22 @@ func from_save_block(block: Dictionary) -> bool:
 	var equipment_block: Variant = b.get("equipment", null)
 	if equipment_block != null and (typeof(equipment_block) != TYPE_DICTIONARY or not restored_equipment.from_save_block(equipment_block as Dictionary)):
 		return false
+	# Equipment assignments are cross-references into the restored roster. Validate them before
+	# committing either subsystem so a corrupt save cannot create ghost operators or incompatible work.
+	var employee_kinds: Dictionary = {}
+	for employee_v: Variant in emps:
+		var employee: Dictionary = employee_v
+		employee_kinds[int(employee["serial"])] = defs.role_kind(str(employee["role"]))
+	for unit_v: Variant in restored_equipment.units:
+		var unit: Dictionary = unit_v
+		var assigned: int = int(unit.get("assigned_employee", 0))
+		if assigned == 0:
+			continue
+		if not employee_kinds.has(assigned):
+			return false
+		var equipment_def: Dictionary = MHStaffEquipment.TYPES[str(unit["type"])]
+		if str(equipment_def["kind"]) != str(employee_kinds[assigned]):
+			return false
 	var st: Dictionary = b["stats"]
 	if st.size() != STAT_KEYS.size():
 		return false
