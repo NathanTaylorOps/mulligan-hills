@@ -13,12 +13,9 @@ static func building_positions(session: MHGameSession) -> Dictionary:
 	ids.sort()
 	for instance_v: Variant in ids:
 		var instance_id: String = str(instance_v)
-		var placement: Dictionary = session.building_placements[instance_id] as Dictionary
-		var center: Array = placement.get("center_mm", []) as Array
-		if center.size() != 2:
-			continue
-		out[instance_id] = Vector3(float(int(center[0])) / 1000.0,
-			float(int(placement.get("ground_mm", 0))) / 1000.0, float(int(center[1])) / 1000.0)
+		var p: Vector3 = session.building_instance_position(instance_id)
+		if p != Vector3.INF:
+			out[instance_id] = p
 	return out
 
 
