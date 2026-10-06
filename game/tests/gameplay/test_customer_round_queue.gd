@@ -144,12 +144,17 @@ func test_social_group_has_shared_group_id_but_distinct_people() -> void:
 	assert_int(ids.size()).is_equal(4)
 
 
-func test_facility_visit_is_timed_and_expires() -> void:
+func test_facility_visit_timer_starts_only_after_physical_arrival() -> void:
 	var q: MHCustomerRoundQueue = MHCustomerRoundQueue.new()
 	var customer: Dictionary = {"serial": 3, "identity": {"id": 1, "group_id": 7}}
-	var visit: Dictionary = q.queue_facility_visit(customer, "restaurant", 10.0)
-	assert_str(str(visit["facility"])).is_equal("restaurant")
-	assert_int(q.active_facility_visits(11.0).size()).is_equal(1)
+	var queued: Dictionary = q.queue_facility_visit(customer, "restaurant", 10.0)
+	assert_str(str(queued["facility"])).is_equal("restaurant")
+	assert_int(q.pending_facility_visits.size()).is_equal(1)
+	assert_int(q.active_facility_visits(30.0).size()).is_equal(0)
+	var visit: Dictionary = q.begin_facility_visit(3, 30.0)
+	assert_int(int(visit["start_s"])).is_equal(30)
+	assert_int(q.pending_facility_visits.size()).is_equal(0)
+	assert_int(q.active_facility_visits(31.0).size()).is_equal(1)
 	assert_int(q.active_facility_visits(float(visit["end_s"]) + 0.1).size()).is_equal(0)
 
 
