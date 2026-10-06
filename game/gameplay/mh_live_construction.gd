@@ -66,6 +66,9 @@ func _ready() -> void:
 		session = restored.value as MHGameSession
 		document = saved.data.duplicate(true)
 		editor = MHTerrainEditor.new(terrain.grid, terrain.splat, 32)
+		if not _revalidate_restored_buildings():
+			_fail("Checkpoint building placements no longer match terrain, ownership or course geometry.")
+			return
 	elif loaded.code == MHSaveResult.Code.NOT_FOUND:
 		session = MHGameSession.create()
 		if session == null:
@@ -207,6 +210,33 @@ func _ready() -> void:
 	_sync_placed_buildings()
 	_request_save()
 	_relayout()
+
+
+func _revalidate_restored_buildings() -> bool:
+	if session == null or editor == null:
+		return false
+	var accepted: Array = []
+	var ids: Array = session.building_placements.keys()
+	ids.sort()
+	for id_v: Variant in ids:
+		var instance_id: String = str(id_v)
+		var saved: Dictionary = session.building_placements[instance_id] as Dictionary
+		var building_id: String = str(saved.get("building_id", ""))
+		var index: int = session.economy.params.building_index(building_id)
+		if index < 0:
+			return false
+		var tier: int = session.economy.tier_of(index)
+		var center: Array = saved.get("center_mm", []) as Array
+		if tier <= 0 or center.size() != 2:
+			return false
+		var checked: Dictionary = MHBuildingPlacement.validate(editor.grid, editor.splat, session.land, building_id, tier,
+			Vector2i(int(center[0]), int(center[1])), accepted, int(saved.get("rotation_quarters", 0)),
+			session.hole_definitions(), _placement_obstacles(), document.get("course", {}) as Dictionary)
+		if not bool(checked.get("ok", false)):
+			return false
+		accepted.append(checked)
+	return true
+
 
 func _first_round_status() -> String:
 	if _resumed_checkpoint:
