@@ -285,6 +285,11 @@ func management_report() -> Dictionary:
 	report["difficulty"] = management_difficulty
 	report["automation"] = management_difficulty == "relaxed"
 	report["cash_cents"] = economy.cash
+	var traffic: Dictionary = customer_playback.traffic_state()
+	report["course_traffic"] = traffic
+	report["active_parties"] = (traffic.get("active_parties", []) as Array).size()
+	report["blocked_parties"] = int(traffic.get("blocked_parties", 0))
+	report["pace_score"] = pace_score()
 	var current_staff_view: Dictionary = staff_view()
 	for option_v: Variant in report.get("hire_options", []):
 		var option: Dictionary = option_v
