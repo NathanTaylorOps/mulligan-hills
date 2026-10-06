@@ -226,3 +226,14 @@ func test_roster_restore_rejects_colliding_next_id_and_invalid_associates() -> v
 	var dangling: Dictionary = saved.duplicate(true)
 	((dangling["golfers"] as Array)[0] as Dictionary)["associates"] = [9999]
 	assert_bool(MHGolferRoster.new().from_dict(dangling)).is_false()
+
+
+func test_playback_virtualization_never_drops_authoritative_customers() -> void:
+	var q: MHCustomerRoundQueue = MHCustomerRoundQueue.new()
+	var rows: Array = []
+	for i: int in range(40):
+		rows.append({"serial": i, "round": {"events": [], "strokes": 4, "flags": 0}, "satisfaction": 70})
+	q.admit(rows, {}, {}, {})
+	assert_int(q.waiting.size()).is_equal(40)
+	assert_int(q.visible_waiting().size()).is_equal(MHCustomerRoundQueue.MAX_VISIBLE_WAITING)
+	assert_int(q.offscreen_waiting_count()).is_equal(16)
