@@ -131,9 +131,15 @@ func test_golfer_renderer_uses_authoritative_shot_endpoints() -> void:
 	golfers.spawn_group(7, 1, Vector2.ZERO, Vector2(100.0, 100.0), {"events": events})
 	var address: Dictionary = golfers._authoritative_state(events, 0.2, 0, 1)
 	assert_bool(bool(address["done"])).is_false()
-	assert_vector2(address["world"] as Vector2).is_equal(Vector2(9.144, 18.288))
+	var address_world: Vector2 = address["world"] as Vector2
+	assert_float(address_world.x).is_equal_approx(9.144, 0.001)
+	assert_float(address_world.y).is_equal_approx(18.288, 0.001)
 	var flight: Dictionary = golfers._authoritative_state(events,
 		MHAIRoundTimeline.ADDRESS_S + MHAIRoundTimeline.SWING_S + 0.7, 0, 1)
 	assert_float(float(flight["ball_u"])).is_greater(0.0)
-	assert_vector2(flight["ball_from"] as Vector2).is_equal(Vector2(9.144, 18.288))
-	assert_vector2(flight["ball_to"] as Vector2).is_equal(Vector2(18.288, 36.576))
+	var ball_from: Vector2 = flight["ball_from"] as Vector2
+	var ball_to: Vector2 = flight["ball_to"] as Vector2
+	assert_float(ball_from.x).is_equal_approx(9.144, 0.001)
+	assert_float(ball_from.y).is_equal_approx(18.288, 0.001)
+	assert_float(ball_to.x).is_equal_approx(18.288, 0.001)
+	assert_float(ball_to.y).is_equal_approx(36.576, 0.001)
