@@ -340,6 +340,8 @@ func _draw_craft_terrain(hole: MHCraftHole) -> void:
 		_draw_craft_tree(tree as Vector2i)
 
 func _craft_tile_mesh(hole: MHCraftHole, c: int, r: int) -> void:
+	var layout: Dictionary = _layout()
+	var relief_hole: MHRHole = MHRHole.from_def(layout)
 	var x0: int = hole.tile_x0_yd(c) * 100
 	var x1: int = (hole.tile_x0_yd(c) + MHCraftHole.TILE_YD) * 100
 	var y0: int = hole.tile_y0_yd(r) * 100
@@ -350,7 +352,8 @@ func _craft_tile_mesh(hole: MHCraftHole, c: int, r: int) -> void:
 	for point: Vector2i in [Vector2i(x0, y0), Vector2i(x1, y0), Vector2i(x1, y1),
 			Vector2i(x0, y0), Vector2i(x1, y1), Vector2i(x0, y1)]:
 		st.set_normal(normal)
-		st.add_vertex(_position_on_ground(point.x, point.y, 0.035 if hole.get_surface(c, r) != MHCraftHole.Surface.WATER else 0.015))
+		var z: float = float(relief_hole.z_at(point.x, point.y)) / 1000.0
+		st.add_vertex(_position(point.x, point.y, z + (0.035 if hole.get_surface(c, r) != MHCraftHole.Surface.WATER else 0.015)))
 	var mesh: ArrayMesh = st.commit()
 	var material: StandardMaterial3D = StandardMaterial3D.new()
 	material.albedo_color = _surface_color(hole.get_surface(c, r))
