@@ -125,8 +125,6 @@ func advance_all(now_s: float) -> Array:
 			events.append({"kind": "finished", "party_id": party_id, "customers": done_party,
 				"customer": (done_party[0] as Dictionary).duplicate(true)})
 	_sync_active_compat()
-	_start_waiting_parties(now_s, events)
-	_sync_active_compat()
 	return events
 
 
