@@ -91,7 +91,7 @@ static func _point(v: Variant) -> bool:
 
 static func _known_layout(h: Dictionary) -> bool:
 	for key: Variant in h.keys():
-		if not ["slot_id", "tee", "green", "features", "tee_z_mm", "green_z_mm"].has(key):
+		if not ["slot_id", "tee", "green", "features", "tee_z_mm", "green_z_mm", "relief"].has(key):
 			return false
 	for key: String in ["tee_z_mm", "green_z_mm"]:
 		if h.has(key) and (not MHRValidate.is_int_value(h[key]) or int(h[key]) < -32768 or int(h[key]) > 32767):
