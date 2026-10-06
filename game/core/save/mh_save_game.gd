@@ -626,13 +626,21 @@ static func _validate_runtime(d: Dictionary, errs: Array) -> void:
 	if typeof(d.get("min_reader_version", null)) != TYPE_INT or int(d["min_reader_version"]) < 2:
 		errs.append("runtime requires reader version 2")
 	var rt: Dictionary = _dict_at(d, "runtime", "$", errs)
-	_only_keys(rt, ["v", "clock", "economy", "save_secret", "recent_scores", "ledger_hash", "terrain_bytes_hash", "practice"], "$.runtime", errs)
+	_only_keys(rt, ["v", "clock", "economy", "save_secret", "recent_scores", "ledger_hash", "terrain_bytes_hash", "practice",
+		"golfer_roster", "customer_serial", "customer_feedback_sum", "customer_feedback_count", "building_placements"], "$.runtime", errs)
 	if not _matches("^[0-9a-f]{64}$", rt.get("terrain_bytes_hash", null)):
 		errs.append("runtime terrain hash invalid")
 	if not _matches("^[0-9a-f]{64}$", rt.get("ledger_hash", null)):
 		errs.append("runtime ledger hash invalid")
 	_int_in(rt, "v", 1, 1, "$.runtime", errs)
 	_int_in(rt, "save_secret", 0, 4294967295, "$.runtime", errs)
+	_int_in(rt, "customer_serial", 0, MAX_INT, "$.runtime", errs, false)
+	_int_in(rt, "customer_feedback_sum", 0, MAX_INT, "$.runtime", errs, false)
+	_int_in(rt, "customer_feedback_count", 0, MAX_INT, "$.runtime", errs, false)
+	if rt.has("golfer_roster") and typeof(rt["golfer_roster"]) != TYPE_DICTIONARY:
+		errs.append("runtime golfer_roster invalid")
+	if rt.has("building_placements") and typeof(rt["building_placements"]) != TYPE_DICTIONARY:
+		errs.append("runtime building_placements invalid")
 	var scores: Array = _array_at(rt, "recent_scores", 14, "$.runtime", errs)
 	for score: Variant in scores:
 		if typeof(score) != TYPE_INT or int(score) < 0 or int(score) > 100:
