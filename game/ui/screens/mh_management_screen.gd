@@ -37,6 +37,43 @@ func _fill() -> void:
 		wb.add_child(MHUIKit.label(MHStrings.t("management.attention"), &"H2Label"))
 		for warning: Variant in warnings:
 			wb.add_child(MHUIKit.label("• " + str(warning).replace("_", " ").capitalize(), &"AccentLabel"))
+	var hire_options: Array = r.get("hire_options", [])
+	var hire_card: PanelContainer = MHUIKit.card(6)
+	var hb: VBoxContainer = MHUIKit.card_box(hire_card)
+	_body.add_child(hire_card)
+	hb.add_child(MHUIKit.label(MHStrings.t("management.hire"), &"H2Label"))
+	for value: Variant in hire_options:
+		var option: Dictionary = value
+		if int(option.get("cap", 0)) <= 0:
+			continue
+		var row: HBoxContainer = MHUIKit.hbox(8)
+		hb.add_child(row)
+		row.add_child(MHUIKit.label(MHStrings.t("management.hire_row", {"role": MHStrings.t(str(option.get("name_key", ""))),
+			"current": int(option.get("current", 0)), "cap": int(option.get("cap", 0)),
+			"wage": MHFormat.money_compact(int(option.get("daily_wage_cents", 0)) / 100)}), &"Label"))
+		var hire_button: MHTapButton = MHUIKit.button(ctx, MHStrings.t("management.hire_button",
+			{"cost": MHFormat.money_compact(int(option.get("hire_cost_cents", 0)) / 100)}), &"ChipButton", 110.0)
+		hire_button.disabled = not bool(option.get("available", false))
+		hire_button.pressed.connect(send.bind(&"hire_staff", {"role": str(option.get("role", ""))}))
+		row.add_child(hire_button)
+
+	var catalog: Array = r.get("equipment_catalog", [])
+	var shop_card: PanelContainer = MHUIKit.card(6)
+	var shop: VBoxContainer = MHUIKit.card_box(shop_card)
+	_body.add_child(shop_card)
+	shop.add_child(MHUIKit.label(MHStrings.t("management.fleet_shop"), &"H2Label"))
+	var fleet_full: bool = int(r.get("equipment_units", 0)) >= int(r.get("equipment_capacity", 0))
+	for value: Variant in catalog:
+		var item: Dictionary = value
+		var row: HBoxContainer = MHUIKit.hbox(8)
+		shop.add_child(row)
+		row.add_child(MHUIKit.label(MHStrings.t("management.buy_row", {"type": str(item.get("type", "")).replace("_", " ").capitalize(),
+			"price": MHFormat.money_compact(int(item.get("price_cents", 0)) / 100)}), &"Label"))
+		var buy_button: MHTapButton = MHUIKit.button(ctx, MHStrings.t("management.buy_button"), &"ChipButton", 90.0)
+		buy_button.disabled = fleet_full
+		buy_button.pressed.connect(send.bind(&"buy_staff_equipment", {"type": str(item.get("type", ""))}))
+		row.add_child(buy_button)
+
 	var employees: Array = r.get("employees", [])
 	var staff_card: PanelContainer = MHUIKit.card(6)
 	var sb: VBoxContainer = MHUIKit.card_box(staff_card)
