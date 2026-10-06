@@ -139,3 +139,31 @@ func test_bad_world_version_slot_and_unsupported_panel_profile_reject() -> void:
 	encoded = MHCourseLayout.encode([h], source, [[480, 340]])
 	assert_bool(encoded.is_ok()).is_true()
 	assert_bool(MHOneHolePanel.supported(encoded.value)).is_false()
+
+
+func test_live_panel_finalizes_exact_canonical_craft_relief_layout() -> void:
+	var scene: MHLiveConstruction = auto_free(MHLiveConstruction.new())
+	scene.store = MHSaveStore.new("user://test_one_hole_canonical")
+	scene.ledger_dir = "user://test_one_hole_canonical_ledgers"
+	add_child(scene)
+	assert_bool(scene._active).is_true()
+	scene.session.clock.pause()
+	scene.one_hole.open()
+	var craft: MHCraftHole = MHCraftHole.new(24, 40)
+	craft.paint_rect(10, 0, 13, 29, MHCraftHole.Surface.FAIRWAY)
+	craft.paint_rect(11, 30, 12, 31, MHCraftHole.Surface.GREEN)
+	craft.add_tee(11, 0)
+	craft.add_pin(11, 30)
+	craft.set_height_tile(11, 15, 6)
+	var layout: Dictionary = MHCraftConvert.to_hole_def(craft, 0, 0, 0)
+	assert_bool(layout.has("relief")).is_true()
+	assert_bool(scene.one_hole.set_canonical_draft(layout)).is_true()
+	scene.one_hole._finalize()
+	assert_array(scene.session.hole_definitions()).contains_exactly([layout])
+	assert_object(scene.session.practice).is_not_null()
+	assert_str(scene.session.practice.hole.content_hash()).is_equal(MHRHole.from_def(layout).content_hash())
+	var decoded: MHSaveResult = MHCourseLayout.decode(scene.document["course"] as Dictionary)
+	assert_bool(decoded.is_ok()).override_failure_message(decoded.message).is_true()
+	if decoded.is_ok():
+		assert_array(decoded.value as Array).contains_exactly([layout])
+	scene._active = false
