@@ -108,6 +108,8 @@ func _ready() -> void:
 	shell.show_root(MHScreenIds.HUD)
 	_dock = Control.new()
 	_dock.set_anchors_preset(Control.PRESET_FULL_RECT)
+	_dock.position = Vector2.ZERO
+	_dock.size = get_viewport().get_visible_rect().size
 	_dock.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_dock.theme = shell.theme # The dock is a sibling of the shell, so it does not inherit the shell's theme.
 	layer.add_child(_dock)
@@ -188,6 +190,11 @@ func _panel_state() -> int:
 func _relayout() -> void:
 	if _dock == null or shell == null or one_hole == null:
 		return
+	var viewport_size: Vector2 = get_viewport().get_visible_rect().size
+	if _dock.size != viewport_size:
+		_dock.position = Vector2.ZERO
+		_dock.size = viewport_size
+		_layout_key = []
 	if _dock.theme != shell.theme:
 		_dock.theme = shell.theme # Text-size changes build a new theme.
 	var on: bool = shell.overlay_active()
