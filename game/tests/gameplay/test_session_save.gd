@@ -731,11 +731,14 @@ func test_management_warns_only_after_repeated_sustained_hole_congestion() -> vo
 
 
 func test_live_reaction_text_prioritizes_real_pace_and_extreme_rounds() -> void:
-	assert_str(MHLiveConstruction._reaction_text({"satisfaction": 90})).is_equal("What a round!")
-	assert_str(MHLiveConstruction._reaction_text({"satisfaction": 20})).is_equal("Rough day out there.")
-	assert_str(MHLiveConstruction._reaction_text({"satisfaction": 90, "pace_penalty": 8})).is_equal("That was slow...")
-	assert_str(MHLiveConstruction._reaction_text({"satisfaction": 70, "pace_penalty": 2})).is_equal("Bit of a wait.")
-	assert_str(MHLiveConstruction._reaction_text({"satisfaction": 70})).is_equal("")
+	var alex: Dictionary = {"name": "Alex Brooks", "preference": MHGolferPreference.STRATEGIST}
+	assert_str(MHLiveConstruction._reaction_text({"identity": alex, "satisfaction": 90})).is_equal("Alex: What a round!")
+	assert_str(MHLiveConstruction._reaction_text({"identity": alex, "satisfaction": 20})).is_equal("Alex: Rough day out there.")
+	assert_str(MHLiveConstruction._reaction_text({"identity": alex, "satisfaction": 90, "pace_penalty": 8})).is_equal("Alex: That was slow...")
+	assert_str(MHLiveConstruction._reaction_text({"identity": alex, "satisfaction": 70, "pace_penalty": 2})).is_equal("Alex: Bit of a wait.")
+	assert_str(MHLiveConstruction._reaction_text({"identity": alex, "satisfaction": 70})).is_equal("")
+	assert_str(MHLiveConstruction._reaction_text({"identity": alex, "satisfaction": 70, "preference_bonus": 8,
+		"preference": MHGolferPreference.STRATEGIST})).is_equal("Alex: Loved the choices out there.")
 
 
 func test_hole_reactions_only_surface_notable_authoritative_scores() -> void:
@@ -744,3 +747,9 @@ func test_hole_reactions_only_surface_notable_authoritative_scores() -> void:
 	assert_str(MHLiveConstruction._hole_reaction_text({"strokes": 4}, 4)).is_equal("")
 	assert_str(MHLiveConstruction._hole_reaction_text({"strokes": 5}, 4)).is_equal("")
 	assert_str(MHLiveConstruction._hole_reaction_text({"strokes": 7}, 4)).is_equal("Forget that one...")
+
+
+func test_preference_reactions_are_distinct_and_bounded_to_existing_archetypes() -> void:
+	assert_str(MHLiveConstruction._preference_praise(MHGolferPreference.CASUAL)).is_equal("Beautiful, fair course.")
+	assert_str(MHLiveConstruction._preference_praise(MHGolferPreference.THRILL_SEEKER)).is_equal("Now that was exciting!")
+	assert_str(MHLiveConstruction._preference_complaint(MHGolferPreference.PURIST)).is_equal("That didn't feel quite fair.")
