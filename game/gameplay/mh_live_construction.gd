@@ -562,30 +562,29 @@ func _advance_customer_playback(delta_s: float) -> void:
 	if _visible_golfers == null or session.customer_playback == null or session.clock.is_paused():
 		return
 	var now_s: float = float(session.clock.total_minutes()) * 60.0
-	var event: Dictionary = session.customer_playback.advance(now_s)
-	var kind: String = str(event.get("kind", ""))
-	if kind == "finished":
-		for customer_v: Variant in event.get("customers", [event.get("customer", {})]):
-			_queue_finished_customer_facility(customer_v as Dictionary, now_s)
-		return
-	if kind == "hole_transition":
-		_begin_hole_transition(event)
-		return
-	if kind != "started" and kind != "hole_started":
-		return
-	_render_customer_hole(event)
+	for event_v: Variant in session.customer_playback.advance_all(now_s):
+		var event: Dictionary = event_v
+		var kind: String = str(event.get("kind", ""))
+		if kind == "finished":
+			for customer_v: Variant in event.get("customers", [event.get("customer", {})]):
+				_queue_finished_customer_facility(customer_v as Dictionary, now_s)
+		elif kind == "hole_transition":
+			_begin_hole_transition(event)
+		elif kind == "started" or kind == "hole_started":
+			_render_customer_hole(event)
+
 
 func _begin_hole_transition(event: Dictionary) -> void:
 	var customer: Dictionary = event.get("customer", {}) as Dictionary
 	var party_id: int = int(customer.get("party_id", customer.get("serial", -1)))
 	if party_id < 0 or _hole_transition_walkers.has(party_id):
 		return
-	var previous_slot: int = int(session.customer_playback.active.get("transition_from_hole_slot", -1))
+	var previous_slot: int = session.customer_playback.transition_from_hole(party_id)
 	var next_slot: int = int(customer.get("hole_slot", -1))
 	var from_pos: Vector3 = _hole_world_point(previous_slot, "green")
 	var to_pos: Vector3 = _hole_world_point(next_slot, "tee")
 	if from_pos == Vector3.INF or to_pos == Vector3.INF:
-		var fallback_event: Dictionary = session.customer_playback.begin_next_hole(float(session.clock.total_minutes()) * 60.0)
+		var fallback_event: Dictionary = session.customer_playback.begin_next_hole(float(session.clock.total_minutes()) * 60.0, party_id)
 		if not fallback_event.is_empty():
 			_render_customer_hole(fallback_event)
 		return
@@ -626,7 +625,7 @@ func _advance_hole_transition_walkers(delta_s: float) -> void:
 		var walker: Dictionary = _hole_transition_walkers[party_id]
 		(walker["node"] as Node3D).queue_free()
 		_hole_transition_walkers.erase(party_id)
-		var event: Dictionary = session.customer_playback.begin_next_hole(float(session.clock.total_minutes()) * 60.0)
+		var event: Dictionary = session.customer_playback.begin_next_hole(float(session.clock.total_minutes()) * 60.0, party_id)
 		if not event.is_empty():
 			_render_customer_hole(event)
 
