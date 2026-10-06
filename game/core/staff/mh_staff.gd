@@ -272,6 +272,7 @@ func report(view: Dictionary) -> Dictionary:
 		"employees": _employee_management_rows(), "equipment": _equipment_management_rows(),
 		"owned_areas": (view.get("owned", []) as Array).duplicate(),
 		"hire_options": hires, "equipment_catalog": equipment_catalog,
+		"max_areas_per_employee": defs.param("max_areas_per_employee"),
 		"warnings": management_warnings(view),
 		"beauty_delta_pm": int(ov["beauty_delta_pm"]), "fairness_delta_pm": int(ov["fairness_delta_pm"]),
 	}
