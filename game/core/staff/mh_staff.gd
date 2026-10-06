@@ -84,6 +84,40 @@ func pay_hour(hour_index: int) -> int:
 	return roster.pay_hour(defs, hour_index)
 
 
+
+# ------------------------------------------------------------------ equipment
+func equipment_price(type_id: String) -> int:
+	if not MHStaffEquipment.TYPES.has(type_id):
+		return 0
+	return int((MHStaffEquipment.TYPES[type_id] as Dictionary)["price"])
+
+
+func buy_equipment(type_id: String, cash_cents: int) -> Dictionary:
+	var price: int = equipment_price(type_id)
+	if price <= 0:
+		return {"ok": false, "reason": "bad_type", "serial": 0, "cost": 0}
+	if cash_cents < price:
+		return {"ok": false, "reason": "cash", "serial": 0, "cost": 0}
+	var result: Dictionary = equipment.add_unit(type_id)
+	if not bool(result["ok"]):
+		return {"ok": false, "reason": "capacity", "serial": 0, "cost": 0}
+	return {"ok": true, "reason": "", "serial": int(result["serial"]), "cost": price}
+
+
+func assign_equipment(equipment_serial: int, employee_serial: int) -> bool:
+	var ed: Dictionary = roster.employee(employee_serial)
+	if ed.is_empty():
+		return false
+	var kind: String = defs.role_kind(str(ed["role"]))
+	if kind != MHStaffDefs.KIND_GROUNDS and kind != MHStaffDefs.KIND_PEST:
+		return false
+	return equipment.assign_unit(equipment_serial, employee_serial, kind)
+
+
+func equipment_operating_cost_cents() -> int:
+	return equipment.operating_cost_for_day()
+
+
 # ------------------------------------------------------------------ grounds
 func personal_mow(parcel: int, cells: int, cells_per_parcel: int, view: Dictionary) -> int:
 	return grounds.personal_mow(defs, parcel, cells, cells_per_parcel, view)
@@ -144,7 +178,8 @@ func report(view: Dictionary) -> Dictionary:
 		"head_count": roster.count(), "gate_staff": gate_staff_count(view), "payroll_cents": daily_payroll_cents(),
 		"avg_condition": grounds.avg_cond(defs, view), "avg_pest": grounds.avg_pest(view),
 		"service": service_avg(view), "demand_permille": demand_permille(view), "pace_points": pace_points(),
-		"satisfaction_penalty_permille": condition_penalty_permille(view),
+		"satisfaction_penalty_permille": condition_penalty_permille(view), "equipment_units": equipment.units.size(),
+		"equipment_operating_cost_cents": equipment_operating_cost_cents(),
 		"beauty_delta_pm": int(ov["beauty_delta_pm"]), "fairness_delta_pm": int(ov["fairness_delta_pm"]),
 	}
 
