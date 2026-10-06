@@ -9,6 +9,7 @@ const MAX_WAITING: int = 24
 var waiting: Array = []
 var active: Dictionary = {}
 var completed: Array = []
+var facility_visits: Array = []
 var next_tee_s: float = 0.0
 
 
@@ -25,6 +26,28 @@ func admit(rows: Array, hole_def: Dictionary, rating: Dictionary, ctx: Dictionar
 		customer["round"] = MHAIRoundRecord.play(hole_def, ctx, band, 0)
 		if not (customer["round"] as Dictionary).is_empty():
 			waiting.append(customer)
+
+
+func queue_facility_visit(customer: Dictionary, facility_id: String, now_s: float) -> Dictionary:
+	if facility_id == "":
+		return {}
+	var visit: Dictionary = {"identity": (customer.get("identity", {}) as Dictionary).duplicate(true),
+		"facility": facility_id, "group_id": int((customer.get("identity", {}) as Dictionary).get("group_id", -1)),
+		"start_s": now_s, "end_s": now_s + 8.0 + float(int(customer.get("serial", 0)) % 8)}
+	facility_visits.append(visit)
+	return visit
+
+
+func active_facility_visits(now_s: float) -> Array:
+	var out: Array = []
+	var keep: Array = []
+	for v: Variant in facility_visits:
+		var visit: Dictionary = v
+		if now_s < float(visit["end_s"]):
+			keep.append(visit)
+			out.append(visit.duplicate(true))
+	facility_visits = keep
+	return out
 
 
 func advance(now_s: float) -> Dictionary:
