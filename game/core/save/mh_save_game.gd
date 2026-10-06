@@ -634,7 +634,7 @@ static func _validate_runtime(d: Dictionary, errs: Array) -> void:
 		errs.append("runtime requires reader version 2")
 	var rt: Dictionary = _dict_at(d, "runtime", "$", errs)
 	_only_keys(rt, ["v", "clock", "economy", "save_secret", "recent_scores", "ledger_hash", "terrain_bytes_hash", "practice",
-		"golfer_roster", "customer_serial", "customer_feedback_sum", "customer_feedback_count", "pending_customers", "building_placements"], "$.runtime", errs)
+		"golfer_roster", "customer_serial", "customer_feedback_sum", "customer_feedback_count", "management_difficulty", "pending_customers", "building_placements"], "$.runtime", errs)
 	if not _matches("^[0-9a-f]{64}$", rt.get("terrain_bytes_hash", null)):
 		errs.append("runtime terrain hash invalid")
 	if not _matches("^[0-9a-f]{64}$", rt.get("ledger_hash", null)):
@@ -644,6 +644,8 @@ static func _validate_runtime(d: Dictionary, errs: Array) -> void:
 	_int_in(rt, "customer_serial", 0, MAX_INT, "$.runtime", errs, false)
 	_int_in(rt, "customer_feedback_sum", 0, MAX_INT, "$.runtime", errs, false)
 	_int_in(rt, "customer_feedback_count", 0, MAX_INT, "$.runtime", errs, false)
+	if rt.has("management_difficulty") and not ["relaxed", "standard", "tycoon"].has(str(rt["management_difficulty"])):
+		errs.append("runtime management_difficulty invalid")
 	if rt.has("golfer_roster") and typeof(rt["golfer_roster"]) != TYPE_DICTIONARY:
 		errs.append("runtime golfer_roster invalid")
 	if rt.has("building_placements") and typeof(rt["building_placements"]) != TYPE_DICTIONARY:
