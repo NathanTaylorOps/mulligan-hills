@@ -182,3 +182,16 @@ func test_authoritative_party_preserves_hole_world_origin() -> void:
 	var origin: Vector2 = (golfers.golfers[0] as Dictionary)["world_origin"] as Vector2
 	assert_float(origin.x).is_equal_approx(10.0, 0.0001)
 	assert_float(origin.y).is_equal_approx(20.0, 0.0001)
+
+
+func test_authoritative_party_visual_can_be_replaced_between_holes() -> void:
+	var golfers: MHSliceGolfers = auto_free(MHSliceGolfers.new())
+	add_child(golfers)
+	golfers.setup(MHArtMaterials.vertex_color())
+	var customer: Dictionary = {"serial": 30, "party_id": 9, "round": {"events": []}}
+	golfers.spawn_authoritative_party([customer], Vector2.ZERO, Vector2(0, 10))
+	assert_int(golfers.golfer_count()).is_equal(1)
+	golfers.remove_group(9)
+	assert_int(golfers.golfer_count()).is_equal(0)
+	golfers.spawn_authoritative_party([customer], Vector2(20, 20), Vector2(20, 40))
+	assert_int(golfers.golfer_count()).is_equal(1)
