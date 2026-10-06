@@ -665,3 +665,24 @@ func test_management_hire_availability_includes_payroll_reserve() -> void:
 	assert_bool(marshal_option.is_empty()).is_false()
 	assert_bool(bool(marshal_option.get("available", true))).is_false()
 	assert_bool(bool(s.hire_staff("marshal").get("ok", true))).is_false()
+
+
+func test_customer_resolution_builds_one_authoritative_record_per_course_hole() -> void:
+	var s: MHGameSession = MHGameSession.create()
+	var holes: Array = [
+		{"slot_id": 2, "tee": [0, 0], "green": [0, 60, 5], "features": [{"t": "fairway", "rect": [-8, 0, 8, 60]}]},
+		{"slot_id": 5, "tee": [0, 0], "green": [0, 90, 5], "features": [{"t": "fairway", "rect": [-8, 0, 8, 90]}]},
+	]
+	assert_bool(bool(s.submit_course(holes)["ok"])).is_true()
+	var identity: Dictionary = s.golfer_roster.identity_for_admission(s.save_secret, 50, s.economy.day)
+	s._pending_customers = [{"serial": 50, "party_id": 50, "identity": identity, "group_size": 1,
+		"paid_fee": 2500, "ancillary": 0, "admitted_day": s.economy.day, "admitted_hour": s.economy.hour, "hole_slot": 2}]
+	s._resolve_customer_hour()
+	assert_int(s.customer_outcomes.size()).is_equal(1)
+	var customer: Dictionary = s.customer_outcomes[0]
+	var course_round: Array = customer["course_round"] as Array
+	assert_int(course_round.size()).is_equal(2)
+	assert_int(int((course_round[0] as Dictionary)["hole_slot"])).is_equal(2)
+	assert_int(int((course_round[1] as Dictionary)["hole_slot"])).is_equal(5)
+	assert_dict(customer["round"] as Dictionary).is_equal((course_round[0] as Dictionary)["round"] as Dictionary)
+	assert_int(s.customer_feedback_count).is_equal(1)
