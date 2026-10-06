@@ -342,6 +342,83 @@ func customer_feedback_average() -> int:
 	return MHRMath.rdiv(customer_feedback_sum, customer_feedback_count)
 
 
+## Authoritative placement boundary. Presentation may preview arbitrary candidates, but only
+## structurally valid records for purchased buildings enter session state.
+func set_building_placement(building_id: String, placement: Dictionary) -> bool:
+	var index: int = economy.params.building_index(building_id)
+	if index < 0 or economy.tier_of(index) <= 0:
+		return false
+	if not _valid_building_placement_record(building_id, placement):
+		return false
+	building_placements[building_id] = placement.duplicate(true)
+	changed.emit()
+	return true
+
+
+func building_position(building_id: String) -> Vector3:
+	if not building_placements.has(building_id):
+		return Vector3.INF
+	var placement: Dictionary = building_placements[building_id] as Dictionary
+	if not _valid_building_placement_record(building_id, placement):
+		return Vector3.INF
+	var center: Array = placement["center_mm"] as Array
+	return Vector3(float(int(center[0])) / 1000.0, float(int(placement["ground_mm"])) / 1000.0,
+		float(int(center[1])) / 1000.0)
+
+
+func restore_building_placements(raw: Variant) -> bool:
+	if typeof(raw) != TYPE_DICTIONARY:
+		return false
+	var restored: Dictionary = {}
+	var rows: Dictionary = raw as Dictionary
+	for id_v: Variant in rows.keys():
+		var id: String = str(id_v)
+		if typeof(rows[id_v]) != TYPE_DICTIONARY:
+			return false
+		var placement: Dictionary = rows[id_v] as Dictionary
+		var index: int = economy.params.building_index(id)
+		if index < 0 or economy.tier_of(index) <= 0 or not _valid_building_placement_record(id, placement):
+			return false
+		restored[id] = placement.duplicate(true)
+	building_placements = restored
+	return true
+
+
+func _valid_building_placement_record(building_id: String, placement: Dictionary) -> bool:
+	if str(placement.get("building_id", building_id)) != building_id:
+		return false
+	if not bool(placement.get("ok", false)):
+		return false
+	if typeof(placement.get("center_mm", null)) != TYPE_ARRAY or typeof(placement.get("size_m", null)) != TYPE_ARRAY:
+		return false
+	var center: Array = placement["center_mm"] as Array
+	var size: Array = placement["size_m"] as Array
+	if center.size() != 2 or size.size() != 2:
+		return false
+	for value: Variant in center:
+		if not MHRValidate.is_int_value(value):
+			return false
+	for value: Variant in size:
+		if not MHRValidate.is_int_value(value) or int(value) <= 0:
+			return false
+	if not MHRValidate.is_int_value(placement.get("ground_mm", null)) or not MHRValidate.is_int_value(placement.get("rotation_quarters", null)):
+		return false
+	var rotation: int = int(placement["rotation_quarters"])
+	if rotation < 0 or rotation > 3:
+		return false
+	# World bounds are authoritative for this integration surface; half-footprint must remain inside it.
+	var half_x_mm: int = int(size[0]) * 500
+	var half_y_mm: int = int(size[1]) * 500
+	if rotation % 2 == 1:
+		var swap: int = half_x_mm
+		half_x_mm = half_y_mm
+		half_y_mm = swap
+	var world_mm: int = 128000
+	if int(center[0]) - half_x_mm < 0 or int(center[1]) - half_y_mm < 0 			or int(center[0]) + half_x_mm > world_mm or int(center[1]) + half_y_mm > world_mm:
+		return false
+	return true
+
+
 func handle_intent(id: StringName, args: Dictionary) -> Dictionary:
 	var out: Dictionary = _result(false, "unknown_intent")
 	out["handled"] = false
