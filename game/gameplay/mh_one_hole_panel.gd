@@ -338,7 +338,6 @@ func _draw_craft_terrain(hole: MHCraftHole) -> void:
 		_box(_position_on_ground(pc.x * 100, pc.y * 100, 0.75), Vector3(0.08, 1.5, 0.08), Color.WHITE)
 	for tree: Variant in hole.trees:
 		_draw_craft_tree(tree as Vector2i)
-	_draw_craft_counts(hole)
 
 func _craft_tile_mesh(hole: MHCraftHole, c: int, r: int) -> void:
 	var x0: int = hole.tile_x0_yd(c) * 100
@@ -364,14 +363,6 @@ func _draw_craft_tree(point: Vector2i) -> void:
 	var trunk_pos: Vector3 = _position_on_ground(point.x * 100, point.y * 100, 1.0)
 	_box(trunk_pos, Vector3(0.35, 2.0, 0.35), Color(0.34, 0.23, 0.12))
 	_marker_at(_position_on_ground(point.x * 100, point.y * 100, 2.4), Color(0.16, 0.38, 0.14), 1.25)
-
-func _draw_craft_counts(hole: MHCraftHole) -> void:
-	# Craft currently stores rocks/flowers as counts rather than positions. Show deterministic edge clusters
-	# without inventing gameplay coordinates; positioned objects can replace this when the data model gains them.
-	for i: int in range(mini(hole.rocks, 12)):
-		_marker_at(_position_on_ground((-hole.cols + 2 + i * 2) * 100, 300, 0.25), Color(0.42, 0.42, 0.40), 0.35)
-	for i: int in range(mini(hole.flowers, 20)):
-		_marker_at(_position_on_ground((hole.cols - 2 - i % 10) * 100, (4 + i / 10) * 100, 0.18), Color(0.82, 0.55, 0.68), 0.18)
 
 func _surface_color(surface_id: int) -> Color:
 	match surface_id:
