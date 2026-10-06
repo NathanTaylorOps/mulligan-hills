@@ -6,6 +6,7 @@ const FIRST: Array[String] = ["Alex","Ben","Casey","Dana","Eli","Frankie","Grace
 const LAST: Array[String] = ["Adams","Brooks","Carter","Diaz","Evans","Foster","Green","Hayes","Irwin","Jones","Kim","Lane","Miller","Nguyen","Ortiz","Price","Reed","Singh","Turner","Young"]
 const MAX_ROSTER: int = 128
 const MEMORY_LIMIT: int = 8
+const ASSOCIATE_LIMIT: int = 8
 const FACILITIES: Array[String] = ["clubhouse","driving_range","restaurant","pro_shop","pool_spa","lodging","homes","landmark"]
 
 var golfers: Dictionary = {}
@@ -53,10 +54,45 @@ func identity_for_admission(save_secret: int, admission_serial: int, day: int) -
 		"look_seed": MHRMath.h32d(save_secret, id, 0x4C4F4F4B, 1), "identity_type": "ordinary",
 		"favorite_facility": FACILITIES[posmod(h >> 24, FACILITIES.size())], "favorite_hole_slot": -1,
 		"group_id": id / 3, "relationship_role": ["friend","partner","family"][posmod(h >> 12, 3)],
-		"member": false, "visits": 0, "loyalty": 50, "best_satisfaction": -1, "worst_satisfaction": 101,
+		"member": false, "associates": [], "home_interest": 0, "membership_interest": 0, "visits": 0, "loyalty": 50, "best_satisfaction": -1, "worst_satisfaction": 101,
 		"last_satisfaction": 50, "last_day": -1, "favorite_memory": "", "worst_memory": "", "memories": []}
 	golfers[id] = g
 	return g.duplicate(true)
+
+
+func link_associates(a_id: int, b_id: int) -> void:
+	if a_id == b_id or not golfers.has(a_id) or not golfers.has(b_id):
+		return
+	for pair: Array in [[a_id, b_id], [b_id, a_id]]:
+		var g: Dictionary = golfers[int(pair[0])]
+		var associates: Array = (g.get("associates", []) as Array).duplicate()
+		var other: int = int(pair[1])
+		if not associates.has(other):
+			associates.append(other)
+			while associates.size() > ASSOCIATE_LIMIT:
+				associates.pop_front()
+		g["associates"] = associates
+		golfers[int(pair[0])] = g
+
+
+func public_party(anchor_id: int, desired_size: int, entropy: int) -> Array:
+	if not golfers.has(anchor_id):
+		return []
+	var anchor: Dictionary = golfers[anchor_id]
+	var ids: Array = (anchor.get("associates", []) as Array).duplicate()
+	ids.sort()
+	var out: Array = [anchor.duplicate(true)]
+	var target: int = clampi(desired_size, 1, 4)
+	if ids.is_empty():
+		return out
+	var start: int = posmod(entropy, ids.size())
+	for step: int in range(ids.size()):
+		if out.size() >= target:
+			break
+		var id: int = int(ids[(start + step) % ids.size()])
+		if golfers.has(id):
+			out.append((golfers[id] as Dictionary).duplicate(true))
+	return out
 
 
 func record_visit(identity_id: int, day: int, satisfaction: int, memory: String, hole_slot: int = 0, flags: int = 0) -> Dictionary:
@@ -113,6 +149,12 @@ func from_dict(raw: Dictionary) -> bool:
 		for key: String in ["id","name","preference","skill_band","look_seed","identity_type","favorite_facility","favorite_hole_slot","group_id","relationship_role","member","visits","loyalty","best_satisfaction","worst_satisfaction","last_satisfaction","last_day","favorite_memory","worst_memory","memories"]:
 			if not g.has(key):
 				return false
+		if not g.has("associates"):
+			g["associates"] = []
+		if not g.has("home_interest"):
+			g["home_interest"] = 0
+		if not g.has("membership_interest"):
+			g["membership_interest"] = 0
 		var id: int = int(g["id"])
 		if id < 0 or restored.has(id) or int(g["preference"]) < 0 or int(g["preference"]) >= MHGolferPreference.COUNT 				or int(g["skill_band"]) < 1 or int(g["skill_band"]) > 4 or int(g["loyalty"]) < 0 or int(g["loyalty"]) > 100 \
 				or typeof(g["memories"]) != TYPE_ARRAY or (g["memories"] as Array).size() > MEMORY_LIMIT:
