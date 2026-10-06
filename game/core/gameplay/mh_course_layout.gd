@@ -75,6 +75,24 @@ static func origins(course: Dictionary) -> Array:
 	return out
 
 
+static func origin_for_slot(course: Dictionary, slot_id: int) -> Array:
+	for row_v: Variant in course.get("holes", []):
+		if typeof(row_v) != TYPE_DICTIONARY:
+			continue
+		var row: Dictionary = row_v
+		var layout: Dictionary = row.get("layout", {}) as Dictionary
+		if int(layout.get("slot_id", -1)) == slot_id:
+			return (row.get("origin_dm", []) as Array).duplicate()
+	return []
+
+
+static func world_point_mm(course: Dictionary, slot_id: int, local_x_cy: int, local_y_cy: int) -> Vector2i:
+	var origin: Array = origin_for_slot(course, slot_id)
+	if origin.size() != 2:
+		return Vector2i(-1, -1)
+	return Vector2i(world_mm(int(origin[0]), local_x_cy), world_mm(int(origin[1]), local_y_cy))
+
+
 ## Preserve the exact rational conversion: a whole yard is 9.144 dm. Renderers may convert to floats.
 static func world_mm(origin_dm: int, local_cy: int) -> int:
 	return origin_dm * 100 + MHRMath.rdiv(local_cy * 9144, 1000)
