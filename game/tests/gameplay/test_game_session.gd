@@ -282,3 +282,16 @@ func test_management_actions_are_reachable_through_session_intents() -> void:
 	assert_bool(bool(s.handle_intent(&"fire_staff", {"employee_serial": employee})["ok"])).is_true()
 	assert_int(int((s.staff_system.equipment.units[0] as Dictionary)["assigned_employee"])).is_equal(0)
 	assert_bool(bool(s.handle_intent(&"sell_staff_equipment", {"equipment_serial": equipment_serial})["ok"])).is_true()
+
+
+func test_management_intent_emits_changed_once() -> void:
+	var s: MHGameSession = MHGameSession.create()
+	var hits: Array = [0]
+	s.changed.connect(func() -> void: hits[0] = int(hits[0]) + 1)
+	var hired: Dictionary = s.handle_intent(&"hire_staff", {"role": "groundskeeper"})
+	assert_bool(bool(hired["ok"])).is_true()
+	assert_int(int(hits[0])).is_equal(1)
+	var employee: int = int(hired["serial"])
+	var assigned: Dictionary = s.handle_intent(&"assign_staff", {"employee_serial": employee, "areas": [0]})
+	assert_bool(bool(assigned["ok"])).is_true()
+	assert_int(int(hits[0])).is_equal(2)
