@@ -139,7 +139,7 @@ static func _tail_sum(row: Array, count: int) -> int:
 
 ## Full outcome of one event. ctx (all required unless noted):
 ##   "event_seed" int, "snapshot_score" 0..100 (stored when the event was started), "pace_score" 0..100,
-##   "fairness" Array of 0..100 per hole, "maintenance_tier" int, "tiers" Dictionary building -> tier,
+##   "fairness" Array of 0..100 per hole, "maintenance_tier" int, optional "course_condition_penalty_pm", "tiers" Dictionary building -> tier,
 ##   "pars" Array (optional, defaults used when missing), "total_yards" int (course length).
 ## Result keys: level, success, failed_triggers (Array of String), condition_id, unfair_holes, satisfaction_pm,
 ## event_prestige_pm, cash_delta, entry_income, ticket_income, reputation_delta, prestige_points (club prestige
@@ -169,7 +169,10 @@ static func evaluate(defs: MHTournamentDefs, level_id: String, ctx: Dictionary) 
 		failed.append("bad_conditions")
 	if wanted.has("low_snapshot_score") and snapshot < int(e["min_avg_hole_score"]) - int(ev["score_fail_margin"]):
 		failed.append("low_snapshot_score")
-	var sat: int = MHTournamentRules.satisfaction_permille(defs, cond, unfair)
+	var sat_condition: Dictionary = cond.duplicate(true)
+	var course_penalty: int = clampi(int(ctx.get("course_condition_penalty_pm", 0)), 0, 1000)
+	sat_condition["satisfaction_penalty_pm"] = clampi(int(cond.get("satisfaction_penalty_pm", 0)) + course_penalty, 0, 1000)
+	var sat: int = MHTournamentRules.satisfaction_permille(defs, sat_condition, unfair)
 	var prestige_pm: int = MHTournamentRules.event_prestige_permille(defs, snapshot, pace, tiers, sat)
 	var field: Dictionary = run_field(defs, level_id, evt_seed, pars, int(ctx.get("total_yards", 0)), cond)
 	var success: bool = failed.is_empty()
