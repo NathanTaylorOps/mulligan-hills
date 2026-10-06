@@ -86,7 +86,7 @@ func advance(now_s: float) -> Dictionary:
 		active["hole_index"] = 0
 		next_tee_s = now_s + TEE_INTERVAL_S
 		event = {"kind": "started", "customers": party.duplicate(true), "customer": first.duplicate(true)}
-	if not active.is_empty():
+	if not active.is_empty() and not bool(active.get("transitioning", false)):
 		var elapsed: float = now_s - float(active["started_s"])
 		var all_done: bool = true
 		var hole_index: int = int(active.get("hole_index", 0))
@@ -101,12 +101,11 @@ func advance(now_s: float) -> Dictionary:
 			var party_customers: Array = active.get("customers", []) as Array
 			var next_hole: int = hole_index + 1
 			if _party_has_hole(party_customers, next_hole):
-				active["hole_index"] = next_hole
-				active["started_s"] = now_s
 				var next_party: Array = _party_for_hole(party_customers, next_hole)
-				active["customers"] = next_party
-				active.merge((next_party[0] as Dictionary), false)
-				event = {"kind": "hole_started", "hole_index": next_hole, "customers": next_party.duplicate(true),
+				active["transition_hole_index"] = next_hole
+				active["transition_customers"] = next_party
+				active["transitioning"] = true
+				event = {"kind": "hole_transition", "hole_index": next_hole, "customers": next_party.duplicate(true),
 					"customer": (next_party[0] as Dictionary).duplicate(true)}
 			else:
 				var done_party: Array = _party_for_hole(party_customers, hole_index)
@@ -117,6 +116,24 @@ func advance(now_s: float) -> Dictionary:
 				active = {}
 				event = {"kind": "finished", "customers": done_party, "customer": (done_party[0] as Dictionary).duplicate(true)}
 	return event
+
+
+func begin_next_hole(now_s: float) -> Dictionary:
+	if active.is_empty() or not bool(active.get("transitioning", false)):
+		return {}
+	var next_hole: int = int(active.get("transition_hole_index", -1))
+	var next_party: Array = active.get("transition_customers", []) as Array
+	if next_hole < 0 or next_party.is_empty():
+		return {}
+	active["hole_index"] = next_hole
+	active["started_s"] = now_s
+	active["customers"] = next_party
+	active["transitioning"] = false
+	active.erase("transition_hole_index")
+	active.erase("transition_customers")
+	active.merge((next_party[0] as Dictionary), false)
+	return {"kind": "hole_started", "hole_index": next_hole, "customers": next_party.duplicate(true),
+		"customer": (next_party[0] as Dictionary).duplicate(true)}
 
 
 func visual_state(now_s: float) -> Dictionary:
