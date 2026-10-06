@@ -192,6 +192,8 @@ func personal_patrol(parcel: int, cells: int, cells_per_parcel: int, view: Dicti
 ## One game day: grounds update with the incident rolls, then every employee gets one day of tenure. Idempotent per day.
 ## Returns {"ran": bool, "incidents": Array of {parcel, kind, positive, handled}}.
 func on_day(day: int, view: Dictionary, secret: int, difficulty: String = "standard") -> Dictionary:
+	if difficulty == "relaxed":
+		roster.auto_assign(defs, view)
 	var res: Dictionary = grounds.on_day(defs, roster, day, view, secret, equipment)
 	if bool(res["ran"]):
 		var pressure_pm: int = 1000
@@ -268,6 +270,7 @@ func report(view: Dictionary) -> Dictionary:
 		"satisfaction_penalty_permille": condition_penalty_permille(view), "equipment_units": equipment.units.size(), "equipment_capacity": equipment_capacity(view),
 		"equipment_operating_cost_cents": equipment_operating_cost_cents(), "equipment_repair_cost_cents": equipment_repair_cost_cents(),
 		"employees": _employee_management_rows(), "equipment": _equipment_management_rows(),
+		"owned_areas": (view.get("owned", []) as Array).duplicate(),
 		"hire_options": hires, "equipment_catalog": equipment_catalog,
 		"warnings": management_warnings(view),
 		"beauty_delta_pm": int(ov["beauty_delta_pm"]), "fairness_delta_pm": int(ov["fairness_delta_pm"]),
