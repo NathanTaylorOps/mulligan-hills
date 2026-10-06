@@ -171,6 +171,31 @@ func record_visit(identity_id: int, day: int, satisfaction: int, memory: String,
 	return g.duplicate(true)
 
 
+
+func membership_applications() -> Array:
+	var out: Array = []
+	var ids: Array = golfers.keys()
+	ids.sort()
+	for id_v: Variant in ids:
+		var g: Dictionary = golfers[id_v] as Dictionary
+		if str(g.get("membership_status", "none")) == "applied":
+			out.append(g.duplicate(true))
+	return out
+
+
+func decide_membership(identity_id: int, accept: bool) -> bool:
+	if not golfers.has(identity_id):
+		return false
+	var g: Dictionary = golfers[identity_id]
+	if str(g.get("membership_status", "none")) != "applied":
+		return false
+	g["membership_status"] = "member" if accept else "declined"
+	g["member"] = accept
+	golfers[identity_id] = g
+	return true
+
+
+
 func _return_score(g: Dictionary) -> int:
 	return clampi(int(g.get("loyalty", 50)) + MHRMath.rdiv(int(g.get("last_satisfaction", 50)) - 50, 2), 0, 100)
 
