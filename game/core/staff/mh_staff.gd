@@ -156,6 +156,30 @@ func equipment_repair_cost_cents() -> int:
 	return equipment.repair_cost_for_day()
 
 
+
+func management_warnings(view: Dictionary) -> Array:
+	var out: Array = []
+	var worn: int = 0
+	var broken: int = 0
+	for v: Variant in equipment.units:
+		var u: Dictionary = v
+		var state: String = equipment.condition_state(int(u["serial"]))
+		if state == "broken":
+			broken += 1
+		elif state == "worn":
+			worn += 1
+	if broken > 0:
+		out.append({"kind": "equipment_broken", "severity": 2, "count": broken})
+	elif worn > 0:
+		out.append({"kind": "equipment_worn", "severity": 1, "count": worn})
+	if equipment.units.size() >= equipment_capacity(view) and equipment_capacity(view) > 0:
+		out.append({"kind": "workshop_capacity", "severity": 1, "count": equipment.units.size()})
+	if grounds.avg_cond(defs, view) < defs.param("sat_cond_floor"):
+		out.append({"kind": "course_condition", "severity": 2, "value": grounds.avg_cond(defs, view)})
+	if broken > 0 and technician_work_permille() <= 0:
+		out.append({"kind": "technician_needed", "severity": 2, "count": broken})
+	return out
+
 # ------------------------------------------------------------------ grounds
 func personal_mow(parcel: int, cells: int, cells_per_parcel: int, view: Dictionary) -> int:
 	return grounds.personal_mow(defs, parcel, cells, cells_per_parcel, view)
@@ -218,6 +242,7 @@ func report(view: Dictionary) -> Dictionary:
 		"service": service_avg(view), "demand_permille": demand_permille(view), "pace_points": pace_points(),
 		"satisfaction_penalty_permille": condition_penalty_permille(view), "equipment_units": equipment.units.size(), "equipment_capacity": equipment_capacity(view),
 		"equipment_operating_cost_cents": equipment_operating_cost_cents(), "equipment_repair_cost_cents": equipment_repair_cost_cents(),
+		"warnings": management_warnings(view),
 		"beauty_delta_pm": int(ov["beauty_delta_pm"]), "fairness_delta_pm": int(ov["fairness_delta_pm"]),
 	}
 
