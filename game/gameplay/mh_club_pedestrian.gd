@@ -7,15 +7,29 @@ const ARRIVE_M: float = 0.35
 
 
 static func building_positions(session: MHGameSession) -> Dictionary:
+	# Permanent instance identity is the routing key. Multiple restaurants/pro shops must remain distinct.
 	var out: Dictionary = {}
-	for instance_v: Variant in session.building_placements.keys():
-		var placement: Dictionary = session.building_placements[instance_v] as Dictionary
-		var building_id: String = str(placement.get("building_id", ""))
-		if building_id.is_empty() or out.has(building_id):
+	var ids: Array = session.building_placements.keys()
+	ids.sort()
+	for instance_v: Variant in ids:
+		var instance_id: String = str(instance_v)
+		var placement: Dictionary = session.building_placements[instance_id] as Dictionary
+		var center: Array = placement.get("center_mm", []) as Array
+		if center.size() != 2:
 			continue
-		var p: Vector3 = session.building_position(building_id)
-		if p != Vector3.INF:
-			out[building_id] = p
+		out[instance_id] = Vector3(float(int(center[0])) / 1000.0,
+			float(int(placement.get("ground_mm", 0))) / 1000.0, float(int(center[1])) / 1000.0)
+	return out
+
+
+static func instance_ids_for_type(session: MHGameSession, building_id: String) -> Array:
+	var out: Array = []
+	for id_v: Variant in session.building_placements.keys():
+		var id: String = str(id_v)
+		var placement: Dictionary = session.building_placements[id] as Dictionary
+		if str(placement.get("building_id", "")) == building_id:
+			out.append(id)
+	out.sort()
 	return out
 
 
@@ -27,6 +41,31 @@ static func route(start: Vector3, destination: Vector3, serial: int) -> Array:
 	var lateral: Vector3 = Vector3(-dir.z, 0.0, dir.x).normalized()
 	mid += lateral * side
 	return [start, mid, destination]
+
+
+
+static func route_avoiding(start: Vector3, destination: Vector3, serial: int, obstacles: Array) -> Array:
+	var direct: Array = route(start, destination, serial)
+	for obstacle_v: Variant in obstacles:
+		if typeof(obstacle_v) != TYPE_DICTIONARY:
+			continue
+		var obstacle: Dictionary = obstacle_v
+		var center: Vector2 = obstacle.get("center", Vector2.ZERO) as Vector2
+		var radius: float = maxf(0.0, float(obstacle.get("radius", 0.0)))
+		if radius <= 0.0:
+			continue
+		var a: Vector2 = Vector2(start.x, start.z)
+		var b: Vector2 = Vector2(destination.x, destination.z)
+		var ab: Vector2 = b - a
+		var t: float = 0.0 if ab.length_squared() < 0.0001 else clampf((center - a).dot(ab) / ab.length_squared(), 0.0, 1.0)
+		if (a + ab * t).distance_to(center) >= radius + 0.75:
+			continue
+		var lateral: Vector2 = Vector2(-ab.y, ab.x).normalized()
+		if posmod(serial, 2) == 1:
+			lateral = -lateral
+		var detour2: Vector2 = center + lateral * (radius + 1.25)
+		return [start, Vector3(detour2.x, start.y, detour2.y), destination]
+	return direct
 
 
 static func apply_ground_height(position: Vector3, grid: MHHeightGrid) -> Vector3:
