@@ -297,6 +297,8 @@ func _draw() -> void:
 		_world.remove_child(child)
 		child.queue_free()
 	_box(Vector3(64, -0.1, 64), Vector3(128, 0.1, 128), Color(0.27, 0.44, 0.21))
+	if live != null and live.craft_hole != null and (_preview_draft or live.session.hole_definitions().is_empty()):
+		_draw_craft_terrain(live.craft_hole)
 	var layouts: Array = live.session.hole_definitions()
 	var h: Dictionary = _layout() if layouts.is_empty() or _preview_draft else layouts[0]
 	for row: Variant in h["features"]:
@@ -319,6 +321,43 @@ func _draw() -> void:
 	_ball.position = _position(r.x if r != null and not _preview_draft else 0, r.y if r != null and not _preview_draft else 0, 0.45)
 	_aim = _marker(Color(1, 0.8, 0.1), 0.55)
 	_move_aim()
+
+func _draw_craft_terrain(hole: MHCraftHole) -> void:
+	var tile_m: float = float(MHCraftHole.TILE_YD) * 0.9144
+	for r: int in range(hole.rows):
+		for c: int in range(hole.cols):
+			var centre: Vector2i = hole.tile_centre_yd(c, r)
+			var pos: Vector3 = _position(centre.x * 100, centre.y * 100, float(hole.get_height(c, r)) + 0.08)
+			_box(pos, Vector3(tile_m, 0.12, tile_m), _surface_color(hole.get_surface(c, r)))
+	for tee: Variant in hole.tees:
+		var t: Vector2i = tee as Vector2i
+		var tc: Vector2i = hole.tile_centre_yd(t.x, t.y)
+		_marker_at(_position(tc.x * 100, tc.y * 100, float(hole.get_height(t.x, t.y)) + 0.45), Color(0.95, 0.95, 0.95), 0.28)
+	for pin: Variant in hole.pins:
+		var p: Vector2i = pin as Vector2i
+		var pc: Vector2i = hole.tile_centre_yd(p.x, p.y)
+		_box(_position(pc.x * 100, pc.y * 100, float(hole.get_height(p.x, p.y)) + 0.8), Vector3(0.08, 1.5, 0.08), Color.WHITE)
+
+func _surface_color(surface_id: int) -> Color:
+	match surface_id:
+		MHCraftHole.Surface.FAIRWAY: return Color(0.36, 0.64, 0.23)
+		MHCraftHole.Surface.FIRST_CUT: return Color(0.31, 0.55, 0.21)
+		MHCraftHole.Surface.DEEP_ROUGH: return Color(0.18, 0.36, 0.14)
+		MHCraftHole.Surface.GREEN: return Color(0.5, 0.78, 0.3)
+		MHCraftHole.Surface.FRINGE: return Color(0.42, 0.68, 0.26)
+		MHCraftHole.Surface.TEE: return Color(0.46, 0.72, 0.29)
+		MHCraftHole.Surface.BUNKER: return Color(0.72, 0.66, 0.48)
+		MHCraftHole.Surface.WASTE: return Color(0.57, 0.49, 0.35)
+		MHCraftHole.Surface.WATER: return Color(0.12, 0.4, 0.7)
+		MHCraftHole.Surface.OUT_OF_BOUNDS: return Color(0.24, 0.20, 0.18)
+		MHCraftHole.Surface.PATH: return Color(0.42, 0.40, 0.36)
+		MHCraftHole.Surface.DIRT: return Color(0.45, 0.32, 0.20)
+		_: return Color(0.27, 0.44, 0.21)
+
+func _marker_at(pos: Vector3, color: Color, radius: float) -> MeshInstance3D:
+	var marker: MeshInstance3D = _marker(color, radius)
+	marker.position = pos
+	return marker
 
 func _move_aim() -> void:
 	if _aim != null:
