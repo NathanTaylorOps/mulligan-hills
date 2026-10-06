@@ -82,10 +82,10 @@ func visual_state(now_s: float) -> Dictionary:
 	return MHAIRoundTimeline.state(round["events"] as Array, now_s - float(active["started_s"]))
 
 
-static func satisfaction(round: Dictionary) -> int:
-	var strokes: int = int(round.get("strokes", 9))
+static func satisfaction(round: Dictionary, par: int = 3) -> int:
+	var strokes: int = int(round.get("strokes", maxi(par, 3) + 6))
 	var flags: int = int(round.get("flags", 0))
-	var score: int = 90 - maxi(0, strokes - 3) * 10
+	var score: int = 90 - maxi(0, strokes - maxi(par, 1)) * 10
 	if flags & 8:
 		score -= 5
 	if flags & (1 | 2 | 32):
