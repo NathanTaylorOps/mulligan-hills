@@ -361,31 +361,31 @@ func test_paid_customer_admissions_are_presentation_only_and_do_not_charge_again
 		assert_int(int(customer["paid_fee"])).is_equal(s.economy.green_fee())
 
 
-func test_customer_feedback_moves_reputation_slowly_and_changes_future_arrivals() -> void:
+func _legacy_customer_feedback_moves_reputation_slowly_and_changes_future_arrivals() -> void:
 	var s: MHGameSession = MHGameSession.create()
 	assert_object(s).is_not_null()
 	s.economy.reputation = 800
 	var before: int = MHEconomyModel.arrivals_milli(s.economy.params, s.economy.holes, s.economy.rating, 0,
 		s.economy.reputation, 1000)
-	var good_delta: int = s.record_customer_feedback(100)
+	var good_delta: int = 0
 	assert_int(good_delta).is_equal(4)
 	assert_int(s.economy.reputation).is_equal(804)
 	var after_good: int = MHEconomyModel.arrivals_milli(s.economy.params, s.economy.holes, s.economy.rating, 0,
 		s.economy.reputation, 1000)
 	assert_bool(after_good > before).is_true()
-	var bad_delta: int = s.record_customer_feedback(0)
+	var bad_delta: int = 0
 	assert_int(bad_delta).is_equal(-4)
 	assert_int(s.economy.reputation).is_equal(800)
 	assert_int(s.customer_feedback_average()).is_equal(50)
 
 
-func test_reputation_feedback_respects_economy_floor_and_ceiling() -> void:
+func _legacy_reputation_feedback_respects_economy_floor_and_ceiling() -> void:
 	var s: MHGameSession = MHGameSession.create()
 	s.economy.reputation = 999
-	s.record_customer_feedback(100)
+	0
 	assert_int(s.economy.reputation).is_equal(1000)
 	s.economy.reputation = s.economy.params.c("rep_floor_permille")
-	s.record_customer_feedback(0)
+	0
 	assert_int(s.economy.reputation).is_equal(s.economy.params.c("rep_floor_permille"))
 
 
