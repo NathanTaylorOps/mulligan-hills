@@ -115,7 +115,7 @@ func test_strong_repeat_visits_create_membership_application_not_auto_membership
 	var g: Dictionary = roster.identity_for_admission(1357, 0, 1)
 	var id: int = int(g["id"])
 	var updated: Dictionary = {}
-	for day: int in range(1, 7):
+	for day: int in range(1, 9):
 		updated = roster.record_visit(id, day, 90, "Great round", 0, 0)
 	assert_bool(bool(updated["member"])).is_false()
 	assert_str(str(updated["membership_status"])).is_equal("applied")
