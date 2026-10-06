@@ -26,6 +26,7 @@ var _clubs_shed: bool = false
 var _green_reported: bool = false
 var _throttle: float = 0.0
 var _steer: float = 0.0
+var _sink_depth: float = 0.0
 
 func drive(throttle: float, steer: float) -> void:
 	_throttle = clampf(throttle, -1.0, 1.0)
@@ -48,7 +49,7 @@ func _integrate_forces(state: PhysicsDirectBodyState3D) -> void:
 	var speed_factor: float = clampf(absf(forward_speed) / 3.0, 0.15, 1.0)
 	apply_torque(Vector3.UP * _steer * TURN_TORQUE * speed_factor * (1.0 if forward_speed >= -0.2 else -1.0))
 
-func _physics_process(_delta: float) -> void:
+func _physics_process(delta: float) -> void:
 	var surface: String = MHCartSurfacePolicy.free_drive_surface(splat, global_position, grid)
 	if surface == "green":
 		if not _green_reported:
@@ -58,11 +59,18 @@ func _physics_process(_delta: float) -> void:
 		_green_reported = false
 	if surface == "water" and not _sunk_reported:
 		_sunk_reported = true
-		gravity_scale = 0.35
-		linear_damp = 3.5
-		angular_damp = 4.0
+		_throttle = 0.0
+		_steer = 0.0
+		gravity_scale = 0.0
+		linear_damp = 5.0
+		angular_damp = 5.0
+		_sink_depth = 0.0
 		_shed_clubs()
 		sunk.emit()
+	if _sunk_reported:
+		# Painted water has no physical volume, so provide a short deterministic visual sink instead of hovering on terrain.
+		_sink_depth = minf(_sink_depth + delta * 0.45, 1.35)
+		global_position.y -= delta * 0.45 if _sink_depth < 1.35 else 0.0
 	var upright: float = global_transform.basis.y.dot(Vector3.UP)
 	if upright < TIP_UP_DOT and not _tip_reported:
 		_tip_reported = true
