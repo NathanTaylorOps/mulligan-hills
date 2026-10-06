@@ -339,3 +339,23 @@ func test_first_real_round_terrain_relief_rates_plays_and_survives_save() -> voi
 		assert_bool(restored_session.practice.hole.has_relief).is_true()
 		assert_str(restored_session.practice.hole.content_hash()).is_equal(scene.session.practice.hole.content_hash())
 	scene._active = false
+
+
+func test_paid_customer_admissions_are_presentation_only_and_do_not_charge_again() -> void:
+	var s: MHGameSession = MHGameSession.create()
+	assert_object(s).is_not_null()
+	var hole: Dictionary = {"slot_id": 0, "tee": [0, 0], "green": [0, 60, 5],
+		"features": [{"t": "fairway", "rect": [-8, 0, 8, 60]}]}
+	var submitted: Dictionary = s.submit_course([hole])
+	assert_bool(bool(submitted["ok"])).is_true()
+	var cash_before: int = s.economy.cash
+	var tick: Dictionary = s.economy.tick_hour()
+	s._queue_customer_admissions(tick)
+	var cash_after_tick: int = s.economy.cash
+	var admissions: Array = s.take_customer_admissions(999)
+	assert_int(s.economy.cash).is_equal(cash_after_tick)
+	assert_bool(cash_after_tick != cash_before or int(tick["golfers"]) == 0).is_true()
+	assert_int(admissions.size()).is_equal(int(tick["golfers"]))
+	for v: Variant in admissions:
+		var customer: Dictionary = v
+		assert_int(int(customer["paid_fee"])).is_equal(s.economy.green_fee())
