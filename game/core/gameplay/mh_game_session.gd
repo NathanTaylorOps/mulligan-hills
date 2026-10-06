@@ -299,7 +299,17 @@ func _queue_pending_customers(tick: Dictionary) -> void:
 	while remaining > 0:
 		var group_size: int = mini(remaining, 1 + posmod(_customer_serial + economy.day, 4))
 		var group: Array = golfer_roster.group_for_admission(save_secret, _customer_serial, economy.day, group_size)
+		# Once the club has members, an admitted member may use one already-authorized party slot
+		# for an occasional guest. This never increases economy-authorized headcount or revenue.
+		if group.size() > 1:
+			var anchor: Dictionary = group[0] as Dictionary
+			if bool(anchor.get("member", false)):
+				var guest: Dictionary = golfer_roster.club_guest_for_member(save_secret, int(anchor["id"]), _customer_serial, economy.day)
+				if not guest.is_empty():
+					group[group.size() - 1] = guest
 		for identity_v: Variant in group:
+			if remaining <= 0:
+				break
 			var identity: Dictionary = identity_v
 			var hole_index: int = posmod(_customer_serial, _holes.size())
 			_pending_customers.append({"serial": _customer_serial, "identity": identity, "group_size": group_size,
