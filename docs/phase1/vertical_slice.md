@@ -18,7 +18,7 @@ Camera: `MHCameraController`. Mouse drag/wheel and one-finger drag/pinch move it
 ## Layout rules (all in `MHSliceLayout`, pure)
 
 - 4x4 parcels of 32 m (same 320 dm as the live scene), parcel id = row * 4 + col. A parcel has a 2x2 grid of 16 m cells. A building is scaled DOWN (never up) so its tier-5 footprint fits a cell with a 1 m margin, using the tier-5 bounds, so it does not shift or resize relative to its cell when upgraded.
-- Hole sites: 8 fixed slots (`HOLE_ORIGINS_DM`), two per parcel column, so the four start parcels (5, 6, 9, 10) already hold four holes. Parcels under any hole site are RESERVED and never hold a building. Remaining parcels: golf 1, 2, 13, 14, facility 8, 12, homes 3, 15.
+- Hole sites: 7 fixed slots (`HOLE_ORIGINS_DM`), each with its own rated design (`HOLE_DESIGNS`, hole scores 49, 42, 47, 49, 46, 49, 49 from the Python rating reference; courses of 3 to 7 holes roll up to 44 to 47). Cells under a hole corridor are reserved; the rest of a parcel can hold buildings. The starter club is 3 holes (parcels 5, 6, 9, 10) and 4 tier 1 buildings.
 - Building slots: light buildings prefer facility parcels, heavy ones free golf parcels, homes prefer homes parcels; only OWNED parcels count. When none has a free cell, the building goes to an ANNEX strip south of the map (z 132..164), so every bought tier is always drawn. Slots are sticky: a placed building never moves when land is bought (`assign_slots(tiers, owned, previous)`).
 - At the start only parcel 8 (facility) is owned and free, so the first four buildings fill it and the fifth goes to the annex. Buying land (recommended order: parcel 1, then 2) opens real cells.
 

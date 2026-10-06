@@ -187,7 +187,7 @@ func test_menu_rows_show_state_and_buy_buttons() -> void:
 	var clubhouse: Dictionary = scene._menu_rows["clubhouse"] as Dictionary
 	assert_bool((clubhouse["label"] as Label).text.begins_with("Clubhouse")).is_true()
 	assert_bool((clubhouse["label"] as Label).text.contains("T1")).is_true()
-	assert_bool((clubhouse["button"] as MHTapButton).text.begins_with("Buy T2")).is_true()
+	assert_bool((clubhouse["button"] as MHTapButton).text.begins_with("T2")).is_true()
 	assert_bool((clubhouse["button"] as MHTapButton).disabled).is_true() # tier 2 needs 6 holes
 	var homes: Dictionary = scene._menu_rows["homes"] as Dictionary
 	assert_bool((homes["button"] as MHTapButton).disabled).is_true()
