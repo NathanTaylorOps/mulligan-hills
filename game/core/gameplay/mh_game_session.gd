@@ -29,7 +29,8 @@ var customer_feedback_sum: int = 0
 var customer_feedback_count: int = 0
 var customer_outcomes: Array = [] # immutable authoritative records; presentation never mutates economy/roster
 var golfer_roster: MHGolferRoster = MHGolferRoster.new()
-var building_placements: Dictionary = {} # id -> terrain-aware freeform placement record
+var building_placements: Dictionary = {} # instance_id -> terrain-aware freeform placement record
+var _next_building_instance_id: int = 1
 var _holes: Array = []
 var _ratings: Array = []
 var _course: Dictionary = {}
@@ -350,15 +351,36 @@ func set_building_placement(building_id: String, placement: Dictionary) -> bool:
 		return false
 	if not _valid_building_placement_record(building_id, placement):
 		return false
-	building_placements[building_id] = placement.duplicate(true)
+	# Legacy callers replace the first instance of a type. New callers can supply a stable instance_id.
+	var instance_id: String = str(placement.get("instance_id", ""))
+	if instance_id.is_empty():
+		instance_id = first_building_instance_id(building_id)
+	if instance_id.is_empty():
+		instance_id = "building_%d" % _next_building_instance_id
+		_next_building_instance_id += 1
+	var stored: Dictionary = placement.duplicate(true)
+	stored["building_id"] = building_id
+	stored["instance_id"] = instance_id
+	building_placements[instance_id] = stored
 	changed.emit()
 	return true
 
 
+func first_building_instance_id(building_id: String) -> String:
+	var ids: Array = building_placements.keys()
+	ids.sort()
+	for id_v: Variant in ids:
+		var p: Dictionary = building_placements[id_v] as Dictionary
+		if str(p.get("building_id", str(id_v))) == building_id:
+			return str(id_v)
+	return ""
+
+
 func building_position(building_id: String) -> Vector3:
-	if not building_placements.has(building_id):
+	var instance_id: String = first_building_instance_id(building_id)
+	if instance_id.is_empty():
 		return Vector3.INF
-	var placement: Dictionary = building_placements[building_id] as Dictionary
+	var placement: Dictionary = building_placements[instance_id] as Dictionary
 	if not _valid_building_placement_record(building_id, placement):
 		return Vector3.INF
 	var center: Array = placement["center_mm"] as Array
@@ -371,18 +393,26 @@ func restore_building_placements(raw: Variant) -> bool:
 		return false
 	var restored: Dictionary = {}
 	var rows: Dictionary = raw as Dictionary
-	for id_v: Variant in rows.keys():
-		var id: String = str(id_v)
-		if typeof(rows[id_v]) != TYPE_DICTIONARY:
+	var next_instance: int = 1
+	for key_v: Variant in rows.keys():
+		if typeof(rows[key_v]) != TYPE_DICTIONARY:
 			return false
-		var placement: Dictionary = rows[id_v] as Dictionary
-		var index: int = economy.params.building_index(id)
-		if index < 0 or economy.tier_of(index) <= 0 or not _valid_building_placement_record(id, placement):
+		var placement: Dictionary = (rows[key_v] as Dictionary).duplicate(true)
+		# Reader migration: old checkpoints were keyed by building type and had no instance identity.
+		var building_id: String = str(placement.get("building_id", str(key_v)))
+		var instance_id: String = str(placement.get("instance_id", ""))
+		if instance_id.is_empty():
+			instance_id = "building_%d" % next_instance
+			next_instance += 1
+		placement["building_id"] = building_id
+		placement["instance_id"] = instance_id
+		var index: int = economy.params.building_index(building_id)
+		if index < 0 or economy.tier_of(index) <= 0 or restored.has(instance_id) or not _valid_building_placement_record(building_id, placement):
 			return false
-		restored[id] = placement.duplicate(true)
+		restored[instance_id] = placement
 	building_placements = restored
+	_next_building_instance_id = next_instance
 	return true
-
 
 func _valid_building_placement_record(building_id: String, placement: Dictionary) -> bool:
 	if str(placement.get("building_id", building_id)) != building_id:
