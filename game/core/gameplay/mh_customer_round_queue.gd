@@ -40,7 +40,7 @@ func queue_facility_visit(customer: Dictionary, facility_instance_id: String, no
 		return {}
 	var visit: Dictionary = {"identity": (customer.get("identity", {}) as Dictionary).duplicate(true),
 		"facility_instance_id": facility_instance_id, "group_id": int((customer.get("identity", {}) as Dictionary).get("group_id", -1)),
-		"serial": int(customer.get("serial", 0)), "queued_s": now_s}
+		"serial": int(customer.get("serial", 0)), "hole_slot": int(customer.get("hole_slot", -1)), "queued_s": now_s}
 	pending_facility_visits.append(visit)
 	return visit
 
