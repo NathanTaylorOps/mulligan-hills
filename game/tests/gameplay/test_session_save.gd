@@ -937,3 +937,30 @@ func test_star_cart_reusable_vehicle_silhouettes_are_distinct() -> void:
 	var limo: Vector3 = MHStarCartProfiles.body_size(base)
 	assert_bool(suv.z > golf.z).is_true()
 	assert_bool(limo.z > suv.z).is_true()
+
+
+func test_cart_surface_policy_protects_green_and_marks_water_hazard() -> void:
+	var grid: MHHeightGrid = MHHeightGrid.new(8, 8, 1000)
+	var splat: MHSplatMap = MHSplatMap.new(grid.samples_x, grid.samples_y)
+	splat.bytes.fill(0)
+	var p: Vector3 = Vector3(2, 0, 2)
+	var texel: int = 2 * splat.samples_x + 2
+	splat.bytes[texel * MHSplatMap.LAYER_COUNT + MHSplatMap.Layer.GREEN] = 255
+	assert_bool(MHCartSurfacePolicy.is_green(splat, p, grid)).is_true()
+	assert_bool(MHCartSurfacePolicy.ai_can_drive(splat, p, grid)).is_false()
+	splat.bytes[texel * MHSplatMap.LAYER_COUNT + MHSplatMap.Layer.GREEN] = 0
+	splat.bytes[texel * MHSplatMap.LAYER_COUNT + MHSplatMap.Layer.WATER] = 255
+	assert_str(MHCartSurfacePolicy.free_drive_surface(splat, p, grid)).is_equal("water")
+	assert_bool(MHCartSurfacePolicy.ai_can_drive(splat, p, grid)).is_false()
+
+
+func test_cart_route_stops_short_when_ball_is_on_green() -> void:
+	var grid: MHHeightGrid = MHHeightGrid.new(16, 16, 1000)
+	var splat: MHSplatMap = MHSplatMap.new(grid.samples_x, grid.samples_y)
+	var ball: Vector3 = Vector3(10, 0, 10)
+	var texel: int = 10 * splat.samples_x + 10
+	splat.bytes.fill(0)
+	splat.bytes[texel * MHSplatMap.LAYER_COUNT + MHSplatMap.Layer.GREEN] = 255
+	var route: Array = MHCartRoute.route_to_ball(Vector3.ZERO, ball, 1, splat, grid)
+	assert_bool(route.size() >= 2).is_true()
+	assert_bool(MHCartSurfacePolicy.is_green(splat, route[-1] as Vector3, grid)).is_false()
