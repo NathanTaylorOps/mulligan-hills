@@ -43,6 +43,33 @@ func assign_unit(serial: int, employee_serial: int, employee_kind: String) -> bo
 	return false
 
 
+func auto_assign(employees: Array, role_kind: Callable) -> int:
+	var assigned: int = 0
+	var occupied: Dictionary = {}
+	for unit_v: Variant in units:
+		var unit: Dictionary = unit_v
+		var employee_serial: int = int(unit.get("assigned_employee", 0))
+		if employee_serial != 0:
+			occupied[employee_serial] = true
+	for unit_v: Variant in units:
+		var unit: Dictionary = unit_v
+		if int(unit.get("assigned_employee", 0)) != 0 or bool(unit.get("broken", false)):
+			continue
+		var equipment_kind: String = str((TYPES[str(unit["type"])] as Dictionary)["kind"])
+		for employee_v: Variant in employees:
+			var employee: Dictionary = employee_v
+			var serial: int = int(employee.get("serial", 0))
+			if serial == 0 or occupied.has(serial) or (employee.get("areas", []) as Array).is_empty():
+				continue
+			if str(role_kind.call(str(employee.get("role", "")))) != equipment_kind:
+				continue
+			unit["assigned_employee"] = serial
+			occupied[serial] = true
+			assigned += 1
+			break
+	return assigned
+
+
 func unassign_employee(employee_serial: int) -> void:
 	for v: Variant in units:
 		var u: Dictionary = v
