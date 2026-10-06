@@ -570,6 +570,8 @@ func _advance_customer_playback(delta_s: float) -> void:
 		return
 	var customer: Dictionary = event.get("customer", {}) as Dictionary
 	var customers: Array = event.get("customers", [customer]) as Array
+	if kind == "hole_started":
+		_visible_golfers.remove_group(int(customer.get("party_id", customer.get("serial", 0))))
 	var slot: int = int(customer.get("hole_slot", -1))
 	var hole: Dictionary = {}
 	for hole_v: Variant in session.hole_definitions():
