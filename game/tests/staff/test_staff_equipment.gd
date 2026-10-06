@@ -20,11 +20,13 @@ func test_equipment_improves_work_and_degrades_deterministically() -> void:
 func test_workshop_tier_maintains_equipment_condition() -> void:
 	var neglected: MHStaffEquipment = MHStaffEquipment.new()
 	var maintained: MHStaffEquipment = MHStaffEquipment.new()
-	neglected.add_unit("fairway_mower")
-	maintained.add_unit("fairway_mower")
+	var neglected_unit: Dictionary = neglected.add_unit("fairway_mower")
+	var maintained_unit: Dictionary = maintained.add_unit("fairway_mower")
+	neglected.assign_unit(int(neglected_unit["serial"]), 1, MHStaffDefs.KIND_GROUNDS)
+	maintained.assign_unit(int(maintained_unit["serial"]), 1, MHStaffDefs.KIND_GROUNDS)
 	for _day: int in range(30):
-		neglected.on_day(0)
-		maintained.on_day(3, 1000)
+		neglected.on_day(0, 0, [1])
+		maintained.on_day(3, 1000, [1])
 	var nc: int = int((neglected.units[0] as Dictionary)["condition"])
 	var mc: int = int((maintained.units[0] as Dictionary)["condition"])
 	assert_bool(mc > nc).is_true()
