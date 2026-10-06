@@ -320,7 +320,11 @@ func _resolve_customer_hour() -> void:
 	if _pending_customers.is_empty() or _holes.is_empty() or _ratings.is_empty():
 		return
 	var start: int = customer_outcomes.size()
-	for admission_v: Variant in _pending_customers:
+	# Drain first so each paid admission has exactly one authoritative resolution attempt.
+	# Failed/invalid rounds are not silently replayed on every later hour.
+	var pending: Array = _pending_customers
+	_pending_customers = []
+	for admission_v: Variant in pending:
 		var customer: Dictionary = (admission_v as Dictionary).duplicate(true)
 		var identity: Dictionary = customer.get("identity", {}) as Dictionary
 		var band: int = int(identity.get("skill_band", 1))
