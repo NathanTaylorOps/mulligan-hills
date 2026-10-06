@@ -638,8 +638,13 @@ func _begin_hole_transition(event: Dictionary) -> void:
 	_visible_golfers.set_walking_party_hidden(party_id, uses_cart)
 	if uses_cart:
 		_ensure_party_cart(party_id, start, customers.size(), _star_cart_style(customers))
+	var travel_route: Array = MHClubPedestrian.route(start, to_pos, party_id)
+	if uses_cart:
+		var cart_route: Array = MHCartRoute.route_to_ball(start, to_pos, party_id, editor.splat, editor.grid)
+		if cart_route.size() >= 2:
+			travel_route = cart_route
 	_hole_transition_walkers[party_id] = {"position": start,
-		"route": MHClubPedestrian.route(start, to_pos, party_id), "segment": 1, "uses_cart": uses_cart, "star_cart": star_cart}
+		"route": travel_route, "segment": 1, "uses_cart": uses_cart, "star_cart": star_cart}
 
 
 func _advance_hole_transition_walkers(delta_s: float) -> void:
