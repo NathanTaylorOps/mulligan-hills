@@ -70,7 +70,7 @@ func identity_for_admission(save_secret: int, admission_serial: int, day: int) -
 		"look_seed": MHRMath.h32d(save_secret, id, 0x4C4F4F4B, 1), "identity_type": "ordinary",
 		"favorite_facility": FACILITIES[posmod(h >> 24, FACILITIES.size())], "favorite_hole_slot": -1,
 		"social_circle_id": id, "group_id": -1, "relationship_role": ["friend","partner","family"][posmod(h >> 12, 3)],
-		"member": false, "membership_status": "none", "associates": [], "home_interest": 0, "membership_interest": 0, "visits": 0, "loyalty": 50, "best_satisfaction": -1, "worst_satisfaction": 101,
+		"member": false, "membership_status": "none", "associates": [], "home_interest": 0, "home_status": "none", "home_slot": -1, "membership_interest": 0, "visits": 0, "loyalty": 50, "best_satisfaction": -1, "worst_satisfaction": 101,
 		"last_satisfaction": 50, "last_day": -1, "favorite_memory": "", "worst_memory": "", "memories": []}
 	golfers[id] = g
 	return g.duplicate(true)
@@ -203,6 +203,32 @@ func home_candidates(min_interest: int = 50) -> Array:
 
 
 
+
+func home_resident_count() -> int:
+	var count: int = 0
+	for g_v: Variant in golfers.values():
+		if str((g_v as Dictionary).get("home_status", "none")) == "resident":
+			count += 1
+	return count
+
+
+func assign_home(identity_id: int, slot: int) -> bool:
+	if not golfers.has(identity_id) or slot < 0:
+		return false
+	var g: Dictionary = golfers[identity_id]
+	if str(g.get("home_status", "none")) == "resident" or int(g.get("home_interest", 0)) < 50:
+		return false
+	for other_v: Variant in golfers.values():
+		var other: Dictionary = other_v
+		if str(other.get("home_status", "none")) == "resident" and int(other.get("home_slot", -1)) == slot:
+			return false
+	g["home_status"] = "resident"
+	g["home_slot"] = slot
+	golfers[identity_id] = g
+	return true
+
+
+
 func membership_applications() -> Array:
 	var out: Array = []
 	var ids: Array = golfers.keys()
@@ -262,6 +288,10 @@ func from_dict(raw: Dictionary) -> bool:
 			g["membership_status"] = "member" if bool(g.get("member", false)) else "none"
 		if not g.has("home_interest"):
 			g["home_interest"] = 0
+		if not g.has("home_status"):
+			g["home_status"] = "none"
+		if not g.has("home_slot"):
+			g["home_slot"] = -1
 		if not g.has("membership_interest"):
 			g["membership_interest"] = 0
 		var id: int = int(g["id"])
