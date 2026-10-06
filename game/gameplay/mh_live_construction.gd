@@ -221,6 +221,12 @@ func _place(c: Control, r: Rect2) -> void:
 		c.size = r.size
 
 func _screen_changed(id: String) -> void:
+	# Exact one-hole authoring/practice is its own interaction mode. If the player
+	# navigates to the ordinary terrain editor (or any other screen), close that
+	# preview first so the generic editor never appears active while its world input
+	# is intentionally suppressed and its terrain is hidden.
+	if one_hole != null and one_hole.visible and id != MHScreenIds.HUD:
+		one_hole.close_preview()
 	if router == null:
 		return
 	router.accept_world_input = id == MHScreenIds.EDITOR and shell.modal_id() == "" and (one_hole == null or not one_hole.visible)
