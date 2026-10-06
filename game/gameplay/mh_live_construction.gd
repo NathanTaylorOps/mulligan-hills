@@ -563,11 +563,13 @@ func _advance_customer_playback(delta_s: float) -> void:
 	var event: Dictionary = session.customer_playback.advance(now_s)
 	var kind: String = str(event.get("kind", ""))
 	if kind == "finished":
-		_queue_finished_customer_facility(event.get("customer", {}) as Dictionary, now_s)
+		for customer_v: Variant in event.get("customers", [event.get("customer", {})]):
+			_queue_finished_customer_facility(customer_v as Dictionary, now_s)
 		return
 	if kind != "started":
 		return
 	var customer: Dictionary = event.get("customer", {}) as Dictionary
+	var customers: Array = event.get("customers", [customer]) as Array
 	var slot: int = int(customer.get("hole_slot", -1))
 	var hole: Dictionary = {}
 	for hole_v: Variant in session.hole_definitions():
@@ -583,9 +585,7 @@ func _advance_customer_playback(delta_s: float) -> void:
 		return
 	var tee: Vector2 = Vector2(float(tee_v[0]), float(tee_v[1]))
 	var green: Vector2 = Vector2(float(green_v[0]), float(green_v[1]))
-	var identity: Dictionary = customer.get("identity", {}) as Dictionary
-	var size: int = clampi(int(identity.get("party_size", customer.get("group_size", 1))), 1, 4)
-	_visible_golfers.spawn_group(int(customer.get("serial", 0)), size, tee, green, customer.get("round", {}) as Dictionary)
+	_visible_golfers.spawn_authoritative_party(customers, tee, green)
 
 func _queue_finished_customer_facility(customer: Dictionary, now_s: float) -> void:
 	if int(customer.get("satisfaction", 0)) < 55:
