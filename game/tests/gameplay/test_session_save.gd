@@ -580,9 +580,11 @@ func test_live_scene_starts_authoritative_customer_playback_once() -> void:
 	add_child(scene)
 	assert_bool(scene._active).is_true()
 	scene.session._holes = [{"slot_id": 4, "tee": [10, 20], "green": [40, 80, 5]}]
-	var customer: Dictionary = {"serial": 77, "hole_slot": 4, "group_size": 3,
-		"identity": {"party_size": 3}, "round": {"events": [], "strokes": 3, "flags": 0}}
-	scene.session.customer_playback.admit([customer], scene.session._holes[0], {}, {})
+	var customers: Array = []
+	for serial: int in range(77, 80):
+		customers.append({"serial": serial, "party_id": 77, "hole_slot": 4, "group_size": 3,
+			"identity": {"id": serial}, "round": {"events": [], "strokes": 3, "flags": 0}})
+	scene.session.customer_playback.admit(customers, scene.session._holes[0], {}, {})
 	assert_int(scene._visible_golfers.golfer_count()).is_equal(0)
 	scene._advance_customer_playback(0.1)
 	assert_int(scene._visible_golfers.golfer_count()).is_equal(3)
