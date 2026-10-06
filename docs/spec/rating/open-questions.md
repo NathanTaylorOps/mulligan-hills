@@ -37,3 +37,17 @@ Owner: workstream H1. Everything in `rating-engine.md` and `golfer-sim.md` is a 
 22. Whether a hole counts toward the size gate only when not dead (`score_pm >= 250`). Proposed here; the economy workstream must agree.
 23. Whether the game displays the per-axis formula. The reviewer notes the formula becomes public once the advisor explains it. This spec accepts that: nothing in it depends on secrecy except `save_secret`.
 24. Server verification budget: how many entries per day the server can re-simulate (each is about 1 to 2 hole ratings), and which are sampled. Owned by the backend workstream.
+
+
+## Elevation (answered, DEC-091)
+
+Q19 said slopes had no effect. Superseded: a hole may include `relief` {x0, y0, step, cols, rows, z[]} (yards, heights in mm, row-major, nodes at x0 + i*step). When present the engine derives tee and green height from it and:
+
+- plays-like distance: delta = (z(aim) - z(ball)) / 10 centiyards, clamped to +-50% of the shot; the club is chosen for distance + delta and the ball travels distance - delta on the ground;
+- roll: on landing (not after a tree hit, not into bunker, water or OB) the ball rolls down the local slope: roll = -gradient (mm per yard, per axis) x 3 x lie factor (tee, fairway, fringe 1.0; rough 0.35; deep 0.12; green 1.5) x (2.0 - club loft), capped at 4 yd per axis; it can roll into water or off the course;
+- putting: slope = half the sum of |gradient| at ball and cup (mm per yard); one-putt chance falls by 1% per mm/yd (max 40%), three-putt chance rises by 0.5% per mm/yd (max 30%), plus 0.25% per mm of downhill drop (max 15%);
+- axes: Imagination elevation and Beauty relief use max(|green z - tee z|, 60% of relief range);
+- validation: E04 missing key, E05 more than 16384 nodes, E06 wrong z length, E07 non-integer, E08 out of range (|z| > 40 m, step > 64, origin beyond 1200 yd), E09 fewer than 2 columns or rows or step < 1;
+- the content hash covers the relief only when present, so flat holes keep their hashes.
+
+Constants are in params.json under `relief`. Reference: tools/reference/rating/rating_core.py (Hole.z_at, grad_l1, land, putt_count). Not modelled yet: aim compensation for cross slopes, bounce, green speed, lie angle (uphill/downhill lie penalty).

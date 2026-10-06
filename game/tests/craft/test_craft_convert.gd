@@ -151,3 +151,26 @@ func test_the_output_passes_rating_validation_and_is_deterministic() -> void:
 	assert_int(MHCraftConvert._isqrt(0)).is_equal(0)
 	assert_int(MHCraftConvert._isqrt(99)).is_equal(9)
 	assert_int(MHCraftConvert._isqrt(100)).is_equal(10)
+
+
+func test_flat_hole_has_no_relief_and_a_painted_hill_does() -> void:
+	var h: MHCraftHole = _hole()
+	assert_bool(MHCraftConvert.to_hole_def(h, 0, 0, 0).has("relief")).is_false()
+	h.set_height_tile(11, 15, 4)
+	var def: Dictionary = MHCraftConvert.to_hole_def(h, 0, 0, 0)
+	assert_bool(def.has("relief")).is_true()
+	var rl: Dictionary = def["relief"] as Dictionary
+	assert_int(int(rl["cols"])).is_equal(h.cols)
+	assert_int(int(rl["rows"])).is_equal(h.rows)
+	assert_int((rl["z"] as Array).size()).is_equal(h.cols * h.rows)
+	assert_int(int(rl["step"])).is_equal(2)
+
+
+func test_hill_hole_passes_validation_and_counts_as_elevation() -> void:
+	var h: MHCraftHole = _hole()
+	h.set_height_tile(11, 15, 6)
+	var inp: Dictionary = MHCraftConvert.rating_input(h, 0, 0, 0)
+	assert_bool(bool(MHRatingEngine.validate_input(inp)["ok"])).is_true()
+	var hd: MHRHole = MHRHole.from_def(inp["hole"] as Dictionary)
+	assert_int(hd.relief_range).is_equal(6000)
+	assert_bool(hd.elev_mm() >= 3600).is_true()

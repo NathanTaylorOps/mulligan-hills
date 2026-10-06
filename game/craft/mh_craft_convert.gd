@@ -66,7 +66,27 @@ static func to_hole_def(h: MHCraftHole, slot_id: int, tee_index: int, round_no: 
 	out["green"] = [pin_pt.x, pin_pt.y, radius]
 	out["tee_z_mm"] = h.get_height(tee_tile.x, tee_tile.y) * 1000
 	out["green_z_mm"] = h.get_height(pin_tile.x, pin_tile.y) * 1000
+	var relief: Dictionary = relief_for(h)
+	if not relief.is_empty():
+		out["relief"] = relief
 	return out
+
+
+## Relief grid for the rating engine: one node per tile, at the tile centre (so node heights are the painted heights
+## and the engine's bilinear lookup ramps between them). Empty when the hole is completely flat.
+static func relief_for(h: MHCraftHole) -> Dictionary:
+	var zs: Array = []
+	var any: bool = false
+	for r in range(h.rows):
+		for c in range(h.cols):
+			var z: int = h.get_height(c, r) * 1000
+			if z != 0:
+				any = true
+			zs.append(z)
+	if not any:
+		return {}
+	var c0: Vector2i = h.tile_centre_yd(0, 0)
+	return {"x0": c0.x, "y0": c0.y, "step": MHCraftHole.TILE_YD, "cols": h.cols, "rows": h.rows, "z": zs}
 
 
 ## The full rating input wrapper, ready for MHRatingEngine.validate_input and rate_hole.
