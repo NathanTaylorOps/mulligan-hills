@@ -156,3 +156,18 @@ func test_group_does_not_duplicate_one_authoritative_round_trace() -> void:
 	assert_int(((golfers.golfers[0] as Dictionary)["events"] as Array).size()).is_equal(1)
 	assert_int(((golfers.golfers[1] as Dictionary)["events"] as Array).size()).is_equal(0)
 	assert_int(((golfers.golfers[2] as Dictionary)["events"] as Array).size()).is_equal(0)
+
+
+func test_authoritative_party_keeps_distinct_round_traces_per_golfer() -> void:
+	var golfers: MHSliceGolfers = auto_free(MHSliceGolfers.new())
+	add_child(golfers)
+	golfers.setup(MHArtMaterials.vertex_color())
+	var a_events: Array = [{"kind": "shot", "shot": 1, "x0": 0, "y0": 0, "x1": 1000, "y1": 1000}]
+	var b_events: Array = [{"kind": "shot", "shot": 1, "x0": 0, "y0": 0, "x1": 2000, "y1": 3000}]
+	golfers.spawn_authoritative_party([
+		{"serial": 1, "party_id": 1, "round": {"events": a_events}},
+		{"serial": 2, "party_id": 1, "round": {"events": b_events}},
+	], Vector2.ZERO, Vector2(30.0, 30.0))
+	assert_int(golfers.golfer_count()).is_equal(2)
+	assert_int(int((((golfers.golfers[0] as Dictionary)["events"] as Array)[0] as Dictionary)["x1"])).is_equal(1000)
+	assert_int(int((((golfers.golfers[1] as Dictionary)["events"] as Array)[0] as Dictionary)["x1"])).is_equal(2000)
