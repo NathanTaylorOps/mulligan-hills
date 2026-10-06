@@ -21,7 +21,7 @@ static func footprint_m(building_id: String, tier: int) -> Vector2i:
 
 
 static func validate(grid: MHHeightGrid, splat: MHSplatMap, land: MHLandModel, building_id: String, tier: int,
-		center_mm: Vector2i, existing: Array = [], rotation_quarters: int = 0, holes: Array = [], obstacles: Array = []) -> Dictionary:
+		center_mm: Vector2i, existing: Array = [], rotation_quarters: int = 0, holes: Array = [], obstacles: Array = [], course: Dictionary = {}) -> Dictionary:
 	if grid == null or splat == null or land == null:
 		return _bad("missing_world")
 	var size_m: Vector2i = footprint_m(building_id, tier)
@@ -40,7 +40,7 @@ static func validate(grid: MHHeightGrid, splat: MHSplatMap, land: MHLandModel, b
 		return _bad("world_edge")
 	if not _owned_rect(land, x0, y0, x1, y1, world_x, world_y):
 		return _bad("unowned_land")
-	if _hits_golf_features(x0, y0, x1, y1, holes):
+	if _hits_golf_features(x0, y0, x1, y1, holes, course):
 		return _bad("golf_feature")
 	if _hits_obstacles(x0, y0, x1, y1, obstacles):
 		return _bad("obstacle")
@@ -101,12 +101,16 @@ static func _hits_obstacles(x0: int, y0: int, x1: int, y1: int, obstacles: Array
 	return false
 
 
-static func _hits_golf_features(x0: int, y0: int, x1: int, y1: int, holes: Array) -> bool:
+static func _hits_golf_features(x0: int, y0: int, x1: int, y1: int, holes: Array, course: Dictionary) -> bool:
 	for hv: Variant in holes:
 		if typeof(hv) != TYPE_DICTIONARY:
 			continue
 		var h: Dictionary = hv
-		# RHI hole coordinates are yards relative to the live course origin used by First Real Round.
+		var slot: int = int(h.get("slot_id", -1))
+		var origin: Array = MHCourseLayout.origin_for_slot(course, slot)
+		if origin.size() != 2:
+			# Backward-compatible prototype fallback; persisted course documents should always supply the origin.
+			origin = [480, 340]
 		for fv: Variant in h.get("features", []):
 			if typeof(fv) != TYPE_DICTIONARY:
 				continue
@@ -114,22 +118,22 @@ static func _hits_golf_features(x0: int, y0: int, x1: int, y1: int, holes: Array
 			var rect: Array = feature.get("rect", [])
 			if rect.size() != 4:
 				continue
-			var fx0: int = MHCourseLayout.world_mm(480, int(rect[0]) * 100)
-			var fy0: int = MHCourseLayout.world_mm(340, int(rect[1]) * 100)
-			var fx1: int = MHCourseLayout.world_mm(480, int(rect[2]) * 100)
-			var fy1: int = MHCourseLayout.world_mm(340, int(rect[3]) * 100)
+			var fx0: int = MHCourseLayout.world_mm(int(origin[0]), int(rect[0]) * 100)
+			var fy0: int = MHCourseLayout.world_mm(int(origin[1]), int(rect[1]) * 100)
+			var fx1: int = MHCourseLayout.world_mm(int(origin[0]), int(rect[2]) * 100)
+			var fy1: int = MHCourseLayout.world_mm(int(origin[1]), int(rect[3]) * 100)
 			if _rect_overlap(x0, y0, x1, y1, mini(fx0, fx1), mini(fy0, fy1), maxi(fx0, fx1), maxi(fy0, fy1)):
 				return true
 		var tee: Array = h.get("tee", [])
 		var green: Array = h.get("green", [])
 		if tee.size() >= 2:
-			var tx: int = MHCourseLayout.world_mm(480, int(tee[0]) * 100)
-			var ty: int = MHCourseLayout.world_mm(340, int(tee[1]) * 100)
+			var tx: int = MHCourseLayout.world_mm(int(origin[0]), int(tee[0]) * 100)
+			var ty: int = MHCourseLayout.world_mm(int(origin[1]), int(tee[1]) * 100)
 			if tx >= x0 and tx <= x1 and ty >= y0 and ty <= y1:
 				return true
 		if green.size() >= 3:
-			var gx: int = MHCourseLayout.world_mm(480, int(green[0]) * 100)
-			var gy: int = MHCourseLayout.world_mm(340, int(green[1]) * 100)
+			var gx: int = MHCourseLayout.world_mm(int(origin[0]), int(green[0]) * 100)
+			var gy: int = MHCourseLayout.world_mm(int(origin[1]), int(green[1]) * 100)
 			var gr: int = int(green[2]) * 914
 			if _rect_overlap(x0, y0, x1, y1, gx - gr, gy - gr, gx + gr, gy + gr):
 				return true
