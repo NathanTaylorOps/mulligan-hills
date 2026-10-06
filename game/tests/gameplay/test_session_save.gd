@@ -573,16 +573,19 @@ func test_full_management_state_round_trips_through_checkpoint() -> void:
 		assert_int(int((report["equipment"][0] as Dictionary)["assigned_employee"])).is_equal(employee)
 
 
-func test_live_scene_consumes_authoritative_customer_outcome_into_visible_golfers() -> void:
+func test_live_scene_starts_authoritative_customer_playback_once() -> void:
 	var scene: MHLiveConstruction = auto_free(MHLiveConstruction.new())
 	scene.store = MHSaveStore.new(DIR)
 	scene.ledger_dir = LEDGERS
 	add_child(scene)
 	assert_bool(scene._active).is_true()
-	scene.session._holes = [{"slot_id": 0, "tee": [10, 20], "green": [40, 80, 5]}]
-	scene.session.customer_outcomes = [{"serial": 77, "hole_slot": 0, "group_size": 3}]
+	scene.session._holes = [{"slot_id": 4, "tee": [10, 20], "green": [40, 80, 5]}]
+	var customer: Dictionary = {"serial": 77, "hole_slot": 4, "group_size": 3,
+		"identity": {"party_size": 3}, "round": {"events": [], "strokes": 3, "flags": 0}}
+	scene.session.customer_playback.admit([customer], scene.session._holes[0], {}, {})
 	assert_int(scene._visible_golfers.golfer_count()).is_equal(0)
-	scene._spawn_resolved_customer_groups()
+	scene._advance_customer_playback(0.1)
 	assert_int(scene._visible_golfers.golfer_count()).is_equal(3)
-	assert_int(scene.session.customer_outcomes.size()).is_equal(0)
+	scene._advance_customer_playback(0.1)
+	assert_int(scene._visible_golfers.golfer_count()).is_equal(3)
 	scene._active = false
