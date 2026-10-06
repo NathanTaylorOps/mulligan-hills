@@ -179,4 +179,6 @@ func test_authoritative_party_preserves_hole_world_origin() -> void:
 	golfers.setup(MHArtMaterials.vertex_color())
 	golfers.spawn_authoritative_party([{"serial": 1, "party_id": 1, "round": {"events": []}}],
 		Vector2(19.144, 38.288), Vector2(28.288, 56.576), Vector2(10.0, 20.0))
-	assert_vector((golfers.golfers[0] as Dictionary)["world_origin"] as Vector2).is_equal(Vector2(10.0, 20.0))
+	var origin: Vector2 = (golfers.golfers[0] as Dictionary)["world_origin"] as Vector2
+	assert_float(origin.x).is_equal_approx(10.0, 0.0001)
+	assert_float(origin.y).is_equal_approx(20.0, 0.0001)
