@@ -3,6 +3,9 @@ extends RefCounted
 ## Cheap presentation routing: stage at clubhouse, follow connected painted cart paths, then cross to the ball.
 ## It never returns a waypoint on a green or in water.
 
+const CART_MPS: float = 6.5
+const ARRIVE_M: float = 0.35
+
 static func clubhouse_spawn(session: MHGameSession) -> Vector3:
 	var ids: Array = MHClubPedestrian.instance_ids_for_type(session, "clubhouse")
 	if ids.is_empty():
@@ -11,6 +14,19 @@ static func clubhouse_spawn(session: MHGameSession) -> Vector3:
 	if p == Vector3.INF:
 		return p
 	return p + Vector3(4.0, 0.0, 2.5)
+
+static func advance(route_points: Array, segment: int, position: Vector3, delta: float, grid: MHHeightGrid) -> Dictionary:
+	if route_points.is_empty() or segment >= route_points.size():
+		return {"done": true, "segment": segment, "position": position}
+	var target: Vector3 = route_points[segment] as Vector3
+	var d: Vector3 = target - position
+	d.y = 0.0
+	var step: float = CART_MPS * maxf(delta, 0.0)
+	if d.length() <= maxf(step, ARRIVE_M):
+		var next: int = segment + 1
+		return {"done": next >= route_points.size(), "segment": next, "position": MHClubPedestrian.apply_ground_height(target, grid)}
+	return {"done": false, "segment": segment, "position": MHClubPedestrian.apply_ground_height(position + d.normalized() * step, grid)}
+
 
 static func route_to_ball(start: Vector3, ball: Vector3, serial: int, splat: MHSplatMap, grid: MHHeightGrid) -> Array:
 	var safe_ball: Vector3 = _safe_approach(ball, start, splat, grid)
