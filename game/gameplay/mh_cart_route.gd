@@ -79,11 +79,17 @@ static func _path_search(start: Vector3, goal: Vector3, splat: MHSplatMap, grid:
 			last = cur
 			break
 		for dv: Variant in dirs:
-			var n: Vector2i = cur + (dv as Vector2i)
+			var offset: Vector2i = dv as Vector2i
+			var n: Vector2i = cur + offset
 			if n.x < 0 or n.y < 0 or n.x >= splat.samples_x or n.y >= splat.samples_y or came.has(n):
 				continue
-			var wp: Vector3 = _cell_world(n, grid)
-			if MHCartSurfacePolicy.is_path(splat, wp, grid) and MHCartSurfacePolicy.ai_can_drive(splat, wp, grid):
+			# A diagonal may not cut across the corner of a protected/non-path cell.
+			if offset.x != 0 and offset.y != 0:
+				var side_a: Vector2i = cur + Vector2i(offset.x, 0)
+				var side_b: Vector2i = cur + Vector2i(0, offset.y)
+				if not _driveable_path_cell(side_a, splat, grid) or not _driveable_path_cell(side_b, splat, grid):
+					continue
+			if _driveable_path_cell(n, splat, grid):
 				came[n] = cur
 				queue.append(n)
 	if not came.has(last):
@@ -98,6 +104,13 @@ static func _path_search(start: Vector3, goal: Vector3, splat: MHSplatMap, grid:
 	for i: int in range(0, cells.size(), 2):
 		out.append(MHClubPedestrian.apply_ground_height(_cell_world(cells[i] as Vector2i, grid), grid))
 	return out
+
+static func _driveable_path_cell(cell: Vector2i, splat: MHSplatMap, grid: MHHeightGrid) -> bool:
+	if cell.x < 0 or cell.y < 0 or cell.x >= splat.samples_x or cell.y >= splat.samples_y:
+		return false
+	var wp: Vector3 = _cell_world(cell, grid)
+	return MHCartSurfacePolicy.is_path(splat, wp, grid) and MHCartSurfacePolicy.ai_can_drive(splat, wp, grid)
+
 
 static func _nearest_path(world: Vector3, splat: MHSplatMap, grid: MHHeightGrid, step: int) -> Vector2i:
 	var cx: int = clampi(roundi(world.x * 1000.0) / grid.cell_size_mm, 0, splat.samples_x - 1)
