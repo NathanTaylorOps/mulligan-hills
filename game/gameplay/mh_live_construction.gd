@@ -589,22 +589,11 @@ func _begin_hole_transition(event: Dictionary) -> void:
 			_render_customer_hole(fallback_event)
 		return
 	_visible_golfers.remove_group(party_id)
-	var node: Node3D = Node3D.new()
-	node.name = "HoleTransition_%d" % party_id
-	node.position = MHClubPedestrian.apply_ground_height(from_pos, editor.grid)
-	var body: MeshInstance3D = MeshInstance3D.new()
-	var capsule: CapsuleMesh = CapsuleMesh.new()
-	capsule.radius = 0.32
-	capsule.height = 1.7
-	capsule.radial_segments = 8
-	capsule.rings = 2
-	body.mesh = capsule
-	body.position.y = 0.85
-	body.material_override = _building_mat
-	node.add_child(body)
-	add_child(node)
-	_hole_transition_walkers[party_id] = {"node": node,
-		"route": MHClubPedestrian.route(node.position, to_pos, party_id), "segment": 1}
+	var start: Vector3 = MHClubPedestrian.apply_ground_height(from_pos, editor.grid)
+	var customers: Array = event.get("customers", [customer]) as Array
+	_visible_golfers.spawn_walking_party(customers, start, to_pos)
+	_hole_transition_walkers[party_id] = {"position": start,
+		"route": MHClubPedestrian.route(start, to_pos, party_id), "segment": 1}
 
 
 func _advance_hole_transition_walkers(delta_s: float) -> void:
@@ -614,17 +603,18 @@ func _advance_hole_transition_walkers(delta_s: float) -> void:
 	for party_v: Variant in _hole_transition_walkers.keys():
 		var party_id: int = int(party_v)
 		var walker: Dictionary = _hole_transition_walkers[party_id]
-		var node: Node3D = walker["node"] as Node3D
-		var step: Dictionary = MHClubPedestrian.advance(walker["route"] as Array, int(walker["segment"]), node.position, delta_s, editor.grid)
-		node.position = step["position"] as Vector3
+		var before: Vector3 = walker["position"] as Vector3
+		var step: Dictionary = MHClubPedestrian.advance(walker["route"] as Array, int(walker["segment"]), before, delta_s, editor.grid)
+		var position: Vector3 = step["position"] as Vector3
+		walker["position"] = position
 		walker["segment"] = int(step["segment"])
+		_visible_golfers.update_walking_party(party_id, position, position - before)
 		if bool(step["done"]):
 			arrived.append(party_id)
 	for party_v: Variant in arrived:
 		var party_id: int = int(party_v)
-		var walker: Dictionary = _hole_transition_walkers[party_id]
-		(walker["node"] as Node3D).queue_free()
 		_hole_transition_walkers.erase(party_id)
+		_visible_golfers.remove_group(party_id)
 		var event: Dictionary = session.customer_playback.begin_next_hole(float(session.clock.total_minutes()) * 60.0, party_id)
 		if not event.is_empty():
 			_render_customer_hole(event)
