@@ -62,3 +62,28 @@ func test_preference_bonus_is_bounded() -> void:
 	for kind: int in range(MHGolferPreference.COUNT):
 		var b: int = MHGolferPreference.bonus(kind, extreme, {"flags": 16})
 		assert_bool(b >= -12 and b <= 12).is_true()
+
+
+func test_roster_identity_is_stable_and_good_visit_builds_loyalty_memory() -> void:
+	var roster: MHGolferRoster = MHGolferRoster.new()
+	var g: Dictionary = roster.identity_for_admission(12345, 0, 1)
+	assert_bool(str(g["name"]).is_empty()).is_false()
+	var updated: Dictionary = roster.record_visit(int(g["id"]), 1, 92, "Great hole. I'd play that again.")
+	assert_int(int(updated["visits"])).is_equal(1)
+	assert_bool(int(updated["loyalty"]) > 50).is_true()
+	assert_str(str(updated["favorite_memory"])).contains("Great hole")
+	var saved: Dictionary = roster.to_dict()
+	var restored: MHGolferRoster = MHGolferRoster.new()
+	assert_bool(restored.from_dict(saved)).is_true()
+	assert_dict(restored.to_dict()).is_equal(saved)
+
+
+func test_roster_creates_deterministic_returning_golfers() -> void:
+	var a: MHGolferRoster = MHGolferRoster.new()
+	var first: Dictionary = a.identity_for_admission(777, 0, 1)
+	a.record_visit(int(first["id"]), 1, 100, "Loved it")
+	# Serial 4 is a deterministic return opportunity.
+	var returning: Dictionary = a.identity_for_admission(777, 4, 2)
+	assert_int(int(returning["id"])).is_equal(int(first["id"]))
+	assert_int(int(returning["visits"])).is_equal(1)
+	assert_bool(int(returning["loyalty"]) > 50).is_true()
