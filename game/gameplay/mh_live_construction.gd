@@ -685,9 +685,11 @@ func _ensure_party_cart(party_id: int, position: Vector3, riders: int = 2, style
 	var root: Node3D = Node3D.new()
 	root.name = "PartyCart_%d" % party_id
 	root.set_meta("cart_style", style)
+	var profile: Dictionary = MHStarCartProfiles.profile_for(style)
+	root.set_meta("cart_behavior", str(profile.get("behavior", "park_nearby")))
 	var body: MeshInstance3D = MeshInstance3D.new()
 	var mesh: BoxMesh = BoxMesh.new()
-	mesh.size = Vector3(1.25, 0.75, 2.0)
+	mesh.size = MHStarCartProfiles.body_size(profile)
 	body.mesh = mesh
 	body.position.y = 0.5
 	root.add_child(body)
@@ -721,7 +723,13 @@ func _park_star_cart(party_id: int, hole_slot: int) -> void:
 	if tee == Vector3.INF:
 		return
 	var cart: Node3D = _party_carts[party_id] as Node3D
-	cart.position = MHClubPedestrian.apply_ground_height(tee + Vector3(3.5, 0.0, 2.0), editor.grid)
+	var profile: Dictionary = MHStarCartProfiles.profile_for(str(cart.get_meta("cart_style", "standard")))
+	cart.position = MHClubPedestrian.apply_ground_height(tee + MHStarCartProfiles.park_offset(profile), editor.grid)
+	var behavior: String = str(profile.get("behavior", "park_nearby"))
+	if behavior == "park_nearby_upside_down":
+		cart.rotation_degrees.z = 180.0
+	else:
+		cart.rotation_degrees.z = 0.0
 
 
 func _update_party_cart(party_id: int, position: Vector3, direction: Vector3, enabled: bool) -> void:
