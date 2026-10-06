@@ -33,12 +33,48 @@ func assign_unit(serial: int, employee_serial: int, employee_kind: String) -> bo
 		if int(u["serial"]) != serial:
 			continue
 		var d: Dictionary = TYPES[str(u["type"])]
-		operating_cost_cents += 75 + int(d["wear"]) * 5
 		if str(d["kind"]) != employee_kind or bool(u["broken"]):
 			return false
 		u["assigned_employee"] = employee_serial
 		return true
 	return false
+
+
+func unassign_employee(employee_serial: int) -> void:
+	for v: Variant in units:
+		var u: Dictionary = v
+		if int(u.get("assigned_employee", 0)) == employee_serial:
+			u["assigned_employee"] = 0
+
+
+func condition_state(serial: int) -> String:
+	for v: Variant in units:
+		var u: Dictionary = v
+		if int(u["serial"]) != serial:
+			continue
+		if bool(u["broken"]):
+			return "broken"
+		return "worn" if int(u["condition"]) < 550 else "good"
+	return "missing"
+
+
+func sale_value(serial: int) -> int:
+	for v: Variant in units:
+		var u: Dictionary = v
+		if int(u["serial"]) == serial:
+			var price: int = int((TYPES[str(u["type"])] as Dictionary)["price"])
+			return MHStaffMath.idiv(price * maxi(200, int(u["condition"])), 2000)
+	return 0
+
+
+func sell_unit(serial: int) -> int:
+	for i: int in range(units.size()):
+		var u: Dictionary = units[i]
+		if int(u["serial"]) == serial:
+			var value: int = sale_value(serial)
+			units.remove_at(i)
+			return value
+	return 0
 
 
 func multiplier_for_employee(employee_serial: int, kind: String) -> int:
@@ -61,7 +97,7 @@ func operating_cost_for_day() -> int:
 func repair_cost_for_day() -> int:
 	return repair_cost_cents
 
-func on_day(maintenance_tier: int, technician_work_pm: int = 0) -> void:
+func on_day(maintenance_tier: int, technician_work_pm: int = 0, used_employees: Array = []) -> void:
 	operating_cost_cents = 0
 	repair_cost_cents = 0
 	for v: Variant in units:
@@ -75,7 +111,10 @@ func on_day(maintenance_tier: int, technician_work_pm: int = 0) -> void:
 				if int(u["condition"]) >= 400:
 					u["broken"] = false
 			continue
-		u["condition"] = maxi(0, int(u["condition"]) - int(d["wear"]))
+		var was_used: bool = used_employees.has(int(u.get("assigned_employee", 0)))
+		if was_used:
+			u["condition"] = maxi(0, int(u["condition"]) - int(d["wear"]))
+			operating_cost_cents += 75 + int(d["wear"]) * 5
 		if int(u["condition"]) < 150:
 			u["broken"] = true
 		elif maintenance_tier > 0 and technician_work_pm > 0:
