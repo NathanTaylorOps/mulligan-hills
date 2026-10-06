@@ -281,6 +281,47 @@ func test_live_craft_tee_and_pin_tools_update_canonical_draft() -> void:
 	scene._active = false
 
 
+func test_relief_aware_screen_pick_hits_the_visible_craft_tile() -> void:
+	var scene: MHLiveConstruction = auto_free(MHLiveConstruction.new())
+	scene.store = MHSaveStore.new("user://test_craft_relief_pick")
+	scene.ledger_dir = "user://test_craft_relief_pick_ledgers"
+	add_child(scene)
+	assert_bool(scene._active).is_true()
+	scene.craft_hole.set_height_tile(11, 15, 6)
+	scene._open_craft_hole()
+	var centre: Vector2i = scene.craft_hole.tile_centre_yd(11, 15)
+	var world: Vector3 = scene.one_hole._position_on_ground(centre.x * 100, centre.y * 100, 0.0)
+	var screen: Vector2 = scene.controller.camera.unproject_position(world)
+	assert_bool(scene.one_hole._craft_tile_from_screen(screen) == Vector2i(11, 15)).is_true()
+	scene._active = false
+
+
+func test_drag_craft_edit_is_one_undoable_stroke() -> void:
+	var scene: MHLiveConstruction = auto_free(MHLiveConstruction.new())
+	scene.store = MHSaveStore.new("user://test_craft_drag_stroke")
+	scene.ledger_dir = "user://test_craft_drag_stroke_ledgers"
+	add_child(scene)
+	assert_bool(scene._active).is_true()
+	scene._open_craft_hole()
+	var panel: MHOneHolePanel = scene.one_hole
+	panel.craft_mode = &"surface"
+	panel.craft_surface = MHCraftHole.Surface.BUNKER
+	var a: Vector2i = scene.craft_hole.tile_centre_yd(8, 12)
+	var b: Vector2i = scene.craft_hole.tile_centre_yd(10, 12)
+	var sa: Vector2 = scene.controller.camera.unproject_position(panel._position_on_ground(a.x * 100, a.y * 100, 0.0))
+	var sb: Vector2 = scene.controller.camera.unproject_position(panel._position_on_ground(b.x * 100, b.y * 100, 0.0))
+	var before_undo: int = scene.craft_hole.undo_count()
+	assert_bool(panel.craft_stroke_begin_from_screen(sa)).is_true()
+	assert_bool(panel.craft_stroke_move_from_screen(sb)).is_true()
+	assert_bool(panel.craft_stroke_end()).is_true()
+	assert_int(scene.craft_hole.undo_count()).is_equal(before_undo + 1)
+	assert_int(scene.craft_hole.get_surface(8, 12)).is_equal(MHCraftHole.Surface.BUNKER)
+	assert_int(scene.craft_hole.get_surface(10, 12)).is_equal(MHCraftHole.Surface.BUNKER)
+	assert_bool(scene.craft_hole.undo()).is_true()
+	assert_int(scene.craft_hole.get_surface(8, 12)).is_not_equal(MHCraftHole.Surface.BUNKER)
+	scene._active = false
+
+
 func test_live_preview_ground_height_matches_rating_relief() -> void:
 	var scene: MHLiveConstruction = auto_free(MHLiveConstruction.new())
 	scene.store = MHSaveStore.new("user://test_craft_relief_render")
