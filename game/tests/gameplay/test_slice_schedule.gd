@@ -160,3 +160,10 @@ func test_authoritative_groups_carry_their_actual_tee_wait() -> void:
 	assert_int(int((released[1] as Dictionary)["tee_minute"])).is_equal(12)
 	assert_int(int((released[1] as Dictionary)["wait_minutes"])).is_equal(12)
 	assert_array((released[1] as Dictionary)["customer_ids"] as Array).is_equal([4, 5, 6])
+
+func test_authoritative_booking_rejects_partial_identity_batch_atomically() -> void:
+	var schedule: MHSliceSchedule = MHSliceSchedule.new()
+	var serial: int = schedule.next_serial
+	assert_int(schedule.add_booked_golfers(3, [10, 11], 60)).is_equal(0)
+	assert_int(schedule.queue.size()).is_equal(0)
+	assert_int(schedule.next_serial).is_equal(serial)
