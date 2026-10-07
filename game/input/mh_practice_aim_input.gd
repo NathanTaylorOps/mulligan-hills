@@ -178,6 +178,15 @@ func _input_practice(event: InputEvent) -> void:
 		cancelled = t.canceled
 	elif event is InputEventScreenDrag:
 		var d: InputEventScreenDrag = event
+		var drag_blocked: bool = panel.blocks_world_tap(d.position)
+		if drag_blocked:
+			if _craft_machine != null:
+				_craft_machine.cancel_all()
+			if taps.drag(d.index, d.position):
+				get_viewport().set_input_as_handled()
+			return
+		if _craft_machine != null:
+			_craft_machine.handle_event(d, Time.get_ticks_msec())
 		if taps.drag(d.index, d.position):
 			get_viewport().set_input_as_handled()
 		return
@@ -226,6 +235,11 @@ func _input_practice(event: InputEvent) -> void:
 	else:
 		return
 	var blocked: bool = panel.blocks_world_tap(pos)
+	if event is InputEventScreenTouch and _craft_machine != null and not blocked:
+		# The same two-finger gesture policy remains available after finalization.
+		# One-finger tap ownership is still decided by MHAimTap, so camera gestures
+		# cannot accidentally commit or move an aim.
+		_craft_machine.handle_event(event, Time.get_ticks_msec())
 	if pressed:
 		if taps.down(id, pos, blocked):
 			get_viewport().set_input_as_handled()
