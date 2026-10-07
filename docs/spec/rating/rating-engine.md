@@ -1,6 +1,6 @@
 # Rating engine spec (MHRATE-1.0.0)
 
-Owner: workstream H1. Status: specification, checked against a Python reference model. No GDScript for this spec has been written or run. Companion files in this folder: `golfer-sim.md` (the shot simulation, arithmetic rules, hash), `params.json` (normative tables), `open-questions.md` (what needs a human playtest), `sanity-results.txt` (output of the reference model). Fixtures: `docs/spec/fixtures/rating/*.json`. Reference model: `tools/reference/rating_sanity.py`.
+Status: versioned rating specification with Python reference coverage and a current GDScript/runtime implementation in `game/core/rating/`. Runtime source/tests are authoritative for implemented behavior; this document remains the formula/contract reference and should be reconciled when either side changes. Companion files: `golfer-sim.md`, `params.json`, `open-questions.md`, `sanity-results.txt`; fixtures live under `docs/spec/fixtures/rating/` and reference code under `tools/reference/`.
 
 Where this spec and the reference model disagree, treat it as a spec bug and report it. The reference model is a sanity check of formulas, not the shipping code, and every number marked "measured" below comes from it, not from the game.
 
