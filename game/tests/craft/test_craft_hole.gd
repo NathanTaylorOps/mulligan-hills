@@ -168,14 +168,21 @@ func test_craft_course_rejects_out_of_range_world_origins() -> void:
 	assert_object(MHCraftCourse.from_dict(saved)).is_not_null()
 
 
-func test_future_default_course_origins_are_integer_only() -> void:
+func test_all_default_course_origins_are_unique_integer_only_and_round_trip() -> void:
 	var craft: MHCraftCourse = MHCraftCourse.new()
-	craft.ensure_holes(6)
+	craft.ensure_holes(MHCraftCourse.MAX_HOLES)
+	var seen: Dictionary = {}
 	for origin_value: Variant in craft.origins_dm:
 		var origin: Array = origin_value as Array
 		assert_int(typeof(origin[0])).is_equal(TYPE_INT)
 		assert_int(typeof(origin[1])).is_equal(TYPE_INT)
-	assert_object(MHCraftCourse.from_dict(craft.to_dict())).is_not_null()
+		var key: String = "%d,%d" % [int(origin[0]), int(origin[1])]
+		assert_bool(seen.has(key)).override_failure_message("duplicate origin " + key).is_false()
+		seen[key] = true
+	var restored: MHCraftCourse = MHCraftCourse.from_dict(craft.to_dict())
+	assert_object(restored).is_not_null()
+	if restored != null:
+		assert_array(restored.origins_dm).is_equal(craft.origins_dm)
 
 
 func test_craft_course_rejects_coerced_metadata_extra_keys_and_bad_active_index() -> void:
