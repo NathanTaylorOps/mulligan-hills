@@ -45,6 +45,7 @@ var built_slots: Array = []
 var hole_points: Array = []
 var nature_group_count: int = 0
 var starter_hole_error: String = ""
+var customers: MHGolferCustomers = MHGolferCustomers.new()
 
 var _mat: StandardMaterial3D
 var _ready_ok: bool = false
@@ -220,13 +221,31 @@ func _spawn_group(g: Dictionary) -> void:
 	_readout_hole = 0
 
 func _on_visual_round_complete(row: Dictionary) -> void:
-	# Economy.tick_hour already booked these golfers and their fees. This is feedback only.
+	# Economy.tick_hour already booked these golfers and their fees. Customer progression never awards cash.
 	var size: int = int(row.get("size", 0))
 	var holes_played: int = int(row.get("holes", 0))
 	if size <= 0 or holes_played <= 0:
 		return
-	_set_status("Group %d finished %d holes — %d golfers completed their round." % [
-		int(row.get("serial", 0)) + 1, holes_played, size])
+	var serial: int = int(row.get("serial", 0))
+	var experience: Dictionary = MHGolferExperience.evaluate(session.economy.rating, session.economy.fee,
+		session.economy.suggest_fee(), session.economy.tiers, holes_played, schedule.waiting_golfers() * schedule.interval_min)
+	var new_regulars: int = 0
+	var member_candidates: int = 0
+	for member: int in range(size):
+		var customer_id: int = MHSliceSchedule.look_index(serial, member, MHGolferCustomers.COUNT)
+		var before: Dictionary = (customers.rows[customer_id] as Dictionary).duplicate()
+		var after: Dictionary = customers.record_visit(customer_id, int(experience["score"]))
+		if not bool(before["regular"]) and bool(after["regular"]):
+			new_regulars += 1
+		if not bool(before["member_eligible"]) and bool(after["member_eligible"]):
+			member_candidates += 1
+	var tail: String = ""
+	if new_regulars > 0:
+		tail += " %d became regular%s." % [new_regulars, "" if new_regulars == 1 else "s"]
+	if member_candidates > 0:
+		tail += " %d can apply for membership." % member_candidates
+	_set_status("Group %d: %d/100 satisfaction. %s%s" % [
+		serial + 1, int(experience["score"]), str(experience["reaction"]), tail])
 
 
 func _camera_position() -> Vector3:
