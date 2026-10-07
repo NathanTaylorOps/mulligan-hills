@@ -135,6 +135,15 @@ func staff_view() -> Dictionary:
 func staff_report() -> Dictionary:
 	return staff.report(staff_view())
 
+func customer_ids_for_booking(count: int, absolute_hour: int) -> Array:
+	# Deterministic permutation over the fixed 128-person public roster. Identity belongs to the session,
+	# never to rendering; 29 is coprime with 128 so a batch cannot repeat until the roster wraps.
+	var out: Array = []
+	var base: int = posmod(absolute_hour * 37 + save_secret, MHGolferCustomers.COUNT)
+	for i: int in range(maxi(0, count)):
+		out.append(posmod(base + i * 29, MHGolferCustomers.COUNT))
+	return out
+
 func customer_summary() -> Dictionary:
 	return {"regulars": customers.regular_count(), "eligible": customers.eligible_count(),
 		"named_members": customers.member_count(), "membership_capacity": economy.members()}
@@ -261,7 +270,8 @@ func advance(delta_us: int, wall_unix: int) -> void:
 		var tick: Dictionary = economy.tick_hour()
 		var booked: int = int(tick.get("golfers", 0))
 		if booked > 0:
-			golfers_booked.emit(booked)
+			var absolute_hour: int = economy.day * MHEconomy.HOURS_PER_DAY + handled_hour
+			golfers_booked.emit(booked, customer_ids_for_booking(booked, absolute_hour))
 		var wage: int = staff.pay_hour(handled_hour)
 		if wage > 0:
 			economy.incur_loss(wage)
