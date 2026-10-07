@@ -1,10 +1,33 @@
+<div align="center">
+
 # Mulligan Hills
 
-> **Build Your Golf Legacy.**
+### Build Your Golf Legacy
+
+**Golf-course design · Club management · Deterministic simulation · Golf RPG**
+
+![Status](https://img.shields.io/badge/status-pre--release-orange)
+![Godot](https://img.shields.io/badge/Godot-4.7.2-478CBF?logo=godot-engine&logoColor=white)
+![Primary Platform](https://img.shields.io/badge/primary%20target-Android-3DDC84?logo=android&logoColor=white)
+![Language](https://img.shields.io/badge/language-GDScript-478CBF)
+
+</div>
 
 **Mulligan Hills** is a stylised 3D golf-course design, management, simulation and light-RPG game being built in **Godot 4**. The project combines hands-on course creation with club operations, golfer simulation, progression, staff and equipment management, events, and the ability to play the course you build.
 
 The primary design target is **mobile**, with Android first and iPhone/iPad support planned, while the project is also intended to support a full desktop experience.
+
+## At a Glance
+
+| | |
+| --- | --- |
+| **Genre** | Golf-course design / management sim / RPG |
+| **Engine** | Godot 4.7.2 |
+| **Primary target** | Android, landscape |
+| **Additional targets** | iOS/iPadOS and desktop |
+| **Project state** | Active pre-release development |
+| **Core philosophy** | Creative course building + understandable simulation + character-driven club stories |
+| **Campaign direction** | Long-form progression into open-ended play |
 
 > **Development status:** Pre-release / active development. The repository contains working gameplay and simulation systems, tests, platform infrastructure, prototypes and specifications. It is **not yet a finished or publicly released game**.
 
@@ -421,7 +444,7 @@ Current priorities should be taken from the repository's latest decision/specifi
 
 ## Contributing
 
-This repository is currently a privately managed development project.
+This repository is currently a privately managed development project. See [CONTRIBUTING.md](CONTRIBUTING.md) for the full development and contribution workflow, [CHANGELOG.md](CHANGELOG.md) for release-level project changes, and [SECURITY.md](SECURITY.md) for security reporting.
 
 Before making a substantial change:
 
@@ -458,7 +481,7 @@ If a secret is committed accidentally, treat it as compromised and rotate it rat
 
 ## Licensing
 
-Licensing is tracked in:
+This repository does not currently grant a general open-source licence. Licensing is tracked in:
 
 ```text
 docs/LICENSE_LEDGER.md
