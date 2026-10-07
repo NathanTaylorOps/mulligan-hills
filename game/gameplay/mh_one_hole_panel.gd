@@ -1449,15 +1449,20 @@ func _draw_flag(point: Vector2i) -> void:
 
 
 func _draw_craft_tree(point: Vector2i) -> void:
-	# Three primitive meshes read as a stylised tree at gameplay zoom while
-	# remaining dramatically cheaper than foliage geometry on mobile.
-	var trunk_pos: Vector3 = _position_on_ground(point.x * 100, point.y * 100, 0.95)
-	_box(trunk_pos, Vector3(0.32, 1.9, 0.32), Color(0.31, 0.21, 0.12))
-	_marker_at(_position_on_ground(point.x * 100, point.y * 100, 2.15), Color(0.13, 0.31, 0.13), 1.18)
-	if int(_visual_settings.get("tree_layers", 2)) >= 2:
-		_marker_at(_position_on_ground(point.x * 100 - 45, point.y * 100 + 20, 2.45), Color(0.17, 0.39, 0.15), 0.78)
-	if int(_visual_settings.get("tree_layers", 2)) >= 3:
-		_marker_at(_position_on_ground(point.x * 100 + 42, point.y * 100 - 18, 2.50), Color(0.20, 0.43, 0.17), 0.72)
+	var density: float = float(_visual_settings.get("decor_density", 0.65))
+	var lod: int = 0 if density >= 0.8 else (1 if density >= 0.45 else 2)
+	var variant: int = absi(point.x * 31 + point.y * 17) % MHNatureMeshes.VARIANTS
+	var species: String = ["oak", "pine", "birch"][absi(point.x * 7 + point.y * 11) % 3]
+	var material: StandardMaterial3D = StandardMaterial3D.new()
+	material.vertex_color_use_as_albedo = true
+	material.roughness = 0.94
+	var instance: MeshInstance3D = MeshInstance3D.new()
+	instance.mesh = MHNatureMeshes.build(species, lod, variant)
+	instance.material_override = material
+	instance.position = _position_on_ground(point.x * 100, point.y * 100, 0.0)
+	instance.rotation.y = float(absi(point.x * 13 + point.y * 29) % 628) / 100.0
+	instance.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_ON if bool(_visual_settings.get("shadows", true)) else GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	_world.add_child(instance)
 
 func set_visual_quality(tier: MHVisualQuality.Tier) -> void:
 	visual_quality = tier
