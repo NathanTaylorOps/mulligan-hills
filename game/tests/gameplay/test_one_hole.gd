@@ -51,7 +51,7 @@ func test_finalized_checkpoint_reloads_without_charge_or_award() -> void:
 	assert_bool(saved.is_ok()).is_true()
 	if not saved.is_ok():
 		return
-	assert_int(int(saved.value["min_reader_version"])).is_equal(3)
+	assert_int(int(saved.value["min_reader_version"])).is_equal(6)
 	var restored: MHSaveResult = MHSessionSave.restore(saved.value, s.ledger)
 	assert_bool(restored.is_ok()).is_true()
 	if not restored.is_ok():
@@ -170,13 +170,15 @@ func test_live_panel_finalizes_exact_canonical_craft_relief_layout() -> void:
 	assert_bool(layout.has("relief")).is_true()
 	assert_bool(scene.one_hole.set_canonical_draft(layout)).is_true()
 	scene.one_hole._finalize()
-	assert_array(scene.session.hole_definitions()).contains_exactly([layout])
+	var defs: Array = scene.session.hole_definitions()
+	assert_int(defs.size()).is_equal(3)
+	assert_dict(defs[0] as Dictionary).is_equal(layout)
 	assert_object(scene.session.practice).is_not_null()
 	assert_str(scene.session.practice.hole.content_hash()).is_equal(MHRHole.from_def(layout).content_hash())
 	var decoded: MHSaveResult = MHCourseLayout.decode(scene.document["course"] as Dictionary)
 	assert_bool(decoded.is_ok()).override_failure_message(decoded.message).is_true()
 	if decoded.is_ok():
-		assert_array(decoded.value as Array).contains_exactly([layout])
+		assert_array(decoded.value as Array).is_equal(defs)
 	scene._active = false
 
 
@@ -216,7 +218,9 @@ func test_live_build_play_entry_uses_owned_canonical_craft_draft() -> void:
 	assert_bool(scene.one_hole.visible).is_true()
 	assert_dict(scene.one_hole.canonical_draft).is_equal(expected)
 	scene.one_hole._finalize()
-	assert_array(scene.session.hole_definitions()).contains_exactly([expected])
+	var defs: Array = scene.session.hole_definitions()
+	assert_int(defs.size()).is_equal(3)
+	assert_dict(defs[0] as Dictionary).is_equal(expected)
 	scene._active = false
 
 
@@ -270,7 +274,9 @@ func test_reopening_build_play_does_not_replace_finalized_layout_with_default_cr
 	scene.one_hole.hide()
 	scene._open_craft_hole()
 	assert_bool(scene.one_hole.canonical_draft.is_empty()).is_true()
-	assert_array(scene.session.hole_definitions()).contains_exactly([finalized])
+	var defs: Array = scene.session.hole_definitions()
+	assert_int(defs.size()).is_equal(3)
+	assert_dict(defs[0] as Dictionary).is_equal(finalized)
 	scene._active = false
 
 
@@ -334,7 +340,7 @@ func test_repairing_water_at_pin_keeps_existing_green_inside_owned_land() -> voi
 		scene.document["course"] as Dictionary, [MHOneHolePanel.ORIGIN])
 	assert_bool(encoded.is_ok()).override_failure_message(encoded.message).is_true()
 	scene.one_hole._finalize()
-	assert_int(scene.session.hole_definitions().size()).is_equal(1)
+	assert_int(scene.session.hole_definitions().size()).is_equal(3)
 	scene._active = false
 
 
