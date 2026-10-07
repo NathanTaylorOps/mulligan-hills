@@ -56,7 +56,12 @@ func _ready() -> void:
 			return
 		session = restored.value as MHGameSession
 		document = saved.data.duplicate(true)
-		editor = MHTerrainEditor.new(terrain.grid, terrain.splat, 32)
+		if session.hole_definitions().is_empty() and terrain.grid.cells_x < CELLS and terrain.grid.cells_y < CELLS:
+			var expanded: Dictionary = _expand_legacy_terrain(terrain.grid, terrain.splat)
+			editor = MHTerrainEditor.new(expanded["grid"] as MHHeightGrid, expanded["splat"] as MHSplatMap, 32)
+			_upgrade_unfinalized_world_document()
+		else:
+			editor = MHTerrainEditor.new(terrain.grid, terrain.splat, 32)
 	elif loaded.code == MHSaveResult.Code.NOT_FOUND:
 		session = MHGameSession.create()
 		if session == null:
@@ -489,6 +494,34 @@ func _fail(message: String) -> void:
 	back.pressed.connect(_back)
 	box.add_child(back)
 	box.add_child(MHTouchBridge.new())
+
+
+func _expand_legacy_terrain(old_grid: MHHeightGrid, old_splat: MHSplatMap) -> Dictionary:
+	var grid: MHHeightGrid = MHHeightGrid.new(CELLS, CELLS, old_grid.cell_size_mm)
+	var splat: MHSplatMap = MHSplatMap.new(grid.samples_x, grid.samples_y)
+	var copy_x: int = mini(old_grid.samples_x, grid.samples_x)
+	var copy_y: int = mini(old_grid.samples_y, grid.samples_y)
+	for y: int in range(copy_y):
+		for x: int in range(copy_x):
+			grid.heights[grid.idx(x, y)] = old_grid.heights[old_grid.idx(x, y)]
+			var old_texel: int = y * old_splat.samples_x + x
+			var new_texel: int = y * splat.samples_x + x
+			for layer: int in range(MHSplatMap.LAYER_COUNT):
+				splat.bytes[new_texel * MHSplatMap.LAYER_COUNT + layer] = old_splat.bytes[old_texel * MHSplatMap.LAYER_COUNT + layer]
+	return {"grid": grid, "splat": splat}
+
+
+func _upgrade_unfinalized_world_document() -> void:
+	if typeof(document.get("course", null)) != TYPE_DICTIONARY:
+		return
+	var course: Dictionary = document["course"] as Dictionary
+	var fresh: Dictionary = _new_document()["course"] as Dictionary
+	course["world"] = (fresh["world"] as Dictionary).duplicate(true)
+	var terrain_doc: Dictionary = course.get("terrain", {}) as Dictionary
+	terrain_doc["width_cells"] = CELLS
+	terrain_doc["height_cells"] = CELLS
+	course["terrain"] = terrain_doc
+	document["course"] = course
 
 func _new_document() -> Dictionary:
 	var parcels: Array = []
