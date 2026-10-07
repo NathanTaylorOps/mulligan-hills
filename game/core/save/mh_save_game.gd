@@ -638,6 +638,8 @@ static func _validate_runtime(d: Dictionary, errs: Array) -> void:
 		if typeof(score) != TYPE_INT or int(score) < 0 or int(score) > 100:
 			errs.append("runtime score invalid")
 	if rt.has("customers"):
+		if typeof(d.get("min_reader_version", null)) != TYPE_INT or int(d["min_reader_version"]) < 6:
+			errs.append("customer checkpoint requires reader 6")
 		if MHGolferCustomers.from_dict(rt["customers"]) == null:
 			errs.append("customer checkpoint invalid")
 	if rt.has("practice"):
