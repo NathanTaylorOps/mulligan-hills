@@ -155,6 +155,17 @@ func test_craft_draft_serialization_preserves_exact_state() -> void:
 	assert_int(restored.undo_count()).is_equal(0)
 
 
+func test_craft_course_rejects_out_of_range_world_origins() -> void:
+	var craft: MHCraftCourse = MHCraftCourse.new()
+	var saved: Dictionary = craft.to_dict()
+	saved["origins_dm"] = [[-1, 560]]
+	assert_object(MHCraftCourse.from_dict(saved)).is_null()
+	saved["origins_dm"] = [[65536, 560]]
+	assert_object(MHCraftCourse.from_dict(saved)).is_null()
+	saved["origins_dm"] = [[600, 65535]]
+	assert_object(MHCraftCourse.from_dict(saved)).is_not_null()
+
+
 func test_one_tee_and_four_pins_rotate_by_round() -> void:
 	var h: MHCraftHole = MHCraftHole.new(24, 40)
 	assert_int(h.add_tee(11, 0)).is_equal(0)
