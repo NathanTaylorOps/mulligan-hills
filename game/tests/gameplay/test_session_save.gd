@@ -272,6 +272,12 @@ func test_live_scene_finalization_can_save_and_reload_practice() -> void:
 		assert_dict(restored_session.practice.to_dict()).is_equal(scene.session.practice.to_dict())
 		assert_int(restored_session.economy.cash).is_equal(scene.session.economy.cash)
 		assert_int(restored_session.hole_definitions().size()).is_equal(3)
+		var expected_origins: Array = []
+		for i: int in range(3):
+			var o: Vector2i = scene.craft_course.origin(i)
+			expected_origins.append([o.x, o.y])
+		assert_array(restored_session.hole_origins_dm()).is_equal(expected_origins)
+		assert_int(restored_session.hole_world_points_m().size()).is_equal(3)
 		assert_dict((saved.data["runtime"] as Dictionary)["craft_course"]).is_equal(expected_course)
 	scene._active = false
 
