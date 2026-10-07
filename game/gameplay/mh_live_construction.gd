@@ -478,7 +478,7 @@ func _new_document() -> Dictionary:
 func _default_craft_hole() -> MHCraftHole:
 	var craft: MHCraftHole = MHCraftHole.new(24, 40)
 	craft.paint_rect(10, 0, 13, 29, MHCraftHole.Surface.FAIRWAY)
-	craft.paint_rect(9, 27, 14, 33, MHCraftHole.Surface.GREEN)
+	craft.paint_rect(9, 30, 14, 35, MHCraftHole.Surface.GREEN)
 	craft.add_tee(11, 0)
 	craft.add_pin(11, 30)
 	return craft
