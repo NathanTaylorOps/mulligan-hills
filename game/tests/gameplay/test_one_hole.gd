@@ -337,7 +337,7 @@ func test_drag_craft_edit_is_one_undoable_stroke() -> void:
 	assert_int(scene.craft_hole.get_surface(8, 12)).is_equal(MHCraftHole.Surface.BUNKER)
 	assert_int(scene.craft_hole.get_surface(10, 12)).is_equal(MHCraftHole.Surface.BUNKER)
 	assert_bool(scene.craft_hole.undo()).is_true()
-	assert_int(scene.craft_hole.get_surface(8, 12)).is_not_equal(MHCraftHole.Surface.BUNKER)
+	assert_bool(scene.craft_hole.get_surface(8, 12) != MHCraftHole.Surface.BUNKER).is_true()
 	scene._active = false
 
 
