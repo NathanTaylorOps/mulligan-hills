@@ -58,7 +58,7 @@ static func default_origin(index: int) -> Array:
 	if index < DEFAULT_ORIGINS_DM.size():
 		return (DEFAULT_ORIGINS_DM[index] as Array).duplicate()
 	# Future holes get deterministic rows on the expanded world; the night slice uses only the first three.
-	return [120 + (index % 3) * 580, 120 + (index / 3) * 760]
+	return [120 + (index % 3) * 580, 120 + MHRMath.idiv(index, 3) * 760]
 
 static func from_dict(raw: Variant) -> MHCraftCourse:
 	if typeof(raw) != TYPE_DICTIONARY:
