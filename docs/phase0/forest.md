@@ -1,5 +1,7 @@
 # Workstream D: Forest render benchmark
 
+> **Historical Phase 0 record.** This file captures the initial forest/render benchmark plan. Current performance policy is in `docs/verification/PERFORMANCE.md`; only exact-device measurements count as current evidence.
+
 Status: written, **NOT YET RUN**. No Godot binary was available. Nothing in this document is a measurement.
 
 ## README block
