@@ -88,6 +88,14 @@ func _input_craft(event: InputEvent) -> void:
 		var d: InputEventScreenDrag = event
 		if _blocked_touches.has(d.index):
 			return
+		if panel.blocks_world_tap(d.position):
+			# A stroke/camera gesture that crosses into UI must stop owning the
+			# contact. Cancel an in-progress craft stroke so no hidden paint lands
+			# underneath the panel, then keep this finger blocked until release.
+			if _craft_machine != null:
+				_craft_machine.cancel_all()
+			_blocked_touches[d.index] = true
+			return
 		if _craft_machine != null:
 			_craft_machine.handle_event(d, now)
 			get_viewport().set_input_as_handled()
@@ -141,7 +149,10 @@ func _craft_mouse_button(m: InputEventMouseButton) -> void:
 
 func _craft_mouse_motion(m: InputEventMouseMotion) -> void:
 	if _mouse_craft:
-		if not panel.blocks_world_tap(m.position):
+		if panel.blocks_world_tap(m.position):
+			panel.craft_stroke_cancel()
+			_mouse_craft = false
+		else:
 			panel.craft_stroke_move_from_screen(m.position)
 		get_viewport().set_input_as_handled()
 	elif _mouse_rotate:
