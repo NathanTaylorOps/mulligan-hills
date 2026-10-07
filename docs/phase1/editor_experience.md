@@ -93,3 +93,34 @@ These are targets for formative tests, not proven outcomes:
 Every major editor change retains EDIT -> BUILD -> PLAY -> SAVE -> RELOAD.
 Cover actual landscape dimensions as well as desktop/square windows, selected-tool persistence, palette containment, touch/mouse input ownership, gesture cancellation, undo/redo, brush masks, invalid marker/green repair, land ownership, exact canonical relief, practice state and real disk reload.
 Do not call graphical quality, touch usability or market-leading satisfaction verified based on a headless PASS.
+
+## User-supplied visual references, 2026-10-07
+Five screenshots were inspected directly: three SimGolf views (terrain palette, tournament notice, building palette) and two Under Par views (hole handles and terrain palette). These sharpen the proposed direction; they are reference material, not production assets.
+
+| Visible feature | Interpretation for Mulligan Hills |
+| --- | --- |
+| SimGolf terrain and building palettes show actual miniature items | Use original material swatches and object previews that resemble the result in the world. Keep consistent camera angle, framing and selected-state treatment. |
+| SimGolf category controls cluster in a lower corner and open a bottom palette | Keep category access near the thumb and contextual choices along the lower edge. Use simple geometry and explicit labels; the ornamental circular fan is not a layout requirement. |
+| SimGolf course view distinguishes striped fairway, green, rough, sand, paths and water | Establish a readable surface hierarchy at ordinary playing zoom, supported by edging, texture and shape as well as colour. |
+| SimGolf mixes tree silhouettes, flowers, bridges, buildings and small golfer reactions | Aim for a varied, inhabited landscape. Preserve this goal for the art/social phases without bringing their implementation ahead of editor work. |
+| Large SimGolf tournament/celebrity notices cover the upper course | Later events should normally use a compact portrait ribbon with optional expansion, preserving camera and course visibility. |
+| Under Par places interactive handles along the selected hole | Offer direct manipulation of the current tee/pin/selected design element. Make the active handle obvious, touchable and cancellable. Do not add unsupported waypoint geometry to the canonical model just to imitate the reference. |
+| Under Par's lower palette groups related tools into a shallow strip | Prefer a shallow contextual tray over a tall, permanently open inspector. Phone width determines how many cards fit; do not shrink touch targets to expose the whole catalogue. |
+| Under Par screenshots show terrain grids and small status/goal panels | Retain DEC-093 sculpt-only grids. On phones, collapse secondary goals/status information while editing; never require reading a desktop-density panel. |
+
+### Concrete editor states for the next layout pass
+- Browse: compact status, category entry and course view; no material catalogue covering the scene.
+- Surfaces: illustrated category selection, a shallow material tray, the chosen brush size and visible undo. Material name accompanies its preview. Less-used surfaces remain discoverable through a clearly labelled additional palette.
+- Terrain: four visual tools (Raise, Lower, Smooth, Level), compact brush controls and a temporary grid. The brush footprint stays legible over every surface.
+- Hole: a compact number/yardage/readiness card, tee and pin controls, on-course placement feedback and a prominent Build action. Expand validation details only when needed.
+- At the top level, Close returns to the course; within an expanded picker, Back returns to the prior tool context. Preserve current tool and brush selection when reopening.
+- On desktop, expose more palette choices and optional details when space allows while preserving the same state transitions and action meanings.
+
+### Art priorities revealed by these references
+1. Clear fairway mowing character, putting-green texture and readable fringe/rough boundaries.
+2. Shaped bunker edges and sand depth; deliberate water banks and crossings.
+3. Varied vegetation silhouettes and believable scale relative to golfers, paths and buildings.
+4. Ground/contact shadows and restrained surface highlights that preserve clarity on a phone.
+5. Quiet UI surfaces with original illustrated assets, allowing the landscape to supply most of the visual richness.
+
+Do not reproduce the references' exact colours, ornaments or screenshots as in-game assets. Evaluate palette density and event size in the actual mobile layout rather than inheriting them from these desktop screenshots.
