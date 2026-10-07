@@ -285,7 +285,7 @@ func test_normal_editor_and_build_play_share_water_path_and_height() -> void:
 	# Reopening Build/play must show the same authoritative craft state.
 	scene._open_craft_hole()
 	assert_int(scene.craft_hole.get_surface(tile.x, tile.y)).is_equal(MHCraftHole.Surface.WATER)
-	assert_int(scene.one_hole._ground_height(centre.x * 100, centre.y * 100) * 1000.0).is_equal(700)
+	assert_int(roundi(scene.one_hole._ground_height(centre.x * 100, centre.y * 100) * 1000.0)).is_equal(700)
 
 	# Edit back through Build/play; the persisted world splat changes too.
 	scene.one_hole.craft_mode = &"surface"
