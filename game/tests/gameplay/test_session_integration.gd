@@ -54,7 +54,8 @@ func test_economy_hour_publishes_the_booked_golfer_count() -> void:
 		var row: Dictionary = booked[0] as Dictionary
 		assert_int(int(row["count"])).is_greater(0)
 		assert_int((row["ids"] as Array).size()).is_equal(int(row["count"]))
-		assert_int(int(row["minute"])).is_equal(s.clock.total_minutes())
+		assert_int(int(row["minute"]) % 60).is_equal(0)
+		assert_int(int(row["minute"])).is_less_equal(s.clock.total_minutes())
 
 func test_customer_booking_identity_is_deterministic_and_unique_within_normal_group() -> void:
 	var s: MHGameSession = MHGameSession.create()
@@ -66,3 +67,16 @@ func test_customer_booking_identity_is_deterministic_and_unique_within_normal_gr
 	for id: Variant in a:
 		assert_bool(seen.has(int(id))).is_false()
 		seen[int(id)] = true
+
+func test_large_advance_preserves_distinct_accounting_hour_booking_times() -> void:
+	var s: MHGameSession = MHGameSession.create()
+	var view: MHLiveGameStateView = MHLiveGameStateView.new(s)
+	assert_str(MHSliceStarter.setup(s, view)).is_equal("")
+	var minutes: Array = []
+	s.golfers_booked.connect(func(_count: int, _ids: Array, minute: int) -> void: minutes.append(minute))
+	# Enough elapsed time to cross several game-hour events in one call.
+	s.advance(600000000, 20000 * 86400)
+	for i: int in range(minutes.size()):
+		assert_int(int(minutes[i]) % 60).is_equal(0)
+		if i > 0:
+			assert_int(int(minutes[i])).is_greater(int(minutes[i - 1]))
