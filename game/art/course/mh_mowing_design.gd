@@ -77,7 +77,15 @@ static func is_save_dict_valid(raw: Variant) -> bool:
 	for key: String in keys:
 		if not d.has(key) or not MHRValidate.is_int_value(d[key]):
 			return false
-	return int(d["v"]) == 1 		and int(d["fairway_pattern"]) >= 0 and int(d["fairway_pattern"]) < Pattern.size() 		and int(d["green_pattern"]) >= 0 and int(d["green_pattern"]) < Pattern.size() 		and int(d["fairway_width_yd"]) >= MIN_WIDTH_YD and int(d["fairway_width_yd"]) <= MAX_WIDTH_YD 		and int(d["green_width_yd"]) >= MIN_WIDTH_YD and int(d["green_width_yd"]) <= MAX_WIDTH_YD 		and int(d["direction_deg"]) >= 0 and int(d["direction_deg"]) < 180 		and int(d["intensity_pm"]) >= 20 and int(d["intensity_pm"]) <= 140
+	return (
+		int(d["v"]) == 1
+		and int(d["fairway_pattern"]) >= 0 and int(d["fairway_pattern"]) < Pattern.size()
+		and int(d["green_pattern"]) >= 0 and int(d["green_pattern"]) < Pattern.size()
+		and int(d["fairway_width_yd"]) >= MIN_WIDTH_YD and int(d["fairway_width_yd"]) <= MAX_WIDTH_YD
+		and int(d["green_width_yd"]) >= MIN_WIDTH_YD and int(d["green_width_yd"]) <= MAX_WIDTH_YD
+		and int(d["direction_deg"]) >= 0 and int(d["direction_deg"]) < 180
+		and int(d["intensity_pm"]) >= 20 and int(d["intensity_pm"]) <= 140
+	)
 
 
 static func from_dict(raw: Variant) -> MHMowingDesign:
