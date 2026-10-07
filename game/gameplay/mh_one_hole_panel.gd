@@ -27,6 +27,8 @@ var craft_radius: int = 1
 var craft_step_mm: int = 250
 var _navigation: HFlowContainer
 var _details_button: MHTapButton
+var _hole_prev_button: MHTapButton
+var _hole_next_button: MHTapButton
 var _details_open: bool = false
 var _brush_size_button: MHTapButton
 var _strength_button: MHTapButton
@@ -93,6 +95,8 @@ func setup(scene: MHLiveConstruction) -> void:
 	_title.clip_text = true
 	_title.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 	head.add_child(_title)
+	_hole_prev_button = _button(head, "‹ Hole", _previous_craft_hole)
+	_hole_next_button = _button(head, "Hole ›", _next_craft_hole)
 	_details_button = _button(head, "Details", _toggle_details)
 	_finalize_button = MHUIKit.button(live.shell.ctx, "Build hole", &"GreenButton", 122)
 	_finalize_button.pressed.connect(_finalize)
@@ -216,6 +220,30 @@ func desired_dock_height() -> float:
 	return wanted + maxf(0, visible_rows - 1) * 6.0 + MHLiveLayout.PANEL_PAD_V * 2.0
 
 
+func _previous_craft_hole() -> void:
+	_switch_craft_hole(-1)
+
+
+func _next_craft_hole() -> void:
+	_switch_craft_hole(1)
+
+
+func _switch_craft_hole(delta: int) -> void:
+	if live == null or live.craft_course == null or live.craft_course.count() <= 1:
+		return
+	_cancel_tool_gesture()
+	var count: int = live.craft_course.count()
+	var next: int = posmod(live.craft_course.active_index + delta, count)
+	if live.select_craft_hole(next):
+		_preview_draft = true
+		_pin_slot = 0
+		mowing_design = MHMowingDesign.from_dict(live.craft_hole.mowing)
+		_refresh_canonical_craft()
+		_sync_mode_controls()
+		_describe()
+		_draw()
+
+
 func _toggle_details() -> void:
 	_details_open = true if collapsed else not _details_open
 	if collapsed:
@@ -271,6 +299,9 @@ func _sync_mode_controls() -> void:
 		_navigation.visible = _preview_draft and not collapsed
 	if _validation_hint != null:
 		_validation_hint.visible = not collapsed and _details_open
+	if _hole_prev_button != null:
+		_hole_prev_button.visible = live != null and live.craft_hole_count() > 1
+		_hole_next_button.visible = _hole_prev_button.visible
 	if _details_button != null:
 		_details_button.theme_type_variation = &"SelectedButton" if _details_open else &"ChipButton"
 		if not _preview_draft:
