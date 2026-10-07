@@ -131,9 +131,23 @@ func _verify() -> void:
 	if not problems.is_empty():
 		_fail("Marker repair did not make the hole playable: " + str(problems))
 		return
+	var craft_rating_hole: Dictionary = live.canonical_craft_draft()
+	if craft_rating_hole.is_empty():
+		_fail("Valid craft did not produce a rating layout")
+		return
+	var parsed_hole: MHRHole = MHRHole.from_def(craft_rating_hole)
+	if not parsed_hole.valid:
+		_fail("Craft validator disagrees with rating geometry: " + str(parsed_hole.reasons) +
+			" | green radius=" + str(parsed_hole.gr) + " yd | length=" + str(parsed_hole.L) + " yd")
+		return
 	live.one_hole._finalize()
 	if live.session.hole_definitions().is_empty():
-		_fail("Build hole did not finalize: " + live.one_hole._info.text + " | " + live.one_hole._validation_hint.text)
+		var failed: Dictionary = MHRatingEngine.rate_hole(craft_rating_hole,
+			{"save_secret": live.session.save_secret, "rating_epoch": live.session.rating_epoch})
+		_fail("Build hole did not finalize: " + live.one_hole._info.text +
+			" | " + live.one_hole._validation_hint.text +
+			" | rating reasons=" + str(failed.get("reasons", [])) +
+			" | rating valid=" + str(failed.get("valid", false)))
 		return
 	if live.session.practice == null:
 		_fail("Finalization did not create a practice round")
