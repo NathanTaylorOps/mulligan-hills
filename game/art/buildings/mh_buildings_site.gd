@@ -112,6 +112,15 @@ static func maintenance(b: MHMeshBuilder, tier: int, spec: int, th: MHBuildingTh
 	for i in range(mowers):
 		var mx: float = (float(i) - float(mowers - 1) * 0.5) * 1.5
 		mower(b, Vector3(mx, 0.0, d * 0.5 + 2.4), 0.0, th.accent, MHPalette.METAL)
+	# Give the service building a believable working-yard frontage: apron,
+	# canopy, bollards and a small signed pedestrian entry.
+	flat(b, Vector3(0.0, 0.035, d * 0.5 + 3.8), w + 3.0, 2.4, MHPalette.PATH_EDGE)
+	shed(b, Vector3(0.0, 3.0, d * 0.5 + 0.95), w * 0.72, 1.8, 0.55, th.roof)
+	for i in range(4):
+		var bx: float = (float(i) - 1.5) * w * 0.22
+		column(b, bx, d * 0.5 + 1.65, 0.0, 1.05, 0.055, 4, MHPalette.FLAG_YELLOW)
+	column(b, w * 0.5 + 1.15, d * 0.5 + 1.0, 0.0, 1.5, 0.06, 4, th.trim)
+	slab(b, Vector3(w * 0.5 + 1.15, 1.2, d * 0.5 + 1.0), Vector3(1.55, 0.58, 0.10), th.accent, th.accent)
 	if tier >= 2:
 		var ts: Transform3D = push(b, Vector3(sx * (w * 0.5 + 1.6), 0.0, -d * 0.2), 0.0)
 		b.frustum(0.3, 2.2, 0.9, 0.9, 8, MHPalette.METAL, MHPalette.CANVAS_WHITE, false, true)
