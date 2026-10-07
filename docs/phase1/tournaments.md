@@ -1,8 +1,7 @@
 # Phase 1: tournaments (`game/core/tournaments/`)
 
-Status: 4 Oct 2026. Code and tests written, **NOT YET RUN**: Godot cannot start in the authoring sandbox, so no GDScript here has been parsed or executed. Golden numbers in the tests were produced by an independent Python mirror of the algorithm (scratch script, not committed; it uses `tools/reference/determinism/mh_rng.py`), so the logic is checked and only the GDScript itself is unverified. Expect small parse fixes on the first CI run.
+Status: runtime code and tests exist. Historical Python mirror/golden work provided an independent logic check; current-head Godot execution evidence belongs in `docs/VERIFICATION.md`. Balance remains provisional until integrated simulation and playtesting.
 
-Owner paths: `game/core/tournaments/`, `game/core/mh_data_json.gd` (shared loader), `game/tests/tournaments/`, `game/tests/mh_test_edit.gd` (test helper), runtime copy `game/data/tournaments.json` (byte identical to `docs/spec/data/tournaments.json`; after any change run `cp docs/spec/data/tournaments.json game/data/tournaments.json`).
 
 ## README block
 
@@ -49,7 +48,7 @@ Determinism: event seed `MHRMath.tournament_seed(save_secret, event_id, slot_id)
 
 `test_tournament_defs.gd` (load, order, tier cap, validation failures, game copy equals docs copy), `test_tournament_rules.gd` (checklist rows, snapshot score edge cases, facility points, prestige golden 522, purse sums, refund), `test_tournament_sim.gd` (seeds, condition goldens and a 2000 seed distribution, 7 full golden results, every failure trigger at its boundary, countback and hash tie-break), `test_tournament_state.gd` (lifecycle, refusals in order, cancel, cooldown, save block shape, JSON round trip, bad blocks). Helper `tournament_fixture.gd`.
 
-## NOT YET RUN
+## Runtime validation
 
 Every `.gd` file and test above. Verified in Python only: the draw order, the field model, the failure triggers, prestige and purse arithmetic.
 
@@ -69,7 +68,7 @@ Every `.gd` file and test above. Verified in Python only: the draw order, the fi
 6. No staff count source exists yet (`staff` in the view); the economy has no wages. Pass 0 only if no staff concept exists, which would block every level (local needs 4).
 7. `last_result` is not saved: after a reload on a `done` or `failed` record the result card has nothing to show; call `acknowledge()` then.
 
-## For Nathan
+## Manual validation
 
 Questions (defaults are in the code and docs, answers change tuning or wording only):
 1. Success rule for the tier 5 gate: any successful event of that level (current), or the older "prestige at least 400" rule? A failed event never counts either way.
