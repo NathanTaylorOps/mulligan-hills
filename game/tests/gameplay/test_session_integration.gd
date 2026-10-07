@@ -17,7 +17,11 @@ func test_customer_visit_is_owned_by_session_and_condition_can_only_reduce_score
 	assert_int(int((s.customers.rows[3] as Dictionary)["visits"])).is_equal(before + 1)
 	var raw: Dictionary = MHGolferExperience.evaluate(s.economy.rating, s.economy.fee,
 		s.economy.suggest_fee(), s.economy.tiers, 3, 0)
-	assert_int(int((visit["experience"] as Dictionary)["score"])).is_less_equal(int(raw["score"]))
+	var experience: Dictionary = visit["experience"] as Dictionary
+	assert_int(int(experience["score"])).is_less_equal(int(raw["score"]))
+	assert_bool(experience.has("condition")).is_true()
+	assert_bool(experience.has("condition_penalty_permille")).is_true()
+	assert_int(int(experience["condition"])).is_between(0, 100)
 
 func test_invalid_customer_visit_does_not_mutate_ledger() -> void:
 	var s: MHGameSession = MHGameSession.create()
