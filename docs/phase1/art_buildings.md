@@ -1,6 +1,6 @@
 # Phase 1: procedural building art
 
-Status: written 4 Oct 2026. NOT YET RUN: no Godot here, CI has not seen any of this GDScript. The geometry logic WAS executed once through a throwaway Python translation of the GDScript (counts, bounds, determinism, winding); that proves the maths, not the GDScript syntax.
+Status: historical implementation note from 4 Oct 2026. Procedural building source and tests exist; current-head execution/visual evidence belongs in `docs/VERIFICATION.md`. The original Python geometry mirror checked counts, bounds, determinism and winding but was not a substitute for Godot/device acceptance.
 
 ## 1. What was built
 - `game/art/buildings/mh_building_meshes.gd` `MHBuildingMeshes`: `build(id, tier, spec)`, `build_builder`, `tri_count`, `bounds`, `geometry_hash`, `budget(tier)`. 10 buildings x 5 tiers x spec a/b (spec only from tier 3).
@@ -18,7 +18,7 @@ Largest footprint at tier 5 about 28 x 34 m (landmark); units are metres, origin
 - `Basis(Vector3.UP, yaw)`, `Transform3D(Basis, Vector3)`, `Node3D.look_at_from_position`, `Camera3D.make_current`, `Array.has`, ternary expressions, typed `for x: Type in` loops.
 - Gallery and its test under the headless dummy renderer.
 
-## 4. Risks and notes for Nathan
+## 4. Risks and manual review notes
 - Spec a/b meaning is a guess (colour scheme and which side the extra wing goes). `strings` has no spec names yet.
 - Footprints are art-scale guesses; parcel size is not set (DEC-056). Scale in the placement code if parcels turn out smaller.
 - Add the gallery to `MHLauncher.SCENES` (`["Building gallery", "res://art/mh_building_gallery.tscn"]`); not done here because `game/ui/` is not mine.
