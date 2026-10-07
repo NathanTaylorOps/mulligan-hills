@@ -1278,9 +1278,13 @@ func _craft_material(surface_id: int) -> StandardMaterial3D:
 	return material
 
 func _draw_craft_tree(point: Vector2i) -> void:
-	var trunk_pos: Vector3 = _position_on_ground(point.x * 100, point.y * 100, 1.0)
-	_box(trunk_pos, Vector3(0.35, 2.0, 0.35), Color(0.34, 0.23, 0.12))
-	_marker_at(_position_on_ground(point.x * 100, point.y * 100, 2.4), Color(0.16, 0.38, 0.14), 1.25)
+	# Three primitive meshes read as a stylised tree at gameplay zoom while
+	# remaining dramatically cheaper than foliage geometry on mobile.
+	var trunk_pos: Vector3 = _position_on_ground(point.x * 100, point.y * 100, 0.95)
+	_box(trunk_pos, Vector3(0.32, 1.9, 0.32), Color(0.31, 0.21, 0.12))
+	_marker_at(_position_on_ground(point.x * 100, point.y * 100, 2.15), Color(0.13, 0.31, 0.13), 1.18)
+	_marker_at(_position_on_ground(point.x * 100 - 45, point.y * 100 + 20, 2.45), Color(0.17, 0.39, 0.15), 0.78)
+	_marker_at(_position_on_ground(point.x * 100 + 42, point.y * 100 - 18, 2.50), Color(0.20, 0.43, 0.17), 0.72)
 
 func _feature_color(feature_type: String) -> Color:
 	match feature_type:
