@@ -426,6 +426,11 @@ func _draw() -> void:
 	else:
 		for row: Variant in h["features"]:
 			var feature: Dictionary = row
+			if str(feature.get("t", "")) == "tree" and feature.has("at"):
+				for point: Variant in feature["at"] as Array:
+					var at: Array = point as Array
+					_draw_craft_tree(Vector2i(int(at[0]), int(at[1])))
+				continue
 			if not feature.has("rect"):
 				continue
 			var rect: Array = feature["rect"]
@@ -703,11 +708,9 @@ func _mesh(mesh_value: Mesh, pos: Vector3, color: Color) -> MeshInstance3D:
 
 ## The save codec supports more shapes than this small authoring/view prototype does.
 static func supported(course: Dictionary) -> bool:
-	# This development view still supports one hole at its fixed world origin, but
-	# it must not reject canonical geometry merely because it contains relief or a
-	# richer set of rating rectangles. MHCourseLayout + MHRatingEngine are the
-	# authority for whether the saved hole is valid; the panel is only a viewer/
-	# authoring surface.
+	# Course decoding/rating validation owns canonical correctness. This view adds
+	# only rendering constraints: its area renderer is rectangle based, while
+	# relief and positioned tree features are fully supported.
 	var decoded: MHSaveResult = MHCourseLayout.decode(course)
 	if not decoded.is_ok():
 		return false
@@ -727,7 +730,14 @@ static func supported(course: Dictionary) -> bool:
 		"engine": MHRatingEngine.RATING_VERSION,
 		"hole": h,
 	})
-	return bool(validation.get("ok", false))
+	if not bool(validation.get("ok", false)):
+		return false
+	for row_feature: Variant in h.get("features", []):
+		var feature: Dictionary = row_feature as Dictionary
+		var t: String = str(feature.get("t", ""))
+		if ["fairway", "deep_rough", "bunker", "water", "ob"].has(t) and not feature.has("rect"):
+			return false
+	return true
 
 
 func blocks_world_tap(pos: Vector2) -> bool:
