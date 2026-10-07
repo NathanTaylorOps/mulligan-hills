@@ -26,6 +26,8 @@ var total_cap: int = 10
 var golfers: Array = []
 ## serial -> ordered Array of {tee: Vector2, green: Vector2}; visual-only route.
 var _group_routes: Dictionary = {}
+## serial -> members still alive on the current hole. Completion must survive staggered frames.
+var _group_remaining: Dictionary = {}
 var _completed_groups: Array = []
 ## Counts of the last draw, for the HUD and tests.
 var last_figures: int = 0
@@ -67,7 +69,9 @@ func spawn_course_group(serial: int, size: int, route: Array) -> void:
 	if route.is_empty():
 		return
 	_group_routes[serial] = route.duplicate(true)
-	_spawn_hole_members(serial, clampi(size, 1, 4), 0)
+	var group_size: int = clampi(size, 1, 4)
+	_group_remaining[serial] = group_size
+	_spawn_hole_members(serial, group_size, 0)
 
 func _spawn_hole_members(serial: int, size: int, hole_index: int) -> void:
 	var route: Array = _group_routes.get(serial, []) as Array
@@ -99,40 +103,36 @@ func golfer_count() -> int:
 func advance(dt: float, cam_pos: Vector3) -> void:
 	var live: Array = []
 	var states: Array = []
-	var finished: Dictionary = {}
+	var transitions: Dictionary = {}
 	for g: Variant in golfers:
 		var d: Dictionary = g
 		d["t"] = float(d["t"]) + maxf(dt, 0.0)
 		var st: Dictionary = MHSliceRound.state(float(d["t"]), int(d["member"]), int(d["size"]), float(d["len"]))
 		if int(st["phase"]) == MHSliceRound.Phase.DONE:
 			var serial: int = int(d["group"])
-			var row: Dictionary = finished.get(serial, {"count": 0, "size": int(d["size"]), "hole": int(d.get("hole", 0))})
-			row["count"] = int(row["count"]) + 1
-			finished[serial] = row
+			var remaining: int = maxi(0, int(_group_remaining.get(serial, int(d["size"]))) - 1)
+			_group_remaining[serial] = remaining
+			if remaining == 0:
+				transitions[serial] = {"size": int(d["size"]), "hole": int(d.get("hole", 0))}
 			continue
 		live.append(d)
 		states.append(st)
 	golfers = live
-	for key: Variant in finished.keys():
+	# Render the state sampled this frame first. Hole transitions append fresh members
+	# afterwards, so golfer/state arrays can never become misaligned.
+	_render(states, cam_pos)
+	for key: Variant in transitions.keys():
 		var serial2: int = int(key)
-		var done: Dictionary = finished[key] as Dictionary
-		if int(done["count"]) < int(done["size"]):
-			continue
+		var done: Dictionary = transitions[key] as Dictionary
 		var next_hole: int = int(done["hole"]) + 1
 		var route: Array = _group_routes.get(serial2, []) as Array
 		if next_hole < route.size():
+			_group_remaining[serial2] = int(done["size"])
 			_spawn_hole_members(serial2, int(done["size"]), next_hole)
 		else:
 			_completed_groups.append({"serial": serial2, "size": int(done["size"]), "holes": route.size()})
 			_group_routes.erase(serial2)
-	# New-hole members begin next frame; render only the members whose states were sampled above.
-	var spawned_next: Array = []
-	if golfers.size() > states.size():
-		spawned_next = golfers.slice(states.size())
-		golfers = golfers.slice(0, states.size())
-	_render(states, cam_pos)
-	golfers.append_array(spawned_next)
-
+			_group_remaining.erase(serial2)
 
 func _render(states: Array, cam_pos: Vector3) -> void:
 	var positions: Array = []
