@@ -311,6 +311,57 @@ func test_normal_editor_and_build_play_share_water_path_and_height() -> void:
 	scene._active = false
 
 
+func test_repairing_water_at_pin_keeps_existing_green_inside_owned_land() -> void:
+	var run_id: String = str(Time.get_ticks_usec())
+	var scene: MHLiveConstruction = auto_free(MHLiveConstruction.new())
+	scene.store = MHSaveStore.new("user://test_green_repair_" + run_id)
+	scene.ledger_dir = "user://test_green_repair_ledger_" + run_id
+	add_child(scene)
+	assert_bool(scene._active).is_true()
+	scene._open_craft_hole()
+	var original_radius: int = MHCraftConvert.green_radius_yd(scene.craft_hole)
+	assert_int(original_radius).is_equal(6)
+	var pin: Vector2i = scene.craft_hole.pins[0] as Vector2i
+	scene.one_hole.craft_mode = &"surface"
+	scene.one_hole.craft_surface = MHCraftHole.Surface.WATER
+	assert_bool(scene.one_hole.craft_at_tile(pin.x, pin.y)).is_true()
+	assert_bool(MHCraftConvert.problems(scene.craft_hole).has("pin_not_on_green")).is_true()
+	scene.one_hole._repair_hole_markers()
+	assert_int(MHCraftConvert.green_radius_yd(scene.craft_hole)).is_equal(original_radius)
+	assert_array(MHCraftConvert.problems(scene.craft_hole)).is_empty()
+	var layout: Dictionary = scene.canonical_craft_draft()
+	var encoded: MHSaveResult = MHCourseLayout.encode([layout],
+		scene.document["course"] as Dictionary, [MHOneHolePanel.ORIGIN])
+	assert_bool(encoded.is_ok()).override_failure_message(encoded.message).is_true()
+	scene.one_hole._finalize()
+	assert_int(scene.session.hole_definitions().size()).is_equal(1)
+	scene._active = false
+
+
+func test_green_repair_expands_only_a_genuinely_small_green() -> void:
+	var run_id: String = str(Time.get_ticks_usec())
+	var scene: MHLiveConstruction = auto_free(MHLiveConstruction.new())
+	scene.store = MHSaveStore.new("user://test_small_green_repair_" + run_id)
+	scene.ledger_dir = "user://test_small_green_repair_ledger_" + run_id
+	add_child(scene)
+	assert_bool(scene._active).is_true()
+	scene.craft_hole = MHCraftHole.new(24, 40)
+	scene.craft_hole.paint_rect(10, 0, 13, 29, MHCraftHole.Surface.FAIRWAY)
+	scene.craft_hole.paint_rect(11, 30, 12, 31, MHCraftHole.Surface.GREEN)
+	scene.craft_hole.add_tee(11, 0)
+	scene.craft_hole.add_pin(11, 30)
+	scene.one_hole.enter_craft_draft()
+	assert_int(MHCraftConvert.green_radius_yd(scene.craft_hole)).is_equal(2)
+	scene.one_hole._repair_hole_markers()
+	assert_bool(MHCraftConvert.green_radius_yd(scene.craft_hole) >= 5).is_true()
+	assert_array(MHCraftConvert.problems(scene.craft_hole)).is_empty()
+	var layout: Dictionary = scene.canonical_craft_draft()
+	var encoded: MHSaveResult = MHCourseLayout.encode([layout],
+		scene.document["course"] as Dictionary, [MHOneHolePanel.ORIGIN])
+	assert_bool(encoded.is_ok()).override_failure_message(encoded.message).is_true()
+	scene._active = false
+
+
 func test_live_craft_controls_mutate_authoritative_hole_and_undo_redo() -> void:
 	var scene: MHLiveConstruction = auto_free(MHLiveConstruction.new())
 	scene.store = MHSaveStore.new("user://test_craft_controls")
