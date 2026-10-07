@@ -35,14 +35,17 @@ static func sync_from_world_rect(hole: MHCraftHole, editor: MHTerrainEditor, ori
 	# A craft tile is about 1.83 m wide. Expand by two 1 m samples so a brush
 	# touching any part of a tile refreshes its representative centre sample.
 	var expanded: Rect2i = dirty.grow(2)
+	var touched: bool = false
 	for r: int in range(hole.rows):
 		for c: int in range(hole.cols):
 			var sample: Vector2i = _tile_center_sample(hole, editor.grid, origin_dm, c, r)
 			if not expanded.has_point(sample):
 				continue
+			touched = true
 			hole.paint_tile(c, r, _craft_surface_for_layer(_dominant_layer(editor.splat, sample.x, sample.y)))
 			hole.set_height_mm_tile(c, r, editor.grid.get_h_clamped(sample.x, sample.y))
-	hole.clear_history()
+	if touched:
+		hole.clear_history()
 
 
 ## Writes the craft footprint back into the rendered world. With record_undo=true
