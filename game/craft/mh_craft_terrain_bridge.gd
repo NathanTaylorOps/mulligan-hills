@@ -60,6 +60,23 @@ static func sync_to_world(hole: MHCraftHole, editor: MHTerrainEditor, origin_dm:
 	return sync_tiles_to_world(hole, editor, origin_dm, all_tiles, record_undo)
 
 
+## Writes only authored/non-default terrain into the world. This is used when seeding
+## multiple starter holes whose rectangular craft envelopes overlap: untouched rough
+## must never erase turf authored by another hole.
+static func sync_nondefault_to_world(hole: MHCraftHole, editor: MHTerrainEditor, origin_dm: Vector2i,
+		record_undo: bool = true) -> bool:
+	if hole == null or editor == null:
+		return false
+	var authored: Array = []
+	for r: int in range(hole.rows):
+		for c: int in range(hole.cols):
+			if hole.get_surface(c, r) != MHCraftHole.Surface.ROUGH or hole.get_height_mm(c, r) != 0:
+				authored.append(Vector2i(c, r))
+	if authored.is_empty():
+		return false
+	return sync_tiles_to_world(hole, editor, origin_dm, authored, record_undo)
+
+
 static func sync_tiles_to_world(hole: MHCraftHole, editor: MHTerrainEditor, origin_dm: Vector2i,
 		tiles: Array, record_undo: bool = true) -> bool:
 	if hole == null or editor == null or editor.is_stroke_open() or tiles.is_empty():
