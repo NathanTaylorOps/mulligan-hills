@@ -1,5 +1,7 @@
 # Workstream G: golfer characters and animation (Phase 0)
 
+> **Historical Phase 0 record.** This file captures the original character/animation feasibility work. Current art direction, provenance policy and exact build evidence take precedence.
+
 Status date: 2026-09-29. Author: workstream G agent (Claude). Godot pin per `docs/GODOT_VERSION.md` (4.7.2).
 
 ## README block
