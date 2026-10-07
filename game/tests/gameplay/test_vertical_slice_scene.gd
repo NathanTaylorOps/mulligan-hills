@@ -191,3 +191,27 @@ func test_menu_rows_show_state_and_buy_buttons() -> void:
 	assert_bool((clubhouse["button"] as MHTapButton).disabled).is_true() # tier 2 needs 6 holes
 	var homes: Dictionary = scene._menu_rows["homes"] as Dictionary
 	assert_bool((homes["button"] as MHTapButton).disabled).is_true()
+
+func test_authoritative_completed_group_records_each_customer_once_and_never_money() -> void:
+	var scene: MHVerticalSlice = _scene()
+	var ids: Array = [31, 60, 89]
+	var visits_before: Array = []
+	for id: int in ids:
+		visits_before.append(int((scene.session.customers.rows[id] as Dictionary)["visits"]))
+	var cash: int = scene.session.economy.cash
+	var revenue: int = scene.session.economy.total_revenue
+	var serial: int = scene._first_booked_serial
+	scene._group_customer_ids[serial] = ids.duplicate()
+	scene._group_wait_minutes[serial] = 12
+	scene._on_visual_round_complete({"serial": serial, "size": 3, "holes": 3})
+	for i: int in range(ids.size()):
+		assert_int(int((scene.session.customers.rows[int(ids[i])] as Dictionary)["visits"])).is_equal(int(visits_before[i]) + 1)
+	assert_int(scene.session.economy.cash).is_equal(cash)
+	assert_int(scene.session.economy.total_revenue).is_equal(revenue)
+	assert_bool(scene._group_customer_ids.has(serial)).is_false()
+	assert_bool(scene._group_wait_minutes.has(serial)).is_false()
+	# A duplicate cosmetic completion has no identities left and therefore cannot progress anyone again.
+	scene._on_visual_round_complete({"serial": serial, "size": 3, "holes": 3})
+	for i: int in range(ids.size()):
+		assert_int(int((scene.session.customers.rows[int(ids[i])] as Dictionary)["visits"])).is_equal(int(visits_before[i]) + 1)
+	assert_int(scene.session.economy.total_revenue).is_equal(revenue)
