@@ -53,6 +53,7 @@ var _last_hour: int = 0
 var _first_booked_serial: int = 0
 var _group_customer_ids: Dictionary = {}
 var _group_wait_minutes: Dictionary = {}
+var _consumed_group_serials: Dictionary = {}
 var _sig: int = -1
 var _course_sig: String = ""
 var _hud_timer: float = 0.0
@@ -232,6 +233,9 @@ func _on_visual_round_complete(row: Dictionary) -> void:
 	if size <= 0 or holes_played <= 0:
 		return
 	var serial: int = int(row.get("serial", 0))
+	if _consumed_group_serials.has(serial):
+		return
+	_consumed_group_serials[serial] = true
 	if serial < _first_booked_serial:
 		_group_customer_ids.erase(serial)
 		_group_wait_minutes.erase(serial)
