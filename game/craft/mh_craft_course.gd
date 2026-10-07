@@ -9,9 +9,11 @@ const LEGACY_VERSION: int = 1
 # initially-owned central golf block. Later holes use only golf parcels in the 192 m live world;
 # the rectangular craft grid is only an editing envelope, so only authored golf geometry consumes land.
 const DEFAULT_ORIGINS_DM: Array = [
-	[600, 560], [960, 560], [1320, 560],
-	[70, 50], [240, 50], [250, 50], [420, 50], [760, 50], [960, 50],
-	[1490, 560], [1660, 560], [1670, 560],
+	# Six holes fit the four initially-owned golf parcels (5, 6, 9 and 10).
+	[600, 560], [960, 560], [1320, 560], [710, 560], [1070, 560], [1080, 560],
+	# Expansion holes occupy the remaining golf-only corridors.
+	[70, 50], [240, 50], [250, 50],
+	[1510, 560], [1680, 560], [1690, 560],
 	[550, 1250], [720, 1250], [730, 1250], [900, 1250], [1070, 1250], [1080, 1250],
 ]
 const NIGHT_SLICE_HOLES: int = 3
