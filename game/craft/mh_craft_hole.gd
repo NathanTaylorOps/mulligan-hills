@@ -37,6 +37,8 @@ var pins: Array = []
 var trees: Array = []
 var rocks: int = 0
 var flowers: int = 0
+## Presentation-only course mowing customisation; never enters rating/physics geometry.
+var mowing: Dictionary = MHMowingDesign.new().to_dict()
 
 var _stroke: Dictionary = {} # tile index -> [old surface, old rounded metres, old exact mm]
 var _stroke_open: bool = false
@@ -437,6 +439,7 @@ func to_dict() -> Dictionary:
 		"trees": tree_rows,
 		"rocks": rocks,
 		"flowers": flowers,
+		"mowing": mowing.duplicate(true),
 	}
 
 
@@ -444,11 +447,14 @@ static func from_dict(raw: Variant) -> MHCraftHole:
 	if typeof(raw) != TYPE_DICTIONARY:
 		return null
 	var d: Dictionary = raw as Dictionary
-	var allowed: Array = ["v", "cols", "rows", "surface", "height_mm", "tees", "pins", "trees", "rocks", "flowers"]
-	if d.size() != allowed.size():
+	var required: Array = ["v", "cols", "rows", "surface", "height_mm", "tees", "pins", "trees", "rocks", "flowers"]
+	if d.size() < required.size() or d.size() > required.size() + 1:
 		return null
-	for key: String in allowed:
+	for key: String in required:
 		if not d.has(key):
+			return null
+	for key: Variant in d.keys():
+		if str(key) not in required and str(key) != "mowing":
 			return null
 	if not MHRValidate.is_int_value(d["v"]) or int(d["v"]) != 1:
 		return null
@@ -490,6 +496,7 @@ static func from_dict(raw: Variant) -> MHCraftHole:
 		return null
 	out.rocks = int(d["rocks"])
 	out.flowers = int(d["flowers"])
+	out.mowing = MHMowingDesign.from_dict(d.get("mowing", {})).to_dict()
 	if out.rocks < 0 or out.rocks > 1500 or out.flowers < 0 or out.flowers > 1500:
 		return null
 	out.clear_history()
