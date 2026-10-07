@@ -56,7 +56,10 @@ func purchase(product_id: String) -> void:
 	if not _connected:
 		purchase_finished.emit(product_id, PurchaseResult.UNAVAILABLE, "store_not_connected")
 		return
-	_seam_purchase(product_id)
+	var launch: Dictionary = _seam_purchase(product_id)
+	if int(launch.get("response_code", RESPONSE_OK)) != RESPONSE_OK:
+		purchase_finished.emit(product_id, PurchaseResult.ERROR,
+			str(launch.get("debug_message", "billing_flow_launch_failed")))
 
 func restore() -> void:
 	# Google has no "restore" call: querying owned purchases IS the restore.
@@ -204,9 +207,9 @@ func _seam_inapp_type() -> Variant:
 			return (consts["ProductType"] as Dictionary)["INAPP"]
 	return 0
 
-func _seam_purchase(product_id: String) -> void:
-	# Signature changed in plugin 3.2.0 (purchase options/offers). UNVERIFIED: assumed purchase(product_id).
-	_client.call("purchase", product_id)
+func _seam_purchase(product_id: String) -> Dictionary:
+	var result: Variant = _client.call("purchase", product_id)
+	return result as Dictionary if typeof(result) == TYPE_DICTIONARY else {}
 
 func _seam_acknowledge(purchase_token: String) -> void:
 	_client.call("acknowledge_purchase", purchase_token)
@@ -221,4 +224,14 @@ func _seam_product_ids(p: Dictionary) -> Array:
 	return p.get("product_ids", []) as Array
 
 func _seam_price_from_details(d: Dictionary) -> String:
+	var offers_v: Variant = d.get("one_time_purchase_offer_details_list", null)
+	if typeof(offers_v) == TYPE_ARRAY:
+		for offer_v: Variant in offers_v as Array:
+			if typeof(offer_v) != TYPE_DICTIONARY:
+				continue
+			var offer: Dictionary = offer_v as Dictionary
+			var formatted: String = str(offer.get("formatted_price", ""))
+			if formatted != "":
+				return formatted
+	# Compatibility fallback for older plugin result shapes.
 	return str(d.get("formatted_price", d.get("price", "")))
