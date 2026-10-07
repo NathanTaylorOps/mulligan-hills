@@ -40,8 +40,6 @@ static func decode(course: Dictionary) -> MHSaveResult:
 		if not _owned_geometry(course, h["origin_dm"] as Array, layout):
 			return _bad("hole geometry must remain on owned land")
 		layouts.append(layout.duplicate(true))
-	if _holes_overlap(rows):
-		return _bad("hole geometry overlaps another hole")
 	return MHSaveResult.success(layouts)
 
 
@@ -64,6 +62,8 @@ static func encode(layouts: Array, previous: Dictionary, origins: Array) -> MHSa
 		rows.append({"hole_no": int(layout.get("slot_id", -1)) + 1,
 			"origin_dm": origins[i], "layout": layout.duplicate(true)})
 	course["holes"] = rows
+	if _holes_overlap(rows):
+		return _bad("hole geometry overlaps another hole")
 	var checked: MHSaveResult = decode(course)
 	if not checked.is_ok():
 		return checked
