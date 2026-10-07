@@ -44,6 +44,6 @@ Save requests coalesce. Open strokes are not serialized; confirmed marker-only c
 
 ## Evidence
 
-Nathan supplied a passing Windows Godot 4.7.2 live probe at `940f3da`; the preceding stable baseline also passed graphical testing. New brush/dock/precision/marker coverage has been written and syntax-parsed. Its Godot execution and graphical/device acceptance are pending.
+Historical Windows Godot 4.7.2 evidence includes a passing live probe at `940f3da`; the preceding stable baseline also passed graphical testing. Later editor coverage must be evaluated against current-head evidence. Current Godot execution and graphical/device acceptance are pending.
 
 Use [the development guide](../DEVELOPMENT.md) for one combined testing batch. Relevant regressions include `manual_verify_live_ui.gd`, craft/terrain bridge, one-hole/practice, session save and UI/input tests. Historical verification reports describe their dated commits, not current HEAD.
