@@ -3,7 +3,7 @@ extends RefCounted
 ## One hole as the player paints it (the "craft" terrain designer, DEC-084, docs/phase1/terrain_designer.md).
 ## A grid of square tiles in the hole's local frame: x across (0 is the centre line), y toward the green (0 is the
 ## tee end). One tile is TILE_YD whole yards. Every tile has a surface and an exact integer-millimetre height;
-## craft-native sculpt tools step in whole metres while imported shared-world shaping may be sub-metre. Heights stay
+## sculpt tools and imported shared-world shaping preserve millimetre precision. Heights stay
 ## within HEIGHT_MIN_M..HEIGHT_MAX_M (valleys and high ground, DEC-088). One tee box (DEC-090), up to four pin positions
 ## (the pin used rotates each round), trees as yard points, rock and flower counts.
 ## Pure data and integer maths: no nodes, no randomness. Strokes are undoable (one undo per finger stroke).
@@ -28,9 +28,7 @@ var cols: int
 var rows: int
 var surface: PackedByteArray = PackedByteArray()
 var height_m: PackedInt32Array = PackedInt32Array()
-## Exact millimetre height cache. Craft-native sculpting still moves in whole metres,
-## but the shared world terrain can contain sub-metre shaping. Keeping the exact
-## value here prevents switching editors from flattening 300 mm/500 mm terrain.
+## Authoritative millimetre heights; height_m is a rounded compatibility cache.
 var height_mm: PackedInt32Array = PackedInt32Array()
 ## Tile coordinates (Vector2i(col, row)).
 var tees: Array = []
@@ -42,7 +40,9 @@ var flowers: int = 0
 
 var _stroke: Dictionary = {} # tile index -> [old surface, old rounded metres, old exact mm]
 var _stroke_open: bool = false
-var _undo: Array = [] # each: {index: [old_s, old_m, old_mm, new_s, new_m, new_mm]}
+var _undo: Array = [] # each: tile deltas plus before/after marker arrays
+var _stroke_tees: Array = []
+var _stroke_pins: Array = []
 var _redo: Array = []
 var _last_history_indices: PackedInt32Array = PackedInt32Array()
 
@@ -117,6 +117,8 @@ func begin_stroke() -> bool:
 	if _stroke_open:
 		return false
 	_stroke = {}
+	_stroke_tees = tees.duplicate()
+	_stroke_pins = pins.duplicate()
 	_stroke_open = true
 	return true
 
@@ -137,13 +139,14 @@ func commit_stroke() -> bool:
 		if int(old[0]) != int(surface[i]) or int(old[1]) != int(height_m[i]) or int(old[2]) != int(height_mm[i]):
 			changes[i] = [int(old[0]), int(old[1]), int(old[2]), int(surface[i]), int(height_m[i]), int(height_mm[i])]
 	_stroke = {}
-	if changes.is_empty():
+	if changes.is_empty() and tees == _stroke_tees and pins == _stroke_pins:
 		_last_history_indices = PackedInt32Array()
 		return false
 	_last_history_indices = PackedInt32Array()
 	for key: Variant in changes.keys():
 		_last_history_indices.append(int(key))
-	_undo.append(changes)
+	_undo.append({"tiles": changes, "tees_before": _stroke_tees, "pins_before": _stroke_pins,
+		"tees_after": tees.duplicate(), "pins_after": pins.duplicate()})
 	if _undo.size() > UNDO_LIMIT:
 		_undo.remove_at(0)
 	_redo.clear()
@@ -160,6 +163,8 @@ func cancel_stroke() -> void:
 		surface[i] = int(old[0])
 		height_m[i] = int(old[1])
 		height_mm[i] = int(old[2])
+	tees = _stroke_tees.duplicate()
+	pins = _stroke_pins.duplicate()
 	_stroke = {}
 	_stroke_open = false
 
@@ -175,7 +180,10 @@ func can_redo() -> bool:
 func undo() -> bool:
 	if not can_undo():
 		return false
-	var changes: Dictionary = _undo.pop_back() as Dictionary
+	var entry: Dictionary = _undo.pop_back() as Dictionary
+	var changes: Dictionary = entry["tiles"] as Dictionary
+	tees = (entry["tees_before"] as Array).duplicate()
+	pins = (entry["pins_before"] as Array).duplicate()
 	_last_history_indices = PackedInt32Array()
 	for key: Variant in changes.keys():
 		_last_history_indices.append(int(key))
@@ -184,14 +192,17 @@ func undo() -> bool:
 		surface[int(k)] = int(v[0])
 		height_m[int(k)] = int(v[1])
 		height_mm[int(k)] = int(v[2])
-	_redo.append(changes)
+	_redo.append(entry)
 	return true
 
 
 func redo() -> bool:
 	if not can_redo():
 		return false
-	var changes: Dictionary = _redo.pop_back() as Dictionary
+	var entry: Dictionary = _redo.pop_back() as Dictionary
+	var changes: Dictionary = entry["tiles"] as Dictionary
+	tees = (entry["tees_after"] as Array).duplicate()
+	pins = (entry["pins_after"] as Array).duplicate()
 	_last_history_indices = PackedInt32Array()
 	for key: Variant in changes.keys():
 		_last_history_indices.append(int(key))
@@ -200,7 +211,7 @@ func redo() -> bool:
 		surface[int(k)] = int(v[3])
 		height_m[int(k)] = int(v[4])
 		height_mm[int(k)] = int(v[5])
-	_undo.append(changes)
+	_undo.append(entry)
 	return true
 
 
@@ -277,22 +288,30 @@ func clear_history() -> void:
 	_last_history_indices = PackedInt32Array()
 
 
-## Raise (+) or lower (-) a round patch by whole metres, clamped to the height range.
+## Whole-metre entry points remain available to existing callers.
 func raise_disc(c: int, r: int, radius: int, delta_m: int) -> void:
+	raise_disc_mm(c, r, radius, delta_m * 1000)
+
+
+func raise_disc_mm(c: int, r: int, radius: int, delta_mm: int) -> void:
 	var rad: int = maxi(0, radius)
 	for dr: int in range(-rad, rad + 1):
 		for dc: int in range(-rad, rad + 1):
 			if dc * dc + dr * dr <= rad * rad and in_bounds(c + dc, r + dr):
-				set_height_tile(c + dc, r + dr, get_height(c + dc, r + dr) + delta_m)
+				set_height_mm_tile(c + dc, r + dr, get_height_mm(c + dc, r + dr) + delta_mm)
 
 
 func level_disc(c: int, r: int, radius: int, target_m: int) -> void:
+	level_disc_mm(c, r, radius, target_m * 1000)
+
+
+func level_disc_mm(c: int, r: int, radius: int, target_mm: int) -> void:
 	var rad: int = maxi(0, radius)
-	var target: int = clampi(target_m, HEIGHT_MIN_M, HEIGHT_MAX_M)
+	var target: int = clampi(target_mm, HEIGHT_MIN_M * 1000, HEIGHT_MAX_M * 1000)
 	for dr: int in range(-rad, rad + 1):
 		for dc: int in range(-rad, rad + 1):
 			if dc * dc + dr * dr <= rad * rad and in_bounds(c + dc, r + dr):
-				set_height_tile(c + dc, r + dr, target)
+				set_height_mm_tile(c + dc, r + dr, target)
 
 
 func smooth_disc(c: int, r: int, radius: int) -> void:
@@ -311,17 +330,17 @@ func smooth_disc(c: int, r: int, radius: int) -> void:
 			var count: int = 0
 			for nr: int in range(maxi(0, tr - 1), mini(rows - 1, tr + 1) + 1):
 				for nc: int in range(maxi(0, tc - 1), mini(cols - 1, tc + 1) + 1):
-					total += get_height(nc, nr)
+					total += get_height_mm(nc, nr)
 					count += 1
-			updates[index_of(tc, tr)] = roundi(float(total) / float(maxi(1, count)))
+			updates[index_of(tc, tr)] = MHRMath.rdiv(total, maxi(1, count))
 	for key: Variant in updates.keys():
 		var idx: int = int(key)
 		var tc2: int = idx % cols
 		var tr2: int = idx / cols
-		set_height_tile(tc2, tr2, int(updates[key]))
+		set_height_mm_tile(tc2, tr2, int(updates[key]))
 
 
-# ---------------------------------------------------------------- tees, pins, objects (not undoable strokes)
+# ---------------------------------------------------------------- markers (included in strokes) and objects
 
 ## Adds the hole's tee box tile. Returns 0, or -1 when the hole already has its tee or the tile is outside the grid.
 func add_tee(c: int, r: int) -> int:
@@ -332,10 +351,40 @@ func add_tee(c: int, r: int) -> int:
 
 
 func add_pin(c: int, r: int) -> int:
-	if pins.size() >= MAX_PINS or not in_bounds(c, r):
+	if pins.size() >= MAX_PINS or not in_bounds(c, r) or pins.has(Vector2i(c, r)):
 		return -1
 	pins.append(Vector2i(c, r))
 	return pins.size() - 1
+
+
+## Marker mutations participate in the same begin/commit/cancel history as terrain.
+func move_tee(c: int, r: int) -> bool:
+	if not in_bounds(c, r):
+		return false
+	tees = [Vector2i(c, r)]
+	return true
+
+
+## index == pins.size() appends one pin; existing indices move only that pin.
+func set_pin(pin_index: int, c: int, r: int) -> bool:
+	if pin_index < 0 or pin_index > pins.size() or pin_index >= MAX_PINS or not in_bounds(c, r):
+		return false
+	var point: Vector2i = Vector2i(c, r)
+	var occupied: int = pins.find(point)
+	if occupied >= 0 and occupied != pin_index:
+		return false
+	if pin_index == pins.size():
+		pins.append(point)
+	else:
+		pins[pin_index] = point
+	return true
+
+
+func remove_pin(pin_index: int) -> bool:
+	if pin_index < 0 or pin_index >= pins.size():
+		return false
+	pins.remove_at(pin_index)
+	return true
 
 
 ## The pin used in play round `round_no` (0 based): the pins take turns, so the hole plays differently each round.
@@ -468,3 +517,4 @@ static func _load_tile_points(raw: Variant, out: MHCraftHole, tee_points: bool) 
 		seen[p] = true
 		target.append(p)
 	return true
+
