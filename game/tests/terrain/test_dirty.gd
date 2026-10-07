@@ -154,3 +154,14 @@ func test_600x400_paint_stroke_at_far_corner_marks_one_chunk_and_undo_marks_agai
 	e.dirty.take()
 	assert_bool(e.undo()).is_true()
 	assert_int(e.dirty.dirty_count()).is_equal(1)
+
+func test_192_world_uses_six_by_six_chunks_and_local_edits_stay_local() -> void:
+	var e := MHTerrainEditor.new(MHHeightGrid.new(192, 192), null, 32)
+	assert_int(e.dirty.chunks_x).is_equal(6)
+	assert_int(e.dirty.chunks_y).is_equal(6)
+	assert_int(e.dirty.chunk_count()).is_equal(36)
+	e.set_brush(MHBrush.Mode.RAISE, 4, 100)
+	e.begin_stroke()
+	e.apply_brush_at(96, 96)
+	e.end_stroke()
+	assert_bool(e.dirty.dirty_count() <= 4).is_true()
