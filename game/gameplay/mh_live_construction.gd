@@ -362,7 +362,7 @@ func _request_save() -> void:
 	_pending_save = true
 
 func save_now() -> bool:
-	if not _active or editor.is_stroke_open():
+	if not _active or editor.is_stroke_open() or (craft_hole != null and craft_hole.is_stroke_open()):
 		return false
 	_pending_save = false # Failed writes require an explicit retry; never retry every frame.
 	var craft_checkpoint: Dictionary = {}
@@ -403,7 +403,7 @@ func _process(_delta: float) -> void:
 	router.accept_world_input = shell.current_screen_id() == MHScreenIds.EDITOR and shell.modal_id() == "" and (one_hole == null or not one_hole.visible)
 	if not router.accept_world_input:
 		router.cancel_world_input()
-	if _pending_save and not editor.is_stroke_open():
+	if _pending_save and not editor.is_stroke_open() and (craft_hole == null or not craft_hole.is_stroke_open()):
 		save_now()
 
 func _notification(what: int) -> void:
@@ -411,6 +411,8 @@ func _notification(what: int) -> void:
 		return
 	if what == NOTIFICATION_APPLICATION_PAUSED or what == NOTIFICATION_APPLICATION_FOCUS_OUT:
 		router.cancel_world_input()
+		if aim_input != null:
+			aim_input.cancel_all()
 		save_now()
 
 func _exit_tree() -> void:
