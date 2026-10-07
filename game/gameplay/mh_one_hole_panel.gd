@@ -1135,6 +1135,7 @@ func _draw_craft_terrain(hole: MHCraftHole) -> void:
 		var instance: MeshInstance3D = MeshInstance3D.new()
 		instance.mesh = mesh
 		instance.material_override = material
+		instance.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_ON if bool(_visual_settings.get("shadows", true)) else GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 		_world.add_child(instance)
 	if bool(_visual_settings.get("edge_accents", true)):
 		_draw_surface_edges(hole, relief_hole)
@@ -1332,6 +1333,17 @@ func _draw_craft_tree(point: Vector2i) -> void:
 		_marker_at(_position_on_ground(point.x * 100 - 45, point.y * 100 + 20, 2.45), Color(0.17, 0.39, 0.15), 0.78)
 	if int(_visual_settings.get("tree_layers", 2)) >= 3:
 		_marker_at(_position_on_ground(point.x * 100 + 42, point.y * 100 - 18, 2.50), Color(0.20, 0.43, 0.17), 0.72)
+
+func set_visual_quality(tier: MHVisualQuality.Tier) -> void:
+	visual_quality = tier
+	_visual_settings = MHVisualQuality.settings(tier)
+	if _world != null and is_inside_tree():
+		_draw()
+
+
+func visual_quality_name() -> String:
+	return MHVisualQuality.name_for(visual_quality)
+
 
 func _feature_color(feature_type: String) -> Color:
 	match feature_type:
