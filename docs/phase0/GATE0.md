@@ -1,5 +1,7 @@
 # Gate 0: ten proof items
 
+> **Historical Phase 0 record.** This file preserves the original proof-stage plan and may contain obsolete workstream, person-specific and verification language. It is not current project guidance. See `docs/STATUS.md`, `docs/VERIFICATION.md` and `docs/QUALITY_GATES.md`.
+
 Owner: workstream H (this table). Purpose: no Phase 1 build work starts until all ten pass and Nathan signs off (DEC-045). Source: Master Plan, "Phase 0 must prove all of the following before Gate 0 passes".
 
 Status values: `NOT YET RUN` (default), `CODE WRITTEN, NOT YET RUN`, `RUNNING`, `PASS` (evidence file committed and verified), `FAIL` (with a link to the fix task), `WAIVED` (only by a DECISIONS.md entry signed by Nathan). Only the verifier agent or the lead changes a status to PASS, and only after opening the evidence file. As of writing (2026-09-29) nothing has been run: Godot cannot run in the agent sandbox.
