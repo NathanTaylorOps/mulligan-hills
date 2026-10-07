@@ -61,6 +61,8 @@ static func split_groups(n: int, size_limit: int) -> Array:
 ## No demand, acceptance or money is recomputed here.
 func add_booked_golfers(count: int, customer_ids: Array = [], booked_minute: int = -1) -> int:
 	var whole: int = maxi(0, count)
+	if not customer_ids.is_empty() and customer_ids.size() != whole:
+		return 0
 	var cursor: int = 0
 	var booked_at: int = next_tee_minute if booked_minute < 0 else booked_minute
 	for size_value: Variant in split_groups(whole, group_size):
