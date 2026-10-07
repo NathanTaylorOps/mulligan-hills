@@ -110,12 +110,12 @@ func _ready() -> void:
 	shell.screen_changed.connect(_screen_changed)
 	shell.show_root(MHScreenIds.HUD)
 	_dock = Control.new()
-	_dock.set_anchors_preset(Control.PRESET_FULL_RECT)
-	# Full-rect anchors own the dock size. Explicit size writes race Godot's
-	# anchor layout and were producing the runtime warnings seen on desktop.
+	_dock.set_anchors_preset(Control.PRESET_TOP_LEFT)
 	_dock.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_dock.theme = shell.theme # The dock is a sibling of the shell, so it does not inherit the shell's theme.
+	_dock.theme = shell.theme # Sibling of shell: does not inherit its theme.
 	layer.add_child(_dock)
+	_dock.position = Vector2.ZERO
+	_dock.size = get_viewport().get_visible_rect().size
 	_actions = MHUIKit.flow(8)
 	_dock.add_child(_actions)
 	var save_button: MHTapButton = MHUIKit.button(shell.ctx, "Save", &"ChipButton", 96)
@@ -212,6 +212,10 @@ func _panel_state() -> int:
 func _relayout() -> void:
 	if _dock == null or shell == null or one_hole == null:
 		return
+	var viewport_size: Vector2 = get_viewport().get_visible_rect().size
+	if _dock.size != viewport_size:
+		_dock.size = viewport_size
+		_layout_key = []
 	if _dock.theme != shell.theme:
 		_dock.theme = shell.theme # Text-size changes build a new theme.
 	var on: bool = shell.overlay_active() and shell.current_screen_id() == MHScreenIds.HUD
