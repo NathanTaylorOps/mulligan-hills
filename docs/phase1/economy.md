@@ -1,7 +1,6 @@
 # Phase 1: Economy (`game/core/economy/`)
 
 Status: DEC-070/071 now use a 25-minute day and about 50 running hours. Full Python simulation median 49.6 hours; see `economy_audit.md` for assumptions and verification limits. Prices remain DEC-069. Earlier balance analysis below is historical: its old hours target and tier-4 renovation statements are superseded. Godot changes await CI.
-Owner paths: `game/core/economy/`, `game/tests/economy/`, `tools/reference/economy/`, `docs/phase1/economy.md`, plus the runtime copy `game/data/economy_params.json`.
 
 ## README block
 
@@ -54,7 +53,7 @@ The earlier cut-off attempt (12-hour day, float-free core but invented per-tier 
 - **Tournaments.** Hosting costs $25,000 (local) or $60,000 (regional); success pays sponsor reward plus entry fees plus ticket sales (DEC-065). Revenue is computed in `MHTournamentSim`, not in the economy tick.
 - **Speed hook.** The clock drains 1, 2, 4 tokens per real minute at 2x, 4x, 8x, so every sped-up game day costs 7.5 tokens at any speed. `speed_tokens_for_days` mirrors that for UI and tests; the clock still does the draining.
 
-## Added daily income per tier (for the buildings agent)
+## Added daily income per tier (for building integration)
 
 This is the table `buildings.json` lacks. It is in `economy_params.json` as `added_daily_income_dollars` and `price_dollars`, and `MHBuildingDefs.price_for(id, tier, added)` reproduces the price exactly (a test checks every entry). Whole dollars per game day, net of the tier's own upkeep.
 
@@ -73,7 +72,7 @@ This is the table `buildings.json` lacks. It is in `economy_params.json` as `add
 
 Prices (target days x added): tier 1 $200 to $680, tier 2 $348 to $1,092, tier 3 $720 to $2,176, tier 4 $6,650 to $26,550, tier 5 $18,160 to $72,880. Totals per tier across the ten buildings: $4,520, $7,680, $15,728, $175,000, $483,600. All 50 steps together cost **$686,528**. A floor of $20 per day applies to the added income.
 
-Notes for the buildings agent:
+Notes for building integration:
 1. Do not hard-code prices. Read `target_payback_days` from `buildings.json` and the table above, or call `MHEconomy.price_cents(building_index, tier, target_days)`.
 2. `upkeep_per_day` is treated as the total upkeep of the standing tier. If you meant an increment, tell the economy owner.
 3. If anyone edits `upkeep_per_day`, gates, parcels or targets in `buildings.json`, re-run `python3 sim.py write --base` and `python3 tools/reference/economy/gen_golden.py`. The golden estimate tests will fail until that is done, which is intentional.
@@ -126,7 +125,7 @@ Weighted by habit (casual, careful, sticky, greedy, cheap): **casual-but-compete
 - Parcel bundles: a bot buying a tier also buys any parcels the tier's `min_parcels_owned` requires, golf parcels first.
 - Players act once per game day, up to 4 purchases, ranked by income gained per cost (careful, casual, sticky, cheap) or by price (greedy spender).
 - Tokens: a simulated player holds 12 tokens at the start and earns 2 per week.
-- Demand shock hook: `set_demand_modifier(permille)` is the only input the events agent needs; it scales arrivals, not flat income or ancillary rules.
+- Demand shock hook: `set_demand_modifier(permille)` is the only input the events system needs; it scales arrivals, not flat income or ancillary rules.
 
 ## Interface differences from `docs/spec/interfaces/economy.md`
 
@@ -160,7 +159,7 @@ Weighted by habit (casual, careful, sticky, greedy, cheap): **casual-but-compete
 - No difficulty modes, no wages or staff costs, no member churn events; all are hooks for later.
 - Save format: `MHEconomy.to_dict()` carries `v = 1`; the save module must include it and call `from_dict`.
 
-## Questions for Nathan
+## Open balance questions
 
 1. **What should the typical 2-month player have achieved by day 720?** Today a mid-skill player finishes all they can reach (tier 4) by about day 240 and a high-skill player finishes tier 5 by day 290. Do you want the content to last the full 2 months (then the rating gates and costs must be pushed out roughly 2 to 3 times), or are you happy to have a "done" point and then cash sits idle?
 2. **Is it acceptable that most players never reach tier 5?** With the 62 average-hole-score gate, about 65% of simulated players cannot. Options: keep it as an aspirational goal, lower the tier 5 gate to about 58, or add something to buy that does not need a high score.
@@ -172,6 +171,6 @@ Weighted by habit (casual, careful, sticky, greedy, cheap): **casual-but-compete
 8. **Difficulty modes (Relaxed, Standard, Tycoon, Sandbox).** What should each change? A simple option is a multiplier on upkeep and on demand; say which you want and I will add it as one parameter.
 9. **Does the course feel alive?** Early the course sees about 25 golfers per day (1 to 3 per hour), 90 with all tier 1 buildings, 145 at the top; capacity is 165. If early courses should look busier, lower the fee optimum or raise base arrivals.
 
-## For Nathan
+## Manual validation
 
 Nothing to run or install. Decisions are in the questions above; the most valuable are 1, 3 and 4.
