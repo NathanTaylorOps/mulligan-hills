@@ -102,8 +102,10 @@ func _ready() -> void:
 	# Starter club, through the same player paths a button uses: holes, tier 1 buildings, the economy's own fee.
 	starter_hole_error = MHSliceStarter.setup(session, view)
 	schedule = MHSliceSchedule.from_economy(session.economy)
-	schedule.prime(0, OPENING_GOLFERS) # opening group only; hour 0's own arrivals follow when the hour ends
+	# Opening golfers are presentation-only ambience; all subsequent traffic comes from booked economy arrivals.
+	schedule.prime(0, OPENING_GOLFERS)
 	_last_hour = _absolute_hour()
+	session.golfers_booked.connect(_on_golfers_booked)
 	session.changed.connect(_on_session_changed)
 	_sync_world(true)
 	_refresh_hud()
@@ -197,16 +199,14 @@ func _absolute_hour() -> int:
 
 
 func _poll_arrivals() -> void:
-	var abs_hour: int = _absolute_hour()
-	if abs_hour < _last_hour:
-		_last_hour = abs_hour
-	while _last_hour < abs_hour:
-		var hour_index: int = _last_hour % MHEconomy.HOURS_PER_DAY
-		schedule.add_hour(MHSliceSchedule.hour_golfers_expected_milli(session.economy, hour_index))
-		_last_hour += 1
+	# MHGameSession publishes the authoritative booked count during advance().
+	# This method only releases already-booked groups into visual tee slots.
 	for g: Variant in schedule.release(session.clock.total_minutes()):
 		_spawn_group(g as Dictionary)
 
+
+func _on_golfers_booked(count: int) -> void:
+	schedule.add_booked_golfers(count)
 
 func _spawn_group(g: Dictionary) -> void:
 	if hole_points.is_empty():
