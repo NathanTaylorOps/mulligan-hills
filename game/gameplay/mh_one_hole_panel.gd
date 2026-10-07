@@ -844,9 +844,6 @@ func craft_stroke_end() -> bool:
 		return false
 	_craft_stroke_open = false
 	_craft_last_tile = Vector2i(-1, -1)
-	_craft_preview_dirty = false
-	if _preview_draft and _world != null:
-		_draw()
 	var changed: bool = live.craft_hole.commit_stroke()
 	_craft_preview_dirty = false
 	if changed:
@@ -859,6 +856,9 @@ func craft_stroke_cancel() -> void:
 		live.craft_hole.cancel_stroke()
 	_craft_stroke_open = false
 	_craft_last_tile = Vector2i(-1, -1)
+	_craft_preview_dirty = false
+	if _preview_draft and _world != null:
+		_draw()
 
 func aim_from_screen(pos: Vector2) -> bool:
 	var layouts: Array = live.session.hole_definitions()
