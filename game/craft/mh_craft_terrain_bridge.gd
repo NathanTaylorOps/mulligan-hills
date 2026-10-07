@@ -50,7 +50,23 @@ static func sync_from_world_rect(hole: MHCraftHole, editor: MHTerrainEditor, ori
 ## by MHStroke.finalize().
 static func sync_to_world(hole: MHCraftHole, editor: MHTerrainEditor, origin_dm: Vector2i,
 		record_undo: bool = true) -> bool:
-	if hole == null or editor == null or editor.is_stroke_open():
+	var all_tiles: Array = []
+	for r: int in range(hole.rows):
+		for c: int in range(hole.cols):
+			all_tiles.append(Vector2i(c, r))
+	return sync_tiles_to_world(hole, editor, origin_dm, all_tiles, record_undo)
+
+
+static func sync_tiles_to_world(hole: MHCraftHole, editor: MHTerrainEditor, origin_dm: Vector2i,
+		tiles: Array, record_undo: bool = true) -> bool:
+	if hole == null or editor == null or editor.is_stroke_open() or tiles.is_empty():
+		return false
+	var wanted: Dictionary = {}
+	for value: Variant in tiles:
+		var tile: Vector2i = value as Vector2i
+		if hole.in_bounds(tile.x, tile.y):
+			wanted[hole.index_of(tile.x, tile.y)] = true
+	if wanted.is_empty():
 		return false
 	var bounds: Rect2i = _footprint_samples(hole, editor.grid, origin_dm)
 	if not bounds.has_area():
@@ -61,23 +77,34 @@ static func sync_to_world(hole: MHCraftHole, editor: MHTerrainEditor, origin_dm:
 			return false
 		stroke = editor.undo_stack.open_stroke()
 	var any_change: bool = false
+	var min_x: int = editor.grid.samples_x
+	var min_y: int = editor.grid.samples_y
+	var max_x: int = -1
+	var max_y: int = -1
 	for gy: int in range(bounds.position.y, bounds.end.y):
 		for gx: int in range(bounds.position.x, bounds.end.x):
 			var tile: Vector2i = _world_sample_to_tile(hole, editor.grid, origin_dm, gx, gy)
-			if tile.x < 0:
+			if tile.x < 0 or not wanted.has(hole.index_of(tile.x, tile.y)):
 				continue
 			var target_h: int = hole.get_height_mm(tile.x, tile.y)
 			var hi: int = editor.grid.idx(gx, gy)
+			var sample_changed: bool = false
 			if editor.grid.heights[hi] != target_h:
 				if stroke != null:
 					stroke.touch(editor.grid, hi)
 				editor.grid.heights[hi] = clampi(target_h, MHHeightGrid.MIN_H_MM, MHHeightGrid.MAX_H_MM)
-				any_change = true
+				sample_changed = true
 			var target_layer: int = _terrain_layer_for_surface(hole.get_surface(tile.x, tile.y))
 			if _set_one_hot(editor.splat, gx, gy, target_layer, stroke):
+				sample_changed = true
+			if sample_changed:
 				any_change = true
+				min_x = mini(min_x, gx)
+				min_y = mini(min_y, gy)
+				max_x = maxi(max_x, gx)
+				max_y = maxi(max_y, gy)
 	if any_change:
-		editor.dirty.mark_rect(bounds.position.x, bounds.position.y, bounds.end.x - 1, bounds.end.y - 1)
+		editor.dirty.mark_rect(min_x, min_y, max_x, max_y)
 	if record_undo:
 		return editor.end_stroke() > 0
 	return any_change
