@@ -216,3 +216,18 @@ func test_authoritative_completed_group_records_each_customer_once_and_never_mon
 	for i: int in range(ids.size()):
 		assert_int(int((scene.session.customers.rows[int(ids[i])] as Dictionary)["visits"])).is_equal(int(visits_before[i]) + 1)
 	assert_int(scene.session.economy.total_revenue).is_equal(revenue)
+
+func test_course_mesh_signature_changes_for_geometry_and_origin_not_customer_state() -> void:
+	var scene: MHVerticalSlice = _scene()
+	scene._sync_world(true)
+	var base: String = scene._course_sig
+	var customer_id: int = 7
+	scene.session.customers.rows[customer_id]["visits"] = int(scene.session.customers.rows[customer_id]["visits"]) + 1
+	scene._sync_world(false)
+	assert_str(scene._course_sig).is_equal(base)
+	var origins: Array = scene.session.hole_origins_dm()
+	if not origins.is_empty():
+		origins[0] = [(origins[0] as Array)[0] + 1, (origins[0] as Array)[1]]
+		assert_bool(scene.session.set_hole_origins_dm(origins)).is_true()
+		scene._sync_world(false)
+		assert_str(scene._course_sig).is_not_equal(base)
