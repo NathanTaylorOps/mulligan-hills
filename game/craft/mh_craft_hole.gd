@@ -42,6 +42,7 @@ var _stroke: Dictionary = {} # tile index -> [old surface, old height]
 var _stroke_open: bool = false
 var _undo: Array = [] # each: {index: [old_s, old_h, new_s, new_h]}
 var _redo: Array = []
+var _last_history_indices: PackedInt32Array = PackedInt32Array()
 
 
 func _init(p_cols: int = 24, p_rows: int = 40) -> void:
@@ -135,7 +136,11 @@ func commit_stroke() -> bool:
 			changes[i] = [int(old[0]), int(old[1]), int(old[2]), int(surface[i]), int(height_m[i]), int(height_mm[i])]
 	_stroke = {}
 	if changes.is_empty():
+		_last_history_indices = PackedInt32Array()
 		return false
+	_last_history_indices = PackedInt32Array()
+	for key: Variant in changes.keys():
+		_last_history_indices.append(int(key))
 	_undo.append(changes)
 	if _undo.size() > UNDO_LIMIT:
 		_undo.remove_at(0)
@@ -169,6 +174,9 @@ func undo() -> bool:
 	if not can_undo():
 		return false
 	var changes: Dictionary = _undo.pop_back() as Dictionary
+	_last_history_indices = PackedInt32Array()
+	for key: Variant in changes.keys():
+		_last_history_indices.append(int(key))
 	for k: Variant in changes.keys():
 		var v: Array = changes[k] as Array
 		surface[int(k)] = int(v[0])
@@ -182,6 +190,9 @@ func redo() -> bool:
 	if not can_redo():
 		return false
 	var changes: Dictionary = _redo.pop_back() as Dictionary
+	_last_history_indices = PackedInt32Array()
+	for key: Variant in changes.keys():
+		_last_history_indices.append(int(key))
 	for k: Variant in changes.keys():
 		var v: Array = changes[k] as Array
 		surface[int(k)] = int(v[3])
@@ -197,6 +208,13 @@ func undo_count() -> int:
 
 func redo_count() -> int:
 	return _redo.size()
+
+
+func last_changed_tiles() -> Array:
+	var out: Array = []
+	for idx: int in _last_history_indices:
+		out.append(Vector2i(idx % cols, idx / cols))
+	return out
 
 
 # ---------------------------------------------------------------- painting (call between begin and commit)
@@ -254,6 +272,7 @@ func clear_history() -> void:
 		cancel_stroke()
 	_undo.clear()
 	_redo.clear()
+	_last_history_indices = PackedInt32Array()
 
 
 ## Raise (+) or lower (-) a round patch by whole metres, clamped to the height range.
