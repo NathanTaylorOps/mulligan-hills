@@ -1,5 +1,5 @@
 > **DRAFT FOR LAWYER REVIEW. NOT LEGAL ADVICE. DO NOT PUBLISH AS IS.**
-> This text was drafted by an AI assistant from what the game's code and backend do on 2026-10-04. It has not been reviewed by a lawyer. It does not claim to satisfy the Australian Privacy Act 1988, the GDPR, the UK GDPR, the California Consumer Privacy Act, Google Play or Apple requirements, or any other law or policy. Items in [SQUARE BRACKETS] are placeholders or questions for the lawyer. Remove this box only after a qualified lawyer has approved the final text. Facts in the tables come from `docs/store/data_safety.md` section 1: if the game or backend changes, update both.
+> Working draft based on the documented game/backend data flows as of 2026-10-04. It has not been reviewed by qualified legal counsel and is not publication-ready. Items in [SQUARE BRACKETS] are placeholders or review questions. Facts must be reconciled with the release-candidate binary, live backend, `docs/store/data_safety.md`, target regions and current store requirements before approval.
 
 # Mulligan Hills Privacy Policy
 
