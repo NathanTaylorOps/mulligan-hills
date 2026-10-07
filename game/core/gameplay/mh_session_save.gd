@@ -29,6 +29,8 @@ static func capture(session: MHGameSession, source: Dictionary, craft_draft: Dic
 	club["members"] = session.economy.members()
 	club["reputation"] = session.economy.reputation
 	club["prestige"] = session.bridge.club_points()
+	club["staff"] = session.staff.legacy_counts()
+	club["staff_roster"] = session.staff.to_save_block()
 	doc["club"] = club
 	var tiers: Dictionary = session.tiers()
 	var buildings: Array = []
@@ -138,12 +140,18 @@ static func restore(source: Dictionary, ledger: MHTokenLedger) -> MHSaveResult:
 		return _bad("building tiers disagree")
 	if not s.bridge.load_save_progress(doc["progress"] as Dictionary):
 		return _bad("progress checkpoint invalid")
-	# Until real staffing exists, do not manufacture an aggregate from a legacy model.
 	if typeof(club.get("staff", null)) != TYPE_DICTIONARY:
 		return _bad("staff checkpoint missing")
-	for v: Variant in (club["staff"] as Dictionary).values():
-		if int(v) != 0:
-			return _bad("live staffing is not implemented")
+	if club.has("staff_roster"):
+		if typeof(club["staff_roster"]) != TYPE_DICTIONARY or not s.staff.from_save_block(club["staff_roster"] as Dictionary):
+			return _bad("staff roster checkpoint invalid")
+		if s.staff.legacy_counts() != (club["staff"] as Dictionary):
+			return _bad("staff roster and legacy counts disagree")
+	else:
+		# Backward compatibility: old live checkpoints only supported an all-zero legacy aggregate.
+		for v: Variant in (club["staff"] as Dictionary).values():
+			if int(v) != 0:
+				return _bad("legacy staff checkpoint has no roster")
 	s.ledger = ledger
 	s.save_secret = int(rt["save_secret"])
 	s.rating_epoch = int(doc["sim"]["rating_epoch"])
