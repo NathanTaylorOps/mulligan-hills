@@ -60,3 +60,6 @@ Do not resume broad feature development until:
 After this gate, implement real per-hole world placement before expanding RPG/content scope.
 
 | Multi-hole physical world placement | FIXED/PARTIAL | Craft course v2 persists distinct origins; new 192 m live worlds derive parcel geometry from world size; new finalization uses per-hole origins; built geometry overlap is rejected; legacy v1 drafts migrate; legacy 128 m unfinalized terrain expands losslessly; legacy stacked finalized courses remain readable. Runtime verification and authored-course customer routing remain open. |
+
+| Authored golfer world route | FIXED/PENDING RUNTIME | Session now owns validated persisted hole origins separately from rating geometry. Finalization activates them, restore reloads them, and vertical-slice tee/green/feature/tree rendering uses the same origins. Added route and checkpoint regressions. |
+| GitHub Actions startup | EXTERNAL BLOCKER | Latest inspected CI run at fcc358ef88455ad7b3bec2d11abb4e4d3f492f8f created a job but failed in ~2 seconds with runner_id 0, blank runner name and zero steps. Repository code/tests never started. |
