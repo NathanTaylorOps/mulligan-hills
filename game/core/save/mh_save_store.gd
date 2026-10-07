@@ -154,9 +154,6 @@ func _commit(slot: int, work: Dictionary, blob: PackedByteArray) -> MHSaveResult
 	# Heal that recoverable pair before rotating another blob generation, or a second failed save can overwrite
 	# the only matching backup and leave the slot unloadable.
 	_heal_existing_pair(slot)
-	eerr = OK
-	if eerr != OK:
-		return MHSaveResult.failure(MHSaveResult.Code.IO_ERROR, "cannot create save directory (%d)" % eerr)
 	if blob.size() > 0:
 		var bpath: String = blob_path(slot)
 		if MHSaveFile.read_all(bpath) != blob:
