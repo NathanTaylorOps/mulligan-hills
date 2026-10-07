@@ -1,6 +1,6 @@
 # Golfer and club RPG: scope reconciliation
 
-Status: 5 October 2026. Nathan approved “must ship” after reviewing PROP-11–14. Requirements are now locked as DEC-072–075. New mechanics NOT IMPLEMENTED. Those entries explicitly amend the scope/cut/campaign decisions; numerical mechanics and the final career milestone remain proposed/open.
+Status: requirements locked by DEC-072–075 after scope reconciliation on 5 October 2026. New mechanics NOT IMPLEMENTED. Those entries explicitly amend the scope/cut/campaign decisions; numerical mechanics and the final career milestone remain proposed/open.
 
 ## Product intent
 
@@ -37,7 +37,7 @@ The following original proposal text is retained for rationale. Launch classific
 
 Amend DEC-014/039 to treat a create-and-control golfer career, attribute training, play on the built course, personal tournament participation and NPC private matches as launch requirements. Preserve tournament hosting and its building gates (DEC-010/027). Personal golf is no longer the first cut among later additions. Re-estimate delivery only after the one-hole control prototype; do not carry forward an old schedule as if this is free scope.
 
-Tradeoff: this materially increases implementation, mobile controls, saves and testing. Nathan’s intended game needs this identity; a narrower course-only launch would be a different product. This proposal adds scope openly rather than claiming the systems were already implemented. If scope must stay fixed in size, Nathan must select replacements explicitly; no features are removed here.
+Tradeoff: this materially increases implementation, mobile controls, saves and testing. the intended product needs this identity; a narrower course-only launch would be a different product. This proposal adds scope openly rather than claiming the systems were already implemented. If scope must stay fixed in size, Nathan must select replacements explicitly; no features are removed here.
 
 ### PROP-12: living club and delegated work
 
@@ -53,7 +53,7 @@ Retain the about-50-hour working target and 25-minute day, but expand the campai
 
 ## Recommended first playable slice
 
-1. Create a procedural golfer, save the look, then aim and play one saved player-built hole. Provide a novice-safe line and optional risk. Confirm controls on Nathan’s S22 Ultra before adding many modes.
+1. Create a procedural golfer, save the look, then aim and play one saved player-built hole. Provide a novice-safe line and optional risk. Confirm controls on the baseline physical Android device before adding many modes.
 2. Give a short accuracy challenge and a completed-hole result meaningful, bounded training progress. Show precisely what improved. Persist progress and resume the round safely.
 3. Challenge one fictional rival on that hole. Accept the stake up front, then play; settle once, with replay/reload protection. Practice remains free. A loss must not bypass the existing recovery rules.
 4. Unlock and visibly apply one trophy/course decoration and one building appearance. Prove a save/reload retains ownership and selection without changing tier or score.
