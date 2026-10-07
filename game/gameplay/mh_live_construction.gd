@@ -497,8 +497,8 @@ func _open_craft_hole() -> void:
 	# Finish any pending world->craft synchronization before showing the exact
 	# editor. Both editor entrances now display the same terrain.
 	_sync_craft_from_world_dirty()
-	var draft: Dictionary = canonical_craft_draft()
-	if not draft.is_empty() and not one_hole.set_canonical_draft(draft):
-		_status.text = "Craft hole is not valid enough to finalize yet."
-		return
+	# Even an invalid unfinished draft must open in *editing* mode with
+	# Build/Repair available. Previously a failed converter left _preview_draft
+	# false and made the player think Finalize had vanished.
+	one_hole.enter_craft_draft()
 	one_hole.open()
