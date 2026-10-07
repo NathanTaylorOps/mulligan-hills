@@ -1425,16 +1425,34 @@ func _screen_ground_hit(pos: Vector2, layout: Dictionary) -> Dictionary:
 			return {"ok": false}
 		return {"ok": true, "hit": origin + direction * flat_distance}
 	var relief_hole: MHRHole = MHRHole.from_def(layout)
-	# Bracket the full craft elevation range, then intersect the ray with the
-	# authoritative bilinear heightfield. This keeps screen picking aligned with
-	# visible hills instead of pretending every edit happens on y=0.
-	var low_t: float = 0.0
+	# Height along a camera ray is not monotonic relative to rolling terrain: a
+	# ray can touch a raised crest, pass back above a valley, then hit flat ground
+	# farther away. First walk the ray from the camera to find the *first* sign
+	# change, then bisect only that bracket. A whole-range binary search can skip
+	# the crest and select the later intersection.
 	var low_plane: float = -40.0 # Below the rating schema minimum relief (-32.768 m).
-	var high_t: float = (low_plane - origin.y) / direction.y
-	if high_t <= 0.0:
+	var max_t: float = (low_plane - origin.y) / direction.y
+	if max_t <= 0.0:
+		return {"ok": false}
+	var steps: int = 128
+	var above_t: float = 0.0
+	var hit_t: float = -1.0
+	for i: int in range(1, steps + 1):
+		var sample_t: float = max_t * float(i) / float(steps)
+		var sample: Vector3 = origin + direction * sample_t
+		var local_x_mm: int = roundi(sample.x * 1000.0) - int(ORIGIN[0]) * 100
+		var local_y_mm: int = roundi(sample.z * 1000.0) - int(ORIGIN[1]) * 100
+		var x_cy: int = MHRMath.rdiv(local_x_mm * 1000, 9144)
+		var y_cy: int = MHRMath.rdiv(local_y_mm * 1000, 9144)
+		var ground: float = float(relief_hole.z_at(x_cy, y_cy)) / 1000.0
+		if sample.y <= ground:
+			hit_t = sample_t
+			break
+		above_t = sample_t
+	if hit_t < 0.0:
 		return {"ok": false}
 	for _i: int in range(20):
-		var mid_t: float = (low_t + high_t) * 0.5
+		var mid_t: float = (above_t + hit_t) * 0.5
 		var point: Vector3 = origin + direction * mid_t
 		var local_x_mm: int = roundi(point.x * 1000.0) - int(ORIGIN[0]) * 100
 		var local_y_mm: int = roundi(point.z * 1000.0) - int(ORIGIN[1]) * 100
@@ -1442,10 +1460,10 @@ func _screen_ground_hit(pos: Vector2, layout: Dictionary) -> Dictionary:
 		var y_cy: int = MHRMath.rdiv(local_y_mm * 1000, 9144)
 		var ground: float = float(relief_hole.z_at(x_cy, y_cy)) / 1000.0
 		if point.y > ground:
-			low_t = mid_t
+			above_t = mid_t
 		else:
-			high_t = mid_t
-	return {"ok": true, "hit": origin + direction * high_t}
+			hit_t = mid_t
+	return {"ok": true, "hit": origin + direction * hit_t}
 
 
 func _craft_tile_from_screen(pos: Vector2) -> Vector2i:
