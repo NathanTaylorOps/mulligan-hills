@@ -81,7 +81,6 @@ var _aim: MeshInstance3D
 var visual_quality: MHVisualQuality.Tier = MHVisualQuality.automatic()
 var _visual_settings: Dictionary = {}
 var mowing_design: MHMowingDesign = MHMowingDesign.new()
-const ORIGIN: Array = [480, 340]
 
 func setup(scene: MHLiveConstruction) -> void:
 	live = scene
@@ -1815,7 +1814,8 @@ func _position(cx: int, cy: int, height: float) -> Vector3:
 
 func _active_play_origin() -> Vector2i:
 	if live == null:
-		return Vector2i(int(ORIGIN[0]), int(ORIGIN[1]))
+		var fallback: Array = MHCraftCourse.default_origin(0)
+		return Vector2i(int(fallback[0]), int(fallback[1]))
 	var rows: Array = (live.document.get("course", {}) as Dictionary).get("holes", []) as Array
 	var index: int = _active_play_index()
 	if index >= 0 and index < rows.size() and typeof(rows[index]) == TYPE_DICTIONARY:
