@@ -138,3 +138,17 @@ func _input(event: InputEvent) -> void:
 			if sc2 != null and is_instance_valid(sc2):
 				sc2.scroll_vertical = sc2.scroll_vertical - int(g.relative.y)
 				sc2.scroll_horizontal = sc2.scroll_horizontal - int(g.relative.x)
+
+
+func _clear_contacts() -> void:
+	for value: Variant in _down.values():
+		var row: Dictionary = value as Dictionary
+		var b: Button = _live_button(row.get("button", null))
+		if b != null:
+			b.modulate = Color(1, 1, 1, 1)
+	_down.clear()
+
+
+func _notification(what: int) -> void:
+	if what == NOTIFICATION_APPLICATION_PAUSED or what == NOTIFICATION_APPLICATION_FOCUS_OUT or what == NOTIFICATION_WM_WINDOW_FOCUS_OUT:
+		_clear_contacts()
