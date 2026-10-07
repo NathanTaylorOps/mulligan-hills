@@ -73,21 +73,7 @@ func set_hole_origins_dm(origins: Array) -> bool:
 
 
 func hole_world_points_m() -> Array:
-	var out: Array = []
-	if _hole_origins_dm.size() != _holes.size():
-		return out
-	for i: int in range(_holes.size()):
-		var h: Dictionary = _holes[i] as Dictionary
-		var origin: Array = _hole_origins_dm[i] as Array
-		var tee: Array = h["tee"] as Array
-		var green: Array = h["green"] as Array
-		out.append({"slot_id": int(h["slot_id"]),
-			"tee": Vector2(float(MHCourseLayout.world_mm(int(origin[0]), int(tee[0]) * 100)) / 1000.0,
-				float(MHCourseLayout.world_mm(int(origin[1]), int(tee[1]) * 100)) / 1000.0),
-			"green": Vector2(float(MHCourseLayout.world_mm(int(origin[0]), int(green[0]) * 100)) / 1000.0,
-				float(MHCourseLayout.world_mm(int(origin[1]), int(green[1]) * 100)) / 1000.0),
-			"green_radius_m": float(int(green[2])) * 0.9144})
-	return out
+	return MHCourseSpatial.course_points_m(_holes, _hole_origins_dm)
 
 
 ## Checkpoint restore re-rates designs without charging construction or granting achievement rewards.
