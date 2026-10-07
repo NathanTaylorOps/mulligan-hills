@@ -544,7 +544,11 @@ func craft_hole_count() -> int:
 func canonical_craft_draft(round_no: int = 0) -> Dictionary:
 	if craft_hole == null:
 		return {}
-	return MHCraftConvert.to_hole_def(craft_hole, 0, 0, round_no)
+	var slot: int = 0 if craft_course == null else craft_course.active_index
+	return MHCraftConvert.to_hole_def(craft_hole, slot, 0, round_no)
+
+func canonical_craft_course(round_no: int = 0) -> Array:
+	return [] if craft_course == null else craft_course.valid_hole_defs(round_no)
 
 func _open_craft_hole() -> void:
 	# A loaded finalized hole remains authoritative. Until an inverse layout->craft codec exists,
