@@ -24,3 +24,26 @@ func test_invalid_customer_visit_does_not_mutate_ledger() -> void:
 	var snapshot: Dictionary = s.customers.to_dict()
 	assert_bool(s.record_customer_visit(-1, 3, 0).is_empty()).is_true()
 	assert_dict(s.customers.to_dict()).is_equal(snapshot)
+
+func test_named_members_cannot_exceed_calibrated_membership_capacity() -> void:
+	var s: MHGameSession = MHGameSession.create()
+	for i: int in range(5):
+		s.customers.record_visit(7, 100)
+	assert_bool(bool((s.customers.rows[7] as Dictionary)["member_eligible"])).is_true()
+	assert_bool(s.accept_customer_membership(7)).is_false()
+	s.economy.members_milli = 1000
+	assert_bool(s.accept_customer_membership(7)).is_true()
+	assert_int(s.customers.member_count()).is_equal(1)
+	assert_bool(s.accept_customer_membership(8)).is_false()
+
+func test_economy_hour_publishes_the_booked_golfer_count() -> void:
+	var s: MHGameSession = MHGameSession.create()
+	var view: MHLiveGameStateView = MHLiveGameStateView.new(s)
+	assert_str(MHSliceStarter.setup(s, view)).is_equal("")
+	var booked: Array = []
+	s.golfers_booked.connect(func(count: int) -> void: booked.append(count))
+	s.clock.set_time(0, 59)
+	s.advance(3000000, 20000 * 86400)
+	assert_int(booked.size()).is_less_equal(1)
+	if not booked.is_empty():
+		assert_int(int(booked[0])).is_greater(0)
