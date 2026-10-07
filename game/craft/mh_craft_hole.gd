@@ -353,3 +353,111 @@ func count_surface(s: int) -> int:
 		if int(surface[i]) == s:
 			n += 1
 	return n
+
+
+# ---------------------------------------------------------------- persistence
+
+func to_dict() -> Dictionary:
+	var surfaces: Array = []
+	var heights: Array = []
+	for i: int in range(surface.size()):
+		surfaces.append(int(surface[i]))
+		heights.append(int(height_mm[i]))
+	var tee_rows: Array = []
+	for value: Variant in tees:
+		var p: Vector2i = value as Vector2i
+		tee_rows.append([p.x, p.y])
+	var pin_rows: Array = []
+	for value: Variant in pins:
+		var p: Vector2i = value as Vector2i
+		pin_rows.append([p.x, p.y])
+	var tree_rows: Array = []
+	for value: Variant in trees:
+		var p: Vector2i = value as Vector2i
+		tree_rows.append([p.x, p.y])
+	return {
+		"v": 1,
+		"cols": cols,
+		"rows": rows,
+		"surface": surfaces,
+		"height_mm": heights,
+		"tees": tee_rows,
+		"pins": pin_rows,
+		"trees": tree_rows,
+		"rocks": rocks,
+		"flowers": flowers,
+	}
+
+
+static func from_dict(raw: Variant) -> MHCraftHole:
+	if typeof(raw) != TYPE_DICTIONARY:
+		return null
+	var d: Dictionary = raw as Dictionary
+	for key: String in ["v", "cols", "rows", "surface", "height_mm", "tees", "pins", "trees", "rocks", "flowers"]:
+		if not d.has(key):
+			return null
+	if not MHRValidate.is_int_value(d["v"]) or int(d["v"]) != 1:
+		return null
+	if not MHRValidate.is_int_value(d["cols"]) or not MHRValidate.is_int_value(d["rows"]):
+		return null
+	var p_cols: int = int(d["cols"])
+	var p_rows: int = int(d["rows"])
+	if p_cols < 2 or p_cols > 600 or p_cols % 2 != 0 or p_rows < 2 or p_rows > 600:
+		return null
+	if typeof(d["surface"]) != TYPE_ARRAY or typeof(d["height_mm"]) != TYPE_ARRAY:
+		return null
+	var surfaces: Array = d["surface"] as Array
+	var heights: Array = d["height_mm"] as Array
+	if surfaces.size() != p_cols * p_rows or heights.size() != p_cols * p_rows:
+		return null
+	var out: MHCraftHole = MHCraftHole.new(p_cols, p_rows)
+	for i: int in range(surfaces.size()):
+		if not MHRValidate.is_int_value(surfaces[i]) or int(surfaces[i]) < 0 or int(surfaces[i]) >= SURFACE_COUNT:
+			return null
+		if not MHRValidate.is_int_value(heights[i]) or int(heights[i]) < HEIGHT_MIN_M * 1000 or int(heights[i]) > HEIGHT_MAX_M * 1000:
+			return null
+		out.surface[i] = int(surfaces[i])
+		out.height_mm[i] = int(heights[i])
+		out.height_m[i] = MHRMath.rdiv(int(heights[i]), 1000)
+	if not _load_tile_points(d["tees"], out, true) or not _load_tile_points(d["pins"], out, false):
+		return null
+	if typeof(d["trees"]) != TYPE_ARRAY or (d["trees"] as Array).size() > MAX_TREES:
+		return null
+	for value: Variant in d["trees"] as Array:
+		if typeof(value) != TYPE_ARRAY or (value as Array).size() != 2:
+			return null
+		var a: Array = value as Array
+		if not MHRValidate.is_int_value(a[0]) or not MHRValidate.is_int_value(a[1]):
+			return null
+		out.trees.append(Vector2i(int(a[0]), int(a[1])))
+	if not MHRValidate.is_int_value(d["rocks"]) or not MHRValidate.is_int_value(d["flowers"]):
+		return null
+	out.rocks = int(d["rocks"])
+	out.flowers = int(d["flowers"])
+	if out.rocks < 0 or out.rocks > 1500 or out.flowers < 0 or out.flowers > 1500:
+		return null
+	out.clear_history()
+	return out
+
+
+static func _load_tile_points(raw: Variant, out: MHCraftHole, tee_points: bool) -> bool:
+	if typeof(raw) != TYPE_ARRAY:
+		return false
+	var rows_in: Array = raw as Array
+	var limit: int = MAX_TEES if tee_points else MAX_PINS
+	if rows_in.size() > limit:
+		return false
+	var target: Array = out.tees if tee_points else out.pins
+	var seen: Dictionary = {}
+	for value: Variant in rows_in:
+		if typeof(value) != TYPE_ARRAY or (value as Array).size() != 2:
+			return false
+		var a: Array = value as Array
+		if not MHRValidate.is_int_value(a[0]) or not MHRValidate.is_int_value(a[1]):
+			return false
+		var p: Vector2i = Vector2i(int(a[0]), int(a[1]))
+		if not out.in_bounds(p.x, p.y) or seen.has(p):
+			return false
+		seen[p] = true
+		target.append(p)
+	return true
