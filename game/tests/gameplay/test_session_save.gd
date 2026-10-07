@@ -189,6 +189,38 @@ func test_live_scene_routes_pause_paint_history_purchase_and_reload() -> void:
 	scene._active = false
 
 
+func test_unfinalized_craft_draft_survives_cold_reopen_exactly() -> void:
+	var scene: MHLiveConstruction = MHLiveConstruction.new()
+	scene.store = MHSaveStore.new(DIR)
+	scene.ledger_dir = LEDGERS
+	add_child(scene)
+	assert_bool(scene._active).is_true()
+	scene.craft_hole.paint_tile(4, 5, MHCraftHole.Surface.OUT_OF_BOUNDS)
+	scene.craft_hole.paint_tile(8, 12, MHCraftHole.Surface.WATER)
+	scene.craft_hole.set_height_mm_tile(8, 12, 650)
+	scene.craft_hole.tees.clear()
+	scene.craft_hole.add_tee(12, 1)
+	scene.craft_hole.pins.clear()
+	scene.craft_hole.add_pin(11, 30)
+	scene.craft_hole.add_pin(12, 31)
+	var expected: Dictionary = scene.craft_hole.to_dict()
+	assert_bool(scene.save_now()).is_true()
+	assert_int(int(scene.document["min_reader_version"])).is_equal(4)
+	scene._active = false
+	scene.queue_free()
+	await get_tree().process_frame
+
+	var reopened: MHLiveConstruction = auto_free(MHLiveConstruction.new())
+	reopened.store = MHSaveStore.new(DIR)
+	reopened.ledger_dir = LEDGERS
+	add_child(reopened)
+	assert_bool(reopened._active).is_true()
+	assert_dict(reopened.craft_hole.to_dict()).is_equal(expected)
+	assert_int(reopened.craft_hole.get_height_mm(8, 12)).is_equal(650)
+	assert_int(reopened.craft_hole.get_surface(4, 5)).is_equal(MHCraftHole.Surface.OUT_OF_BOUNDS)
+	reopened._active = false
+
+
 func test_live_scene_finalization_can_save_and_reload_practice() -> void:
 	var scene: MHLiveConstruction = auto_free(MHLiveConstruction.new())
 	scene.store = MHSaveStore.new(DIR)
