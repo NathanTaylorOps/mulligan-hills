@@ -519,3 +519,16 @@ func test_visual_quality_tiers_preserve_gameplay() -> void:
 	assert_bool(bool(low["shadows"])).is_false()
 	assert_bool(bool(medium["shadows"])).is_true()
 	assert_str(MHVisualQuality.name_for(MHVisualQuality.Tier.HIGH)).is_equal("High")
+
+
+func test_course_dressing_meshes_fit_mobile_budgets() -> void:
+	for kind: String in ["bush", "rock_cluster", "flower_patch", "reeds"]:
+		for lod: int in range(MHNatureMeshes.LOD_COUNT):
+			var mesh: ArrayMesh = MHNatureMeshes.build(kind, lod, 0)
+			assert_bool(mesh.get_surface_count() > 0).is_true()
+			assert_int(MHMeshBuilder.mesh_tri_count(mesh)).is_less_equal(MHNatureMeshes.budget(kind, lod))
+	for kind: String in ["flag", "tee_marker", "sign", "bench", "bin"]:
+		for lod: int in range(MHPropMeshes.LOD_COUNT):
+			var mesh: ArrayMesh = MHPropMeshes.build(kind, lod, 0)
+			assert_bool(mesh.get_surface_count() > 0).is_true()
+			assert_int(MHMeshBuilder.mesh_tri_count(mesh)).is_less_equal(MHPropMeshes.budget(kind, lod))
