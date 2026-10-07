@@ -1,5 +1,7 @@
 # Workstream E: Gestures (touch camera vs brush painting)
 
+> **Historical Phase 0 record.** This file captures the initial touch-gesture proof. Current interaction acceptance should be evaluated against the live editor and `docs/verification/DEVICE_TESTING.md`.
+
 Status: code and tests WRITTEN. NOT YET RUN. Nothing here has been executed, parsed by Godot, or tried on a device.
 
 ## README block
