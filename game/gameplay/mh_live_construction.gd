@@ -161,7 +161,7 @@ func _ready() -> void:
 		else: shell.trigger_region(id))
 	# The status label sits in a container with a real width (an autowrap Label directly under a CanvasLayer has
 	# zero width and wraps one character per line) and is limited to MHLiveLayout.STATUS_LINES lines.
-	_status = MHUIKit.label("Live construction: ground edits are separate from the exact Build / play one hole layout.", &"SmallLabel")
+	_status = MHUIKit.label("Live construction: world terrain and Build / play one hole now share the same ground.", &"SmallLabel")
 	_status.max_lines_visible = MHLiveLayout.STATUS_LINES
 	_status.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 	_status_zone.add_child(_status)
