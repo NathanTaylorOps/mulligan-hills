@@ -1,5 +1,7 @@
 # Results Form (copy this file, fill it in, name it YYYY-MM-DD_device_test.md)
 
+> **Historical Phase 0 record.** This template belongs to the original proof stage. Current evidence requirements are defined in `docs/VERIFICATION.md` and the runbooks under `docs/verification/`.
+
 One form per test run (one phone, one renderer, one tier, one mode). Do not edit numbers after the fact. If something is unknown write "unknown". Steps are in `device_runbook.md`. Field names in `code style` are the exact lines on the benchmark results screen. Type your own numbers in; photos alone are not enough.
 
 Which phone: one form per phone. Section 1 says which (A = Samsung Galaxy S22 Ultra, B = low-end Android). Sections 2 to 13 are the same for both; the pass rule in section 7 differs.
