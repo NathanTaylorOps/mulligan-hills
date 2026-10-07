@@ -23,6 +23,8 @@ var _craft_stroke_open: bool = false
 var _craft_last_tile: Vector2i = Vector2i(-1, -1)
 var _craft_level_height: int = 0
 var _craft_tool_buttons: Dictionary = {}
+var _craft_tools: HFlowContainer
+var _design_tools: HFlowContainer
 var _craft_preview_dirty: bool = false
 ## Header only (body hidden). Layout is recomputed by the scene on `layout_changed`.
 var collapsed: bool = false
@@ -60,36 +62,36 @@ func setup(scene: MHLiveConstruction) -> void:
 	_feedback = MHUIKit.label("Tap the course to aim. Play shot is a separate confirmation.")
 	_feedback.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	content.add_child(_feedback)
-	var craft_tools: HFlowContainer = MHUIKit.flow(6)
-	content.add_child(craft_tools)
-	_surface_button(craft_tools, "Rough", MHCraftHole.Surface.ROUGH)
-	_surface_button(craft_tools, "Fairway", MHCraftHole.Surface.FAIRWAY)
-	_surface_button(craft_tools, "First cut", MHCraftHole.Surface.FIRST_CUT)
-	_surface_button(craft_tools, "Deep rough", MHCraftHole.Surface.DEEP_ROUGH)
-	_surface_button(craft_tools, "Green", MHCraftHole.Surface.GREEN)
-	_surface_button(craft_tools, "Fringe", MHCraftHole.Surface.FRINGE)
-	_surface_button(craft_tools, "Tee grass", MHCraftHole.Surface.TEE)
-	_surface_button(craft_tools, "Bunker", MHCraftHole.Surface.BUNKER)
-	_surface_button(craft_tools, "Waste", MHCraftHole.Surface.WASTE)
-	_surface_button(craft_tools, "Water", MHCraftHole.Surface.WATER)
-	_surface_button(craft_tools, "Out of bounds", MHCraftHole.Surface.OUT_OF_BOUNDS)
-	_surface_button(craft_tools, "Path", MHCraftHole.Surface.PATH)
-	_surface_button(craft_tools, "Dirt", MHCraftHole.Surface.DIRT)
-	_mode_button(craft_tools, "Raise", &"raise")
-	_mode_button(craft_tools, "Lower", &"lower")
-	_mode_button(craft_tools, "Smooth", &"smooth")
-	_mode_button(craft_tools, "Level", &"level")
-	_mode_button(craft_tools, "Place tee", &"tee")
-	_mode_button(craft_tools, "Place pin", &"pin")
-	_button(craft_tools, "Undo craft", _craft_undo)
-	_button(craft_tools, "Redo craft", _craft_redo)
-	var design: HFlowContainer = MHUIKit.flow(6)
-	content.add_child(design)
+	_craft_tools = MHUIKit.flow(6)
+	content.add_child(_craft_tools)
+	_surface_button(_craft_tools, "Rough", MHCraftHole.Surface.ROUGH)
+	_surface_button(_craft_tools, "Fairway", MHCraftHole.Surface.FAIRWAY)
+	_surface_button(_craft_tools, "First cut", MHCraftHole.Surface.FIRST_CUT)
+	_surface_button(_craft_tools, "Deep rough", MHCraftHole.Surface.DEEP_ROUGH)
+	_surface_button(_craft_tools, "Green", MHCraftHole.Surface.GREEN)
+	_surface_button(_craft_tools, "Fringe", MHCraftHole.Surface.FRINGE)
+	_surface_button(_craft_tools, "Tee grass", MHCraftHole.Surface.TEE)
+	_surface_button(_craft_tools, "Bunker", MHCraftHole.Surface.BUNKER)
+	_surface_button(_craft_tools, "Waste", MHCraftHole.Surface.WASTE)
+	_surface_button(_craft_tools, "Water", MHCraftHole.Surface.WATER)
+	_surface_button(_craft_tools, "Out of bounds", MHCraftHole.Surface.OUT_OF_BOUNDS)
+	_surface_button(_craft_tools, "Path", MHCraftHole.Surface.PATH)
+	_surface_button(_craft_tools, "Dirt", MHCraftHole.Surface.DIRT)
+	_mode_button(_craft_tools, "Raise", &"raise")
+	_mode_button(_craft_tools, "Lower", &"lower")
+	_mode_button(_craft_tools, "Smooth", &"smooth")
+	_mode_button(_craft_tools, "Level", &"level")
+	_mode_button(_craft_tools, "Place tee", &"tee")
+	_mode_button(_craft_tools, "Place pin", &"pin")
+	_button(_craft_tools, "Undo craft", _craft_undo)
+	_button(_craft_tools, "Redo craft", _craft_redo)
+	_design_tools = MHUIKit.flow(6)
+	content.add_child(_design_tools)
 	# The old rectangular Length/Narrow/Side-water controls modified a parallel
 	# prototype representation, not the authoritative MHCraftHole. Keeping them
 	# visible made them look functional while they could not change the craft
 	# course. Canonical craft is now the only authoring path.
-	_button(design, "Finalize hole", _finalize)
+	_button(_design_tools, "Finalize hole", _finalize)
 	var shots: HFlowContainer = MHUIKit.flow(6)
 	content.add_child(shots)
 	_button(shots, "Aim at cup", _aim_cup)
@@ -104,8 +106,16 @@ func setup(scene: MHLiveConstruction) -> void:
 	var layouts: Array = live.session.hole_definitions()
 	if not layouts.is_empty():
 		_sync_legacy_controls(layouts[0] as Dictionary)
+	_sync_mode_controls()
 	_describe()
 	hide()
+
+
+func _sync_mode_controls() -> void:
+	if _craft_tools != null:
+		_craft_tools.visible = _preview_draft
+	if _design_tools != null:
+		_design_tools.visible = _preview_draft
 
 
 func _process(_delta: float) -> void:
@@ -136,6 +146,7 @@ func close_preview() -> void:
 
 func open() -> void:
 	set_collapsed(false)
+	_sync_mode_controls()
 	live.router.cancel_world_input()
 	if live.aim_input != null:
 		live.aim_input.taps.clear()
@@ -197,6 +208,7 @@ func set_canonical_draft(layout: Dictionary) -> bool:
 		return false
 	canonical_draft = layout.duplicate(true)
 	_preview_draft = true
+	_sync_mode_controls()
 	if _world != null:
 		_draw()
 		_describe()
@@ -242,6 +254,7 @@ func _refresh_canonical_craft() -> void:
 	else:
 		canonical_draft.clear()
 		_preview_draft = true
+		_sync_mode_controls()
 		var labels: PackedStringArray = PackedStringArray()
 		for problem: Variant in problems:
 			labels.append(str(problem))
@@ -291,6 +304,7 @@ func _finalize() -> void:
 		return
 	_preview_draft = false
 	canonical_draft.clear()
+	_sync_mode_controls()
 	live.document["course"] = encoded.value
 	live.document["min_reader_version"] = 3
 	live.session.practice = null # A redesign cannot continue a round on a previous layout.
@@ -309,6 +323,7 @@ func _restart() -> void:
 		return
 	_preview_draft = false
 	canonical_draft.clear()
+	_sync_mode_controls()
 	var current: Dictionary = layouts[0]
 	_sync_legacy_controls(current)
 	live.session.practice = MHPracticeRound.create(layouts[0] as Dictionary,
