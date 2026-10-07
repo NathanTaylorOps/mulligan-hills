@@ -67,7 +67,11 @@ func set_hole_origins_dm(origins: Array) -> bool:
 		var point: Array = value as Array
 		if not MHRValidate.is_int_value(point[0]) or not MHRValidate.is_int_value(point[1]):
 			return false
-		clean.append([int(point[0]), int(point[1])])
+		var x: int = int(point[0])
+		var y: int = int(point[1])
+		if x < 0 or x > 65535 or y < 0 or y > 65535:
+			return false
+		clean.append([x, y])
 	_hole_origins_dm = clean
 	return true
 
