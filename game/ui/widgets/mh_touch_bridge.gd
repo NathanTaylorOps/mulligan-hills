@@ -77,17 +77,27 @@ func _button_at(pos: Vector2) -> Button:
 	return cands[i] as Button
 
 
-func _scroll_at(pos: Vector2) -> ScrollContainer:
-	var found: ScrollContainer = null
+func _scroll_targets_at(pos: Vector2) -> Dictionary:
+	# A horizontal material tray can live inside a vertically scrolling editor.
+	# Keep one deepest eligible target per axis so a diagonal finger drag can move
+	# both without making two nested containers fight over the same axis.
+	var horizontal: ScrollContainer = null
+	var vertical: ScrollContainer = null
 	for n: Node in get_tree().get_nodes_in_group(MHScrollBox.GROUP):
-		var s: ScrollContainer = n as ScrollContainer
-		if s == null or not s.is_visible_in_tree():
+		var candidate: ScrollContainer = n as ScrollContainer
+		if candidate == null or not candidate.is_visible_in_tree():
 			continue
-		if scope != null and scope != s and not scope.is_ancestor_of(s):
+		if scope != null and scope != candidate and not scope.is_ancestor_of(candidate):
 			continue
-		if s.get_global_rect().has_point(pos):
-			found = s
-	return found
+		if not candidate.get_global_rect().has_point(pos):
+			continue
+		if candidate.horizontal_scroll_mode != ScrollContainer.SCROLL_MODE_DISABLED:
+			if horizontal == null or horizontal.is_ancestor_of(candidate):
+				horizontal = candidate
+		if candidate.vertical_scroll_mode != ScrollContainer.SCROLL_MODE_DISABLED:
+			if vertical == null or vertical.is_ancestor_of(candidate):
+				vertical = candidate
+	return {"horizontal": horizontal, "vertical": vertical}
 
 
 static func _live_button(v: Variant) -> Button:
@@ -107,8 +117,14 @@ func _input(event: InputEvent) -> void:
 		var t: InputEventScreenTouch = event
 		if t.pressed:
 			var b: Button = _button_at(t.position)
-			var sc: ScrollContainer = _scroll_at(t.position)
-			_down[t.index] = {"button": b, "start": t.position, "moved": false, "scroll": sc}
+			var scrolls: Dictionary = _scroll_targets_at(t.position)
+			_down[t.index] = {
+				"button": b,
+				"start": t.position,
+				"moved": false,
+				"h_scroll": scrolls["horizontal"],
+				"v_scroll": scrolls["vertical"],
+			}
 			if b != null:
 				b.modulate = Color(0.86, 0.86, 0.86, 1.0)
 				get_viewport().set_input_as_handled()
@@ -135,10 +151,12 @@ func _input(event: InputEvent) -> void:
 			if b2 != null and is_instance_valid(b2):
 				b2.modulate = Color(1, 1, 1, 1)
 		if bool(d2["moved"]) and manual_scroll:
-			var sc2: ScrollContainer = _live_scroll(d2["scroll"])
-			if sc2 != null and is_instance_valid(sc2):
-				sc2.scroll_vertical = sc2.scroll_vertical - int(g.relative.y)
-				sc2.scroll_horizontal = sc2.scroll_horizontal - int(g.relative.x)
+			var h_scroll: ScrollContainer = _live_scroll(d2.get("h_scroll", null))
+			var v_scroll: ScrollContainer = _live_scroll(d2.get("v_scroll", null))
+			if h_scroll != null:
+				h_scroll.scroll_horizontal = h_scroll.scroll_horizontal - int(g.relative.x)
+			if v_scroll != null:
+				v_scroll.scroll_vertical = v_scroll.scroll_vertical - int(g.relative.y)
 
 
 func _clear_contacts() -> void:
