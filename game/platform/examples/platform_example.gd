@@ -54,10 +54,11 @@ func _add_button(parent: Node, text: String, cb: Callable) -> void:
 	parent.add_child(b)
 
 func _delete_account() -> void:
-	_account.account_deleted.connect(func(ok: bool, m: String) -> void:
+	var on_deleted: Callable = func(ok: bool, m: String) -> void:
 		_say("account_deleted ok=%s %s" % [ok, m])
 		if ok:
-			MHPlatform.on_account_deleted(_ent, _analytics, false), CONNECT_ONE_SHOT)
+			MHPlatform.on_account_deleted(_ent, _analytics, false)
+	_account.account_deleted.connect(on_deleted, CONNECT_ONE_SHOT)
 	_account.request_account_deletion()
 
 func _say(s: String) -> void:
