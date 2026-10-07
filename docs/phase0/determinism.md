@@ -1,5 +1,7 @@
 # Workstream B: Determinism (Phase 0)
 
+> **Historical Phase 0 record.** This file captures the initial determinism proof plan. Current determinism rules and evidence are in `docs/verification/DETERMINISM.md` and `docs/VERIFICATION.md`.
+
 **Status: Python reference RUN and self-tested. GDScript NOT YET RUN (no Godot binary in the authoring sandbox).**
 
 ## README block
