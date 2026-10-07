@@ -178,7 +178,7 @@ func _ready() -> void:
 	editor.cells_dirty.connect(_terrain_cells_dirty)
 	editor.stroke_ended.connect(_edited)
 	editor.history_applied.connect(_history)
-	editor.stroke_cancelled.connect(func() -> void: view.changed.emit())
+	editor.stroke_cancelled.connect(_terrain_cancelled)
 	session.autosave_requested.connect(_request_save)
 	aim_input = MHPracticeAimInput.new()
 	aim_input.panel = one_hole
@@ -299,6 +299,14 @@ func _on_intent(id: StringName, args: Dictionary) -> void:
 				_request_save()
 			elif _status != null:
 				_status.text = "Action unavailable: " + str(result.get("reason", ""))
+
+func _terrain_cancelled() -> void:
+	# The editor already rolled the world stroke back, and craft was only updated
+	# on commit. Discard the accumulated dirty bridge area rather than re-importing
+	# a stroke that never happened.
+	_terrain_dirty_for_craft = Rect2i()
+	view.changed.emit()
+
 
 func _terrain_cells_dirty(rect: Rect2i) -> void:
 	if _syncing_craft_terrain or not rect.has_area():
