@@ -50,10 +50,14 @@ func setup(p_view: MHGameStateView, p_settings: MHUISettings = null) -> void:
 	if p_settings != null:
 		settings = p_settings
 	ctx.settings = settings
-	set_anchors_preset(Control.PRESET_FULL_RECT)
-	# Full-rect anchors are the authority here. Explicit size assignments on a
-	# non-equal-anchor Control are overwritten by Godot after _ready() and were
-	# producing layout races/warnings on desktop.
+	# The shell is a direct child of CanvasLayer, not a Container. Give it a
+	# viewport-sized, top-left-anchored rect and update that rect on resize. This
+	# avoids depending on FULL_RECT offsets computed during the construction of
+	# child Controls before their parents have entered the tree. Unlike mixing
+	# FULL_RECT anchors with explicit size, this cannot be overridden on _ready().
+	set_anchors_preset(Control.PRESET_TOP_LEFT)
+	position = Vector2.ZERO
+	size = get_viewport_rect().size
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_backdrop = MHUIKit.color_rect(MHTheme.BG)
 	_backdrop.set_anchors_preset(Control.PRESET_FULL_RECT)
@@ -471,6 +475,9 @@ func _rebuild_all() -> void:
 
 
 func _on_resized() -> void:
+	var viewport_size: Vector2 = get_viewport_rect().size
+	if size != viewport_size:
+		size = viewport_size
 	_recompute()
 
 
