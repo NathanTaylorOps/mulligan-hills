@@ -1239,24 +1239,37 @@ func _craft_normal(relief_hole: MHRHole, x: int, y: int) -> Vector3:
 	return Vector3(left - right, run * 2.0, down - up).normalized()
 
 func _craft_material(surface_id: int) -> StandardMaterial3D:
+	# Mobile-first readability: keep materials cheap, but separate turf cuts by
+	# roughness/specular response so fairway, fringe and green remain legible when
+	# their colours compress on a small display. Hazards get a stronger material
+	# identity without textures or extra draw passes.
 	var material: StandardMaterial3D = StandardMaterial3D.new()
 	material.albedo_color = _surface_color(surface_id)
 	material.roughness = 0.92
+	material.specular_mode = BaseMaterial3D.SPECULAR_SCHLICK_GGX
 	match surface_id:
 		MHCraftHole.Surface.GREEN:
-			material.roughness = 0.72
+			material.roughness = 0.58
+			material.metallic_specular = 0.22
+		MHCraftHole.Surface.FRINGE:
+			material.roughness = 0.68
+			material.metallic_specular = 0.16
+		MHCraftHole.Surface.FAIRWAY, MHCraftHole.Surface.TEE:
+			material.roughness = 0.76
+			material.metallic_specular = 0.12
 		MHCraftHole.Surface.BUNKER, MHCraftHole.Surface.WASTE:
 			material.roughness = 1.0
+		MHCraftHole.Surface.PATH, MHCraftHole.Surface.DIRT:
+			material.roughness = 0.88
 		MHCraftHole.Surface.WATER:
-			material.roughness = 0.18
-			material.metallic = 0.08
+			material.roughness = 0.16
+			material.metallic = 0.10
+			material.metallic_specular = 0.45
 			material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
 			var water: Color = material.albedo_color
-			water.a = 0.82
+			water.a = 0.84
 			material.albedo_color = water
 			material.cull_mode = BaseMaterial3D.CULL_DISABLED
-		MHCraftHole.Surface.PATH:
-			material.roughness = 0.86
 	return material
 
 func _draw_craft_tree(point: Vector2i) -> void:
