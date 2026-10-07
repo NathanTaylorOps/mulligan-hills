@@ -119,3 +119,22 @@ func test_look_index_is_stable_and_in_range() -> void:
 			assert_int(a).is_between(0, 11)
 			assert_int(MHSliceSchedule.look_index(serial, member, 12)).is_equal(a)
 	assert_int(MHSliceSchedule.look_index(5, 1, 0)).is_equal(0)
+
+func test_booked_customer_ids_stay_attached_when_split_into_groups() -> void:
+	var sched: MHSliceSchedule = MHSliceSchedule.new()
+	var ids: Array = [11, 22, 33, 44, 55, 66, 77]
+	assert_int(sched.add_booked_golfers(ids.size(), ids)).is_equal(7)
+	assert_int(sched.queue.size()).is_equal(3)
+	var rebuilt: Array = []
+	for row_value: Variant in sched.queue:
+		var row: Dictionary = row_value as Dictionary
+		assert_int((row["customer_ids"] as Array).size()).is_equal(int(row["size"]))
+		rebuilt.append_array(row["customer_ids"] as Array)
+	assert_array(rebuilt).contains_exactly(ids)
+
+func test_booked_queue_does_not_touch_legacy_fractional_carry() -> void:
+	var sched: MHSliceSchedule = MHSliceSchedule.new()
+	sched.carry_milli = 777
+	sched.add_booked_golfers(4, [1, 2, 3, 4])
+	assert_int(sched.carry_milli).is_equal(777)
+	assert_int(sched.waiting_golfers()).is_equal(4)
