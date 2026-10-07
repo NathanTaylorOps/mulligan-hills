@@ -346,7 +346,9 @@ func _sync_mode_controls() -> void:
 	if _validation_hint != null:
 		_validation_hint.visible = not collapsed and _details_open
 	if _hole_prev_button != null:
-		_hole_prev_button.visible = live != null and live.craft_hole_count() > 1
+		# Hole arrows edit the rich craft source; hide them once the course is built.
+		# Built-hole editing needs an explicit canonical->craft workflow and world bridge.
+		_hole_prev_button.visible = _preview_draft and live != null and live.craft_hole_count() > 1
 		_hole_next_button.visible = _hole_prev_button.visible
 	if _details_button != null:
 		_details_button.theme_type_variation = &"SelectedButton" if _details_open else &"ChipButton"
