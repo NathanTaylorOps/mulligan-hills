@@ -40,6 +40,8 @@ static func decode(course: Dictionary) -> MHSaveResult:
 		if not _owned_geometry(course, h["origin_dm"] as Array, layout):
 			return _bad("hole geometry must remain on owned land")
 		layouts.append(layout.duplicate(true))
+	if _holes_overlap(rows):
+		return _bad("hole geometry overlaps another hole")
 	return MHSaveResult.success(layouts)
 
 
@@ -115,6 +117,53 @@ static func _known_layout(h: Dictionary) -> bool:
 			if not f.has("at") and not (f.has("rect") and f.has("count")):
 				return false
 	return true
+
+
+static func _holes_overlap(rows: Array) -> bool:
+	for i: int in range(rows.size()):
+		var a: Dictionary = rows[i] as Dictionary
+		var a_rects: Array = _world_geometry_rects(a["origin_dm"] as Array, a["layout"] as Dictionary)
+		for j: int in range(i + 1, rows.size()):
+			var b: Dictionary = rows[j] as Dictionary
+			var b_rects: Array = _world_geometry_rects(b["origin_dm"] as Array, b["layout"] as Dictionary)
+			for ar_value: Variant in a_rects:
+				var ar: Rect2i = ar_value as Rect2i
+				for br_value: Variant in b_rects:
+					var br: Rect2i = br_value as Rect2i
+					if ar.intersects(br):
+						return true
+	return false
+
+
+## Built geometry only. The rectangular craft grid is an editing envelope, not occupied golf land.
+static func _world_geometry_rects(origin: Array, h: Dictionary) -> Array:
+	var shapes: Array = []
+	var tee: Array = h["tee"] as Array
+	shapes.append([int(tee[0]), int(tee[1]), int(tee[0]), int(tee[1])])
+	var green: Array = h["green"] as Array
+	shapes.append([int(green[0]) - int(green[2]), int(green[1]) - int(green[2]),
+		int(green[0]) + int(green[2]), int(green[1]) + int(green[2])])
+	for value: Variant in h["features"]:
+		var feature: Dictionary = value as Dictionary
+		if feature.has("rect"):
+			shapes.append(feature["rect"])
+		elif feature.has("circle"):
+			var circle: Array = feature["circle"] as Array
+			shapes.append([int(circle[0]) - int(circle[2]), int(circle[1]) - int(circle[2]),
+				int(circle[0]) + int(circle[2]), int(circle[1]) + int(circle[2])])
+		elif feature.has("at"):
+			for point_value: Variant in feature["at"]:
+				var point: Array = point_value as Array
+				shapes.append([int(point[0]), int(point[1]), int(point[0]), int(point[1])])
+	var out: Array = []
+	for value: Variant in shapes:
+		var shape: Array = value as Array
+		var x0: int = int(origin[0]) * 1000 + int(shape[0]) * 9144
+		var y0: int = int(origin[1]) * 1000 + int(shape[1]) * 9144
+		var x1: int = int(origin[0]) * 1000 + int(shape[2]) * 9144
+		var y1: int = int(origin[1]) * 1000 + int(shape[3]) * 9144
+		out.append(Rect2i(x0, y0, maxi(1, x1 - x0 + 1), maxi(1, y1 - y0 + 1)))
+	return out
 
 
 static func _bad(message: String) -> MHSaveResult:
