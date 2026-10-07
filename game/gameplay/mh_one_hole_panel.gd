@@ -67,10 +67,13 @@ var _craft_preview_dirty: bool = false
 var collapsed: bool = false
 signal layout_changed()
 var _aim: MeshInstance3D
+var visual_quality: MHVisualQuality.Tier = MHVisualQuality.automatic()
+var _visual_settings: Dictionary = {}
 const ORIGIN: Array = [480, 340]
 
 func setup(scene: MHLiveConstruction) -> void:
 	live = scene
+	_visual_settings = MHVisualQuality.settings(visual_quality)
 	size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	size_flags_vertical = Control.SIZE_EXPAND_FILL
 	add_theme_constant_override("separation", 6)
@@ -1133,7 +1136,10 @@ func _draw_craft_terrain(hole: MHCraftHole) -> void:
 		instance.mesh = mesh
 		instance.material_override = material
 		_world.add_child(instance)
-	_draw_surface_edges(hole, relief_hole)
+	if bool(_visual_settings.get("edge_accents", true)):
+		_draw_surface_edges(hole, relief_hole)
+	if bool(_visual_settings.get("mowing", true)):
+		_draw_mowing_accents(hole, relief_hole)
 	if _preview_draft and _is_sculpt_mode():
 		_draw_craft_grid(hole, relief_hole)
 	for tee: Variant in hole.tees:
@@ -1163,6 +1169,44 @@ func _append_craft_tile(st: SurfaceTool, relief_hole: MHRHole, hole: MHCraftHole
 
 func _is_sculpt_mode() -> bool:
 	return craft_mode == &"raise" or craft_mode == &"lower" or craft_mode == &"smooth" or craft_mode == &"level"
+
+func _draw_mowing_accents(hole: MHCraftHole, relief_hole: MHRHole) -> void:
+	# One batched, translucent mesh suggests alternating mowing passes without
+	# textures, decals or per-tile nodes. It is presentation-only and deterministic.
+	var st: SurfaceTool = SurfaceTool.new()
+	st.begin(Mesh.PRIMITIVE_TRIANGLES)
+	var added: bool = false
+	for r: int in range(hole.rows):
+		for c: int in range(hole.cols):
+			var surface: int = hole.get_surface(c, r)
+			if surface not in [MHCraftHole.Surface.FAIRWAY, MHCraftHole.Surface.GREEN, MHCraftHole.Surface.TEE]:
+				continue
+			if (c + (r / 4)) % 2 != 0:
+				continue
+			var x0: int = hole.tile_x0_yd(c) * 100
+			var x1: int = (hole.tile_x0_yd(c) + MHCraftHole.TILE_YD) * 100
+			var y0: int = hole.tile_y0_yd(r) * 100
+			var y1: int = (hole.tile_y0_yd(r) + MHCraftHole.TILE_YD) * 100
+			for point: Vector2i in [Vector2i(x0, y0), Vector2i(x1, y0), Vector2i(x1, y1),
+					Vector2i(x0, y0), Vector2i(x1, y1), Vector2i(x0, y1)]:
+				st.set_normal(_craft_normal(relief_hole, point.x, point.y))
+				var z: float = float(relief_hole.z_at(point.x, point.y)) / 1000.0
+				st.add_vertex(_position(point.x, point.y, z + 0.052))
+			added = true
+	if not added:
+		return
+	var mesh: ArrayMesh = st.commit()
+	var material: StandardMaterial3D = StandardMaterial3D.new()
+	material.albedo_color = Color(0.82, 0.95, 0.55, 0.075)
+	material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	material.roughness = 0.78
+	var instance: MeshInstance3D = MeshInstance3D.new()
+	instance.mesh = mesh
+	instance.material_override = material
+	instance.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	_world.add_child(instance)
+
+
 
 
 func _draw_craft_grid(hole: MHCraftHole, relief_hole: MHRHole) -> void:
@@ -1283,8 +1327,10 @@ func _draw_craft_tree(point: Vector2i) -> void:
 	var trunk_pos: Vector3 = _position_on_ground(point.x * 100, point.y * 100, 0.95)
 	_box(trunk_pos, Vector3(0.32, 1.9, 0.32), Color(0.31, 0.21, 0.12))
 	_marker_at(_position_on_ground(point.x * 100, point.y * 100, 2.15), Color(0.13, 0.31, 0.13), 1.18)
-	_marker_at(_position_on_ground(point.x * 100 - 45, point.y * 100 + 20, 2.45), Color(0.17, 0.39, 0.15), 0.78)
-	_marker_at(_position_on_ground(point.x * 100 + 42, point.y * 100 - 18, 2.50), Color(0.20, 0.43, 0.17), 0.72)
+	if int(_visual_settings.get("tree_layers", 2)) >= 2:
+		_marker_at(_position_on_ground(point.x * 100 - 45, point.y * 100 + 20, 2.45), Color(0.17, 0.39, 0.15), 0.78)
+	if int(_visual_settings.get("tree_layers", 2)) >= 3:
+		_marker_at(_position_on_ground(point.x * 100 + 42, point.y * 100 - 18, 2.50), Color(0.20, 0.43, 0.17), 0.72)
 
 func _feature_color(feature_type: String) -> Color:
 	match feature_type:
