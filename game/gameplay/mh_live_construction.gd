@@ -526,10 +526,19 @@ func _default_craft_hole() -> MHCraftHole:
 	return MHCraftCourse.default_hole(0)
 
 func select_craft_hole(index: int) -> bool:
-	if craft_course == null or not craft_course.select(index):
+	if craft_course == null or index < 0 or index >= craft_course.count():
+		return false
+	# Commit any normal-editor changes to the hole that owned the old origin before moving the bridge.
+	_sync_craft_from_world_dirty()
+	if not craft_course.select(index):
 		return false
 	craft_hole = craft_course.active()
 	_terrain_dirty_for_craft = Rect2i()
+	# New holes are authoritative drafts: stamp their own footprint into their distinct world region once.
+	if session.hole_definitions().is_empty():
+		_syncing_craft_terrain = true
+		MHCraftTerrainBridge.sync_to_world(craft_hole, editor, craft_origin_dm(), false)
+		_syncing_craft_terrain = false
 	_request_save()
 	if one_hole != null:
 		one_hole._refresh_canonical_craft()
