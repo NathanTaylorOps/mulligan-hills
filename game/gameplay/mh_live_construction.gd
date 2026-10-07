@@ -74,9 +74,7 @@ func _ready() -> void:
 	chunks = MHTerrainChunks.new()
 	add_child(chunks)
 	chunks.setup(editor.grid, editor.splat, 32)
-	var sun: DirectionalLight3D = DirectionalLight3D.new()
-	sun.rotation_degrees = Vector3(-50, 30, 0)
-	add_child(sun)
+	_setup_course_environment()
 	var cfg: MHCameraConfig = MHCameraConfig.new()
 	cfg.min_distance = 12.0
 	cfg.max_distance = 400.0
@@ -188,6 +186,29 @@ func _ready() -> void:
 	_last_usec = Time.get_ticks_usec()
 	_request_save()
 	_relayout()
+
+func _setup_course_environment() -> void:
+	# Stylised late-morning course light: strong enough to model relief, soft enough
+	# that phone-scale fairways and UI remain readable. Compatibility renderer safe.
+	var environment: WorldEnvironment = WorldEnvironment.new()
+	var env: Environment = Environment.new()
+	env.background_mode = Environment.BG_COLOR
+	env.background_color = Color(0.46, 0.70, 0.88)
+	env.background_energy_multiplier = 0.85
+	env.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
+	env.ambient_light_color = Color(0.72, 0.80, 0.69)
+	env.ambient_light_energy = 0.62
+	env.tonemap_mode = Environment.TONE_MAPPER_FILMIC
+	environment.environment = env
+	add_child(environment)
+	var sun: DirectionalLight3D = DirectionalLight3D.new()
+	sun.rotation_degrees = Vector3(-52, -32, 0)
+	sun.light_color = Color(1.0, 0.93, 0.79)
+	sun.light_energy = 1.15
+	sun.shadow_enabled = true
+	sun.directional_shadow_max_distance = 190.0
+	add_child(sun)
+
 
 func _pick(pos: Vector2) -> Vector2i:
 	return MHPicking.pick(editor.grid, controller.camera.project_ray_origin(pos), controller.camera.project_ray_normal(pos), 1500.0)
