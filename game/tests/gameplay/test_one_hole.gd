@@ -592,6 +592,30 @@ func test_three_default_holes_encode_on_owned_land_without_overlap() -> void:
 	if encoded.is_ok():
 		assert_array(MHCourseLayout.origins(encoded.value as Dictionary)).is_equal(origins)
 
+func test_all_eighteen_default_holes_fit_golf_land_without_overlap() -> void:
+	var session: MHGameSession = MHGameSession.create()
+	var scene: MHLiveConstruction = auto_free(MHLiveConstruction.new())
+	scene.session = session
+	var course_doc: Dictionary = scene._new_document()["course"] as Dictionary
+	# Isolate the geometry contract: only golf parcels count as buildable here.
+	# Facility and homes parcels remain unowned so a default hole cannot depend on them accidentally.
+	for parcel_value: Variant in (course_doc["world"] as Dictionary)["parcels"]:
+		var parcel: Dictionary = parcel_value as Dictionary
+		parcel["owned"] = session.land.kind_of(int(parcel["parcel_id"])) == "golf"
+	var craft: MHCraftCourse = MHCraftCourse.new()
+	craft.ensure_holes(MHCraftCourse.MAX_HOLES)
+	var defs: Array = craft.valid_hole_defs()
+	assert_int(defs.size()).is_equal(MHCraftCourse.MAX_HOLES)
+	var origins: Array = []
+	for i: int in range(craft.count()):
+		var origin: Vector2i = craft.origin(i)
+		origins.append([origin.x, origin.y])
+	var encoded: MHSaveResult = MHCourseLayout.encode(defs, course_doc, origins)
+	assert_bool(encoded.is_ok()).override_failure_message(encoded.message).is_true()
+	if encoded.is_ok():
+		assert_array(MHCourseLayout.origins(encoded.value as Dictionary)).is_equal(origins)
+
+
 func test_course_codec_rejects_overlapping_hole_geometry() -> void:
 	var session: MHGameSession = MHGameSession.create()
 	var scene: MHLiveConstruction = auto_free(MHLiveConstruction.new())
