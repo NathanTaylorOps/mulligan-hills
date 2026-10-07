@@ -482,7 +482,7 @@ Third-party game names referenced in design documents are used for comparative d
 
 ## Repository
 
-urlNathanTaylorOps/mulligan-hillshttps://github.com/NathanTaylorOps/mulligan-hills
+[NathanTaylorOps/mulligan-hills](https://github.com/NathanTaylorOps/mulligan-hills)
 
 ---
 
