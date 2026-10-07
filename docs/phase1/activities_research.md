@@ -1,6 +1,6 @@
 # Between-purchase activities: research and proposal
 
-5 October 2026. Nathan requested mechanics/minigames that fit Mulligan Hills, after approving 25-minute days and an approximately 50-hour campaign. Research complete; proposals NOT IMPLEMENTED. Nathan clarified the intended golfer RPG, playable competition, celebrity residency, wildlife, staffing/maintenance and visual rewards after this first research pass; see `rpg_scope.md`. Nathan subsequently required the clarified RPG systems at launch; DEC-072–075 explicitly amend the frozen scope. Other new ideas still require scope decisions. Durations/effort below are design estimates, not measured playtests. Existing module capability does not mean the playable scene is connected.
+5 October 2026. Research pass on between-purchase mechanics/minigames for the approved 25-minute day and approximately 50-hour campaign. Proposals were not implementation claims. Subsequent scope reconciliation made the personal-golf/living-club RPG systems part of the v1 direction; DEC-072–075 record that decision. Other new ideas still require scope decisions. Durations/effort below are design estimates, not measured playtests. Existing module capability does not mean the playable scene is connected.
 
 ## Updated recommendation after Nathan’s clarification
 
@@ -46,7 +46,7 @@ Course doctor should show the reason for a bad result immediately. Design lab sh
 | Putting trail | Three short greens with a precision challenge | 2–3 min | Requires a putting/control model beyond the existing rating geometry; higher effort |
 | Daily pin setup | Trade fairness/difficulty against wear and event requirements | 1–2 min | Requires independent pin placement, green geometry and rating changes; defer |
 
-The clarified vision prioritizes hands-on nearest-pin/accuracy, putting and recovery practice with attribute growth. Predict-the-shot can supplement learning but cannot replace controlling the golfer. Personal grounds maintenance is part of Nathan’s clarified intent. Make it optional and offer employee delegation; avoid mandatory repeated chores, cooking meters, energy bars and random-reward grinding.
+The clarified vision prioritizes hands-on nearest-pin/accuracy, putting and recovery practice with attribute growth. Predict-the-shot can supplement learning but cannot replace controlling the golfer. Personal grounds maintenance is part of the clarified product intent. Make it optional and offer employee delegation; avoid mandatory repeated chores, cooking meters, energy bars and random-reward grinding.
 
 ## Interface and playtest proposal
 
