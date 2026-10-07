@@ -41,7 +41,7 @@ Do each for the exact mark and for variants: MULLIGAN HILLS, MULLIGAN HILL, MULL
 
 ## 4. Decisions to make with the lawyer
 1. Proceed with Mulligan Hills (and which classes and countries to file in), or switch to Home Links, or choose a third name.
-2. A "knockout" search (Nathan) versus a "full clearance" (lawyer, paid). Cost and time: ask the lawyer for a quote (open question). I will not guess a figure.
+2. A documented internal "knockout" search versus a "full clearance" (lawyer, paid). Cost and time: ask the lawyer for a quote (open question). I will not guess a figure.
 3. Whether to file before the closed test (a cheap and early application, such as an Australian one, can establish priority; VERIFY with the lawyer) or after.
 4. The legal owner (entity) that files and later holds the Play and Apple developer accounts (these should match).
 5. The package id: keep `com.mulliganhills.game` only if the name is cleared; otherwise choose before the first upload (it cannot be changed). If the name might change, a neutral package id is safer (Q23 option B).
