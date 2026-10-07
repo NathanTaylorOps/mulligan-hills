@@ -21,6 +21,7 @@ var document: Dictionary = {}
 var aim_input: MHPracticeAimInput
 var one_hole: MHOneHolePanel
 var craft_hole: MHCraftHole
+var craft_course: MHCraftCourse
 var _status: Label
 ## Responsive layout (MHLiveLayout zones inside the area the HUD leaves free). See docs/phase1/live_construction.md.
 var _dock: Control
@@ -136,11 +137,17 @@ func _ready() -> void:
 	_panel_frame.add_child(one_hole)
 	one_hole.setup(self)
 	var restored_craft: MHCraftHole = null
-	if session.hole_definitions().is_empty() and typeof(document.get("runtime", null)) == TYPE_DICTIONARY:
+	var restored_course: MHCraftCourse = null
+	if typeof(document.get("runtime", null)) == TYPE_DICTIONARY:
 		var rt: Dictionary = document["runtime"] as Dictionary
-		if rt.has("craft_draft"):
+		if rt.has("craft_course"):
+			restored_course = MHCraftCourse.from_dict(rt["craft_course"])
+		elif rt.has("craft_draft"):
 			restored_craft = MHCraftHole.from_dict(rt["craft_draft"])
-	craft_hole = restored_craft if restored_craft != null else _default_craft_hole()
+	craft_course = restored_course if restored_course != null else (
+		MHCraftCourse.from_legacy_hole(restored_craft) if restored_craft != null else MHCraftCourse.new())
+	craft_course.ensure_holes(MHCraftCourse.NIGHT_SLICE_HOLES)
+	craft_hole = craft_course.active()
 	# The old prototype had two unrelated terrain models: the normal editor edited
 	# the persisted world, while Build/play edited a private craft grid. Reader-4
 	# saves now carry the exact draft. Legacy unfinalized saves are migrated once by
@@ -399,9 +406,12 @@ func save_now() -> bool:
 		return false
 	_pending_save = false # Failed writes require an explicit retry; never retry every frame.
 	var craft_checkpoint: Dictionary = {}
+	var course_checkpoint: Dictionary = {}
+	if craft_course != null:
+		course_checkpoint = craft_course.to_dict()
 	if session.hole_definitions().is_empty() and craft_hole != null:
 		craft_checkpoint = craft_hole.to_dict()
-	var captured: MHSaveResult = MHSessionSave.capture(session, document, craft_checkpoint)
+	var captured: MHSaveResult = MHSessionSave.capture(session, document, craft_checkpoint, course_checkpoint)
 	if not captured.is_ok():
 		_status.text = "Save failed: " + captured.message
 		_save_error = true
@@ -513,12 +523,23 @@ func _new_document() -> Dictionary:
 
 
 func _default_craft_hole() -> MHCraftHole:
-	var craft: MHCraftHole = MHCraftHole.new(24, 40)
-	craft.paint_rect(10, 0, 13, 29, MHCraftHole.Surface.FAIRWAY)
-	craft.paint_rect(9, 30, 14, 35, MHCraftHole.Surface.GREEN)
-	craft.add_tee(11, 0)
-	craft.add_pin(11, 30)
-	return craft
+	return MHCraftCourse.default_hole(0)
+
+func select_craft_hole(index: int) -> bool:
+	if craft_course == null or not craft_course.select(index):
+		return false
+	craft_hole = craft_course.active()
+	_terrain_dirty_for_craft = Rect2i()
+	_request_save()
+	if one_hole != null:
+		one_hole._refresh_canonical_craft()
+	return true
+
+func craft_hole_number() -> int:
+	return 1 if craft_course == null else craft_course.active_index + 1
+
+func craft_hole_count() -> int:
+	return 1 if craft_course == null else craft_course.count()
 
 func canonical_craft_draft(round_no: int = 0) -> Dictionary:
 	if craft_hole == null:
