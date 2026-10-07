@@ -160,10 +160,25 @@ func test_craft_course_rejects_out_of_range_world_origins() -> void:
 	var saved: Dictionary = craft.to_dict()
 	saved["origins_dm"] = [[-1, 560]]
 	assert_object(MHCraftCourse.from_dict(saved)).is_null()
+	saved = craft.to_dict()
 	saved["origins_dm"] = [[65536, 560]]
 	assert_object(MHCraftCourse.from_dict(saved)).is_null()
+	saved = craft.to_dict()
 	saved["origins_dm"] = [[600, 65535]]
 	assert_object(MHCraftCourse.from_dict(saved)).is_not_null()
+
+
+func test_craft_course_rejects_coerced_metadata_extra_keys_and_bad_active_index() -> void:
+	var craft: MHCraftCourse = MHCraftCourse.new()
+	var saved: Dictionary = craft.to_dict()
+	saved["v"] = "2"
+	assert_object(MHCraftCourse.from_dict(saved)).is_null()
+	saved = craft.to_dict()
+	saved["extra"] = 1
+	assert_object(MHCraftCourse.from_dict(saved)).is_null()
+	saved = craft.to_dict()
+	saved["active"] = 1
+	assert_object(MHCraftCourse.from_dict(saved)).is_null()
 
 
 func test_one_tee_and_four_pins_rotate_by_round() -> void:
