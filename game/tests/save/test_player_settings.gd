@@ -56,7 +56,9 @@ func test_damaged_file_falls_back_to_bak_then_to_defaults() -> void:
 	MHSaveFile.write_plain(path, "{broken".to_utf8_buffer())
 	var t := MHPlayerSettings.new(path)
 	assert_bool(t.load_from_disk().is_ok()).is_true()
-	assert_bool(t.analytics_consent).is_true() # the .bak generation
+	assert_bool(t.analytics_consent).is_false() # stale backup must never re-enable analytics
+	assert_bool(t.consent_asked).is_true()
+	assert_str(t.install_id).is_equal("")
 	MHSaveFile.write_plain(path + ".bak", "{broken".to_utf8_buffer())
 	var u := MHPlayerSettings.new(path)
 	assert_bool(u.load_from_disk().is_ok()).is_false()
