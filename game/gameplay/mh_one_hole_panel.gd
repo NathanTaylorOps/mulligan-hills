@@ -303,9 +303,9 @@ func _sync_mode_controls() -> void:
 	if _finalize_button != null:
 		_finalize_button.visible = _preview_draft
 	if _brush_tools != null:
-		_brush_tools.visible = _preview_draft and _craft_category != &"markers"
+		_brush_tools.visible = _preview_draft and _craft_category not in [&"markers", &"mowing"]
 	if _brush_hint != null:
-		_brush_hint.visible = _preview_draft and not collapsed and _craft_category != &"markers"
+		_brush_hint.visible = _preview_draft and not collapsed and _craft_category not in [&"markers", &"mowing"]
 	_refresh_surface_group()
 	_refresh_marker_controls()
 	_refresh_mowing_controls()
@@ -601,7 +601,7 @@ func clear_brush_preview() -> void:
 
 
 func preview_brush_from_screen(pos: Vector2) -> void:
-	if not _preview_draft or not is_visible_in_tree() or blocks_world_tap(pos) or craft_mode in [&"tee", &"pin"]:
+	if not _preview_draft or not is_visible_in_tree() or blocks_world_tap(pos) or craft_mode in [&"tee", &"pin", &"mowing"]:
 		clear_brush_preview()
 		return
 	var tile: Vector2i = _craft_tile_from_screen(pos)
@@ -1203,6 +1203,7 @@ func _draw() -> void:
 
 func _draw_craft_terrain(hole: MHCraftHole) -> void:
 	mowing_design = MHMowingDesign.from_dict(hole.mowing)
+	_refresh_mowing_controls()
 	# Height preview must follow the editable grid even while the draft is
 	# temporarily invalid (for example while moving a pin off a green).
 	var layout: Dictionary = _layout()
