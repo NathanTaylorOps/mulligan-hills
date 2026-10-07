@@ -48,6 +48,19 @@ func test_serialized_mowing_contains_no_float_values() -> void:
 	assert_float(restored.intensity).is_equal_approx(0.065, 0.0001)
 
 
+func test_persisted_mowing_contract_rejects_malformed_values() -> void:
+	var saved: Dictionary = MHMowingDesign.new().to_dict()
+	assert_bool(MHMowingDesign.is_save_dict_valid(saved)).is_true()
+	saved["direction_deg"] = 180
+	assert_bool(MHMowingDesign.is_save_dict_valid(saved)).is_false()
+	saved = MHMowingDesign.new().to_dict()
+	saved["intensity_pm"] = "65"
+	assert_bool(MHMowingDesign.is_save_dict_valid(saved)).is_false()
+	saved = MHMowingDesign.new().to_dict()
+	saved["extra"] = 1
+	assert_bool(MHMowingDesign.is_save_dict_valid(saved)).is_false()
+
+
 func test_legacy_craft_save_gets_default_mowing() -> void:
 	var hole: MHCraftHole = MHCraftHole.new(8, 8)
 	var legacy: Dictionary = hole.to_dict()
