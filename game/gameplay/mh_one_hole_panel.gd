@@ -1217,8 +1217,13 @@ func _draw_hazard_depth(hole: MHCraftHole, relief_hole: MHRHole) -> void:
 
 
 func _draw_mowing_accents(hole: MHCraftHole, relief_hole: MHRHole) -> void:
-	# One batched, translucent mesh suggests alternating mowing passes without
-	# textures, decals or per-tile nodes. It is presentation-only and deterministic.
+	# Long mowing bands follow the dominant tee-to-pin axis. The old tile parity
+	# pattern could read as a checkerboard; this keeps the authoritative tile mesh
+	# untouched while giving fairways the intentional striped look of the references.
+	var tee: Vector2i = hole.tees[0] as Vector2i if not hole.tees.is_empty() else Vector2i(hole.cols / 2, 0)
+	var pin: Vector2i = hole.pins[0] as Vector2i if not hole.pins.is_empty() else Vector2i(hole.cols / 2, hole.rows - 1)
+	var delta: Vector2i = pin - tee
+	var along_rows: bool = absi(delta.y) >= absi(delta.x)
 	var st: SurfaceTool = SurfaceTool.new()
 	st.begin(Mesh.PRIMITIVE_TRIANGLES)
 	var added: bool = false
@@ -1227,7 +1232,9 @@ func _draw_mowing_accents(hole: MHCraftHole, relief_hole: MHRHole) -> void:
 			var surface: int = hole.get_surface(c, r)
 			if surface not in [MHCraftHole.Surface.FAIRWAY, MHCraftHole.Surface.GREEN, MHCraftHole.Surface.TEE]:
 				continue
-			if (c + (r / 4)) % 2 != 0:
+			# Four-yard passes are broad enough to survive the mobile camera.
+			var cross_index: int = c if along_rows else r
+			if (cross_index / 2) % 2 != 0:
 				continue
 			var x0: int = hole.tile_x0_yd(c) * 100
 			var x1: int = (hole.tile_x0_yd(c) + MHCraftHole.TILE_YD) * 100
@@ -1243,7 +1250,7 @@ func _draw_mowing_accents(hole: MHCraftHole, relief_hole: MHRHole) -> void:
 		return
 	var mesh: ArrayMesh = st.commit()
 	var material: StandardMaterial3D = StandardMaterial3D.new()
-	material.albedo_color = Color(0.82, 0.95, 0.55, 0.075)
+	material.albedo_color = Color(0.82, 0.95, 0.55, 0.065)
 	material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
 	material.roughness = 0.78
 	var instance: MeshInstance3D = MeshInstance3D.new()
@@ -1251,8 +1258,6 @@ func _draw_mowing_accents(hole: MHCraftHole, relief_hole: MHRHole) -> void:
 	instance.material_override = material
 	instance.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	_world.add_child(instance)
-
-
 
 
 func _draw_craft_grid(hole: MHCraftHole, relief_hole: MHRHole) -> void:
