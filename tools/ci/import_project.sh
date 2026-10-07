@@ -26,38 +26,18 @@ if grep -E "SCRIPT ERROR|Parse Error|Failed to load script|Could not parse globa
 fi
 [ "$rc" -eq 0 ] || log "WARNING: non-zero exit but no script errors detected; continuing"
 
-# --import does not guarantee that every GDScript file is parsed. Parse each project script explicitly so a
-# syntax/type error in a scene that import never touches cannot pass this gate unnoticed.
+# --import does not guarantee that every GDScript file is parsed. One extra Godot process loads every first-party
+# script resource, which catches untouched parse/type-load failures without starting hundreds of engine processes.
 check_errors="$OUT_DIR/gdscript-check-errors.txt"
 check_log="$OUT_DIR/gdscript-check.log"
-: > "$check_errors"
-: > "$check_log"
-while IFS= read -r -d '' script; do
-  rel="${script#"$GAME_DIR/"}"
-  case "$rel" in
-    addons/*) continue ;;
-  esac
-  one_log="$OUT_DIR/.gdscript-check-one.log"
-  set +e
-  "$GODOT_BIN" --headless --path "$GAME_DIR" --check-only --script "res://$rel" > "$one_log" 2>&1
-  script_rc=$?
-  set -e
+set +e
+"$GODOT_BIN" --headless --path "$GAME_DIR" --script res://tests/ci/check_project_scripts.gd > "$check_log" 2>&1
+script_rc=$?
+set -e
+if [ "$script_rc" -ne 0 ] || grep -Eq "SCRIPT_CHECK FAIL:|SCRIPT ERROR|Parse Error|Failed to load script|Could not parse global class" "$check_log"; then
+  cp "$check_log" "$check_errors"
   {
-    echo "===== res://$rel ====="
-    cat "$one_log"
-  } >> "$check_log"
-  if [ "$script_rc" -ne 0 ] || grep -Eq "SCRIPT ERROR|Parse Error|Failed to load script|Could not parse global class" "$one_log"; then
-    {
-      echo "===== res://$rel (exit $script_rc) ====="
-      cat "$one_log"
-    } >> "$check_errors"
-  fi
-done < <(find "$GAME_DIR" -type f -name '*.gd' -print0)
-rm -f "$OUT_DIR/.gdscript-check-one.log"
-
-if [ -s "$check_errors" ]; then
-  {
-    echo "### GDScript parse errors"
+    echo "### GDScript parse/load errors"
     head -n 80 "$check_errors"
   } | summary
   die "GDScript check failed (see gdscript-check-errors.txt)"
