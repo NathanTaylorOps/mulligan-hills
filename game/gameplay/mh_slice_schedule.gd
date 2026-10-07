@@ -57,6 +57,20 @@ static func split_groups(n: int, size_limit: int) -> Array:
 	return out
 
 
+## Queues an authoritative whole-golfer count already booked by MHEconomy.
+## No demand, acceptance or money is recomputed here.
+func add_booked_golfers(count: int) -> int:
+	var whole: int = maxi(0, count)
+	for size: Variant in split_groups(whole, group_size):
+		if queue.size() >= MAX_QUEUE:
+			dropped_groups += 1
+			continue
+		queue.append({"serial": next_serial, "size": int(size)})
+		next_serial += 1
+	return whole
+
+
+## Legacy milli helper retained for isolated schedule tests/tools. Live play uses add_booked_golfers().
 ## Adds one game hour of arrivals. Returns the number of whole golfers queued (before queue limits).
 func add_hour(milli: int) -> int:
 	var total: int = carry_milli + maxi(0, milli)
