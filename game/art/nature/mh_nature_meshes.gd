@@ -364,7 +364,11 @@ static func _rock(b: MHMeshBuilder, lod: int, variant: int) -> void:
 	var rz: float = 0.5 + rng.range_f(0.0, 0.25)
 	var c: Vector3 = Vector3(0.0, ry * 0.6, 0.0)
 	if lod == 0:
-		b.blob(c, Vector3(rx, ry, rz), 4, 8, lo, hi, variant + 101, 0.28)
+		b.blob(c, Vector3(rx, ry, rz), 5, 10, lo, hi, variant + 101, 0.30)
+		# A small embedded shoulder creates the broken, landscaped boulder profile
+		# visible in the reference scenes without requiring texture normal maps.
+		b.blob(Vector3(rx * 0.32, ry * 0.46, -rz * 0.26), Vector3(rx * 0.42, ry * 0.35, rz * 0.38),
+			3, 7, lo, hi, variant + 151, 0.24)
 	elif lod == 1:
 		b.blob(c, Vector3(rx, ry, rz), 3, 6, lo, hi, variant + 101, 0.25)
 	else:
@@ -379,9 +383,10 @@ static func _rock_cluster(b: MHMeshBuilder, lod: int, variant: int) -> void:
 	var rng: MHArtRng = _rng(7, lod, variant)
 	var ja: float = rng.range_f(-0.2, 0.2)
 	if lod == 0:
-		b.blob(Vector3(0.0, 0.42, 0.0), Vector3(0.8, 0.55, 0.7), 4, 8, lo, hi, variant + 111, 0.28)
-		b.blob(Vector3(1.0 + ja, 0.25, 0.3), Vector3(0.5, 0.32, 0.45), 3, 7, lo, hi, variant + 112, 0.25)
-		b.blob(Vector3(-0.7, 0.2, 0.7 + ja), Vector3(0.4, 0.26, 0.4), 3, 6, lo, hi, variant + 113, 0.25)
+		b.blob(Vector3(0.0, 0.42, 0.0), Vector3(0.8, 0.55, 0.7), 5, 9, lo, hi, variant + 111, 0.30)
+		b.blob(Vector3(1.0 + ja, 0.25, 0.3), Vector3(0.5, 0.32, 0.45), 4, 8, lo, hi, variant + 112, 0.27)
+		b.blob(Vector3(-0.7, 0.2, 0.7 + ja), Vector3(0.4, 0.26, 0.4), 4, 7, lo, hi, variant + 113, 0.27)
+		b.blob(Vector3(-0.15, 0.16, -0.72), Vector3(0.34, 0.20, 0.30), 3, 6, lo, hi, variant + 114, 0.22)
 	elif lod == 1:
 		b.blob(Vector3(0.0, 0.42, 0.0), Vector3(0.8, 0.55, 0.7), 3, 6, lo, hi, variant + 111, 0.25)
 		b.blob(Vector3(1.0 + ja, 0.25, 0.3), Vector3(0.5, 0.32, 0.45), 2, 5, lo, hi, variant + 112, 0.2)
@@ -394,8 +399,8 @@ static func _rock_cluster(b: MHMeshBuilder, lod: int, variant: int) -> void:
 ## Patch of flowers on thin stems. LOD0 8 flowers x 7 tris = 56.
 static func _flowers(b: MHMeshBuilder, lod: int, variant: int) -> void:
 	var rng: MHArtRng = _rng(8, lod, variant)
-	var count: int = 8
-	var head_sides: int = 5
+	var count: int = 14 if lod == 0 else 8
+	var head_sides: int = 6 if lod == 0 else 5
 	if lod == 1:
 		count = 4
 		head_sides = 4
