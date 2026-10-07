@@ -409,7 +409,7 @@ func _default_craft_hole() -> MHCraftHole:
 func canonical_craft_draft(round_no: int = 0) -> Dictionary:
 	if craft_hole == null:
 		return {}
-	return MHCraftConvert.to_hole_def(craft_hole, 0, round_no, 0)
+	return MHCraftConvert.to_hole_def(craft_hole, 0, 0, round_no)
 
 func _open_craft_hole() -> void:
 	# A loaded finalized hole remains authoritative. Until an inverse layout->craft codec exists,
