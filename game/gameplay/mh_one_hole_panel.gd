@@ -1787,37 +1787,35 @@ func _mesh(mesh_value: Mesh, pos: Vector3, color: Color) -> MeshInstance3D:
 
 ## The save codec supports more shapes than this small authoring/view prototype does.
 static func supported(course: Dictionary) -> bool:
-	# Course decoding/rating validation owns canonical correctness. This view adds
-	# only rendering constraints: its area renderer is rectangle based, while
-	# relief and positioned tree features are fully supported.
+	# The live renderer supports the compact authored-course slice: up to three
+	# canonical holes sharing the development terrain window, with stable slots.
 	var decoded: MHSaveResult = MHCourseLayout.decode(course)
 	if not decoded.is_ok():
 		return false
 	var rows: Array = course.get("holes", []) as Array
 	if rows.is_empty():
 		return true
-	if rows.size() != 1 or typeof(rows[0]) != TYPE_DICTIONARY:
+	if rows.size() > MHCraftCourse.NIGHT_SLICE_HOLES:
 		return false
-	var row: Dictionary = rows[0] as Dictionary
-	if row.get("origin_dm", []) != ORIGIN or typeof(row.get("layout", null)) != TYPE_DICTIONARY:
-		return false
-	var h: Dictionary = row["layout"] as Dictionary
-	if int(h.get("slot_id", -1)) != 0:
-		return false
-	var validation: Dictionary = MHRatingEngine.validate_input({
-		"schema": 1,
-		"engine": MHRatingEngine.RATING_VERSION,
-		"hole": h,
-	})
-	if not bool(validation.get("ok", false)):
-		return false
-	for row_feature: Variant in h.get("features", []):
-		var feature: Dictionary = row_feature as Dictionary
-		var t: String = str(feature.get("t", ""))
-		if ["fairway", "deep_rough", "bunker", "water", "ob"].has(t) and not feature.has("rect"):
+	for i: int in range(rows.size()):
+		if typeof(rows[i]) != TYPE_DICTIONARY:
 			return false
+		var row: Dictionary = rows[i] as Dictionary
+		if row.get("origin_dm", []) != ORIGIN or typeof(row.get("layout", null)) != TYPE_DICTIONARY:
+			return false
+		var h: Dictionary = row["layout"] as Dictionary
+		if int(h.get("slot_id", -1)) != i:
+			return false
+		var validation: Dictionary = MHRatingEngine.validate_input({
+			"schema": 1, "engine": MHRatingEngine.RATING_VERSION, "hole": h})
+		if not bool(validation.get("ok", false)):
+			return false
+		for row_feature: Variant in h.get("features", []):
+			var feature: Dictionary = row_feature as Dictionary
+			var t: String = str(feature.get("t", ""))
+			if ["fairway", "deep_rough", "bunker", "water", "ob"].has(t) and not feature.has("rect"):
+				return false
 	return true
-
 
 func blocks_world_tap(pos: Vector2) -> bool:
 	# A visible panel that has not been laid out yet (zero size) still counts as 1x1 so it never leaks a tap.
