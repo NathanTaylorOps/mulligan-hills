@@ -50,6 +50,7 @@ var _mat: StandardMaterial3D
 var _ready_ok: bool = false
 var _last_usec: int = 0
 var _last_hour: int = 0
+var _first_booked_serial: int = 0
 var _sig: int = -1
 var _course_sig: String = ""
 var _hud_timer: float = 0.0
@@ -104,6 +105,7 @@ func _ready() -> void:
 	schedule = MHSliceSchedule.from_economy(session.economy)
 	# Opening golfers are presentation-only ambience; all subsequent traffic comes from booked economy arrivals.
 	schedule.prime(0, OPENING_GOLFERS)
+	_first_booked_serial = schedule.next_serial
 	_last_hour = _absolute_hour()
 	session.golfers_booked.connect(_on_golfers_booked)
 	session.changed.connect(_on_session_changed)
@@ -226,6 +228,8 @@ func _on_visual_round_complete(row: Dictionary) -> void:
 	if size <= 0 or holes_played <= 0:
 		return
 	var serial: int = int(row.get("serial", 0))
+	if serial < _first_booked_serial:
+		return # opening ambience never mutates customer progression
 	var new_regulars: int = 0
 	var member_candidates: int = 0
 	var experience: Dictionary = {}
