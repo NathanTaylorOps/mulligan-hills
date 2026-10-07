@@ -210,6 +210,46 @@ func setup(scene: MHLiveConstruction) -> void:
 	hide()
 
 
+func _active_play_index() -> int:
+	var layouts: Array = live.session.hole_definitions() if live != null else []
+	if layouts.is_empty():
+		return 0
+	if live.session.practice != null:
+		var slot: int = live.session.practice.hole.slot
+		for i: int in range(layouts.size()):
+			if int((layouts[i] as Dictionary).get("slot_id", -1)) == slot:
+				_play_hole_index = i
+				break
+	_play_hole_index = clampi(_play_hole_index, 0, layouts.size() - 1)
+	return _play_hole_index
+
+func _active_play_layout() -> Dictionary:
+	var layouts: Array = live.session.hole_definitions() if live != null else []
+	if layouts.is_empty():
+		return _layout()
+	return layouts[_active_play_index()] as Dictionary
+
+func _active_hole_number() -> int:
+	if _preview_draft and live != null:
+		return live.craft_hole_number()
+	return _active_play_index() + 1
+
+func _active_hole_score() -> Dictionary:
+	if live == null:
+		return {}
+	var scores: Array = live.session.hole_results()
+	if scores.is_empty():
+		return {}
+	var layout: Dictionary = _active_play_layout()
+	var slot: int = int(layout.get("slot_id", -1))
+	for row_value: Variant in scores:
+		if typeof(row_value) == TYPE_DICTIONARY:
+			var row: Dictionary = row_value as Dictionary
+			if int(row.get("slot_id", row.get("slot", -2))) == slot:
+				return row
+	var index: int = _active_play_index()
+	return scores[index] as Dictionary if index < scores.size() else {}
+
 func desired_dock_height() -> float:
 	# Scroll content does not impose its entire catalogue height on the dock.
 	# Use rendered minimums for the header/toolbelt, plus one accessible card row.
@@ -1179,7 +1219,7 @@ func _describe() -> void:
 		var hole_length: int = MHCraftConvert.length_yd(craft, 0, 0)
 		var price: int = 0 if not live.session.hole_definitions().is_empty() else live.session.economy.hole_cost_cents()
 		var tool_name: String = _surface_name(craft_surface) if craft_mode == &"surface" else str(craft_mode).capitalize()
-		_title.text = "HOLE 1 • %d yd • %s" % [hole_length, tool_name]
+		_title.text = "HOLE %d • %d yd • %s" % [_active_hole_number(), hole_length, tool_name]
 		_title.tooltip_text = _title.text
 		_info.text = "%d yd  |  %s  |  Build: $%d" % [hole_length, tool_name, price / 100]
 		var problems: Array = MHCraftConvert.problems(craft)
@@ -1200,16 +1240,16 @@ func _describe() -> void:
 				labels.append(_problem_text(str(problem)))
 			_set_validation_message("TO BUILD: " + ", ".join(labels))
 	else:
-		_title.text = "HOLE 1 • PRACTICE"
-		_info.text = "HOLE BUILT • PRACTICE MODE"
+		_title.text = "HOLE %d • PRACTICE" % _active_hole_number()
+		_info.text = "HOLE %d BUILT • PRACTICE MODE" % _active_hole_number()
 		_set_validation_message("PLAY MODE  •  Tap the course to aim, then Play shot.")
 	var practice: MHPracticeRound = live.session.practice
 	if practice != null:
 		_info.text += " | %d strokes | %s" % [practice.strokes,
 			"Picked up" if practice.picked_up else ("Holed" if practice.finished else "Playing")]
-	var scores: Array = live.session.hole_results()
-	if not scores.is_empty():
-		_info.text += " | Official hole score %d/100" % int(scores[0]["score"])
+	var active_score: Dictionary = _active_hole_score()
+	if not active_score.is_empty():
+		_info.text += " | Official hole score %d/100" % int(active_score["score"])
 
 
 func _draw() -> void:
@@ -1747,7 +1787,7 @@ func _move_aim() -> void:
 
 func _ground_height(cx: int, cy: int) -> float:
 	var layouts: Array = live.session.hole_definitions() if live != null else []
-	var h: Dictionary = _layout() if _preview_draft or layouts.is_empty() else layouts[0]
+	var h: Dictionary = _layout() if _preview_draft or layouts.is_empty() else _active_play_layout()
 	if _preview_draft and live != null and live.craft_hole != null:
 		# Keep markers and picking visually attached to the editable height grid even
 		# while a temporary validation problem has cleared canonical_draft.
@@ -2006,7 +2046,7 @@ func craft_stroke_cancel() -> void:
 
 func aim_from_screen(pos: Vector2) -> bool:
 	var layouts: Array = live.session.hole_definitions()
-	var layout: Dictionary = _layout() if layouts.is_empty() or _preview_draft else layouts[0]
+	var layout: Dictionary = _layout() if layouts.is_empty() or _preview_draft else _active_play_layout()
 	var result: Dictionary = _screen_ground_hit(pos, layout)
 	if not bool(result.get("ok", false)):
 		return false
