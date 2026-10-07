@@ -231,6 +231,7 @@ func _on_visual_round_complete(row: Dictionary) -> void:
 		return
 	var serial: int = int(row.get("serial", 0))
 	if serial < _first_booked_serial:
+		_group_customer_ids.erase(serial)
 		return # opening ambience never mutates customer progression
 	var new_regulars: int = 0
 	var member_candidates: int = 0
