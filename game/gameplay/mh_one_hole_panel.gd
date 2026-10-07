@@ -440,19 +440,28 @@ func _repair_hole_markers() -> void:
 		hole.cancel_stroke()
 	if not hole.begin_stroke():
 		return
+	# Repaint a displaced flag tile first. Do not enlarge an existing,
+	# rateable green: a three-tile repair brush previously inflated a six-yard
+	# green to seven yards and pushed it across the unowned north parcel edge.
 	for point: Variant in hole.pins:
 		var pin: Vector2i = point as Vector2i
-		# Radius three *tiles* (six yards), large enough for the rating
-		# engine's minimum five-yard equivalent green radius. Old repairs used
-		# one tile and could NEVER fix an RC006 hole on a small starter green.
-		hole.paint_disc(pin.x, pin.y, 3, MHCraftHole.Surface.GREEN)
+		hole.paint_tile(pin.x, pin.y, MHCraftHole.Surface.GREEN)
+	# Older checkpoints may genuinely have tiny greens (RC006). Only then
+	# extend the putting surface to reach the minimum rated area. This action
+	# is explicitly chosen by the player, never run automatically.
+	if MHCraftConvert.green_radius_yd(hole) < 5:
+		for point: Variant in hole.pins:
+			var pin: Vector2i = point as Vector2i
+			hole.paint_disc(pin.x, pin.y, 3, MHCraftHole.Surface.GREEN)
 	for point: Variant in hole.tees:
 		var tee: Vector2i = point as Vector2i
 		hole.paint_disc(tee.x, tee.y, 0, MHCraftHole.Surface.TEE)
 	if hole.commit_stroke():
 		live.sync_craft_tiles_to_world(hole.last_changed_tiles())
 	_refresh_canonical_craft()
-	_set_validation_message("TEE / GREEN RESTORED. Check the course, then press Build hole.")
+	# _refresh_canonical_craft/_describe checks readiness and may report a
+	# different outstanding constraint (e.g. land ownership). Keep that result
+	# visible instead of overwriting it with an unconditional success message.
 
 
 func _craft_undo() -> void:
