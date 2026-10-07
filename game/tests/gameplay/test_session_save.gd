@@ -246,8 +246,16 @@ func test_live_scene_finalization_can_save_and_reload_practice() -> void:
 	assert_bool(scene._active).is_true()
 	scene.session.clock.pause()
 	scene._open_craft_hole()
+	# Make all three authored holes observably different before finalization.
+	for i: int in range(3):
+		assert_bool(scene.select_craft_hole(i)).is_true()
+		scene.craft_hole.set_height_mm_tile(11, 15, (i + 1) * 500)
+	var expected_course: Dictionary = scene.craft_course.to_dict()
 	scene.one_hole._finalize()
-	assert_int(scene.session.hole_definitions().size()).is_equal(1)
+	var defs: Array = scene.session.hole_definitions()
+	assert_int(defs.size()).is_equal(3)
+	for i: int in range(3):
+		assert_int(int((defs[i] as Dictionary)["slot_id"])).is_equal(i)
 	assert_int(int(scene.document["min_reader_version"])).is_equal(6)
 	scene.one_hole._shoot()
 	assert_object(scene.session.practice).is_not_null()
@@ -263,6 +271,8 @@ func test_live_scene_finalization_can_save_and_reload_practice() -> void:
 		var restored_session: MHGameSession = restored.value
 		assert_dict(restored_session.practice.to_dict()).is_equal(scene.session.practice.to_dict())
 		assert_int(restored_session.economy.cash).is_equal(scene.session.economy.cash)
+		assert_int(restored_session.hole_definitions().size()).is_equal(3)
+		assert_dict((saved.data["runtime"] as Dictionary)["craft_course"]).is_equal(expected_course)
 	scene._active = false
 
 
