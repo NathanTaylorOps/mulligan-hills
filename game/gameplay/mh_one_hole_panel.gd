@@ -440,8 +440,7 @@ func _draw() -> void:
 			var b: Vector3 = _position(int(rect[2]) * 100, int(rect[3]) * 100, 0.02)
 			var centre: Vector3 = (a + b) / 2.0
 			centre.y = _ground_height(cx, cy) + 0.02
-			_box(centre, Vector3(absf(b.x - a.x), 0.03, absf(b.z - a.z)),
-				Color(0.12, 0.4, 0.7) if str(feature["t"]) == "water" else Color(0.36, 0.64, 0.23))
+			_box(centre, Vector3(absf(b.x - a.x), 0.03, absf(b.z - a.z)), _feature_color(str(feature["t"])))
 		var g: Array = h["green"]
 		var circle: CylinderMesh = CylinderMesh.new()
 		circle.top_radius = float(g[2]) * 0.9144
@@ -616,6 +615,16 @@ func _draw_craft_tree(point: Vector2i) -> void:
 	var trunk_pos: Vector3 = _position_on_ground(point.x * 100, point.y * 100, 1.0)
 	_box(trunk_pos, Vector3(0.35, 2.0, 0.35), Color(0.34, 0.23, 0.12))
 	_marker_at(_position_on_ground(point.x * 100, point.y * 100, 2.4), Color(0.16, 0.38, 0.14), 1.25)
+
+func _feature_color(feature_type: String) -> Color:
+	match feature_type:
+		"fairway": return Color(0.36, 0.64, 0.23)
+		"deep_rough": return Color(0.18, 0.36, 0.14)
+		"bunker": return Color(0.72, 0.66, 0.48)
+		"water": return Color(0.12, 0.4, 0.7)
+		"ob": return Color(0.24, 0.20, 0.18)
+		_: return Color(0.27, 0.44, 0.21)
+
 
 func _surface_name(surface_id: int) -> String:
 	match surface_id:
