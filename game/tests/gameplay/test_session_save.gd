@@ -85,8 +85,7 @@ func test_restore_rejects_future_dated_staff_checkpoint() -> void:
 	assert_bool(restored.is_ok()).is_false()
 	assert_str(restored.message).is_equal("staff checkpoint is from the future")
 
-	doc = _checkpoint(s)
-	roster = (doc["club"] as Dictionary)["staff_roster"] as Dictionary
+	s.economy.set_tier(s.economy.params.building_index("maintenance"), 1)
 	var view: Dictionary = s.staff_view()
 	var hired: Dictionary = s.staff.hire("groundskeeper", s.economy.day, view, 100000000)
 	assert_bool(bool(hired["ok"])).is_true()
