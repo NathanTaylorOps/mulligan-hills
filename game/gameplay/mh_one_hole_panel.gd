@@ -1148,11 +1148,11 @@ func _draw_craft_terrain(hole: MHCraftHole) -> void:
 	for tee: Variant in hole.tees:
 		var t: Vector2i = tee as Vector2i
 		var tc: Vector2i = hole.tile_centre_yd(t.x, t.y)
-		_marker_at(_position_on_ground(tc.x * 100, tc.y * 100, 0.35), Color(0.95, 0.95, 0.95), 0.28)
+		_draw_tee_furniture(tc)
 	for pin: Variant in hole.pins:
 		var p: Vector2i = pin as Vector2i
 		var pc: Vector2i = hole.tile_centre_yd(p.x, p.y)
-		_box(_position_on_ground(pc.x * 100, pc.y * 100, 0.75), Vector3(0.08, 1.5, 0.08), Color.WHITE)
+		_draw_flag(pc)
 	for tree: Variant in hole.trees:
 		_draw_craft_tree(tree as Vector2i)
 	_refresh_brush_preview()
@@ -1366,6 +1366,22 @@ func _craft_material(surface_id: int) -> StandardMaterial3D:
 			material.albedo_color = water
 			material.cull_mode = BaseMaterial3D.CULL_DISABLED
 	return material
+
+func _draw_tee_furniture(point: Vector2i) -> void:
+	_marker_at(_position_on_ground(point.x * 100 - 45, point.y * 100, 0.14), Color(0.94, 0.92, 0.82), 0.13)
+	_marker_at(_position_on_ground(point.x * 100 + 45, point.y * 100, 0.14), Color(0.94, 0.92, 0.82), 0.13)
+	if float(_visual_settings.get("decor_density", 0.65)) >= 0.6:
+		_box(_position_on_ground(point.x * 100 + 95, point.y * 100 - 45, 0.28), Vector3(0.48, 0.48, 0.16), Color(0.30, 0.20, 0.12))
+
+
+func _draw_flag(point: Vector2i) -> void:
+	_box(_position_on_ground(point.x * 100, point.y * 100, 0.92), Vector3(0.055, 1.84, 0.055), Color(0.96, 0.95, 0.88))
+	var flag: QuadMesh = QuadMesh.new()
+	flag.size = Vector2(0.72, 0.42)
+	var instance: MeshInstance3D = _mesh(flag, _position_on_ground(point.x * 100 + 34, point.y * 100, 1.62), Color(0.88, 0.19, 0.12))
+	instance.rotation_degrees.y = 90.0
+	instance.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+
 
 func _draw_craft_tree(point: Vector2i) -> void:
 	# Three primitive meshes read as a stylised tree at gameplay zoom while
