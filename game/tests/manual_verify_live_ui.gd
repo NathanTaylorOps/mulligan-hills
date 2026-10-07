@@ -126,7 +126,13 @@ func _verify() -> void:
 	if not live.one_hole._preview_draft or not live.one_hole._finalize_button.visible:
 		_fail("Invalid draft reopened without edit/build controls")
 		return
+	var radius_before_repair: int = MHCraftConvert.green_radius_yd(live.craft_hole)
 	live.one_hole._repair_hole_markers()
+	var radius_after_repair: int = MHCraftConvert.green_radius_yd(live.craft_hole)
+	if radius_before_repair >= 5 and radius_after_repair != radius_before_repair:
+		_fail("Repair expanded an already valid green from " + str(radius_before_repair) +
+			" to " + str(radius_after_repair) + " yards")
+		return
 	var problems: Array = MHCraftConvert.problems(live.craft_hole)
 	if not problems.is_empty():
 		_fail("Marker repair did not make the hole playable: " + str(problems))
@@ -134,6 +140,13 @@ func _verify() -> void:
 	var craft_rating_hole: Dictionary = live.canonical_craft_draft()
 	if craft_rating_hole.is_empty():
 		_fail("Valid craft did not produce a rating layout")
+		return
+	var owned_check: MHSaveResult = MHCourseLayout.encode([craft_rating_hole],
+		live.document["course"] as Dictionary, [MHOneHolePanel.ORIGIN])
+	if not owned_check.is_ok():
+		_fail("Repaired green crosses parcel boundary: " + owned_check.message +
+			" | green radius=" + str(MHCraftConvert.green_radius_yd(live.craft_hole)) +
+			" | green centre=" + str(craft_rating_hole.get("green", [])))
 		return
 	var parsed_hole: MHRHole = MHRHole.from_def(craft_rating_hole)
 	if not parsed_hole.valid:
