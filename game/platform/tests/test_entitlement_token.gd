@@ -47,6 +47,17 @@ func test_needs_refresh() -> void:
 	assert_bool(MHEntitlementToken.needs_refresh({"ref": 100}, 99)).is_false()
 	assert_bool(MHEntitlementToken.needs_refresh({"ref": 100}, 100)).is_true()
 
+func test_android_fresh_cache_reverification_policy() -> void:
+	var service: MHEntitlementServiceAndroid = MHEntitlementServiceAndroid.new()
+	service._unlocked = true
+	service._token = "cached"
+	service._payload = {"ref": 100}
+	assert_bool(service._cached_entitlement_is_fresh(99)).is_true()
+	assert_bool(service._cached_entitlement_is_fresh(100)).is_false()
+	service._unlocked = false
+	assert_bool(service._cached_entitlement_is_fresh(99)).is_false()
+
+
 func test_request_hash_vector() -> void:
 	var h: String = MHIntegrityService.request_hash(PackedStringArray(["a", "b", "c"]))
 	assert_str(h).is_equal("a52dd81bfd5e4e66d96b9f598382f6cbf8c5c3897654e6ae9055e03620fcf38e")
