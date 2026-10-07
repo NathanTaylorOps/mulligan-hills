@@ -83,12 +83,11 @@ func setup(scene: MHLiveConstruction) -> void:
 	_button(craft_tools, "Redo craft", _craft_redo)
 	var design: HFlowContainer = MHUIKit.flow(6)
 	content.add_child(design)
-	_button(design, "Length -", func() -> void: length_yd = maxi(60, length_yd - 1); _draft_changed())
-	_button(design, "Length +", func() -> void: length_yd = mini(62, length_yd + 1); _draft_changed())
-	_button(design, "Narrow", func() -> void: half_width_yd = maxi(6, half_width_yd - 2); _draft_changed())
-	_button(design, "Widen", func() -> void: half_width_yd = mini(14, half_width_yd + 2); _draft_changed())
-	_button(design, "Side water on/off", func() -> void: water = not water; _draft_changed())
-	_button(design, "Finalize / redesign", _finalize)
+	# The old rectangular Length/Narrow/Side-water controls modified a parallel
+	# prototype representation, not the authoritative MHCraftHole. Keeping them
+	# visible made them look functional while they could not change the craft
+	# course. Canonical craft is now the only authoring path.
+	_button(design, "Finalize hole", _finalize)
 	var shots: HFlowContainer = MHUIKit.flow(6)
 	content.add_child(shots)
 	_button(shots, "Aim at cup", _aim_cup)
@@ -225,8 +224,23 @@ func _draft_changed() -> void:
 func _finalize() -> void:
 	if live.shell.modal_id() != "":
 		return
+	if not _preview_draft or live == null or live.craft_hole == null:
+		_info.text = "This saved hole is in play mode. Full saved-hole redesign needs the layout-to-craft editor path; it will not be replaced by a fallback hole."
+		return
+	var problems: Array = MHCraftConvert.problems(live.craft_hole)
+	if not problems.is_empty():
+		var labels: PackedStringArray = PackedStringArray()
+		for problem: Variant in problems:
+			labels.append(str(problem))
+		_info.text = "Cannot finalize yet: " + ", ".join(labels)
+		return
+	var h: Dictionary = live.canonical_craft_draft()
+	if h.is_empty() or not set_canonical_draft(h):
+		_info.text = "Cannot finalize: the craft hole did not produce a valid canonical layout."
+		return
 	live.router.cancel_world_input()
-	var h: Dictionary = _layout()
+	if live.aim_input != null:
+		live.aim_input.cancel_all()
 	var encoded: MHSaveResult = MHCourseLayout.encode([h], live.document["course"] as Dictionary, [ORIGIN])
 	if not encoded.is_ok():
 		_info.text = encoded.message
@@ -244,6 +258,7 @@ func _finalize() -> void:
 	live._request_save()
 	_draw()
 	_describe()
+
 
 func _restart() -> void:
 	if live.shell.modal_id() != "":
@@ -308,17 +323,29 @@ func _shoot() -> void:
 		_info.text += " | Tree hit"
 
 func _describe() -> void:
-	var price: int = 0 if not live.session.hole_definitions().is_empty() else live.session.economy.hole_cost_cents()
-	_info.text = "Draft: %d yd, fairway %d yd wide. Finalize $%d; redesign free." % [length_yd, half_width_yd * 2, price / 100]
-	if live != null and live.craft_hole != null:
+	if live == null:
+		return
+	if _preview_draft and live.craft_hole != null:
+		var craft: MHCraftHole = live.craft_hole
+		var hole_length: int = MHCraftConvert.length_yd(craft, 0, 0)
+		var price: int = 0 if not live.session.hole_definitions().is_empty() else live.session.economy.hole_cost_cents()
 		var tool_name: String = _surface_name(craft_surface) if craft_mode == &"surface" else str(craft_mode).capitalize()
-		_info.text += " | Craft tool: " + tool_name
+		_info.text = "Craft draft: %d yd tee-to-pin | Finalize $%d | Tool: %s" % [hole_length, price / 100, tool_name]
+		var problems: Array = MHCraftConvert.problems(craft)
+		if not problems.is_empty():
+			var labels: PackedStringArray = PackedStringArray()
+			for problem: Variant in problems:
+				labels.append(str(problem))
+			_info.text += " | Needs: " + ", ".join(labels)
+	else:
+		_info.text = "Finalized hole"
 	var r: MHPracticeRound = live.session.practice
 	if r != null:
 		_info.text += " | %d strokes | %s" % [r.strokes, "Picked up" if r.picked_up else ("Holed" if r.finished else "Playing")]
 	var scores: Array = live.session.hole_results()
 	if not scores.is_empty():
 		_info.text += " | Official hole score %d/100" % int(scores[0]["score"])
+
 
 func _draw() -> void:
 	_path = null
