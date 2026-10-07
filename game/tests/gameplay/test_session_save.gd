@@ -434,3 +434,19 @@ func test_three_hole_craft_course_survives_cold_reopen_exactly() -> void:
 		assert_int(reopened.craft_hole.get_height_mm(8 + i, 12 + i)).is_equal(250 * (i + 1))
 		assert_int(reopened.craft_hole.flowers).is_equal(3 + i)
 	reopened._active = false
+
+func test_practice_checkpoint_never_downgrades_customer_reader_requirement() -> void:
+	var s: MHGameSession = MHGameSession.create()
+	var craft: MHCraftHole = MHCraftCourse.default_hole(0)
+	var layout: Dictionary = MHCraftConvert.to_hole_def(craft, 0, 0, 0)
+	assert_bool(s.submit_course([layout])["ok"]).is_true()
+	s.practice = MHPracticeRound.create(layout, 12345)
+	assert_object(s.practice).is_not_null()
+	var captured: MHSaveResult = MHSessionSave.capture(s, _document(s))
+	assert_bool(captured.is_ok()).override_failure_message(captured.message).is_true()
+	if captured.is_ok():
+		var doc: Dictionary = captured.value as Dictionary
+		assert_int(int(doc["min_reader_version"])).is_equal(6)
+		assert_bool((doc["runtime"] as Dictionary).has("customers")).is_true()
+		assert_bool((doc["runtime"] as Dictionary).has("practice")).is_true()
+		assert_bool(MHSessionSave.restore(doc, s.ledger).is_ok()).is_true()
