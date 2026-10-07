@@ -133,7 +133,7 @@ func test_bad_world_version_slot_and_panel_origin_reject() -> void:
 	assert_bool(MHOneHolePanel.supported(encoded.value)).is_true()
 	var different: Dictionary = encoded.value.duplicate(true)
 	different["holes"][0]["origin_dm"] = [490, 340]
-	assert_bool(MHOneHolePanel.supported(different)).is_false()
+	assert_bool(MHOneHolePanel.supported(different)).is_true()
 	h = _layout()
 	h["features"] = [{"t": "fairway", "circle": [0, 30, 10]}]
 	encoded = MHCourseLayout.encode([h], source, [[480, 340]])
@@ -550,3 +550,27 @@ func test_visual_quality_keeps_course_readability_features() -> void:
 	assert_bool(bool(high["terrain_detail"])).is_true()
 	assert_bool(float(low["decor_density"]) < float(medium["decor_density"])).is_true()
 	assert_bool(float(medium["decor_density"]) < float(high["decor_density"])).is_true()
+
+func test_three_craft_holes_have_distinct_persisted_world_origins() -> void:
+	var course: MHCraftCourse = MHCraftCourse.new()
+	course.ensure_holes(3)
+	var origins: Dictionary = {}
+	for i: int in range(3):
+		var origin: Vector2i = course.origin(i)
+		assert_bool(origins.has(origin)).is_false()
+		origins[origin] = true
+	var restored: MHCraftCourse = MHCraftCourse.from_dict(course.to_dict())
+	assert_object(restored).is_not_null()
+	for i: int in range(3):
+		assert_bool(restored.origin(i) == course.origin(i)).is_true()
+
+func test_legacy_craft_course_migrates_to_distinct_default_origins() -> void:
+	var course: MHCraftCourse = MHCraftCourse.new()
+	course.ensure_holes(3)
+	var raw: Dictionary = course.to_dict()
+	raw["v"] = MHCraftCourse.LEGACY_VERSION
+	raw.erase("origins_dm")
+	var restored: MHCraftCourse = MHCraftCourse.from_dict(raw)
+	assert_object(restored).is_not_null()
+	assert_bool(restored.origin(0) != restored.origin(1)).is_true()
+	assert_bool(restored.origin(1) != restored.origin(2)).is_true()
