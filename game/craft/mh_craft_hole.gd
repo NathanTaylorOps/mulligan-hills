@@ -26,6 +26,10 @@ var cols: int
 var rows: int
 var surface: PackedByteArray = PackedByteArray()
 var height_m: PackedInt32Array = PackedInt32Array()
+## Exact millimetre height cache. Craft-native sculpting still moves in whole metres,
+## but the shared world terrain can contain sub-metre shaping. Keeping the exact
+## value here prevents switching editors from flattening 300 mm/500 mm terrain.
+var height_mm: PackedInt32Array = PackedInt32Array()
 ## Tile coordinates (Vector2i(col, row)).
 var tees: Array = []
 var pins: Array = []
@@ -45,8 +49,10 @@ func _init(p_cols: int = 24, p_rows: int = 40) -> void:
 	rows = maxi(2, p_rows)
 	surface.resize(cols * rows)
 	height_m.resize(cols * rows)
+	height_mm.resize(cols * rows)
 	surface.fill(Surface.ROUGH)
 	height_m.fill(0)
+	height_mm.fill(0)
 
 
 func in_bounds(c: int, r: int) -> bool:
@@ -63,6 +69,10 @@ func get_surface(c: int, r: int) -> int:
 
 func get_height(c: int, r: int) -> int:
 	return int(height_m[index_of(c, r)]) if in_bounds(c, r) else 0
+
+
+func get_height_mm(c: int, r: int) -> int:
+	return int(height_mm[index_of(c, r)]) if in_bounds(c, r) else 0
 
 
 ## Left and bottom yard edge of a tile.
@@ -111,8 +121,8 @@ func commit_stroke() -> bool:
 	for k: Variant in _stroke.keys():
 		var i: int = int(k)
 		var old: Array = _stroke[k] as Array
-		if int(old[0]) != int(surface[i]) or int(old[1]) != int(height_m[i]):
-			changes[i] = [int(old[0]), int(old[1]), int(surface[i]), int(height_m[i])]
+		if int(old[0]) != int(surface[i]) or int(old[1]) != int(height_m[i]) or int(old[2]) != int(height_mm[i]):
+			changes[i] = [int(old[0]), int(old[1]), int(old[2]), int(surface[i]), int(height_m[i]), int(height_mm[i])]
 	_stroke = {}
 	if changes.is_empty():
 		return false
@@ -132,6 +142,7 @@ func cancel_stroke() -> void:
 		var old: Array = _stroke[k] as Array
 		surface[i] = int(old[0])
 		height_m[i] = int(old[1])
+		height_mm[i] = int(old[2])
 	_stroke = {}
 	_stroke_open = false
 
@@ -152,6 +163,7 @@ func undo() -> bool:
 		var v: Array = changes[k] as Array
 		surface[int(k)] = int(v[0])
 		height_m[int(k)] = int(v[1])
+		height_mm[int(k)] = int(v[2])
 	_redo.append(changes)
 	return true
 
@@ -162,8 +174,9 @@ func redo() -> bool:
 	var changes: Dictionary = _redo.pop_back() as Dictionary
 	for k: Variant in changes.keys():
 		var v: Array = changes[k] as Array
-		surface[int(k)] = int(v[2])
-		height_m[int(k)] = int(v[3])
+		surface[int(k)] = int(v[3])
+		height_m[int(k)] = int(v[4])
+		height_mm[int(k)] = int(v[5])
 	_undo.append(changes)
 	return true
 
@@ -180,7 +193,7 @@ func redo_count() -> int:
 
 func _remember(i: int) -> void:
 	if _stroke_open and not _stroke.has(i):
-		_stroke[i] = [int(surface[i]), int(height_m[i])]
+		_stroke[i] = [int(surface[i]), int(height_m[i]), int(height_mm[i])]
 
 
 func paint_tile(c: int, r: int, s: int) -> void:
@@ -211,7 +224,26 @@ func set_height_tile(c: int, r: int, metres: int) -> void:
 		return
 	var i: int = index_of(c, r)
 	_remember(i)
-	height_m[i] = clampi(metres, HEIGHT_MIN_M, HEIGHT_MAX_M)
+	var m: int = clampi(metres, HEIGHT_MIN_M, HEIGHT_MAX_M)
+	height_m[i] = m
+	height_mm[i] = m * 1000
+
+
+func set_height_mm_tile(c: int, r: int, millimetres: int) -> void:
+	if not in_bounds(c, r):
+		return
+	var i: int = index_of(c, r)
+	_remember(i)
+	var mm: int = clampi(millimetres, HEIGHT_MIN_M * 1000, HEIGHT_MAX_M * 1000)
+	height_mm[i] = mm
+	height_m[i] = MHRMath.rdiv(mm, 1000)
+
+
+func clear_history() -> void:
+	if _stroke_open:
+		cancel_stroke()
+	_undo.clear()
+	_redo.clear()
 
 
 ## Raise (+) or lower (-) a round patch by whole metres, clamped to the height range.
