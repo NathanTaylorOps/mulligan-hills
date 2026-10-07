@@ -459,6 +459,8 @@ func _draw_craft_terrain(hole: MHCraftHole) -> void:
 		instance.material_override = material
 		_world.add_child(instance)
 	_draw_surface_edges(hole, relief_hole)
+	if _preview_draft:
+		_draw_craft_grid(hole, relief_hole)
 	for tee: Variant in hole.tees:
 		var t: Vector2i = tee as Vector2i
 		var tc: Vector2i = hole.tile_centre_yd(t.x, t.y)
@@ -481,6 +483,42 @@ func _append_craft_tile(st: SurfaceTool, relief_hole: MHRHole, hole: MHCraftHole
 		st.set_normal(_craft_normal(relief_hole, point.x, point.y))
 		var z: float = float(relief_hole.z_at(point.x, point.y)) / 1000.0
 		st.add_vertex(_position(point.x, point.y, z + lift))
+
+func _draw_craft_grid(hole: MHCraftHole, relief_hole: MHRHole) -> void:
+	# One lightweight line mesh makes the editable 2-yard tiles legible without
+	# creating hundreds of Control/Mesh nodes or baking grid lines into gameplay.
+	var st: SurfaceTool = SurfaceTool.new()
+	st.begin(Mesh.PRIMITIVE_LINES)
+	for c: int in range(hole.cols + 1):
+		var x: int = hole.tile_x0_yd(0) * 100 + c * MHCraftHole.TILE_YD * 100
+		for r: int in range(hole.rows):
+			var y0: int = hole.tile_y0_yd(r) * 100
+			var y1: int = (hole.tile_y0_yd(r) + MHCraftHole.TILE_YD) * 100
+			var z0: float = float(relief_hole.z_at(x, y0)) / 1000.0 + 0.085
+			var z1: float = float(relief_hole.z_at(x, y1)) / 1000.0 + 0.085
+			st.add_vertex(_position(x, y0, z0))
+			st.add_vertex(_position(x, y1, z1))
+	for r: int in range(hole.rows + 1):
+		var y: int = r * MHCraftHole.TILE_YD * 100
+		for c: int in range(hole.cols):
+			var x0: int = hole.tile_x0_yd(c) * 100
+			var x1: int = (hole.tile_x0_yd(c) + MHCraftHole.TILE_YD) * 100
+			var z0: float = float(relief_hole.z_at(x0, y)) / 1000.0 + 0.085
+			var z1: float = float(relief_hole.z_at(x1, y)) / 1000.0 + 0.085
+			st.add_vertex(_position(x0, y, z0))
+			st.add_vertex(_position(x1, y, z1))
+	var mesh: ArrayMesh = st.commit()
+	if mesh == null or mesh.get_surface_count() == 0:
+		return
+	var material: StandardMaterial3D = StandardMaterial3D.new()
+	material.albedo_color = Color(0.06, 0.10, 0.06, 0.26)
+	material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	var instance: MeshInstance3D = MeshInstance3D.new()
+	instance.mesh = mesh
+	instance.material_override = material
+	_world.add_child(instance)
+
 
 func _draw_surface_edges(hole: MHCraftHole, relief_hole: MHRHole) -> void:
 	# Sparse borders only where high-value golf surfaces meet another surface.
