@@ -6,14 +6,16 @@ const SELF_PATH: String = "res://tests/ci/check_project_scripts.gd"
 
 var _paths: Array[String] = []
 var _failures: Array[String] = []
+var _checked: int = 0
 
 
 func _initialize() -> void:
 	_collect("res://")
 	_paths.sort()
 	for path: String in _paths:
-		if path == SELF_PATH or path.begins_with("res://addons/"):
+		if path == SELF_PATH:
 			continue
+		_checked += 1
 		var resource: Resource = ResourceLoader.load(path)
 		if resource == null:
 			_failures.append(path)
@@ -22,7 +24,7 @@ func _initialize() -> void:
 			printerr("SCRIPT_CHECK FAIL: " + path)
 		quit(1)
 		return
-	print("SCRIPT_CHECK PASS: %d first-party GDScript files loaded" % _paths.size())
+	print("SCRIPT_CHECK PASS: %d first-party GDScript files loaded" % _checked)
 	quit(0)
 
 
@@ -40,7 +42,7 @@ func _collect(dir_path: String) -> void:
 			continue
 		var path: String = dir_path.path_join(name)
 		if dir.current_is_dir():
-			if name == ".godot":
+			if name == ".godot" or (dir_path == "res://" and name == "addons"):
 				continue
 			_collect(path)
 		elif name.ends_with(".gd"):
