@@ -88,7 +88,11 @@ static func from_dict(raw: Variant) -> MHCraftCourse:
 			var pair: Array = origins[i] as Array
 			if typeof(pair[0]) != TYPE_INT or typeof(pair[1]) != TYPE_INT:
 				return null
-			out.origins_dm.append([int(pair[0]), int(pair[1])])
+			var ox: int = int(pair[0])
+			var oy: int = int(pair[1])
+			if ox < 0 or ox > 65535 or oy < 0 or oy > 65535:
+				return null
+			out.origins_dm.append([ox, oy])
 	else:
 		for i: int in range(out.holes.size()):
 			out.origins_dm.append(default_origin(i))
