@@ -193,9 +193,12 @@ func test_canonical_craft_draft_rotates_pins_by_round() -> void:
 	var p1: Vector2i = scene.craft_hole.tile_centre_yd(12, 31)
 	var r0: Dictionary = scene.canonical_craft_draft(0)
 	var r1: Dictionary = scene.canonical_craft_draft(1)
-	assert_array(r0["green"]).contains_exactly([p0.x, p0.y, int((r0["green"] as Array)[2])])
-	assert_int(int((r1["green"] as Array)[0])).is_equal(p1.x)
-	assert_int(int((r1["green"] as Array)[1])).is_equal(p1.y)
+	var g0: Array = r0["green"] as Array
+	var g1: Array = r1["green"] as Array
+	assert_int(int(g0[0])).is_equal(p0.x)
+	assert_int(int(g0[1])).is_equal(p0.y)
+	assert_int(int(g1[0])).is_equal(p1.x)
+	assert_int(int(g1[1])).is_equal(p1.y)
 	scene._active = false
 
 
