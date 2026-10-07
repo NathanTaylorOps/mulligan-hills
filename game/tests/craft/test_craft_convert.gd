@@ -144,6 +144,16 @@ func test_craft_green_and_length_requirements_match_rating_engine() -> void:
 	assert_bool(MHCraftConvert.problems(h).has("hole_too_short")).is_true()
 
 
+func test_session_surfaces_rating_reason_for_legacy_undersized_green() -> void:
+	var def: Dictionary = MHCraftConvert.to_hole_def(_hole(), 0, 0, 0)
+	(def["green"] as Array)[2] = 2 # Historically accepted by craft, rejected as RC006.
+	var session: MHGameSession = MHGameSession.create()
+	var attempt: Dictionary = session.submit_course([def])
+	assert_bool(bool(attempt["ok"])).is_false()
+	assert_str(str(attempt["reason"])).is_equal("invalid_rating")
+	assert_bool((attempt.get("rating_reasons", []) as Array).has("RC006")).is_true()
+
+
 func test_each_round_uses_the_next_pin() -> void:
 	var h: MHCraftHole = _hole()
 	h.paint_rect(10, 30, 13, 31, MHCraftHole.Surface.GREEN)
