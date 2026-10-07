@@ -32,6 +32,8 @@ var _layout_key: Array = []
 var _pending_save: bool = false
 var _active: bool = false
 var _last_usec: int = 0
+var _syncing_craft_terrain: bool = false
+var _terrain_dirty_for_craft: Rect2i = Rect2i()
 
 func _ready() -> void:
 	MHOrientation.apply_game() # No-op off mobile; one switch, see MHOrientation.
@@ -134,6 +136,16 @@ func _ready() -> void:
 	_panel_frame.add_child(one_hole)
 	one_hole.setup(self)
 	craft_hole = _default_craft_hole()
+	# The old prototype had two unrelated terrain models: the normal editor edited
+	# the persisted world, while Build/play edited a private craft grid. Migrate the
+	# current unfinalized slice into one shared world immediately. Non-default world
+	# edits (water/path/fairway/etc.) and height shaping win over the starter draft;
+	# the starter fairway/green fill untouched rough.
+	if session.hole_definitions().is_empty():
+		MHCraftTerrainBridge.overlay_nondefault_from_world(craft_hole, editor, Vector2i(480, 340))
+		_syncing_craft_terrain = true
+		MHCraftTerrainBridge.sync_to_world(craft_hole, editor, Vector2i(480, 340), false)
+		_syncing_craft_terrain = false
 	one_hole.visibility_changed.connect(_on_panel_visibility)
 	one_hole.layout_changed.connect(_relayout)
 	get_viewport().size_changed.connect(_relayout)
@@ -154,6 +166,7 @@ func _ready() -> void:
 	_status.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 	_status_zone.add_child(_status)
 	editor.stroke_began.connect(func() -> void: view.changed.emit())
+	editor.cells_dirty.connect(_terrain_cells_dirty)
 	editor.stroke_ended.connect(_edited)
 	editor.history_applied.connect(_history)
 	editor.stroke_cancelled.connect(func() -> void: view.changed.emit())
@@ -278,11 +291,42 @@ func _on_intent(id: StringName, args: Dictionary) -> void:
 			elif _status != null:
 				_status.text = "Action unavailable: " + str(result.get("reason", ""))
 
+func _terrain_cells_dirty(rect: Rect2i) -> void:
+	if _syncing_craft_terrain or not rect.has_area():
+		return
+	_terrain_dirty_for_craft = rect if not _terrain_dirty_for_craft.has_area() else _terrain_dirty_for_craft.merge(rect)
+
+
+func _sync_craft_from_world_dirty() -> void:
+	if _syncing_craft_terrain or craft_hole == null or not session.hole_definitions().is_empty():
+		_terrain_dirty_for_craft = Rect2i()
+		return
+	if not _terrain_dirty_for_craft.has_area():
+		return
+	var dirty: Rect2i = _terrain_dirty_for_craft
+	_terrain_dirty_for_craft = Rect2i()
+	MHCraftTerrainBridge.sync_from_world_rect(craft_hole, editor, Vector2i(480, 340), dirty)
+	if one_hole != null:
+		one_hole._refresh_canonical_craft()
+
+
+func sync_craft_to_world(record_undo: bool = true) -> bool:
+	if craft_hole == null or editor == null or not session.hole_definitions().is_empty():
+		return false
+	_syncing_craft_terrain = true
+	var changed: bool = MHCraftTerrainBridge.sync_to_world(craft_hole, editor, Vector2i(480, 340), record_undo)
+	_syncing_craft_terrain = false
+	_terrain_dirty_for_craft = Rect2i()
+	return changed
+
+
 func _edited(_count: int) -> void:
+	_sync_craft_from_world_dirty()
 	view.changed.emit()
 	_request_save()
 
 func _history(_undo: bool) -> void:
+	_sync_craft_from_world_dirty()
 	view.changed.emit()
 	_request_save()
 
@@ -417,6 +461,9 @@ func _open_craft_hole() -> void:
 	if not session.hole_definitions().is_empty():
 		one_hole.open()
 		return
+	# Finish any pending world->craft synchronization before showing the exact
+	# editor. Both editor entrances now display the same terrain.
+	_sync_craft_from_world_dirty()
 	var draft: Dictionary = canonical_craft_draft()
 	if not draft.is_empty() and not one_hole.set_canonical_draft(draft):
 		_status.text = "Craft hole is not valid enough to finalize yet."
