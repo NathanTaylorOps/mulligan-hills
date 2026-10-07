@@ -42,6 +42,9 @@ func test_exact_money_clock_land_progress_and_tiers_round_trip() -> void:
 	assert_dict(restored.clock.to_dict()).is_equal(s.clock.to_dict())
 	assert_array(Array(restored.land.owned_ids())).contains_exactly(Array(s.land.owned_ids()))
 	assert_dict(restored.bridge.to_save_progress()).is_equal(s.bridge.to_save_progress())
+	assert_dict(restored.customers.to_dict()).is_equal(s.customers.to_dict())
+	assert_dict(restored.staff.to_save_block()).is_equal(s.staff.to_save_block())
+	assert_int(int(checkpoint["min_reader_version"])).is_equal(6)
 
 func test_future_hour_cash_and_building_disagreements_are_rejected() -> void:
 	var s: MHGameSession = MHGameSession.create()
@@ -219,7 +222,7 @@ func test_unfinalized_craft_draft_survives_cold_reopen_exactly() -> void:
 	scene.craft_hole.add_pin(12, 31)
 	var expected: Dictionary = scene.craft_hole.to_dict()
 	assert_bool(scene.save_now()).is_true()
-	assert_int(int(scene.document["min_reader_version"])).is_equal(4)
+	assert_int(int(scene.document["min_reader_version"])).is_equal(6)
 	scene._active = false
 	scene.queue_free()
 	await get_tree().process_frame
@@ -245,7 +248,7 @@ func test_live_scene_finalization_can_save_and_reload_practice() -> void:
 	scene._open_craft_hole()
 	scene.one_hole._finalize()
 	assert_int(scene.session.hole_definitions().size()).is_equal(1)
-	assert_int(int(scene.document["min_reader_version"])).is_equal(3)
+	assert_int(int(scene.document["min_reader_version"])).is_equal(6)
 	scene.one_hole._shoot()
 	assert_object(scene.session.practice).is_not_null()
 	assert_int(scene.session.practice.strokes).is_greater(0)
