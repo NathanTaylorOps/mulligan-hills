@@ -45,7 +45,8 @@ func test_economy_hour_publishes_the_booked_golfer_count() -> void:
 	var view: MHLiveGameStateView = MHLiveGameStateView.new(s)
 	assert_str(MHSliceStarter.setup(s, view)).is_equal("")
 	var booked: Array = []
-	s.golfers_booked.connect(func(count: int, ids: Array) -> void: booked.append({"count": count, "ids": ids}))
+	s.golfers_booked.connect(func(count: int, ids: Array, minute: int) -> void:
+		booked.append({"count": count, "ids": ids, "minute": minute}))
 	s.clock.set_time(0, 59)
 	s.advance(3000000, 20000 * 86400)
 	assert_int(booked.size()).is_less_equal(1)
@@ -53,6 +54,7 @@ func test_economy_hour_publishes_the_booked_golfer_count() -> void:
 		var row: Dictionary = booked[0] as Dictionary
 		assert_int(int(row["count"])).is_greater(0)
 		assert_int((row["ids"] as Array).size()).is_equal(int(row["count"]))
+		assert_int(int(row["minute"])).is_equal(s.clock.total_minutes())
 
 func test_customer_booking_identity_is_deterministic_and_unique_within_normal_group() -> void:
 	var s: MHGameSession = MHGameSession.create()
