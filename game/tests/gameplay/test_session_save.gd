@@ -384,7 +384,10 @@ func test_screen_aim_projection_sets_target_without_playing_or_charging() -> voi
 	scene.one_hole._finalize()
 	var before: Dictionary = scene.session.practice.to_dict()
 	var cash: int = scene.session.economy.cash
-	var screen: Vector2 = scene.controller.camera.unproject_position(Vector3(48.0, 0.0, 79.72))
+	var origin: Vector2i = scene.one_hole._active_play_origin()
+	var target: Vector3 = Vector3(float(MHCourseLayout.world_mm(origin.x, 0)) / 1000.0, 0.0,
+		float(MHCourseLayout.world_mm(origin.y, 5000)) / 1000.0)
+	var screen: Vector2 = scene.controller.camera.unproject_position(target)
 	assert_bool(scene.one_hole.aim_from_screen(screen)).is_true()
 	assert_int(scene.one_hole.aim_x).is_equal(0)
 	assert_int(scene.one_hole.aim_y).is_equal(5000)
