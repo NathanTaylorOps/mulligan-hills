@@ -1,6 +1,6 @@
 # Rating engine: open questions that need a human playtest or a device
 
-Owner: workstream H1. Everything in `rating-engine.md` and `golfer-sim.md` is a specification checked only against a Python reference model. The numbers below are starting values, not tuned values. Each item says what to test, who can do it, and what result would change the spec. "Needs device" means it cannot be answered without running the GDScript on a phone; nothing has been run on a phone.
+Status: provisional calibration and device/playtest questions. Everything in `rating-engine.md` and `golfer-sim.md` is a specification checked only against a Python reference model. The numbers below are starting values, not tuned values. Each item says what to test, who can do it, and what result would change the spec. "Needs device" means it cannot be answered without running the GDScript on a phone; nothing has been run on a phone.
 
 ## A. Things only a person can judge (playtest)
 
@@ -31,12 +31,12 @@ Owner: workstream H1. Everything in `rating-engine.md` and `golfer-sim.md` is a 
 19. No slope, no green speed, no lie roll, no elevation effect on distance ("plays like"), no rough grass length, no fairway firmness. Decide which of these the player must feel; each adds a table and changes the version.
 20. Wind and rain factors (8 permille per mph along, 6 across, 4 percent per rain level) are round-number guesses.
 
-## D. Design decisions still open for other workstreams
+## D. Design decisions still open for other systems
 
 21. Tier 5 tournament pass value (prestige 400) and the VIP donor mechanic. The contradiction review found the donor mechanic missing from the plan; this spec only defines prestige without tier 5 inputs.
 22. Whether a hole counts toward the size gate only when not dead (`score_pm >= 250`). Proposed here; the economy workstream must agree.
 23. Whether the game displays the per-axis formula. The reviewer notes the formula becomes public once the advisor explains it. This spec accepts that: nothing in it depends on secrecy except `save_secret`.
-24. Server verification budget: how many entries per day the server can re-simulate (each is about 1 to 2 hole ratings), and which are sampled. Owned by the backend workstream.
+24. Server verification budget: how many entries per day the server can re-simulate (each is about 1 to 2 hole ratings), and which are sampled. Owned by the backend.
 
 
 ## Elevation (answered, DEC-091)
