@@ -30,13 +30,13 @@ Status meanings: **FIXED** verified in source and corrected; **CONFIRMED** real 
 | 64 one→many assumption audit | ACTIVE | Hole-1 source assumptions found and corrected in practice panel; repo-wide multi-hole tests still required. |
 | 65 no regression guard for Hole 1 | FIXED/PARTIAL | Added a 3-hole active-context regression resolving practice slot/index and hole number; extend to rendered relief/score once runtime executes. |
 | 66 slot_id vs index | PARTIAL | Active score/practice restore resolves slot where available; formal identity contract still needed. |
-| 67 practice slot/index drift | FIXED | Active index re-resolves from practice slot and now has an explicit 3-hole regression test. |
+| 67 practice slot/index drift | FIXED | Active index re-resolves from practice slot and now has an explicit 3-hole regression test. |\n| Visual group staggered completion | FIXED | Replaced same-frame completion counting with persistent per-group remaining-member state; added 0.1 s cadence and concurrent-group regressions. |
 | 68 fixed origin | CONFIRMED | Still uses one `ORIGIN`. |
 | 69 shared terrain window | CONFIRMED | Real multi-hole world placement remains the first post-stabilization feature. |
 | 90 integration coverage lag | CONFIRMED | Stabilization sprint is addressing it. |
 | 91 ownership integration tests | PARTIAL | Staff/customer/session tests exist; full EDIT→BUILD→PLAY→SAVE→RELOAD test remains. |
 | 92 save/schema atomicity | PARTIAL | Customer save path now includes schema/validator/serializer/restore/tests; process rule should be retained. |
-| 93 reader-version logic scattered | FIXED/PARTIAL | Found and fixed a real downgrade bug where practice reset reader 6 to 3, invalidating customer+practice saves. Added regression. Capability calculation should still be centralized later. |
+| 93 reader-version logic scattered | FIXED | Found/fixed practice downgrading reader 6 to 3, then centralized the monotonic capability-derived reader floor with regression coverage. |
 | 97 MHGameSession growth | WATCH | Keep orchestration only; do not move domain calculations into it. |
 | 100 condition satisfaction invisible | PARTIAL | Mechanical connection exists; player-facing explanation needs condition as explicit component. |
 | 102 final integration-quality gate | CONFIRMED | This is the stabilization target. |
