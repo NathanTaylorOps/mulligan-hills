@@ -54,3 +54,8 @@ func test_restore_rejects_impossible_customer_relationship_state() -> void:
 	var rows: Array = raw["rows"] as Array
 	(rows[5] as Dictionary)["member"] = true
 	assert_object(MHGolferCustomers.from_dict(raw)).is_null()
+
+func test_incomplete_course_can_explain_dissatisfaction() -> void:
+	var tiers := PackedInt32Array([5,5,5,5,5,5,5,5,5,5])
+	var result: Dictionary = MHGolferExperience.evaluate(100, 1000, 5000, tiers, 1, 0)
+	assert_str(str(result["worst"])).is_equal("completeness")
