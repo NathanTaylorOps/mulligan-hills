@@ -91,7 +91,7 @@ func setup(scene: MHLiveConstruction) -> void:
 	add_theme_constant_override("separation", 6)
 	var head: HBoxContainer = MHUIKit.hbox(8)
 	add_child(head)
-	_title = MHUIKit.label("HOLE 1", &"", false)
+	_title = MHUIKit.label("HOLE", &"", false)
 	_title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_title.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	_title.clip_text = true
