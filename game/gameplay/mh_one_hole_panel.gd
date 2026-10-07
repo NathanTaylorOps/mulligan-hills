@@ -199,7 +199,12 @@ func setup(scene: MHLiveConstruction) -> void:
 	_world.hide()
 	var layouts: Array = live.session.hole_definitions()
 	if not layouts.is_empty():
-		_sync_legacy_controls(layouts[0] as Dictionary)
+		if live.session.practice != null:
+			for i: int in range(layouts.size()):
+				if int((layouts[i] as Dictionary).get("slot_id", -1)) == live.session.practice.hole.slot:
+					_play_hole_index = i
+					break
+		_sync_legacy_controls(layouts[_play_hole_index] as Dictionary)
 	_sync_mode_controls()
 	_describe()
 	hide()
@@ -1037,7 +1042,7 @@ func _finalize() -> void:
 		return
 	var origins: Array = []
 	for i: int in range(all_holes.size()):
-		# Temporary three-hole authoring origins are separated in the existing world coordinate space.
+		# The compact slice reuses one development terrain window; stable slot IDs keep holes distinct.
 		origins.append([ORIGIN[0], ORIGIN[1]])
 	var encoded: MHSaveResult = MHCourseLayout.encode(all_holes, live.document["course"] as Dictionary, origins)
 	if not encoded.is_ok():
