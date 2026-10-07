@@ -1,5 +1,5 @@
 extends GdUnitTestSuite
-## Nature meshes: triangle budgets (low-end phone), determinism, variant variety, LOD ordering, sane size.
+## Nature meshes: tiered triangle budgets, determinism, variant variety, LOD ordering, sane size.
 ## Golden geometry hashes are NOT stored: Godot could not run when this was written. After the first green
 ## CI run, add them from the output of test_print_hashes_for_golden_values (see docs/phase1).
 ## NOT YET RUN in Godot.
@@ -26,7 +26,7 @@ func test_triangle_counts_stay_inside_budget() -> void:
 				assert_bool(tris > 0 and tris <= MHNatureMeshes.budget(kind, lod)).override_failure_message(msg).is_true()
 
 
-func test_tree_lod0_is_under_400_and_budgets_are_consistent() -> void:
+func test_tree_near_lod_stays_inside_hero_budget_and_budgets_are_consistent() -> void:
 	for k: Variant in MHNatureMeshes.TREE_KINDS:
 		var kind: String = str(k)
 		assert_bool(MHNatureMeshes.is_tree(kind)).is_true()
