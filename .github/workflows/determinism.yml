@@ -23,7 +23,7 @@ concurrency:
   cancel-in-progress: true
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
   hash:
@@ -77,11 +77,6 @@ jobs:
             ci-out/tests/test.log
           if-no-files-found: warn
 
-      - name: Publish results to ci-results branch
-        if: always()
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: tools/ci/publish_results.sh determinism-${{ runner.os }} ci-out
 
   compare:
     needs: hash
