@@ -100,6 +100,24 @@ func _verify() -> void:
 	if live.craft_hole.get_surface(tile.x, tile.y) != MHCraftHole.Surface.WATER:
 		_fail("Build/play lost normal editor water")
 		return
+	# Relief screen picking must hit the first visible surface, not a later valley
+	# or flat plane behind a crest. Verify the centre of the editable course maps
+	# back into the canonical grid after giving it a pronounced raised profile.
+	var relief_tile: Vector2i = Vector2i(11, 15)
+	var relief_before: int = live.craft_hole.get_height_mm(relief_tile.x, relief_tile.y)
+	live.craft_hole.set_height_tile(relief_tile.x, relief_tile.y, 6000)
+	panel = live.one_hole
+	panel._draw()
+	await process_frame
+	var relief_centre: Vector2i = live.craft_hole.tile_centre_yd(relief_tile.x, relief_tile.y)
+	var relief_world: Vector3 = panel._position_on_ground(relief_centre.x * 100, relief_centre.y * 100, 0.0)
+	var relief_screen: Vector2 = live.controller.camera.unproject_position(relief_world)
+	var picked_relief: Vector2i = panel._craft_tile_from_screen(relief_screen)
+	if picked_relief != relief_tile:
+		_fail("Relief screen pick missed first visible terrain contact: expected " + str(relief_tile) + " got " + str(picked_relief))
+		return
+	live.craft_hole.set_height_tile(relief_tile.x, relief_tile.y, relief_before)
+	panel._draw()
 	# The palette may scroll, but navigation and history must stay reachable.
 	var panel: MHOneHolePanel = live.one_hole
 	hud = shell._top_node() as MHHudScreen
