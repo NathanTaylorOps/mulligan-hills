@@ -385,3 +385,22 @@ func test_elevated_craft_hole_practice_state_survives_checkpoint_exactly() -> vo
 		var rs: MHGameSession = restored.value
 		assert_array(rs.hole_definitions()).contains_exactly([layout])
 		assert_dict(rs.practice.to_dict()).is_equal(s.practice.to_dict())
+
+func test_three_hole_active_context_follows_practice_slot_not_hole_zero() -> void:
+	var scene: MHLiveConstruction = auto_free(MHLiveConstruction.new())
+	scene.store = MHSaveStore.new(DIR)
+	scene.ledger_dir = LEDGERS
+	add_child(scene)
+	assert_bool(scene._active).is_true()
+	scene._open_craft_hole()
+	scene.one_hole._finalize()
+	var defs: Array = scene.session.hole_definitions()
+	assert_int(defs.size()).is_equal(3)
+	for i: int in range(3):
+		scene.one_hole._play_hole_index = i
+		scene.session.practice = MHPracticeRound.create(defs[i] as Dictionary,
+			MHRatingEngine.seed_for(i, {"save_secret": scene.session.save_secret, "rating_epoch": scene.session.rating_epoch}))
+		assert_int(scene.one_hole._active_play_index()).is_equal(i)
+		assert_int(int(scene.one_hole._active_play_layout()["slot_id"])).is_equal(i)
+		assert_int(scene.one_hole._active_hole_number()).is_equal(i + 1)
+	scene._active = false
