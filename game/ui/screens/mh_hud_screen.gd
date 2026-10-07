@@ -17,6 +17,9 @@ var _speed_note: Label
 var _pause_button: MHTapButton
 var _nav_buttons: Dictionary = {}
 var _slot: Control
+var _top_flow: HFlowContainer
+var _speed_row: HFlowContainer
+var _nav_row: HBoxContainer
 
 
 func _init() -> void:
@@ -43,40 +46,40 @@ func _build() -> void:
 	root.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	margin.add_child(root)
 
-	var top: HFlowContainer = MHUIKit.flow(8)
-	root.add_child(top)
-	top.add_child(_make_cash_chip())
-	top.add_child(_make_time_chip())
-	top.add_child(_make_score_chip())
+	_top_flow = MHUIKit.flow(8)
+	root.add_child(_top_flow)
+	_top_flow.add_child(_make_cash_chip())
+	_top_flow.add_child(_make_time_chip())
+	_top_flow.add_child(_make_score_chip())
 	_token_button = MHUIKit.button(ctx, "", &"ChipButton", 120.0)
 	_token_button.pressed.connect(send.bind(&"nav", {"screen": MHScreenIds.TOKENS}))
-	top.add_child(_token_button)
+	_top_flow.add_child(_token_button)
 	_demo_chip = MHUIKit.panel(&"HudChip")
 	_demo_chip.add_child(MHUIKit.label(MHStrings.t("hud.demo"), &"HudLabel", false))
-	top.add_child(_demo_chip)
+	_top_flow.add_child(_demo_chip)
 
-	var speed_row: HFlowContainer = MHUIKit.flow(8)
-	root.add_child(speed_row)
+	_speed_row = MHUIKit.flow(8)
+	root.add_child(_speed_row)
 	for s: Variant in MHSpeedControl.SPEEDS:
 		var sp: int = int(s)
 		var b: MHTapButton = MHUIKit.button(ctx, MHFormat.speed_label(sp), &"ChipButton", 112.0)
 		b.tag = sp
 		b.pressed.connect(_on_speed_pressed.bind(sp))
-		speed_row.add_child(b)
+		_speed_row.add_child(b)
 		_speed_buttons[sp] = b
 	_pause_button = MHUIKit.button(ctx, "", &"ChipButton", 120.0)
 	_pause_button.pressed.connect(send.bind(&"toggle_pause", {}))
-	speed_row.add_child(_pause_button)
+	_speed_row.add_child(_pause_button)
 	var note_chip: PanelContainer = MHUIKit.panel(&"HudChip")
 	_speed_note = MHUIKit.label("", &"SmallLabel", false)
 	note_chip.add_child(_speed_note)
-	speed_row.add_child(note_chip)
+	_speed_row.add_child(note_chip)
 
 	_slot = MHUIKit.spacer()
 	root.add_child(_slot)
 
-	var nav: HBoxContainer = MHUIKit.hbox(8)
-	root.add_child(nav)
+	_nav_row = MHUIKit.hbox(8)
+	root.add_child(_nav_row)
 	var ids: Array = [MHScreenIds.BUILD, MHScreenIds.LAND, MHScreenIds.EDITOR, MHScreenIds.RATING, MHScreenIds.SETTINGS]
 	var keys: Array = ["hud.nav.build", "hud.nav.land", "hud.nav.editor", "hud.nav.rating", "hud.nav.menu"]
 	for i: int in range(ids.size()):
@@ -87,16 +90,28 @@ func _build() -> void:
 		_nav_buttons[str(ids[i])] = nb
 	if ctx.left_handed():
 		for i: int in range(ids.size() - 1, -1, -1):
-			nav.add_child(_nav_buttons[str(ids[i])])
+			_nav_row.add_child(_nav_buttons[str(ids[i])])
 	else:
 		for i: int in range(ids.size()):
-			nav.add_child(_nav_buttons[str(ids[i])])
+			_nav_row.add_child(_nav_buttons[str(ids[i])])
 
 
 func free_rect() -> Rect2:
-	if _slot == null or not is_instance_valid(_slot) or not _slot.is_visible_in_tree():
+	# Derive the world area from controls that have real rendered geometry instead
+	# of trusting the spacer's transient Container allocation. This stays stable
+	# during the first layout frame and after window resizes.
+	if _top_flow == null or _speed_row == null or _nav_row == null:
 		return Rect2()
-	return _slot.get_global_rect()
+	if not _top_flow.is_visible_in_tree() or not _speed_row.is_visible_in_tree() or not _nav_row.is_visible_in_tree():
+		return Rect2()
+	var bounds: Rect2 = get_global_rect()
+	var top_y: float = maxf(_top_flow.get_global_rect().end.y, _speed_row.get_global_rect().end.y) + 8.0
+	var bottom_y: float = _nav_row.get_global_rect().position.y - 8.0
+	var left: float = bounds.position.x + float(MHTheme.GUTTER)
+	var right: float = bounds.end.x - float(MHTheme.GUTTER)
+	if right <= left or bottom_y <= top_y:
+		return Rect2()
+	return Rect2(Vector2(left, top_y), Vector2(right - left, bottom_y - top_y))
 
 
 func _make_cash_chip() -> Control:
