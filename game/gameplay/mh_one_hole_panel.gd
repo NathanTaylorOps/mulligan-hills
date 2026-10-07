@@ -254,7 +254,7 @@ func craft_at_tile(c: int, r: int) -> bool:
 		_apply_craft_stroke_tile(Vector2i(c, r))
 		var terrain_changed: bool = h.commit_stroke()
 		if terrain_changed:
-			live.sync_craft_to_world()
+			live.sync_craft_tiles_to_world(h.last_changed_tiles())
 	_refresh_canonical_craft()
 	return true
 
@@ -275,12 +275,12 @@ func _refresh_canonical_craft() -> void:
 
 func _craft_undo() -> void:
 	if live.craft_hole != null and live.craft_hole.undo():
-		live.sync_craft_to_world()
+		live.sync_craft_tiles_to_world(live.craft_hole.last_changed_tiles())
 		_refresh_canonical_craft()
 
 func _craft_redo() -> void:
 	if live.craft_hole != null and live.craft_hole.redo():
-		live.sync_craft_to_world()
+		live.sync_craft_tiles_to_world(live.craft_hole.last_changed_tiles())
 		_refresh_canonical_craft()
 
 func _draft_changed() -> void:
@@ -897,7 +897,7 @@ func craft_stroke_end() -> bool:
 	var changed: bool = live.craft_hole.commit_stroke()
 	_craft_preview_dirty = false
 	if changed:
-		live.sync_craft_to_world()
+		live.sync_craft_tiles_to_world(live.craft_hole.last_changed_tiles())
 		_refresh_canonical_craft()
 	return changed
 
