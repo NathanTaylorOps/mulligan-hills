@@ -1,10 +1,10 @@
 # Release checklist: Google Play (Android first), then App Store
 
 Status: DRAFT 2026-10-04. Tick items as done and write the date. "VERIFY" = confirm in the console or in Google's current documentation; policies and numbers change. Nothing here has been done yet.
-Gate references: Gate 0 (`docs/phase0/GATE0.md`) must pass and Nathan must sign off before Phase 1 build work that depends on device performance (DEC-045, amended by DEC-061).
+Release gating is defined by `docs/QUALITY_GATES.md` and the exact release-candidate evidence in `docs/VERIFICATION.md`.
 
 ## A. Identity and accounts (start now: these are the longest waits)
-- [ ] Decide the publisher: personal or registered business entity, and tax setup (DEC-044: decide BEFORE store payout setup; DECISIONS open item 8). The developer account type decides whether the 12 testers rule applies (`docs/phase0/platform.md` For Nathan A: personal accounts created after 2023-11-13 need it; VERIFY current rule).
+- [ ] Decide the publisher: personal or registered business entity, and tax setup (DEC-044: decide BEFORE store payout setup; DECISIONS open item 8). The developer account type decides whether the 12 testers rule applies (the current Play Console requirements: personal accounts created after 2023-11-13 need it; VERIFY current rule).
 - [ ] Create the Google Play developer account (fee one-time, VERIFY amount). Complete identity verification and the payments profile. Date approved: ______
 - [ ] Choose the support email (a dedicated address; shown publicly) and set up a mailbox that is checked daily during testing and launch.
 - [ ] Domain or hosting for the privacy policy, terms and the account deletion page (GitHub Pages is enough, `docs/phase0/platform.md`). URLs: privacy ______ terms ______ deletion ______
@@ -18,7 +18,7 @@ Gate references: Gate 0 (`docs/phase0/GATE0.md`) must pass and Nathan must sign 
 - [ ] Children's privacy question answered (Australian code, COPPA): written advice saved.
 - [ ] Decide analytics consent wording per region (DECISIONS open item 7, DEC-057 says opt-in everywhere).
 
-## C. Backend ready (`supabase/FOR_NATHAN.md`)
+## C. Backend ready (`supabase/SETUP.md`)
 - [ ] Supabase project created, migrations applied, functions deployed, secrets set, Parts 1 to 6 of the guide done.
 - [ ] Anonymous sign-ins on. Row level security shown ON for every table. Bucket `cloud-saves` private.
 - [ ] Play service account created, linked, permissions granted; `verify-purchase` works with a licence tester purchase (this can take 24 to 48 hours to start working: UNVERIFIED, `supabase/functions/README.md`).
@@ -31,7 +31,7 @@ Gate references: Gate 0 (`docs/phase0/GATE0.md`) must pass and Nathan must sign 
 ## D. Build
 - [ ] Target API level meets the current Play requirement (the repository notes API 36 from 2026-08-31 with an extension to 2026-11-01; VERIFY today's rule). `targetSdkVersion` set in the Godot export preset.
 - [ ] Play Billing Library version 8 or later (notes: 7 and older deprecated; VERIFY). Billing plugin API verified on a real device (`docs/phase0/platform.md` section 4 item 1).
-- [ ] Release build is an Android App Bundle (.aab), signed with the upload key (`platform.md` For Nathan D), Play App Signing accepted. Keystore backed up in two places.
+- [ ] Release build is an Android App Bundle (.aab), signed with the upload key (the Android platform setup), Play App Signing accepted. Keystore backed up in two places.
 - [ ] 64-bit builds included (VERIFY).
 - [ ] Merged manifest checked for unwanted permissions: no `AD_ID`, no location, no storage, no contacts; `POST_NOTIFICATIONS` only if local notifications ship. Record the final list in `data_safety.md`.
 - [ ] Version name and version code scheme chosen. Version code increases with every upload.
