@@ -16,8 +16,8 @@ const IDS: Array = ["clubhouse", "pro_shop", "driving_range", "restaurant", "poo
 const TIER_COUNT: int = 5
 const SPECS: Array = ["a", "b"]
 
-## Hard triangle ceiling per tier (every building). Actual counts are far lower (tier 5 about 500 to 800); tier 5 must stay under 3000.
-const TIER_BUDGETS: Array = [300, 600, 1000, 1500, 2200]
+## Hard triangle ceiling per progression tier. Hero architecture may spend more detail as the resort matures, while the complete building set remains inside the whole-course mobile budget.
+const TIER_BUDGETS: Array = [520, 850, 1300, 1900, 2600]
 
 
 static func is_valid_id(id: String) -> bool:
