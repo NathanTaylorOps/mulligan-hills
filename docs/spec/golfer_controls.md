@@ -22,7 +22,7 @@ All proposed stored attribute values are integers 0–1000, matching the precisi
 | Composure | Bounded competitive-pressure dispersion/mishit modifier | Complete scored sequences under match conditions |
 | Luck | Bounded frequency of animal/celebrity encounters and pro offers, plus favourable story outcomes, interactions and golf breaks | Progression source remains open; do not pretend a skill drill trains random fortune |
 
-No permanent attribute loss for one unlucky shot is proposed. Failed training should give feedback without consuming a scarce training purchase. Gains must have a cap and reasonable diminishing returns so repeatedly restarting one trivial drill is not optimal. Nathan requested Luck on 5 October 2026. Include it in the personal golfer design; exact coefficients, growth and event rules remain proposals. Luck must have understandable effects rather than an unexplained universal score bonus.
+No permanent attribute loss for one unlucky shot is proposed. Failed training should give feedback without consuming a scarce training purchase. Gains must have a cap and reasonable diminishing returns so repeatedly restarting one trivial drill is not optimal. Luck was added to the working design on 5 October 2026. Include it in the personal golfer design; exact coefficients, growth and event rules remain proposals. Luck must have understandable effects rather than an unexplained universal score bonus.
 
 ## Luck: encounters and golf breaks
 
