@@ -113,6 +113,19 @@ func _verify() -> void:
 		_fail("Sculpt grid is missing in terrain mode")
 		return
 	live.one_hole._select_category(&"surfaces")
+	# Regression: repainting the flag location as water must NOT silently switch
+	# the unfinished hole to practice-only mode when Build/play is reopened.
+	var pin_tile: Vector2i = live.craft_hole.pins[0] as Vector2i
+	live.one_hole.craft_surface = MHCraftHole.Surface.WATER
+	live.one_hole.craft_mode = &"surface"
+	if not live.one_hole.craft_at_tile(pin_tile.x, pin_tile.y):
+		_fail("Painting at the current pin failed")
+		return
+	live.one_hole.close_preview()
+	live._open_craft_hole()
+	if not live.one_hole._preview_draft or not live.one_hole._finalize_button.visible:
+		_fail("Invalid draft reopened without edit/build controls")
+		return
 	live.one_hole._repair_hole_markers()
 	var problems: Array = MHCraftConvert.problems(live.craft_hole)
 	if not problems.is_empty():
