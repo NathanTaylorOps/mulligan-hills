@@ -1,5 +1,7 @@
 # Frame efficiency (workstream D extension)
 
+> **Historical Phase 0 record.** This file captures an early efficiency/planning checkpoint. Current priorities are in `docs/ROADMAP.md`, `docs/TECH_DEBT.md` and `docs/QUALITY_GATES.md`.
+
 Status: written, **NOT YET RUN**. No Godot binary was available. Nothing here is a measurement.
 
 ## README block
