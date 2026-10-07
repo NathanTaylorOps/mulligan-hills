@@ -18,7 +18,7 @@ Status meanings: **FIXED** verified in source and corrected; **CONFIRMED** real 
 | 7 current HEAD unverified | CONFIRMED BLOCKER | Broad feature work is frozen for stabilization. |
 | 8 historical PASS risk | CONFIRMED POLICY | No old PASS is treated as current-head evidence. |
 | 23 first satisfaction not clamped | FIXED | Incoming visit score is clamped once before all calculations. |
-| 24 customer restore invariants weak | FIXED/PARTIAL | Restore now rejects member/eligible/streak states impossible under current rules. Extend if the domain gains more states. |
+| 24 customer restore invariants weak | FIXED | Restore rejects impossible relationship states, mismatched serialized IDs, and wrong persisted field types instead of coercing/repairing them silently. |
 | 25 independent customer booleans drift | PARTIAL | Strict restore invariants added. Counters/booleans remain explicit for now. |
 | 26 completeness omitted from explanation | FIXED | Completeness participates in best/worst reaction explanation. |
 | 27 explanations can omit weighted factors | FIXED for current factors | All currently weighted components participate. |
@@ -28,7 +28,7 @@ Status meanings: **FIXED** verified in source and corrected; **CONFIRMED** real 
 | 54 Godot hard pins empty | CONFIRMED | Populate only after a trusted known-good run; current downloader still checks upstream SHA512 sums. |
 | 56 Android toolchain unverified | CONFIRMED | versions.env explicitly marks it unverified. Requires successful real export before freezing. |
 | 64 one→many assumption audit | ACTIVE | Hole-1 source assumptions found and corrected in practice panel; repo-wide multi-hole tests still required. |
-| 65 no regression guard for Hole 1 | FIXED/PARTIAL | Added a 3-hole active-context regression resolving practice slot/index and hole number; extend to rendered relief/score once runtime executes. |
+| 65 no regression guard for Hole 1 | FIXED/PARTIAL | Added 3-hole active-context, distinct-hole finalization, and cold-reopen regressions. Runtime execution remains blocked by runner allocation. |
 | 66 slot_id vs index | PARTIAL | Active score/practice restore resolves slot where available; formal identity contract still needed. |
 | 67 practice slot/index drift | FIXED | Active index re-resolves from practice slot and now has an explicit 3-hole regression test. |\n| Visual group staggered completion | FIXED | Replaced same-frame completion counting with persistent per-group remaining-member state; added 0.1 s cadence and concurrent-group regressions. |
 | 68 fixed origin | CONFIRMED | Still uses one `ORIGIN`. |
