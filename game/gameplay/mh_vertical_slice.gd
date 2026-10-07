@@ -130,6 +130,8 @@ func tick(elapsed_us: int, wall_unix: int, delta: float) -> void:
 	if not session.clock.is_paused():
 		visual_dt = delta * float(mini(session.clock.speed(), 2))
 	golfers.advance(visual_dt, _camera_position())
+	for completed: Variant in golfers.drain_completed_groups():
+		_on_visual_round_complete(completed as Dictionary)
 	_sync_world(false)
 	_hud_timer += delta
 	if _hud_timer >= HUD_REFRESH_S:
@@ -210,9 +212,21 @@ func _spawn_group(g: Dictionary) -> void:
 	if hole_points.is_empty():
 		return
 	var serial: int = int(g["serial"])
-	var pts: Dictionary = hole_points[serial % hole_points.size()] as Dictionary
-	golfers.spawn_group(serial, int(g["size"]), pts["tee"] as Vector2, pts["green"] as Vector2)
-	_readout_hole = serial % hole_points.size()
+	var route: Array = []
+	for pts_value: Variant in hole_points:
+		var pts: Dictionary = pts_value as Dictionary
+		route.append({"tee": pts["tee"], "green": pts["green"]})
+	golfers.spawn_course_group(serial, int(g["size"]), route)
+	_readout_hole = 0
+
+func _on_visual_round_complete(row: Dictionary) -> void:
+	# Economy.tick_hour already booked these golfers and their fees. This is feedback only.
+	var size: int = int(row.get("size", 0))
+	var holes_played: int = int(row.get("holes", 0))
+	if size <= 0 or holes_played <= 0:
+		return
+	_set_status("Group %d finished %d holes — %d golfers completed their round." % [
+		int(row.get("serial", 0)) + 1, holes_played, size])
 
 
 func _camera_position() -> Vector3:
