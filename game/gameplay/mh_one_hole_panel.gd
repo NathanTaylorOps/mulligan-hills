@@ -1805,8 +1805,20 @@ func _position_on_ground(cx: int, cy: int, offset: float) -> Vector3:
 	return _position(cx, cy, _ground_height(cx, cy) + offset)
 
 func _position(cx: int, cy: int, height: float) -> Vector3:
-	return Vector3(float(MHCourseLayout.world_mm(int(ORIGIN[0]), cx)) / 1000.0, height,
-		float(MHCourseLayout.world_mm(int(ORIGIN[1]), cy)) / 1000.0)
+	var origin: Vector2i = live.craft_origin_dm() if _preview_draft else _active_play_origin()
+	return Vector3(float(MHCourseLayout.world_mm(origin.x, cx)) / 1000.0, height,
+		float(MHCourseLayout.world_mm(origin.y, cy)) / 1000.0)
+
+func _active_play_origin() -> Vector2i:
+	if live == null:
+		return Vector2i(int(ORIGIN[0]), int(ORIGIN[1]))
+	var rows: Array = (live.document.get("course", {}) as Dictionary).get("holes", []) as Array
+	var index: int = _active_play_index()
+	if index >= 0 and index < rows.size() and typeof(rows[index]) == TYPE_DICTIONARY:
+		var raw: Variant = (rows[index] as Dictionary).get("origin_dm", [])
+		if typeof(raw) == TYPE_ARRAY and (raw as Array).size() == 2:
+			return Vector2i(int((raw as Array)[0]), int((raw as Array)[1]))
+	return live.craft_origin_dm(index)
 
 func _marker(color: Color, radius: float) -> MeshInstance3D:
 	var sphere: SphereMesh = SphereMesh.new()
@@ -1833,7 +1845,7 @@ func _mesh(mesh_value: Mesh, pos: Vector3, color: Color) -> MeshInstance3D:
 ## The save codec supports more shapes than this small authoring/view prototype does.
 static func supported(course: Dictionary) -> bool:
 	# The live renderer supports the compact authored-course slice: up to three
-	# canonical holes sharing the development terrain window, with stable slots.
+	# canonical holes at explicit world origins, with stable slots.
 	var decoded: MHSaveResult = MHCourseLayout.decode(course)
 	if not decoded.is_ok():
 		return false
@@ -1846,7 +1858,10 @@ static func supported(course: Dictionary) -> bool:
 		if typeof(rows[i]) != TYPE_DICTIONARY:
 			return false
 		var row: Dictionary = rows[i] as Dictionary
-		if row.get("origin_dm", []) != ORIGIN or typeof(row.get("layout", null)) != TYPE_DICTIONARY:
+		var raw_origin: Variant = row.get("origin_dm", null)
+		if typeof(raw_origin) != TYPE_ARRAY or (raw_origin as Array).size() != 2 or typeof(row.get("layout", null)) != TYPE_DICTIONARY:
+			return false
+		if typeof((raw_origin as Array)[0]) != TYPE_INT or typeof((raw_origin as Array)[1]) != TYPE_INT:
 			return false
 		var h: Dictionary = row["layout"] as Dictionary
 		if int(h.get("slot_id", -1)) != i:
