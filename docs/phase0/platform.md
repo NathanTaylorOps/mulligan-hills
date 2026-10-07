@@ -1,5 +1,7 @@
 # Workstream F: platform (billing, sign-in, integrity, notifications, analytics)
 
+> **Historical Phase 0 record.** This file captures the original platform feasibility work and contains obsolete workstream/person-specific setup language. Current Android/iOS notes, `supabase/SETUP.md`, `docs/STATUS.md` and `docs/VERIFICATION.md` take precedence.
+
 Owner: workstream F. Written 2026-09-29. Status: **code and notes written; NOTHING RUN on Godot, Android or a device.**
 What WAS run: Python and Node checks of the token format (section 2).
 
