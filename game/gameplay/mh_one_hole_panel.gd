@@ -759,7 +759,7 @@ func _refresh_tool_button_styles() -> void:
 
 func set_canonical_draft(layout: Dictionary) -> bool:
 	var validation: Dictionary = MHRatingEngine.validate_input({"schema": 1, "engine": MHRatingEngine.RATING_VERSION, "hole": layout})
-	if not bool(validation.get("ok", false)) or int(layout.get("slot_id", -1)) != 0:
+	if not bool(validation.get("ok", false)) or live == null or int(layout.get("slot_id", -1)) != live.craft_hole_number() - 1:
 		return false
 	canonical_draft = layout.duplicate(true)
 	_preview_draft = true
@@ -1082,8 +1082,8 @@ func _finalize() -> void:
 		return
 	var origins: Array = []
 	for i: int in range(all_holes.size()):
-		# The compact slice reuses one development terrain window; stable slot IDs keep holes distinct.
-		origins.append([ORIGIN[0], ORIGIN[1]])
+		var origin: Vector2i = live.craft_origin_dm(i)
+		origins.append([origin.x, origin.y])
 	var encoded: MHSaveResult = MHCourseLayout.encode(all_holes, live.document["course"] as Dictionary, origins)
 	if not encoded.is_ok():
 		var explanation: String = _placement_problem_text(encoded.message)
