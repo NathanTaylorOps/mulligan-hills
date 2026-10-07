@@ -152,7 +152,7 @@ func test_authoritative_groups_carry_their_actual_tee_wait() -> void:
 	var schedule: MHSliceSchedule = MHSliceSchedule.new()
 	schedule.group_size = 3
 	schedule.interval_min = 12
-	schedule.add_booked_golfers(6, [1, 2, 3, 4, 5, 6])
+	schedule.add_booked_golfers(6, [1, 2, 3, 4, 5, 6], 0)
 	var released: Array = schedule.release(12)
 	assert_int(released.size()).is_equal(2)
 	assert_int(int((released[0] as Dictionary)["tee_minute"])).is_equal(0)
