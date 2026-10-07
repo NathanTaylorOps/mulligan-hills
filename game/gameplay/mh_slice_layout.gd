@@ -208,22 +208,16 @@ static func hole_point_m(slot: int, local_x_yd: int, local_y_yd: int) -> Vector2
 
 ## World x,z (metres) from an authoritative persisted origin in decimetres.
 static func origin_point_m(origin_dm: Array, local_x_yd: int, local_y_yd: int) -> Vector2:
-	return Vector2(float(MHCourseLayout.world_mm(int(origin_dm[0]), local_x_yd * 100)) / 1000.0,
-		float(MHCourseLayout.world_mm(int(origin_dm[1]), local_y_yd * 100)) / 1000.0)
+	return MHCourseSpatial.point_m(origin_dm, local_x_yd, local_y_yd)
 
 
 static func hole_points_at_origin_m(def: Dictionary, origin_dm: Array) -> Dictionary:
-	var tee: Array = def["tee"] as Array
-	var green: Array = def["green"] as Array
-	return {"tee": origin_point_m(origin_dm, int(tee[0]), int(tee[1])),
-		"green": origin_point_m(origin_dm, int(green[0]), int(green[1])),
-		"green_radius_m": float(int(green[2])) * YARD_M}
+	var points: Dictionary = MHCourseSpatial.hole_points_m(def, origin_dm)
+	return {"tee": points["tee"], "green": points["green"], "green_radius_m": points["green_radius_m"]}
 
 
 static func feature_rect_at_origin_m(origin_dm: Array, rect: Array) -> Rect2:
-	var a: Vector2 = origin_point_m(origin_dm, int(rect[0]), int(rect[1]))
-	var b: Vector2 = origin_point_m(origin_dm, int(rect[2]), int(rect[3]))
-	return Rect2(Vector2(minf(a.x, b.x), minf(a.y, b.y)), Vector2(absf(b.x - a.x), absf(b.y - a.y)))
+	return MHCourseSpatial.rect_m(origin_dm, rect)
 
 
 ## Tee and green world points of a hole definition (the dictionary the session keeps).
