@@ -626,7 +626,7 @@ static func _validate_runtime(d: Dictionary, errs: Array) -> void:
 	if typeof(d.get("min_reader_version", null)) != TYPE_INT or int(d["min_reader_version"]) < 2:
 		errs.append("runtime requires reader version 2")
 	var rt: Dictionary = _dict_at(d, "runtime", "$", errs)
-	_only_keys(rt, ["v", "clock", "economy", "save_secret", "recent_scores", "ledger_hash", "terrain_bytes_hash", "practice", "craft_draft"], "$.runtime", errs)
+	_only_keys(rt, ["v", "clock", "economy", "save_secret", "recent_scores", "ledger_hash", "terrain_bytes_hash", "practice", "craft_draft", "craft_course", "customers"], "$.runtime", errs)
 	if not _matches("^[0-9a-f]{64}$", rt.get("terrain_bytes_hash", null)):
 		errs.append("runtime terrain hash invalid")
 	if not _matches("^[0-9a-f]{64}$", rt.get("ledger_hash", null)):
@@ -637,6 +637,9 @@ static func _validate_runtime(d: Dictionary, errs: Array) -> void:
 	for score: Variant in scores:
 		if typeof(score) != TYPE_INT or int(score) < 0 or int(score) > 100:
 			errs.append("runtime score invalid")
+	if rt.has("customers"):
+		if MHGolferCustomers.from_dict(rt["customers"]) == null:
+			errs.append("customer checkpoint invalid")
 	if rt.has("practice"):
 		if typeof(d.get("min_reader_version", null)) != TYPE_INT or int(d["min_reader_version"]) < 3 or typeof(rt["practice"]) != TYPE_DICTIONARY:
 			errs.append("practice requires reader 3 and an object")
