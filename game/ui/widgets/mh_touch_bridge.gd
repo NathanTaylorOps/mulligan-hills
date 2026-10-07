@@ -46,9 +46,9 @@ static func visible_rect(b: Control) -> Rect2:
 	var clips: Array = []
 	var p: Node = b.get_parent()
 	while p != null:
-		var sc: ScrollContainer = p as ScrollContainer
-		if sc != null:
-			clips.append(sc.get_global_rect())
+		var control: Control = p as Control
+		if control != null and control.clip_contents:
+			clips.append(control.get_global_rect())
 		p = p.get_parent()
 	return clipped(b.get_global_rect(), clips)
 
@@ -119,7 +119,8 @@ func _input(event: InputEvent) -> void:
 			if btn != null and is_instance_valid(btn):
 				btn.modulate = Color(1, 1, 1, 1)
 				var still_tap: bool = not bool(d["moved"]) and not t.canceled
-				if still_tap and visible_rect(btn).has_point(t.position) and not btn.disabled:
+				var in_scope: bool = scope == null or scope == btn or scope.is_ancestor_of(btn)
+				if still_tap and in_scope and btn.is_visible_in_tree() and visible_rect(btn).has_point(t.position) and not btn.disabled:
 					btn.pressed.emit()
 				get_viewport().set_input_as_handled()
 	elif event is InputEventScreenDrag:

@@ -56,6 +56,10 @@ func cancel_all() -> void:
 	taps.clear()
 	if _craft_machine != null:
 		_craft_machine.cancel_all()
+	if panel != null:
+		if panel._craft_stroke_open or panel._pending_marker.x >= 0:
+			panel.craft_stroke_cancel()
+		panel.clear_brush_preview()
 
 
 func _input(event: InputEvent) -> void:
@@ -63,10 +67,43 @@ func _input(event: InputEvent) -> void:
 		cancel_all()
 		return
 	_ensure_craft_machine()
+	if event is InputEventKey and _handle_shortcut(event as InputEventKey):
+		get_viewport().set_input_as_handled()
+		return
 	if panel._preview_draft:
 		_input_craft(event)
 	else:
 		_input_practice(event)
+
+
+func _handle_shortcut(key: InputEventKey) -> bool:
+	if not key.pressed or key.echo:
+		return false
+	var focus: Control = get_viewport().gui_get_focus_owner()
+	if focus is LineEdit or focus is TextEdit:
+		return false
+	if key.keycode == KEY_ESCAPE:
+		if panel._pending_marker.x >= 0 or panel._craft_stroke_open:
+			cancel_all()
+		elif panel._details_open:
+			panel._toggle_details()
+		elif not panel.collapsed:
+			panel.set_collapsed(true)
+		else:
+			panel.close_preview()
+		return true
+	if not panel._preview_draft or not key.is_command_or_control_pressed():
+		return false
+	if key.keycode == KEY_Z:
+		if key.shift_pressed:
+			panel._craft_redo()
+		else:
+			panel._craft_undo()
+		return true
+	if key.keycode == KEY_Y:
+		panel._craft_redo()
+		return true
+	return false
 
 
 func _input_craft(event: InputEvent) -> void:
@@ -125,6 +162,7 @@ func _craft_mouse_button(m: InputEventMouseButton) -> void:
 		if m.pressed:
 			if blocked:
 				return
+			cancel_all()
 			_mouse_rotate = true
 		else:
 			_mouse_rotate = false
@@ -134,6 +172,7 @@ func _craft_mouse_button(m: InputEventMouseButton) -> void:
 		if m.pressed:
 			if blocked:
 				return
+			cancel_all()
 			_mouse_pan = true
 		else:
 			_mouse_pan = false

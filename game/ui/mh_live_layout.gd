@@ -70,6 +70,15 @@ static func status_height(line_h: float) -> float:
 	return float(STATUS_LINES) * maxf(1.0, line_h) + 2.0 * STATUS_PAD_V
 
 
+## Focused course editor: a full-width bottom dock, sized from its visible controls.
+## The caller owns scrolling inside the dock; preserve world space above it.
+static func editor_dock_rect(free: Rect2, desired_height: float) -> Rect2:
+	if not free.has_area():
+		return Rect2()
+	var height: float = clampf(desired_height, 0.0, free.size.y * (1.0 - WORLD_MIN_FRACTION))
+	return Rect2(free.position.x, free.end.y - height, free.size.x, height)
+
+
 ## Zone rectangles inside `free`. Keys: "actions", "status", "panel" (Rect2, empty size when the zone is not shown),
 ## "landscape" (bool), "fits" (false when the free rect is too small to show everything; zones still never overlap).
 ## touch_min: MHUIContext.touch_min(). line_h: height of one status text line. action_widths: min width of each

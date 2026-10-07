@@ -24,8 +24,24 @@ var _redo_button: MHTapButton
 var _terrain_mode: StringName = &"raise"
 var _marker_mode: StringName = &"tee"
 var craft_radius: int = 1
-var _brush_tools: HFlowContainer
-var _brush_buttons: Dictionary = {}
+var craft_step_mm: int = 250
+var _navigation: HFlowContainer
+var _details_button: MHTapButton
+var _details_open: bool = false
+var _brush_size_button: MHTapButton
+var _strength_button: MHTapButton
+var _surface_group_button: MHTapButton
+var _surface_group: int = 0
+var _surface_button_ids: Dictionary = {}
+var _practice_content: VBoxContainer
+var _pin_slot: int = 0
+var _pin_slot_button: MHTapButton
+var _remove_pin_button: MHTapButton
+var _placement_tools: HBoxContainer
+var _confirm_marker_button: MHTapButton
+var _pending_marker: Vector2i = Vector2i(-1, -1)
+var _marker_preview: MeshInstance3D
+var _brush_tools: HBoxContainer
 var _brush_hint: Label
 var _brush_tile: Vector2i = Vector2i(-1, -1)
 var _brush_preview: MeshInstance3D
@@ -38,11 +54,11 @@ var _craft_tool_buttons: Dictionary = {}
 var _craft_category_buttons: Dictionary = {}
 var _craft_category: StringName = &"surfaces"
 var _surface_icons: Dictionary = {}
-var _category_row: HFlowContainer
-var _history_row: HFlowContainer
-var _craft_tools: HFlowContainer
-var _terrain_tools: HFlowContainer
-var _marker_tools: HFlowContainer
+var _category_row: HBoxContainer
+var _history_row: HBoxContainer
+var _craft_tools: HBoxContainer
+var _terrain_tools: HBoxContainer
+var _marker_tools: HBoxContainer
 var _practice_tools: HFlowContainer
 var _finalize_button: MHTapButton
 var _validation_hint: Label
@@ -55,11 +71,9 @@ const ORIGIN: Array = [480, 340]
 
 func setup(scene: MHLiveConstruction) -> void:
 	live = scene
-	# No absolute position or size: the scene's frame (MHLiveLayout zones) sizes this panel. Header stays visible
-	# when collapsed; everything else lives in a scroll box so a short free area never overlaps its neighbours.
 	size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	size_flags_vertical = Control.SIZE_EXPAND_FILL
-	add_theme_constant_override("separation", 8)
+	add_theme_constant_override("separation", 6)
 	var head: HBoxContainer = MHUIKit.hbox(8)
 	add_child(head)
 	_title = MHUIKit.label("HOLE 1", &"", false)
@@ -68,6 +82,7 @@ func setup(scene: MHLiveConstruction) -> void:
 	_title.clip_text = true
 	_title.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 	head.add_child(_title)
+	_details_button = _button(head, "Details", _toggle_details)
 	_finalize_button = MHUIKit.button(live.shell.ctx, "Build hole", &"GreenButton", 122)
 	_finalize_button.pressed.connect(_finalize)
 	head.add_child(_finalize_button)
@@ -79,72 +94,78 @@ func setup(scene: MHLiveConstruction) -> void:
 	_close.tooltip_text = "Close course design"
 	_close.pressed.connect(close_preview)
 	head.add_child(_close)
-	_validation_hint = MHUIKit.label("Design a playable hole to build it.")
-	_validation_hint.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_validation_hint = MHUIKit.label("Design a playable hole to build it.", &"SmallLabel")
 	add_child(_validation_hint)
-	# Navigation and history never scroll away with the material palette.
-	# Flow containers wrap at narrow widths rather than pushing into the world.
-	_category_row = MHUIKit.flow(6)
-	add_child(_category_row)
+	_navigation = MHUIKit.flow(6)
+	add_child(_navigation)
+	_category_row = MHUIKit.hbox(6)
+	_navigation.add_child(_category_row)
 	_category_button(_category_row, "Surfaces", &"surfaces")
 	_category_button(_category_row, "Terrain", &"terrain")
-	_category_button(_category_row, "Tee & pin", &"markers")
-	_history_row = MHUIKit.flow(6)
-	add_child(_history_row)
+	_category_button(_category_row, "Hole", &"markers")
+	_history_row = MHUIKit.hbox(6)
+	_navigation.add_child(_history_row)
 	_undo_button = _button(_history_row, "Undo", _craft_undo)
 	_redo_button = _button(_history_row, "Redo", _craft_redo)
+	_undo_button.custom_minimum_size.x = maxf(80, live.shell.ctx.touch_min())
+	_redo_button.custom_minimum_size.x = maxf(80, live.shell.ctx.touch_min())
+	_undo_button.tooltip_text = "Undo last edit (Ctrl+Z)"
+	_redo_button.tooltip_text = "Redo last edit (Ctrl+Y / Ctrl+Shift+Z)"
+	_brush_tools = MHUIKit.hbox(6)
+	_navigation.add_child(_brush_tools)
+	_brush_size_button = _button(_brush_tools, "", _cycle_brush_radius)
+	_strength_button = _button(_brush_tools, "", _cycle_strength)
+	_surface_group_button = _button(_navigation, "", _cycle_surface_group)
+	_placement_tools = MHUIKit.hbox(6)
+	_navigation.add_child(_placement_tools)
+	_confirm_marker_button = _button(_placement_tools, "Confirm", _confirm_marker)
+	_confirm_marker_button.theme_type_variation = &"GreenButton"
+	_button(_placement_tools, "Cancel", _cancel_marker_preview)
 	_scroll = MHScrollBox.new()
+	_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_AUTO
+	_scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	add_child(_scroll)
-	var content: VBoxContainer = MHUIKit.vbox(8)
+	var content: HBoxContainer = MHUIKit.hbox(8)
 	content.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_scroll.add_child(content)
-	_info = MHUIKit.label("")
-	content.add_child(_info)
-	_info.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	_feedback = MHUIKit.label("Select a material then paint the ground.")
-	_feedback.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	content.add_child(_feedback)
-	_brush_tools = MHUIKit.flow(6)
-	content.add_child(_brush_tools)
-	for radius: int in [0, 1, 3]:
-		var brush_name: String = "Detail" if radius == 0 else ("Small" if radius == 1 else "Wide")
-		var brush_button: MHTapButton = _button(_brush_tools, brush_name, _select_brush_radius.bind(radius))
-		_brush_buttons[radius] = brush_button
-	_brush_hint = MHUIKit.label("", &"SmallLabel")
-	content.add_child(_brush_hint)
-	_craft_tools = MHUIKit.flow(8)
+	_craft_tools = MHUIKit.hbox(8)
 	content.add_child(_craft_tools)
-	_surface_button(_craft_tools, "Rough", MHCraftHole.Surface.ROUGH)
-	_surface_button(_craft_tools, "Fairway", MHCraftHole.Surface.FAIRWAY)
-	_surface_button(_craft_tools, "First cut", MHCraftHole.Surface.FIRST_CUT)
-	_surface_button(_craft_tools, "Deep rough", MHCraftHole.Surface.DEEP_ROUGH)
-	_surface_button(_craft_tools, "Green", MHCraftHole.Surface.GREEN)
-	_surface_button(_craft_tools, "Fringe", MHCraftHole.Surface.FRINGE)
-	_surface_button(_craft_tools, "Tee grass", MHCraftHole.Surface.TEE)
-	_surface_button(_craft_tools, "Bunker", MHCraftHole.Surface.BUNKER)
-	_surface_button(_craft_tools, "Waste", MHCraftHole.Surface.WASTE)
-	_surface_button(_craft_tools, "Water", MHCraftHole.Surface.WATER)
-	_surface_button(_craft_tools, "Out of bounds", MHCraftHole.Surface.OUT_OF_BOUNDS)
-	_surface_button(_craft_tools, "Path", MHCraftHole.Surface.PATH)
-	_surface_button(_craft_tools, "Dirt", MHCraftHole.Surface.DIRT)
-	_terrain_tools = MHUIKit.flow(8)
+	for surface_id: int in range(MHCraftHole.SURFACE_COUNT):
+		_surface_button(_craft_tools, _surface_name(surface_id), surface_id)
+	_terrain_tools = MHUIKit.hbox(8)
 	content.add_child(_terrain_tools)
 	_mode_button(_terrain_tools, "Raise", &"raise")
 	_mode_button(_terrain_tools, "Lower", &"lower")
 	_mode_button(_terrain_tools, "Smooth", &"smooth")
 	_mode_button(_terrain_tools, "Level", &"level")
-	_marker_tools = MHUIKit.flow(8)
+	_marker_tools = MHUIKit.hbox(8)
 	content.add_child(_marker_tools)
 	_mode_button(_marker_tools, "Place tee", &"tee")
 	_mode_button(_marker_tools, "Place pin", &"pin")
+	_pin_slot_button = _button(_marker_tools, "Pin 1", _cycle_pin_slot)
+	_pin_slot_button.tooltip_text = "Choose an existing pin to move, or the next empty slot. Pin 1 is used for current practice."
+	_remove_pin_button = _button(_marker_tools, "Remove pin", _remove_pin)
 	_button(_marker_tools, "Repair markers", _repair_hole_markers)
+	_practice_content = MHUIKit.vbox(6)
+	_practice_content.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	content.add_child(_practice_content)
+	_info = MHUIKit.label("")
+	_practice_content.add_child(_info)
 	_practice_tools = MHUIKit.flow(6)
-	content.add_child(_practice_tools)
+	_practice_content.add_child(_practice_tools)
 	_button(_practice_tools, "Aim at cup", _aim_cup)
 	_button(_practice_tools, "Back to golfer", _back_to_golfer)
 	_button(_practice_tools, "Course overview", _overview)
 	_button(_practice_tools, "Play shot", _shoot)
 	_button(_practice_tools, "New practice round", _restart)
+	_feedback = MHUIKit.label("", &"SmallLabel", false)
+	_feedback.clip_text = true
+	_feedback.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+	add_child(_feedback)
+	_brush_hint = MHUIKit.label("", &"SmallLabel", false)
+	_brush_hint.clip_text = true
+	_brush_hint.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+	add_child(_brush_hint)
 	_world = Node3D.new()
 	live.add_child(_world)
 	_world.hide()
@@ -156,7 +177,93 @@ func setup(scene: MHLiveConstruction) -> void:
 	hide()
 
 
+func desired_dock_height() -> float:
+	# Scroll content does not impose its entire catalogue height on the dock.
+	# Use rendered minimums for the header/toolbelt, plus one accessible card row.
+	var wanted: float = 0.0
+	var visible_rows: int = 0
+	for child: Node in get_children():
+		var control: Control = child as Control
+		if control == null or not control.visible:
+			continue
+		visible_rows += 1
+		if control == _scroll:
+			wanted += maxf(86.0, live.shell.ctx.touch_min() + 20.0)
+		else:
+			wanted += control.get_combined_minimum_size().y
+	return wanted + maxf(0, visible_rows - 1) * 6.0 + MHLiveLayout.PANEL_PAD_V * 2.0
+
+
+func _toggle_details() -> void:
+	_details_open = true if collapsed else not _details_open
+	if collapsed:
+		set_collapsed(false)
+	_sync_mode_controls()
+	layout_changed.emit()
+
+
+func _cycle_brush_radius() -> void:
+	var options: Array = [0, 1, 3]
+	_select_brush_radius(int(options[(options.find(craft_radius) + 1) % options.size()]))
+
+
+func _cycle_strength() -> void:
+	var options: Array = [250, 500, 1000]
+	_select_strength(int(options[(options.find(craft_step_mm) + 1) % options.size()]))
+
+
+func _select_strength(step_mm: int) -> void:
+	if step_mm not in [250, 500, 1000]:
+		return
+	_cancel_tool_gesture()
+	craft_step_mm = step_mm
+	_describe()
+
+
+func _cycle_surface_group() -> void:
+	_cancel_tool_gesture()
+	_surface_group = (_surface_group + 1) % 3
+	_scroll.scroll_horizontal = 0
+	_refresh_surface_group()
+
+
+func _surface_group_for(surface_id: int) -> int:
+	if surface_id in [MHCraftHole.Surface.BUNKER, MHCraftHole.Surface.WASTE, MHCraftHole.Surface.WATER, MHCraftHole.Surface.OUT_OF_BOUNDS]:
+		return 1
+	if surface_id in [MHCraftHole.Surface.PATH, MHCraftHole.Surface.DIRT]:
+		return 2
+	return 0
+
+
+func _refresh_surface_group() -> void:
+	for key: Variant in _surface_button_ids.keys():
+		var button: MHTapButton = _surface_button_ids[key] as MHTapButton
+		button.visible = _surface_group_for(int(key)) == _surface_group
+	if _surface_group_button != null:
+		_surface_group_button.text = ["Turf  ›", "Hazards  ›", "Paths & dirt  ›"][_surface_group]
+		_surface_group_button.tooltip_text = "Browse Turf, Hazards, or Paths & dirt. Swipe the material tray for more."
+
+
 func _sync_mode_controls() -> void:
+	if _navigation != null:
+		_navigation.visible = _preview_draft and not collapsed
+	if _validation_hint != null:
+		_validation_hint.visible = not collapsed and _details_open
+	if _details_button != null:
+		_details_button.theme_type_variation = &"SelectedButton" if _details_open else &"ChipButton"
+		if not _preview_draft:
+			_details_button.text = "Details"
+	if _practice_content != null:
+		_practice_content.visible = not _preview_draft
+	if _scroll != null:
+		_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_AUTO if _preview_draft else ScrollContainer.SCROLL_MODE_DISABLED
+		_scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED if _preview_draft else ScrollContainer.SCROLL_MODE_AUTO
+	if _feedback != null:
+		_feedback.visible = not collapsed and (not _preview_draft or _craft_category == &"markers")
+	if _surface_group_button != null:
+		_surface_group_button.visible = _craft_category == &"surfaces"
+	if _strength_button != null:
+		_strength_button.visible = craft_mode in [&"raise", &"lower"]
 	if _category_row != null:
 		_category_row.visible = _preview_draft and not collapsed
 	if _history_row != null:
@@ -174,9 +281,9 @@ func _sync_mode_controls() -> void:
 	if _brush_tools != null:
 		_brush_tools.visible = _preview_draft and _craft_category != &"markers"
 	if _brush_hint != null:
-		_brush_hint.visible = _preview_draft and _craft_category != &"markers"
-	if _title != null:
-		_title.text = "HOLE 1 • DESIGN" if _preview_draft else "HOLE 1 • PRACTICE"
+		_brush_hint.visible = _preview_draft and not collapsed and _craft_category != &"markers"
+	_refresh_surface_group()
+	_refresh_marker_controls()
 	for key: Variant in _craft_category_buttons.keys():
 		var tab: MHTapButton = _craft_category_buttons[key] as MHTapButton
 		if tab != null:
@@ -189,6 +296,8 @@ func _process(_delta: float) -> void:
 		_draw()
 
 func set_collapsed(value: bool) -> void:
+	if value:
+		_cancel_tool_gesture()
 	collapsed = value
 	if _scroll != null:
 		_scroll.visible = not collapsed
@@ -257,6 +366,7 @@ func _select_category(category: StringName) -> void:
 	else:
 		craft_mode = _marker_mode
 	if _scroll != null:
+		_scroll.scroll_horizontal = 0
 		_scroll.scroll_vertical = 0
 	_sync_mode_controls()
 	_refresh_tool_button_styles()
@@ -273,8 +383,9 @@ func _surface_button(parent: Control, title: String, surface_id: int) -> void:
 	# changing the palette, selection, or terrain/saving code.
 	b.icon = _surface_thumbnail(surface_id)
 	b.icon_alignment = HORIZONTAL_ALIGNMENT_LEFT
-	b.custom_minimum_size = Vector2(160, 78)
+	b.custom_minimum_size = Vector2(160, maxf(78, live.shell.ctx.touch_min()))
 	_craft_tool_buttons[key] = b
+	_surface_button_ids[surface_id] = b
 	_refresh_tool_button_styles()
 
 
@@ -299,7 +410,7 @@ func _mode_button(parent: Control, title: String, mode: StringName) -> void:
 	var b: MHTapButton = _button(parent, title, _select_mode.bind(mode))
 	b.icon = _mode_thumbnail(mode)
 	b.icon_alignment = HORIZONTAL_ALIGNMENT_LEFT
-	b.custom_minimum_size = Vector2(160, 78)
+	b.custom_minimum_size = Vector2(160, maxf(78, live.shell.ctx.touch_min()))
 	_craft_tool_buttons[mode] = b
 	_refresh_tool_button_styles()
 
@@ -338,8 +449,12 @@ func _mode_thumbnail(mode: StringName) -> Texture2D:
 
 
 func _select_surface(surface_id: int) -> void:
+	if surface_id < 0 or surface_id >= MHCraftHole.SURFACE_COUNT:
+		return
 	_cancel_tool_gesture()
 	craft_surface = surface_id
+	_surface_group = _surface_group_for(surface_id)
+	_refresh_surface_group()
 	craft_mode = &"surface"
 	_refresh_tool_button_styles()
 	_describe()
@@ -348,8 +463,11 @@ func _select_surface(surface_id: int) -> void:
 
 
 func _select_mode(mode: StringName) -> void:
+	if mode not in [&"raise", &"lower", &"smooth", &"level", &"tee", &"pin"]:
+		return
 	_cancel_tool_gesture()
 	craft_mode = mode
+	_sync_mode_controls()
 	if mode in [&"raise", &"lower", &"smooth", &"level"]:
 		_terrain_mode = mode
 	elif mode in [&"tee", &"pin"]:
@@ -367,6 +485,7 @@ func _cancel_tool_gesture() -> void:
 		live.aim_input.cancel_all()
 	if _craft_stroke_open:
 		craft_stroke_cancel()
+	_cancel_marker_preview()
 	clear_brush_preview()
 
 
@@ -447,9 +566,9 @@ func _update_brush_hint() -> void:
 	if _brush_hint == null:
 		return
 	_brush_hint.text = "%d yd brush%s" % [(2 * craft_radius + 1) * MHCraftHole.TILE_YD,
-		" • Level samples the starting height" if craft_mode == &"level" else ""]
+		" • Level: %.2f m" % (float(_craft_level_height) / 1000.0) if craft_mode == &"level" and _craft_stroke_open else (" • Level samples the starting height" if craft_mode == &"level" else "")]
 	if live != null and live.craft_hole != null and live.craft_hole.in_bounds(_brush_tile.x, _brush_tile.y):
-		_brush_hint.text += " • Ground %.1f m" % (float(live.craft_hole.get_height_mm(_brush_tile.x, _brush_tile.y)) / 1000.0)
+		_brush_hint.text += " • Ground %.2f m" % (float(live.craft_hole.get_height_mm(_brush_tile.x, _brush_tile.y)) / 1000.0)
 
 
 func _active_tool_key() -> StringName:
@@ -500,30 +619,138 @@ func _layout() -> Dictionary:
 		features.append({"t": "water", "rect": [10, 20, 14, 30]})
 	return {"slot_id": 0, "tee": [0, 0], "green": [0, length_yd, 5], "features": features}
 
+## Direct committed edit used by tests and the marker confirmation action.
+## Pointer marker input stages a preview first; it never calls this immediately.
 func craft_at_tile(c: int, r: int) -> bool:
-	if live == null or live.craft_hole == null or not live.craft_hole.in_bounds(c, r):
+	if not _preview_draft or live == null or live.craft_hole == null or not live.craft_hole.in_bounds(c, r):
 		return false
 	var h: MHCraftHole = live.craft_hole
+	if h.is_stroke_open():
+		return false
+	if not h.begin_stroke():
+		return false
+	var accepted: bool = true
 	if craft_mode == &"tee":
-		h.tees.clear()
-		h.add_tee(c, r)
+		accepted = h.move_tee(c, r)
 	elif craft_mode == &"pin":
-		if h.pins.size() >= MHCraftHole.MAX_PINS:
-			h.pins.clear()
-		h.add_pin(c, r)
+		accepted = h.set_pin(_pin_slot, c, r)
 	else:
-		if h.is_stroke_open():
-			h.cancel_stroke()
-		if not h.begin_stroke():
-			return false
 		if craft_mode == &"level":
-			_craft_level_height = h.get_height(c, r)
-		_apply_craft_stroke_tile(Vector2i(c, r))
-		var terrain_changed: bool = h.commit_stroke()
-		if terrain_changed:
-			live.sync_craft_tiles_to_world(h.last_changed_tiles())
+			_craft_level_height = h.get_height_mm(c, r)
+		accepted = _apply_craft_stroke_tile(Vector2i(c, r))
+	if not accepted:
+		h.cancel_stroke()
+		return false
+	if h.commit_stroke():
+		live.sync_craft_tiles_to_world(h.last_changed_tiles())
+		live._request_save() # Marker-only changes have no dirty terrain cells.
 	_refresh_canonical_craft()
 	return true
+
+
+func _cycle_pin_slot() -> void:
+	_cancel_tool_gesture()
+	var slots: int = mini(MHCraftHole.MAX_PINS, live.craft_hole.pins.size() + 1)
+	_pin_slot = (_pin_slot + 1) % slots
+	_select_mode(&"pin")
+
+
+func _refresh_marker_controls() -> void:
+	if _placement_tools == null or live == null or live.craft_hole == null:
+		return
+	var count: int = live.craft_hole.pins.size()
+	_pin_slot = clampi(_pin_slot, 0, mini(count, MHCraftHole.MAX_PINS - 1))
+	_pin_slot_button.text = ("Pin %d  ›" if _pin_slot < count else "Add pin %d  ›") % (_pin_slot + 1)
+	_remove_pin_button.disabled = craft_mode != &"pin" or _pin_slot >= count
+	_placement_tools.visible = _preview_draft and _pending_marker.x >= 0
+	_confirm_marker_button.disabled = not _marker_problem(_pending_marker).is_empty()
+
+
+func _marker_problem(tile: Vector2i) -> String:
+	var h: MHCraftHole = live.craft_hole
+	if not h.in_bounds(tile.x, tile.y):
+		return "Choose a spot on the course."
+	var surface: int = h.get_surface(tile.x, tile.y)
+	if craft_mode == &"tee":
+		return "Move the tee out of water or out-of-bounds land." if surface in [MHCraftHole.Surface.WATER, MHCraftHole.Surface.OUT_OF_BOUNDS] else ""
+	if surface != MHCraftHole.Surface.GREEN:
+		return "Place the pin on a putting green."
+	for i: int in range(h.pins.size()):
+		if i != _pin_slot and h.pins[i] == tile:
+			return "Another pin already uses this spot."
+	return ""
+
+
+func stage_marker_at_tile(tile: Vector2i) -> bool:
+	if not _preview_draft or craft_mode not in [&"tee", &"pin"] or not live.craft_hole.in_bounds(tile.x, tile.y):
+		return false
+	_pending_marker = tile
+	_refresh_marker_controls()
+	_refresh_marker_preview()
+	var issue: String = _marker_problem(tile)
+	_feedback.text = issue if not issue.is_empty() else "Preview only • Confirm to place, or tap another spot."
+	var h: MHCraftHole = live.craft_hole
+	var other: Vector2i = Vector2i(-1, -1)
+	if craft_mode == &"tee" and not h.pins.is_empty():
+		other = h.pins[mini(_pin_slot, h.pins.size() - 1)] as Vector2i
+	elif craft_mode == &"pin" and not h.tees.is_empty():
+		other = h.tees[0] as Vector2i
+	if other.x >= 0:
+		_feedback.text += " • %d yd" % roundi(Vector2(tile - other).length() * MHCraftHole.TILE_YD)
+	_feedback.tooltip_text = _feedback.text
+	layout_changed.emit()
+	return true
+
+
+func _refresh_marker_preview() -> void:
+	if _pending_marker.x < 0 or _world == null:
+		return
+	var valid: bool = _marker_problem(_pending_marker).is_empty()
+	var colour: Color = Color(1.0, 0.82, 0.25, 0.70) if valid else Color(0.95, 0.25, 0.20, 0.70)
+	if _marker_preview == null or not is_instance_valid(_marker_preview):
+		var marker: CylinderMesh = CylinderMesh.new()
+		marker.top_radius = 0.8
+		marker.bottom_radius = 0.8
+		marker.height = 0.14
+		_marker_preview = _mesh(marker, Vector3.ZERO, colour)
+		var material: StandardMaterial3D = _marker_preview.material_override as StandardMaterial3D
+		material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+		material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+		_marker_preview.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	var mat: StandardMaterial3D = _marker_preview.material_override as StandardMaterial3D
+	mat.albedo_color = colour
+	var centre: Vector2i = live.craft_hole.tile_centre_yd(_pending_marker.x, _pending_marker.y)
+	_marker_preview.position = _position_on_ground(centre.x * 100, centre.y * 100, 0.24)
+	_marker_preview.show()
+
+
+func _confirm_marker() -> void:
+	if _pending_marker.x < 0 or not _marker_problem(_pending_marker).is_empty():
+		return
+	var tile: Vector2i = _pending_marker
+	_cancel_marker_preview()
+	craft_at_tile(tile.x, tile.y)
+
+
+func _cancel_marker_preview() -> void:
+	_pending_marker = Vector2i(-1, -1)
+	if _marker_preview != null and is_instance_valid(_marker_preview):
+		_marker_preview.hide()
+	_refresh_marker_controls()
+	if _feedback != null and _preview_draft and _craft_category == &"markers":
+		_feedback.text = "Tap to preview a tee or pin, then Confirm. Pin 1 is used for practice."
+	layout_changed.emit()
+
+
+func _remove_pin() -> void:
+	_cancel_tool_gesture()
+	var h: MHCraftHole = live.craft_hole
+	if craft_mode != &"pin" or _pin_slot >= h.pins.size() or not h.begin_stroke():
+		return
+	h.remove_pin(_pin_slot)
+	if h.commit_stroke():
+		live._request_save()
+	_refresh_canonical_craft()
 
 
 func _refresh_canonical_craft() -> void:
@@ -540,6 +767,7 @@ func _refresh_canonical_craft() -> void:
 		_info.text = "Hole needs: " + ", ".join(labels)
 		_set_validation_message("TO BUILD: " + ", ".join(labels))
 		_draw()
+		_describe()
 
 
 func _placement_problem_text(message: String) -> String:
@@ -551,6 +779,14 @@ func _placement_problem_text(message: String) -> String:
 func _set_validation_message(message: String) -> void:
 	if _validation_hint != null:
 		_validation_hint.text = message
+		_validation_hint.tooltip_text = message
+	if _preview_draft and _finalize_button != null:
+		var ready: bool = message.begins_with("READY TO BUILD")
+		_finalize_button.text = "Build hole" if ready else "Review hole"
+		_finalize_button.theme_type_variation = &"GreenButton" if ready else &"ChipButton"
+		_finalize_button.tooltip_text = message
+		_details_button.text = "Details" if ready else "Fix design"
+		_details_button.tooltip_text = message
 
 
 func _problem_text(code: String) -> String:
@@ -574,15 +810,16 @@ func _repair_hole_markers() -> void:
 	# Explicit user action: never silently erase an intentional water/OB hazard.
 	if live == null or live.craft_hole == null or not _preview_draft:
 		return
+	_cancel_tool_gesture()
 	var hole: MHCraftHole = live.craft_hole
-	if hole.tees.is_empty():
-		hole.add_tee(hole.cols / 2 - 1, 0)
-	if hole.pins.is_empty():
-		hole.add_pin(hole.cols / 2 - 1, mini(hole.rows - 2, 30))
 	if hole.is_stroke_open():
 		hole.cancel_stroke()
 	if not hole.begin_stroke():
 		return
+	if hole.tees.is_empty():
+		hole.add_tee(hole.cols / 2 - 1, 0)
+	if hole.pins.is_empty():
+		hole.add_pin(hole.cols / 2 - 1, mini(hole.rows - 2, 30))
 	# Repaint a displaced flag tile first. Do not enlarge an existing,
 	# rateable green: a three-tile repair brush previously inflated a six-yard
 	# green to seven yards and pushed it across the unowned north parcel edge.
@@ -601,6 +838,7 @@ func _repair_hole_markers() -> void:
 		hole.paint_disc(tee.x, tee.y, 0, MHCraftHole.Surface.TEE)
 	if hole.commit_stroke():
 		live.sync_craft_tiles_to_world(hole.last_changed_tiles())
+		live._request_save()
 	_refresh_canonical_craft()
 	# _refresh_canonical_craft/_describe checks readiness and may report a
 	# different outstanding constraint (e.g. land ownership). Keep that result
@@ -608,13 +846,17 @@ func _repair_hole_markers() -> void:
 
 
 func _craft_undo() -> void:
+	_cancel_tool_gesture()
 	if live.craft_hole != null and live.craft_hole.undo():
 		live.sync_craft_tiles_to_world(live.craft_hole.last_changed_tiles())
+		live._request_save()
 		_refresh_canonical_craft()
 
 func _craft_redo() -> void:
+	_cancel_tool_gesture()
 	if live.craft_hole != null and live.craft_hole.redo():
 		live.sync_craft_tiles_to_world(live.craft_hole.last_changed_tiles())
+		live._request_save()
 		_refresh_canonical_craft()
 
 func _draft_changed() -> void:
@@ -628,6 +870,13 @@ func _finalize() -> void:
 	if not _preview_draft or live.craft_hole == null:
 		_set_validation_message("Already built. Use practice controls to play.")
 		return
+	_details_open = true
+	_sync_mode_controls()
+	if _pending_marker.x >= 0:
+		_set_validation_message("Confirm or cancel the marker preview before building.")
+		return
+	if _craft_stroke_open:
+		_cancel_tool_gesture()
 	var problems: Array = MHCraftConvert.problems(live.craft_hole)
 	if not problems.is_empty():
 		var labels: PackedStringArray = PackedStringArray()
@@ -635,15 +884,16 @@ func _finalize() -> void:
 			labels.append(_problem_text(str(problem)))
 		var reason: String = ", ".join(labels)
 		_info.text = "Cannot build: " + reason
-		_set_validation_message("NOT READY: " + reason + ". Use TEE & PIN / Repair markers.")
+		_set_validation_message("NOT READY: " + reason + ". Open Hole tools to place or repair markers.")
 		return
 	var h: Dictionary = live.canonical_craft_draft()
 	var rating_check: Dictionary = MHRatingEngine.validate_input({
 		"schema": 1, "engine": MHRatingEngine.RATING_VERSION, "hole": h})
 	if h.is_empty() or not bool(rating_check.get("ok", false)) or not set_canonical_draft(h):
 		var code: String = str(rating_check.get("code", "no layout"))
-		_info.text = "Cannot build: " + code
-		_set_validation_message("NOT READY: course rating check " + code)
+		_info.text = "Cannot build: check the tee, green and hole boundaries."
+		_set_validation_message("TO BUILD: check the tee, green and hole boundaries.")
+		push_warning("Course build validation: " + code)
 		return
 	live.router.cancel_world_input()
 	if live.aim_input != null:
@@ -745,9 +995,13 @@ func _shoot() -> void:
 func _describe() -> void:
 	if live == null:
 		return
-	for key: Variant in _brush_buttons.keys():
-		var button: MHTapButton = _brush_buttons[key] as MHTapButton
-		button.theme_type_variation = &"SelectedButton" if int(key) == craft_radius else &"ChipButton"
+	_refresh_marker_controls()
+	if _brush_size_button != null:
+		_brush_size_button.text = "Brush: " + ("Detail" if craft_radius == 0 else ("Small" if craft_radius == 1 else "Wide"))
+		_brush_size_button.tooltip_text = "Cycle Detail, Small and Wide brush footprints"
+	if _strength_button != null:
+		_strength_button.text = "Step: %.2f m" % (float(craft_step_mm) / 1000.0)
+		_strength_button.tooltip_text = "Cycle Fine (0.25 m), Medium (0.50 m), Coarse (1.00 m)"
 	_update_brush_hint()
 	if live.craft_hole != null:
 		if _undo_button != null:
@@ -759,6 +1013,8 @@ func _describe() -> void:
 		var hole_length: int = MHCraftConvert.length_yd(craft, 0, 0)
 		var price: int = 0 if not live.session.hole_definitions().is_empty() else live.session.economy.hole_cost_cents()
 		var tool_name: String = _surface_name(craft_surface) if craft_mode == &"surface" else str(craft_mode).capitalize()
+		_title.text = "HOLE 1 • %d yd • %s" % [hole_length, tool_name]
+		_title.tooltip_text = _title.text
 		_info.text = "%d yd  |  %s  |  Build: $%d" % [hole_length, tool_name, price / 100]
 		var problems: Array = MHCraftConvert.problems(craft)
 		if problems.is_empty():
@@ -778,6 +1034,7 @@ func _describe() -> void:
 				labels.append(_problem_text(str(problem)))
 			_set_validation_message("TO BUILD: " + ", ".join(labels))
 	else:
+		_title.text = "HOLE 1 • PRACTICE"
 		_info.text = "HOLE BUILT • PRACTICE MODE"
 		_set_validation_message("PLAY MODE  •  Tap the course to aim, then Play shot.")
 	var practice: MHPracticeRound = live.session.practice
@@ -792,6 +1049,7 @@ func _describe() -> void:
 func _draw() -> void:
 	_path = null
 	_brush_preview = null
+	_marker_preview = null
 	for child: Node in _world.get_children():
 		_world.remove_child(child)
 		child.queue_free()
@@ -885,6 +1143,7 @@ func _draw_craft_terrain(hole: MHCraftHole) -> void:
 	for tree: Variant in hole.trees:
 		_draw_craft_tree(tree as Vector2i)
 	_refresh_brush_preview()
+	_refresh_marker_preview()
 
 func _append_craft_tile(st: SurfaceTool, relief_hole: MHRHole, hole: MHCraftHole, c: int, r: int) -> void:
 	var x0: int = hole.tile_x0_yd(c) * 100
@@ -1136,7 +1395,7 @@ static func supported(course: Dictionary) -> bool:
 
 func blocks_world_tap(pos: Vector2) -> bool:
 	# A visible panel that has not been laid out yet (zero size) still counts as 1x1 so it never leaks a tap.
-	var own: Rect2 = get_global_rect()
+	var own: Rect2 = live._panel_frame.get_global_rect() if live._panel_frame != null else get_global_rect()
 	own.size = own.size.max(Vector2.ONE)
 	if own.has_point(pos) or live.shell.modal_id() != "":
 		return true
@@ -1220,11 +1479,11 @@ func _apply_craft_stroke_tile(tile: Vector2i) -> bool:
 		return false
 	var h: MHCraftHole = live.craft_hole
 	if craft_mode == &"raise" or craft_mode == &"lower":
-		h.raise_disc(tile.x, tile.y, craft_radius, 1 if craft_mode == &"raise" else -1)
+		h.raise_disc_mm(tile.x, tile.y, craft_radius, craft_step_mm if craft_mode == &"raise" else -craft_step_mm)
 	elif craft_mode == &"smooth":
 		h.smooth_disc(tile.x, tile.y, craft_radius)
 	elif craft_mode == &"level":
-		h.level_disc(tile.x, tile.y, craft_radius, _craft_level_height)
+		h.level_disc_mm(tile.x, tile.y, craft_radius, _craft_level_height)
 	elif craft_mode == &"surface":
 		h.paint_disc(tile.x, tile.y, craft_radius, craft_surface)
 	else:
@@ -1237,7 +1496,7 @@ func craft_stroke_begin_from_screen(pos: Vector2) -> bool:
 	if tile.x < 0:
 		return false
 	if craft_mode == &"tee" or craft_mode == &"pin":
-		return craft_at_tile(tile.x, tile.y)
+		return stage_marker_at_tile(tile)
 	if live.craft_hole.is_stroke_open():
 		live.craft_hole.cancel_stroke()
 	if not live.craft_hole.begin_stroke():
@@ -1246,13 +1505,15 @@ func craft_stroke_begin_from_screen(pos: Vector2) -> bool:
 	_craft_last_tile = tile
 	_brush_tile = tile
 	if craft_mode == &"level":
-		_craft_level_height = live.craft_hole.get_height(tile.x, tile.y)
+		_craft_level_height = live.craft_hole.get_height_mm(tile.x, tile.y)
 	_apply_craft_stroke_tile(tile)
 	_craft_preview_dirty = true
 	return true
 
 
 func craft_stroke_move_from_screen(pos: Vector2) -> bool:
+	if craft_mode in [&"tee", &"pin"]:
+		return stage_marker_at_tile(_craft_tile_from_screen(pos))
 	if not _craft_stroke_open or live == null or live.craft_hole == null:
 		return false
 	var tile: Vector2i = _craft_tile_from_screen(pos)
@@ -1280,11 +1541,13 @@ func craft_stroke_end() -> bool:
 	clear_brush_preview()
 	if changed:
 		live.sync_craft_tiles_to_world(live.craft_hole.last_changed_tiles())
+		live._request_save()
 		_refresh_canonical_craft()
 	return changed
 
 
 func craft_stroke_cancel() -> void:
+	_cancel_marker_preview()
 	clear_brush_preview()
 	if live != null and live.craft_hole != null and live.craft_hole.is_stroke_open():
 		live.craft_hole.cancel_stroke()
@@ -1320,7 +1583,7 @@ func _refresh_path() -> void:
 	var r: MHPracticeRound = live.session.practice
 	if _preview_draft:
 		if _craft_category == &"markers":
-			_feedback.text = "Tap to place a tee or flag. Two fingers move the camera."
+			_feedback.text = "Tap to preview a tee or pin, then Confirm. Pin 1 is used for practice."
 		elif _craft_category == &"terrain":
 			_feedback.text = "Drag to shape the ground. Two fingers move the camera."
 		else:

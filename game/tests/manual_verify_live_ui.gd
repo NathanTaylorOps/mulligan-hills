@@ -92,6 +92,7 @@ func _verify() -> void:
 	shell.pop_screen()
 	live._open_craft_hole()
 	await process_frame
+	await process_frame
 	live._relayout()
 	if not live.one_hole.visible or live._panel_frame.size.y < shell.ctx.touch_min() * 2.0:
 		_fail("Build/play panel did not open with usable height")
@@ -101,6 +102,21 @@ func _verify() -> void:
 		return
 	# The palette may scroll, but navigation and history must stay reachable.
 	var panel: MHOneHolePanel = live.one_hole
+	hud = shell._top_node() as MHHudScreen
+	if hud == null or hud._speed_row.visible or hud._nav_row.visible or live._actions.visible:
+		_fail("Design mode kept competing HUD/navigation controls")
+		return
+	var design_free: Rect2 = shell.overlay_free_rect()
+	var design_dock: Rect2 = live._panel_frame.get_global_rect()
+	if absf(design_dock.end.y - design_free.end.y) > 2.0 or absf(design_dock.size.x - design_free.size.x) > 2.0:
+		_fail("Course editor is not anchored across the bottom safe area")
+		return
+	if design_dock.position.y - design_free.position.y < design_free.size.y * MHLiveLayout.WORLD_MIN_FRACTION - 2.0:
+		_fail("Design dock obscures too much of the course")
+		return
+	if not panel.blocks_world_tap(design_dock.position + Vector2(2, 2)):
+		_fail("Frame padding leaks touches into the course")
+		return
 	if panel._scroll.is_ancestor_of(panel._category_row) or panel._scroll.is_ancestor_of(panel._history_row):
 		_fail("Design navigation/history scroll away with the palette")
 		return
@@ -156,15 +172,20 @@ func _verify() -> void:
 	panel._select_category(&"terrain")
 	panel._select_mode(&"raise")
 	panel._select_brush_radius(0)
+	panel._select_strength(250)
 	var neighbour_before: int = live.craft_hole.get_height_mm(tile.x + 2, tile.y)
 	if not panel.craft_at_tile(tile.x, tile.y):
 		_fail("Detail sculpt brush failed")
+		return
+	if live.craft_hole.get_height_mm(tile.x, tile.y) != height_before + 250:
+		_fail("Fine sculpt step did not preserve millimetre precision")
 		return
 	if live.craft_hole.get_height_mm(tile.x + 2, tile.y) != neighbour_before:
 		_fail("Detail brush changed ground outside its footprint")
 		return
 	panel._craft_undo()
 	panel._select_brush_radius(3)
+	panel._select_strength(1000)
 	var outside_before: int = live.craft_hole.get_height_mm(tile.x + 4, tile.y)
 	if not panel.craft_at_tile(tile.x, tile.y):
 		_fail("Wide sculpt brush failed")
@@ -189,8 +210,94 @@ func _verify() -> void:
 	if panel._brush_tools.visible or panel._brush_hint.visible or (panel._brush_preview != null and panel._brush_preview.visible):
 		_fail("Marker tools retained a paint/sculpt brush")
 		return
+	# Marker previews never mutate or save until explicitly confirmed.
+	panel._select_mode(&"pin")
+	var original_pins: Array = live.craft_hole.pins.duplicate()
+	var marker_history: int = live.craft_hole.undo_count()
+	panel.stage_marker_at_tile(Vector2i(12, 30))
+	if live.craft_hole.pins != original_pins or live.craft_hole.undo_count() != marker_history:
+		_fail("Marker preview mutated canonical data/history")
+		return
+	panel._finalize()
+	if not live.session.hole_definitions().is_empty() or not panel._validation_hint.visible:
+		_fail("Build ignored an unconfirmed marker preview")
+		return
+	panel._confirm_marker()
+	if live.craft_hole.pins[0] != Vector2i(12, 30) or live.craft_hole.undo_count() != marker_history + 1 or not live._pending_save:
+		_fail("Confirmed pin did not record one undo and request a save")
+		return
+	var shortcut: InputEventKey = InputEventKey.new()
+	shortcut.pressed = true
+	shortcut.ctrl_pressed = true
+	shortcut.keycode = KEY_Z
+	live.aim_input._handle_shortcut(shortcut)
+	if live.craft_hole.pins != original_pins:
+		_fail("Desktop undo did not restore the original pin")
+		return
+	shortcut.shift_pressed = true
+	live.aim_input._handle_shortcut(shortcut)
+	if live.craft_hole.pins[0] != Vector2i(12, 30):
+		_fail("Desktop redo did not reapply the pin move")
+		return
+	panel._craft_undo()
+	panel.stage_marker_at_tile(tile) # Water from the normal editor.
+	if not panel._confirm_marker_button.disabled:
+		_fail("Pin preview allowed confirmation away from a green")
+		return
+	live.aim_input.cancel_all()
+	if panel._pending_marker.x >= 0 or live.craft_hole.pins != original_pins:
+		_fail("Focus/camera cancellation retained or committed the marker preview")
+		return
+	for pin_index: int in range(1, MHCraftHole.MAX_PINS):
+		panel._pin_slot = pin_index
+		panel.stage_marker_at_tile(Vector2i(11 + pin_index, 30))
+		panel._confirm_marker()
+	if live.craft_hole.pins.size() != MHCraftHole.MAX_PINS:
+		_fail("Could not create four independent pin slots")
+		return
+	var four_pins: Array = live.craft_hole.pins.duplicate()
+	panel._pin_slot = 0
+	panel.stage_marker_at_tile(four_pins[1] as Vector2i)
+	panel._confirm_marker()
+	if live.craft_hole.pins != four_pins or not panel._confirm_marker_button.disabled:
+		_fail("Duplicate pin placement erased existing positions")
+		return
+	panel._cancel_marker_preview()
+	if not live.save_now():
+		_fail("Could not save marker-only draft edits")
+		return
+	var draft_load: MHSaveResult = live.store.load_slot(0)
+	if not draft_load.is_ok():
+		_fail("Could not reload marker draft")
+		return
+	var draft_saved: MHLoadedSave = draft_load.value as MHLoadedSave
+	var draft_restored: MHCraftHole = MHCraftHole.from_dict(draft_saved.data["runtime"]["craft_draft"])
+	if draft_restored == null or draft_restored.pins != four_pins:
+		_fail("Draft disk reload lost pin slots")
+		return
+	panel._remove_pin()
+	panel._craft_undo()
+	if live.craft_hole.pins != four_pins:
+		_fail("Undo did not recover a removed pin")
+		return
+	for _i: int in range(3):
+		panel._craft_undo()
+	if live.craft_hole.pins != original_pins:
+		_fail("Marker history did not return to the starter pin")
+		return
+	panel._details_open = false
 	panel._select_brush_radius(1)
 	panel._select_category(&"surfaces")
+	# Every material is reachable in exactly its own group; browsing is not painting.
+	for group: int in range(3):
+		panel._surface_group = group
+		panel._refresh_surface_group()
+		for surface_id: int in range(MHCraftHole.SURFACE_COUNT):
+			var button: MHTapButton = panel._surface_button_ids[surface_id] as MHTapButton
+			if button.visible != (panel._surface_group_for(surface_id) == group):
+				_fail("Surface group lost or duplicated a material card")
+				return
+	panel._select_surface(MHCraftHole.Surface.PATH)
 	live.one_hole.craft_mode = &"surface"
 	live.one_hole.craft_surface = MHCraftHole.Surface.PATH
 	if not live.one_hole.craft_at_tile(tile.x, tile.y):
@@ -243,6 +350,13 @@ func _verify() -> void:
 	if not problems.is_empty():
 		_fail("Marker repair did not make the hole playable: " + str(problems))
 		return
+	# Keep a fine elevation change through rating, practice and the disk checkpoint.
+	panel._select_category(&"terrain")
+	panel._select_mode(&"raise")
+	panel._select_brush_radius(0)
+	panel._select_strength(250)
+	panel.craft_at_tile(tile.x, tile.y)
+	panel._select_category(&"surfaces")
 	var craft_rating_hole: Dictionary = live.canonical_craft_draft()
 	if craft_rating_hole.is_empty():
 		_fail("Valid craft did not produce a rating layout")
@@ -255,6 +369,9 @@ func _verify() -> void:
 			" | green centre=" + str(craft_rating_hole.get("green", [])))
 		return
 	var parsed_hole: MHRHole = MHRHole.from_def(craft_rating_hole)
+	if parsed_hole.z_at(centre.x * 100, centre.y * 100) != live.craft_hole.get_height_mm(tile.x, tile.y):
+		_fail("Canonical relief rounded the fine sculpt height")
+		return
 	if not parsed_hole.valid:
 		_fail("Craft validator disagrees with rating geometry: " + str(parsed_hole.reasons) +
 			" | green radius=" + str(parsed_hole.gr) + " yd | length=" + str(parsed_hole.L) + " yd")
@@ -304,5 +421,13 @@ func _verify() -> void:
 	if not terrain.grid.equals(live.editor.grid) or terrain.splat.get_weight(sample_x, sample_y, MHSplatMap.Layer.PATH) != 255:
 		_fail("Reload changed shared terrain")
 		return
-	print("LIVE_UI_PROBE PASS: landscape layout, navigation, brushes, sculpt-only grid, marker repair, build, practice and disk reload")
+	panel.close_preview()
+	await process_frame
+	await process_frame
+	live._relayout()
+	hud = shell._top_node() as MHHudScreen
+	if hud == null or not hud._speed_row.visible or not hud._nav_row.visible or not live._actions.visible:
+		_fail("Closing course design did not restore the main HUD")
+		return
+	print("LIVE_UI_PROBE PASS: editor dock, navigation, precision brushes, marker previews/history, ownership, build, practice and disk reload")
 	quit(0)

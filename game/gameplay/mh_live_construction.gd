@@ -30,6 +30,7 @@ var _status_zone: PanelContainer
 var _panel_frame: PanelContainer
 var _layout_key: Array = []
 var _pending_save: bool = false
+var _save_error: bool = false
 var _active: bool = false
 var _last_usec: int = 0
 var _syncing_craft_terrain: bool = false
@@ -219,6 +220,9 @@ func _relayout() -> void:
 	if _dock.theme != shell.theme:
 		_dock.theme = shell.theme # Text-size changes build a new theme.
 	var on: bool = shell.overlay_active() and shell.current_screen_id() == MHScreenIds.HUD
+	var hud: MHHudScreen = shell._top_node() as MHHudScreen
+	if hud != null:
+		hud.set_course_focus(one_hole.visible)
 	if not on:
 		_dock.hide()
 		_layout_key = []
@@ -234,10 +238,18 @@ func _relayout() -> void:
 		return
 	_dock.show()
 	var state: int = _panel_state()
-	var key: Array = [free, tm, state, shell.ctx.scaled(MHTheme.FONT_SMALL), shell.ctx.left_handed()]
+	var dock_height: float = one_hole.desired_dock_height() if one_hole.visible else 0.0
+	var key: Array = [free, tm, state, dock_height, _save_error, shell.ctx.scaled(MHTheme.FONT_SMALL), shell.ctx.left_handed()]
 	if key == _layout_key:
 		return
 	_layout_key = key
+	if one_hole.visible:
+		_actions.hide()
+		_place(_panel_frame, MHLiveLayout.editor_dock_rect(free, dock_height))
+		_status_zone.visible = _save_error
+		if _save_error:
+			_place(_status_zone, Rect2(free.position, Vector2(free.size.x, MHLiveLayout.status_height(float(shell.ctx.scaled(MHTheme.FONT_SMALL))))))
+		return
 	var widths: Array = []
 	for b: Variant in _action_buttons:
 		widths.append((b as Control).custom_minimum_size.x)
@@ -371,24 +383,28 @@ func save_now() -> bool:
 	var captured: MHSaveResult = MHSessionSave.capture(session, document, craft_checkpoint)
 	if not captured.is_ok():
 		_status.text = "Save failed: " + captured.message
+		_save_error = true
 		return false
 	# Immutable separate ledger generation first: a failed world write cannot destroy the old pair.
 	var ledger_hash: String = str((captured.value as Dictionary)["runtime"]["ledger_hash"])
 	var token_error: int = session.ledger.save_to(ledger_dir + "/" + ledger_hash + ".json")
 	if token_error != OK:
 		_status.text = "Token save failed: " + str(token_error)
+		_save_error = true
 		return false
 	var saved: MHSaveResult = store.autosave(captured.value as Dictionary,
 		MHTerrainSave.encode(editor.grid, editor.splat), session.unix_now)
 	if not saved.is_ok():
 		_status.text = "Save failed: " + saved.message
+		_save_error = true
 		return false
 	var summary: MHSaveSummary = saved.value as MHSaveSummary
 	document = (captured.value as Dictionary).duplicate(true)
 	document["revision"] = summary.revision
 	document["saved_at_unix"] = summary.saved_at_unix
 	_pending_save = false
-	_status.text = "Saved: ground, club and exact hole/practice state."
+	_save_error = false
+	_status.text = "Course saved."
 	return true
 
 func _process(_delta: float) -> void:

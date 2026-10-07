@@ -20,6 +20,21 @@ var _slot: Control
 var _top_flow: HFlowContainer
 var _speed_row: HFlowContainer
 var _nav_row: HBoxContainer
+var _course_focus: bool = false
+
+
+## Course design has its own navigation; retain a compact cash/time/score strip.
+func set_course_focus(value: bool) -> void:
+	if _course_focus == value or _top_flow == null:
+		return
+	_course_focus = value
+	_speed_row.visible = not value
+	_nav_row.visible = not value
+	_net_label.visible = not value
+	_day_bar.visible = not value
+	_score_band.visible = not value
+	_token_button.visible = not value
+	_demo_chip.visible = not value and view.is_demo()
 
 
 func _init() -> void:
@@ -102,11 +117,14 @@ func free_rect() -> Rect2:
 	# during the first layout frame and after window resizes.
 	if _top_flow == null or _speed_row == null or _nav_row == null:
 		return Rect2()
-	if not _top_flow.is_visible_in_tree() or not _speed_row.is_visible_in_tree() or not _nav_row.is_visible_in_tree():
+	if not _top_flow.is_visible_in_tree():
 		return Rect2()
 	var bounds: Rect2 = get_global_rect()
-	var top_y: float = maxf(_top_flow.get_global_rect().end.y, _speed_row.get_global_rect().end.y) + 8.0
-	var bottom_y: float = _nav_row.get_global_rect().position.y - 8.0
+	var top_y: float = _top_flow.get_global_rect().end.y + 8.0
+	var bottom_y: float = bounds.end.y - float(MHTheme.GUTTER)
+	if not _course_focus:
+		top_y = maxf(top_y, _speed_row.get_global_rect().end.y + 8.0)
+		bottom_y = _nav_row.get_global_rect().position.y - 8.0
 	var left: float = bounds.position.x + float(MHTheme.GUTTER)
 	var right: float = bounds.end.x - float(MHTheme.GUTTER)
 	if right <= left or bottom_y <= top_y:
@@ -168,7 +186,7 @@ func refresh() -> void:
 	_score_band.text = MHStrings.t(MHScoreModel.band_key(view.course_score_x10()))
 	var tokens: int = view.tokens_total()
 	_token_button.text = MHStrings.t("hud.tokens", {"count": tokens})
-	_demo_chip.visible = view.is_demo()
+	_demo_chip.visible = not _course_focus and view.is_demo()
 	var opts: Array = MHSpeedControl.options(tokens, view.speed())
 	for o: Variant in opts:
 		var row: Dictionary = o

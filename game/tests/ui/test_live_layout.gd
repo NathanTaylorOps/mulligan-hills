@@ -138,3 +138,17 @@ func test_touch_bridge_clipping() -> void:
 	assert_float(inside.size.y).is_equal_approx(20.0, 0.001)
 	assert_bool(MHTouchBridge.clipped(r, [Rect2(0, 0, 100, 90)]).has_area()).is_false()
 	assert_bool(MHTouchBridge.clipped(r, [Rect2(0, 0, 100, 90)]).has_point(Vector2(50, 120))).is_false()
+
+
+
+func test_editor_dock_uses_safe_width_and_leaves_world_space() -> void:
+	for c: Variant in CASES:
+		var cs: Array = c
+		var free: Rect2 = _free(cs[0], cs[1])
+		for wanted: float in [80.0, 260.0, 5000.0]:
+			var dock: Rect2 = MHLiveLayout.editor_dock_rect(free, wanted)
+			assert_bool(free.grow(0.01).encloses(dock)).is_true()
+			assert_float(dock.size.x).is_equal_approx(free.size.x, 0.01)
+			assert_float(dock.end.y).is_equal_approx(free.end.y, 0.01)
+			assert_float(dock.position.y - free.position.y).is_greater_equal(free.size.y * MHLiveLayout.WORLD_MIN_FRACTION - 0.01)
+	assert_bool(MHLiveLayout.editor_dock_rect(Rect2(), 260.0).has_area()).is_false()
