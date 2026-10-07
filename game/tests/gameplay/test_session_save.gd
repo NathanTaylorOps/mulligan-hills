@@ -294,9 +294,7 @@ func test_restore_rejects_stale_finalized_craft_course_checkpoint() -> void:
 	var loaded: MHSaveResult = scene.store.load_slot(0)
 	assert_bool(loaded.is_ok()).is_true()
 	var saved: Dictionary = ((loaded.value as MHLoadedSave).data as Dictionary).duplicate(true)
-	# Keep the craft block structurally valid but make it disagree with the already-rated canonical hole.
-	saved["runtime"]["craft_course"]["holes"][0]["flowers"] = int(saved["runtime"]["craft_course"]["holes"][0]["flowers"]) + 1
-	# Decoration alone does not alter rating geometry, so change an authoritative height too.
+	# Keep the craft block structurally valid but change authoritative relief beside the already-rated canonical hole.
 	saved["runtime"]["craft_course"]["holes"][0]["height_mm"][0] = int(saved["runtime"]["craft_course"]["holes"][0]["height_mm"][0]) + 250
 	MHSaveGame.seal(saved)
 	var ledger: MHSaveResult = MHSessionSave.load_ledger(saved, LEDGERS)
