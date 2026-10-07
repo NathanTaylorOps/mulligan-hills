@@ -212,27 +212,23 @@ func _panel_state() -> int:
 func _relayout() -> void:
 	if _dock == null or shell == null or one_hole == null:
 		return
-	var viewport_size: Vector2 = get_viewport().get_visible_rect().size
 	if _dock.theme != shell.theme:
 		_dock.theme = shell.theme # Text-size changes build a new theme.
 	var on: bool = shell.overlay_active() and shell.current_screen_id() == MHScreenIds.HUD
-	_dock.visible = on
 	if not on:
+		_dock.hide()
 		_layout_key = []
 		return
 	var free: Rect2 = shell.overlay_free_rect()
 	var tm: float = shell.ctx.touch_min()
 	if free.size.x <= 0.0 or free.size.y <= 0.0:
-		# Do not leave controls at their default (0,0) if the shell has not produced
-		# its spacer rect yet. Use a conservative HUD-shaped fallback until the real
-		# rectangle arrives on a later frame.
-		var gutter: float = float(MHTheme.GUTTER)
-		var top_h: float = gutter + tm * 2.0 + 24.0
-		var bottom_h: float = gutter + tm + 8.0
-		free = Rect2(gutter, top_h, maxf(0.0, viewport_size.x - gutter * 2.0),
-			maxf(0.0, viewport_size.y - top_h - bottom_h))
-		if free.size.x <= 0.0 or free.size.y <= 0.0:
-			return
+		# Never expose the live controls at their default (0,0) position. Container
+		# layout can legitimately take a frame after launch/resize; wait for a real
+		# HUD free rectangle instead of drawing controls over Cash/Time/Score.
+		_dock.hide()
+		_layout_key = []
+		return
+	_dock.show()
 	var state: int = _panel_state()
 	var key: Array = [free, tm, state, shell.ctx.scaled(MHTheme.FONT_SMALL), shell.ctx.left_handed()]
 	if key == _layout_key:
