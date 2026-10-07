@@ -209,15 +209,60 @@ func _button(parent: Control, title: String, action: Callable) -> MHTapButton:
 	return b
 
 
+func _category_button(parent: Control, title: String, category: StringName) -> void:
+	var b: MHTapButton = _button(parent, title, _select_category.bind(category))
+	b.custom_minimum_size = Vector2(142, 54)
+	_craft_category_buttons[category] = b
+
+
+func _select_category(category: StringName) -> void:
+	_craft_category = category
+	if category == &"surfaces":
+		craft_mode = &"surface"
+	elif category == &"terrain":
+		craft_mode = &"raise"
+	else:
+		craft_mode = &"tee"
+	_sync_mode_controls()
+	_refresh_tool_button_styles()
+	_describe()
+	if _preview_draft and _world != null:
+		_draw()
+
+
 func _surface_button(parent: Control, title: String, surface_id: int) -> void:
 	var key: StringName = StringName("surface_" + str(surface_id))
 	var b: MHTapButton = _button(parent, title, _select_surface.bind(surface_id))
+	# A pictorial material palette: 48px terrain samples with subtle deterministic
+	# patterning. Swap these generated previews for approved course art later without
+	# changing the palette, selection, or terrain/saving code.
+	b.icon = _surface_thumbnail(surface_id)
+	b.icon_alignment = HORIZONTAL_ALIGNMENT_LEFT
+	b.custom_minimum_size = Vector2(160, 78)
 	_craft_tool_buttons[key] = b
 	_refresh_tool_button_styles()
 
 
+func _surface_thumbnail(surface_id: int) -> Texture2D:
+	if _surface_icons.has(surface_id):
+		return _surface_icons[surface_id] as Texture2D
+	var img: Image = Image.create(48, 48, false, Image.FORMAT_RGBA8)
+	var base: Color = _surface_color(surface_id)
+	for py: int in range(48):
+		for px: int in range(48):
+			var grain: float = float((px * 13 + py * 7 + (px * py) % 17) % 13) / 12.0
+			var bands: float = sin(float(px + py * 2) * 0.18) * 0.06
+			var brightness: float = (grain - 0.5) * 0.14 + bands
+			var pixel: Color = base.lightened(maxf(0.0, brightness)) if brightness >= 0.0 else base.darkened(-brightness)
+			img.set_pixel(px, py, pixel)
+	var texture: Texture2D = ImageTexture.create_from_image(img)
+	_surface_icons[surface_id] = texture
+	return texture
+
+
 func _mode_button(parent: Control, title: String, mode: StringName) -> void:
 	var b: MHTapButton = _button(parent, title, _select_mode.bind(mode))
+	b.custom_minimum_size = Vector2(155, 64)
 	_craft_tool_buttons[mode] = b
 	_refresh_tool_button_styles()
 
@@ -227,12 +272,16 @@ func _select_surface(surface_id: int) -> void:
 	craft_mode = &"surface"
 	_refresh_tool_button_styles()
 	_describe()
+	if _preview_draft and _world != null:
+		_draw()
 
 
 func _select_mode(mode: StringName) -> void:
 	craft_mode = mode
 	_refresh_tool_button_styles()
 	_describe()
+	if _preview_draft and _world != null:
+		_draw()
 
 
 func _active_tool_key() -> StringName:
@@ -534,7 +583,7 @@ func _draw_craft_terrain(hole: MHCraftHole) -> void:
 		instance.material_override = material
 		_world.add_child(instance)
 	_draw_surface_edges(hole, relief_hole)
-	if _preview_draft:
+	if _preview_draft and _is_sculpt_mode():
 		_draw_craft_grid(hole, relief_hole)
 	for tee: Variant in hole.tees:
 		var t: Vector2i = tee as Vector2i
@@ -558,6 +607,10 @@ func _append_craft_tile(st: SurfaceTool, relief_hole: MHRHole, hole: MHCraftHole
 		st.set_normal(_craft_normal(relief_hole, point.x, point.y))
 		var z: float = float(relief_hole.z_at(point.x, point.y)) / 1000.0
 		st.add_vertex(_position(point.x, point.y, z + lift))
+
+func _is_sculpt_mode() -> bool:
+	return craft_mode == &"raise" or craft_mode == &"lower" or craft_mode == &"smooth" or craft_mode == &"level"
+
 
 func _draw_craft_grid(hole: MHCraftHole, relief_hole: MHRHole) -> void:
 	# One lightweight line mesh makes the editable 2-yard tiles legible without
