@@ -538,11 +538,8 @@ func select_craft_hole(index: int) -> bool:
 		return false
 	craft_hole = craft_course.active()
 	_terrain_dirty_for_craft = Rect2i()
-	# New holes are authoritative drafts: stamp their own footprint into their distinct world region once.
-	if session.hole_definitions().is_empty():
-		_syncing_craft_terrain = true
-		MHCraftTerrainBridge.sync_to_world(craft_hole, editor, craft_origin_dm(), false)
-		_syncing_craft_terrain = false
+	# Selection only moves the bridge. Never stamp the whole rectangular craft envelope here:
+	# rough/background cells are not built-hole geometry and could erase a neighbouring draft.
 	_request_save()
 	if one_hole != null:
 		one_hole._refresh_canonical_craft()
