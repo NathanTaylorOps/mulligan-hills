@@ -71,7 +71,8 @@ func add_booked_golfers(count: int, customer_ids: Array = []) -> int:
 		cursor += size
 		# Booked groups are authoritative business traffic: never discard them because a visual queue is busy.
 		# MHSliceGolfers has its own rendering caps, so retaining this tiny dictionary queue is cheap.
-		queue.append({"serial": next_serial, "size": size, "customer_ids": ids})
+		queue.append({"serial": next_serial, "size": size, "customer_ids": ids,
+			"booked_minute": next_tee_minute})
 		next_serial += 1
 	return whole
 
@@ -116,6 +117,7 @@ func release(now_minute: int) -> Array:
 			break
 		var g: Dictionary = (queue.pop_front() as Dictionary).duplicate()
 		g["tee_minute"] = next_tee_minute
+		g["wait_minutes"] = maxi(0, next_tee_minute - int(g.get("booked_minute", next_tee_minute)))
 		out.append(g)
 		next_tee_minute += interval_min
 	return out
