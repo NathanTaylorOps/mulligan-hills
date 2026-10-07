@@ -19,9 +19,10 @@ func record_visit(id: int, score: int) -> Dictionary:
 	if id < 0 or id >= COUNT:
 		return {}
 	var r: Dictionary = rows[id] as Dictionary
+	var clean_score: int = clampi(score, 0, 100)
 	var visits: int = int(r["visits"]) + 1
 	var previous: int = int(r["satisfaction"])
-	var sat: int = score if visits == 1 else (previous * 2 + clampi(score, 0, 100)) / 3
+	var sat: int = clean_score if visits == 1 else (previous * 2 + clean_score) / 3
 	r["visits"] = visits
 	r["satisfaction"] = sat
 	var became_regular: bool = false
@@ -29,7 +30,7 @@ func record_visit(id: int, score: int) -> Dictionary:
 		r["regular"] = true
 		became_regular = true
 	if bool(r["regular"]) and not bool(r["member"]) and not became_regular:
-		if score >= MEMBER_MIN_SAT:
+		if clean_score >= MEMBER_MIN_SAT:
 			r["good_member_visits"] = int(r["good_member_visits"]) + 1
 		else:
 			r["good_member_visits"] = 0
@@ -89,9 +90,22 @@ static func from_dict(raw: Variant) -> MHGolferCustomers:
 		var visits: int = int(r.get("visits", -1))
 		var sat: int = int(r.get("satisfaction", -1))
 		var good: int = int(r.get("good_member_visits", -1))
+		var regular: bool = bool(r.get("regular", false))
+		var eligible: bool = bool(r.get("member_eligible", false))
+		var member: bool = bool(r.get("member", false))
 		if visits < 0 or sat < 0 or sat > 100 or good < 0:
 			return null
+		if regular and visits < REGULAR_VISITS:
+			return null
+		if not regular and (eligible or member or good > 0):
+			return null
+		if member and eligible:
+			return null
+		if eligible and (good < MEMBER_EXTRA_VISITS or visits < REGULAR_VISITS + MEMBER_EXTRA_VISITS or sat < MEMBER_MIN_SAT):
+			return null
+		if good > maxi(0, visits - REGULAR_VISITS):
+			return null
 		out.rows[i] = {"id": i, "visits": visits, "satisfaction": sat,
-			"regular": bool(r.get("regular", false)), "member_eligible": bool(r.get("member_eligible", false)),
-			"member": bool(r.get("member", false)), "good_member_visits": good}
+			"regular": regular, "member_eligible": eligible,
+			"member": member, "good_member_visits": good}
 	return out
