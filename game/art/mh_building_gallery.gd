@@ -1,7 +1,7 @@
 class_name MHBuildingGallery
 extends Node3D
 ## Dev gallery for the procedural buildings (DEC-062). Shows one building at a time as a row of its five
-## tiers, left to right, on a flat ground. Buttons: previous / next building, spec a / b (tier 3 and up),
+## tiers, left to right, on a flat ground, using the same landscaped precinct composition intended for live placements. Buttons: previous / next building, spec a / b (tier 3 and up),
 ## rotate the view 45 degrees. The label lists triangle counts per tier. Day lighting from MHSkySetup,
 ## one shared vertex-colour material, no shadows. NOT YET RUN.
 
@@ -72,13 +72,11 @@ func rebuild() -> void:
 	var max_depth: float = 10.0
 	for tier in range(1, MHBuildingMeshes.TIER_COUNT + 1):
 		var bb: AABB = MHBuildingMeshes.bounds(id, tier, _spec)
-		var mesh: ArrayMesh = MHBuildingMeshes.build(id, tier, _spec)
-		var mi: MeshInstance3D = MHArtMaterials.make_instance(mesh, _mat, false)
 		var centre_x: float = bb.position.x + bb.size.x * 0.5
 		var centre_z: float = bb.position.z + bb.size.z * 0.5
-		mi.position = Vector3(cursor + bb.size.x * 0.5 - centre_x, 0.0, -centre_z)
-		_stage.add_child(mi)
-		_instances.append(mi)
+		var precinct_pos: Vector3 = Vector3(cursor + bb.size.x * 0.5 - centre_x, 0.0, -centre_z)
+		var made: Array = MHResortPrecinct.populate(_stage, id, tier, _spec, MHVisualQuality.Tier.HIGH, precinct_pos)
+		_instances.append(made[0] if not made.is_empty() else null)
 		cursor += bb.size.x + GAP
 		max_depth = maxf(max_depth, bb.size.z)
 		lines.append("Tier %d: %d triangles, %.1f x %.1f x %.1f m" % [tier,
