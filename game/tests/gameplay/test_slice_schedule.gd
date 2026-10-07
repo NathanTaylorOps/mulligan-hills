@@ -138,3 +138,12 @@ func test_booked_queue_does_not_touch_legacy_fractional_carry() -> void:
 	sched.add_booked_golfers(4, [1, 2, 3, 4])
 	assert_int(sched.carry_milli).is_equal(777)
 	assert_int(sched.waiting_golfers()).is_equal(4)
+
+func test_authoritative_bookings_are_lossless_even_past_visual_queue_cap() -> void:
+	var sched: MHSliceSchedule = MHSliceSchedule.new()
+	var ids: Array = []
+	for i: int in range(80):
+		ids.append(i % MHGolferCustomers.COUNT)
+	sched.add_booked_golfers(ids.size(), ids)
+	assert_int(sched.waiting_golfers()).is_equal(ids.size())
+	assert_int(sched.dropped_groups).is_equal(0)
