@@ -14,7 +14,7 @@ Status meanings: **FIXED** verified in source and corrected; **CONFIRMED** real 
 | 3 score display uses scores[0] | FIXED | Score resolves from active slot/index. |
 | 4 multi-hole state scattered | PARTIAL | Added centralized active-play index/layout/score helpers. Larger panel decomposition remains later work. |
 | 5 membership rule/test disagree | FIXED | Test now proves 3 qualifying visits establish regular, then 2 additional good visits establish eligibility. |
-| 6 CI cannot prove health | CONFIRMED BLOCKER | Current push workflows fail before any job step is recorded; no job logs/artifacts are produced. This predates the read-only workflow change. Repository/account Actions startup must be diagnosed. |
+| 6 CI cannot prove health | CONFIRMED BLOCKER | Current push workflows fail before any job step is recorded; GitHub reports `runner_id: 0`, empty runner name/group, and zero steps. This predates the read-only workflow change and proves no hosted runner is being allocated. Repository/account Actions availability/billing/runner allocation must be resolved before game CI can execute. |
 | 7 current HEAD unverified | CONFIRMED BLOCKER | Broad feature work is frozen for stabilization. |
 | 8 historical PASS risk | CONFIRMED POLICY | No old PASS is treated as current-head evidence. |
 | 23 first satisfaction not clamped | FIXED | Incoming visit score is clamped once before all calculations. |
@@ -28,9 +28,9 @@ Status meanings: **FIXED** verified in source and corrected; **CONFIRMED** real 
 | 54 Godot hard pins empty | CONFIRMED | Populate only after a trusted known-good run; current downloader still checks upstream SHA512 sums. |
 | 56 Android toolchain unverified | CONFIRMED | versions.env explicitly marks it unverified. Requires successful real export before freezing. |
 | 64 one→many assumption audit | ACTIVE | Hole-1 source assumptions found and corrected in practice panel; repo-wide multi-hole tests still required. |
-| 65 no regression guard for Hole 1 | CONFIRMED | Next test slice should deliberately differentiate all 3 holes. |
+| 65 no regression guard for Hole 1 | FIXED/PARTIAL | Added a 3-hole active-context regression resolving practice slot/index and hole number; extend to rendered relief/score once runtime executes. |
 | 66 slot_id vs index | PARTIAL | Active score/practice restore resolves slot where available; formal identity contract still needed. |
-| 67 practice slot/index drift | FIXED/PARTIAL | Active index re-resolves from practice slot; add explicit regression test. |
+| 67 practice slot/index drift | FIXED | Active index re-resolves from practice slot and now has an explicit 3-hole regression test. |
 | 68 fixed origin | CONFIRMED | Still uses one `ORIGIN`. |
 | 69 shared terrain window | CONFIRMED | Real multi-hole world placement remains the first post-stabilization feature. |
 | 90 integration coverage lag | CONFIRMED | Stabilization sprint is addressing it. |
