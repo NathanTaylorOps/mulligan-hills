@@ -1143,6 +1143,7 @@ func _draw_craft_terrain(hole: MHCraftHole) -> void:
 		_draw_mowing_accents(hole, relief_hole)
 	if bool(_visual_settings.get("terrain_detail", true)):
 		_draw_hazard_depth(hole, relief_hole)
+	_draw_environment_dressing(hole)
 	if _preview_draft and _is_sculpt_mode():
 		_draw_craft_grid(hole, relief_hole)
 	for tee: Variant in hole.tees:
@@ -1367,20 +1368,83 @@ func _craft_material(surface_id: int) -> StandardMaterial3D:
 			material.cull_mode = BaseMaterial3D.CULL_DISABLED
 	return material
 
+func _draw_environment_dressing(hole: MHCraftHole) -> void:
+	# Reuse the procedural art library rather than growing a second prop system.
+	# Placement is deterministic and only occupies rough/out-of-play tiles, so the
+	# richer scene never changes collision, rating or authored playing surfaces.
+	var density: float = float(_visual_settings.get("decor_density", 0.65))
+	if density < 0.3:
+		return
+	var lod: int = 0 if density >= 0.8 else 1
+	var nature_mat: StandardMaterial3D = StandardMaterial3D.new()
+	nature_mat.vertex_color_use_as_albedo = true
+	nature_mat.roughness = 0.92
+	var step: int = 7 if density >= 0.8 else 10
+	for r: int in range(2, hole.rows - 2, step):
+		for c: int in range(2, hole.cols - 2, step):
+			var surface: int = hole.get_surface(c, r)
+			if surface != MHCraftHole.Surface.ROUGH:
+				continue
+			var seed_value: int = c * 73856093 ^ r * 19349663
+			var kind: String = "bush"
+			if seed_value % 5 == 0:
+				kind = "rock_cluster"
+			elif seed_value % 3 == 0:
+				kind = "flower_patch"
+			var centre: Vector2i = hole.tile_centre_yd(c, r)
+			var mesh: ArrayMesh = MHNatureMeshes.build(kind, lod, abs(seed_value) % MHNatureMeshes.VARIANTS)
+			var instance: MeshInstance3D = MeshInstance3D.new()
+			instance.mesh = mesh
+			instance.material_override = nature_mat
+			instance.position = _position_on_ground(centre.x * 100, centre.y * 100, 0.02)
+			instance.rotation.y = float(abs(seed_value) % 628) / 100.0
+			instance.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_ON if bool(_visual_settings.get("shadows", true)) else GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+			_world.add_child(instance)
+	# Water margins get sparse reeds. They are intentionally sampled rather than
+	# tracing every shoreline tile, keeping both visual noise and node count down.
+	if bool(_visual_settings.get("water_detail", true)):
+		for r: int in range(1, hole.rows - 1, 3):
+			for c: int in range(1, hole.cols - 1, 3):
+				if hole.get_surface(c, r) != MHCraftHole.Surface.WATER:
+					continue
+				var near_land: bool = false
+				for d: Vector2i in [Vector2i.LEFT, Vector2i.RIGHT, Vector2i.UP, Vector2i.DOWN]:
+					if hole.get_surface(c + d.x, r + d.y) != MHCraftHole.Surface.WATER:
+						near_land = true
+				if not near_land:
+					continue
+				var wc: Vector2i = hole.tile_centre_yd(c, r)
+				var reed: MeshInstance3D = MeshInstance3D.new()
+				reed.mesh = MHNatureMeshes.build("reeds", lod, (c + r) % MHNatureMeshes.VARIANTS)
+				reed.material_override = nature_mat
+				reed.position = _position_on_ground(wc.x * 100, wc.y * 100, 0.04)
+				reed.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+				_world.add_child(reed)
+
+
+func _draw_prop(kind: String, point: Vector2i, variant: int = 0, yaw: float = 0.0) -> void:
+	var lod: int = 0 if float(_visual_settings.get("decor_density", 0.65)) >= 0.8 else 1
+	var material: StandardMaterial3D = StandardMaterial3D.new()
+	material.vertex_color_use_as_albedo = true
+	material.roughness = 0.88
+	var instance: MeshInstance3D = MeshInstance3D.new()
+	instance.mesh = MHPropMeshes.build(kind, lod, variant)
+	instance.material_override = material
+	instance.position = _position_on_ground(point.x * 100, point.y * 100, 0.025)
+	instance.rotation.y = yaw
+	instance.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_ON if bool(_visual_settings.get("shadows", true)) else GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	_world.add_child(instance)
+
+
 func _draw_tee_furniture(point: Vector2i) -> void:
-	_marker_at(_position_on_ground(point.x * 100 - 45, point.y * 100, 0.14), Color(0.94, 0.92, 0.82), 0.13)
-	_marker_at(_position_on_ground(point.x * 100 + 45, point.y * 100, 0.14), Color(0.94, 0.92, 0.82), 0.13)
+	_draw_prop("tee_marker", point + Vector2i(-1, 0), 0)
+	_draw_prop("tee_marker", point + Vector2i(1, 0), 0)
 	if float(_visual_settings.get("decor_density", 0.65)) >= 0.6:
-		_box(_position_on_ground(point.x * 100 + 95, point.y * 100 - 45, 0.28), Vector3(0.48, 0.48, 0.16), Color(0.30, 0.20, 0.12))
+		_draw_prop("sign", point + Vector2i(2, -1), 0, 0.25)
 
 
 func _draw_flag(point: Vector2i) -> void:
-	_box(_position_on_ground(point.x * 100, point.y * 100, 0.92), Vector3(0.055, 1.84, 0.055), Color(0.96, 0.95, 0.88))
-	var flag: QuadMesh = QuadMesh.new()
-	flag.size = Vector2(0.72, 0.42)
-	var instance: MeshInstance3D = _mesh(flag, _position_on_ground(point.x * 100 + 34, point.y * 100, 1.62), Color(0.88, 0.19, 0.12))
-	instance.rotation_degrees.y = 90.0
-	instance.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	_draw_prop("flag", point, 0)
 
 
 func _draw_craft_tree(point: Vector2i) -> void:
