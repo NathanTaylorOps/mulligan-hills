@@ -336,8 +336,9 @@ func test_repairing_water_at_pin_keeps_existing_green_inside_owned_land() -> voi
 	assert_int(MHCraftConvert.green_radius_yd(scene.craft_hole)).is_equal(original_radius)
 	assert_array(MHCraftConvert.problems(scene.craft_hole)).is_empty()
 	var layout: Dictionary = scene.canonical_craft_draft()
+	var origin: Vector2i = scene.craft_origin_dm()
 	var encoded: MHSaveResult = MHCourseLayout.encode([layout],
-		scene.document["course"] as Dictionary, [MHOneHolePanel.ORIGIN])
+		scene.document["course"] as Dictionary, [[origin.x, origin.y]])
 	assert_bool(encoded.is_ok()).override_failure_message(encoded.message).is_true()
 	scene.one_hole._finalize()
 	assert_int(scene.session.hole_definitions().size()).is_equal(3)
@@ -362,8 +363,9 @@ func test_green_repair_expands_only_a_genuinely_small_green() -> void:
 	assert_bool(MHCraftConvert.green_radius_yd(scene.craft_hole) >= 5).is_true()
 	assert_array(MHCraftConvert.problems(scene.craft_hole)).is_empty()
 	var layout: Dictionary = scene.canonical_craft_draft()
+	var origin: Vector2i = scene.craft_origin_dm()
 	var encoded: MHSaveResult = MHCourseLayout.encode([layout],
-		scene.document["course"] as Dictionary, [MHOneHolePanel.ORIGIN])
+		scene.document["course"] as Dictionary, [[origin.x, origin.y]])
 	assert_bool(encoded.is_ok()).override_failure_message(encoded.message).is_true()
 	scene._active = false
 
