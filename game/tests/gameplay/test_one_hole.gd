@@ -288,8 +288,9 @@ func test_normal_editor_and_build_play_share_water_path_and_height() -> void:
 	assert_bool(scene._active).is_true()
 	var tile: Vector2i = Vector2i(8, 12)
 	var centre: Vector2i = scene.craft_hole.tile_centre_yd(tile.x, tile.y)
-	var sx: int = MHRMath.rdiv(MHCourseLayout.world_mm(480, centre.x * 100), scene.editor.grid.cell_size_mm)
-	var sy: int = MHRMath.rdiv(MHCourseLayout.world_mm(340, centre.y * 100), scene.editor.grid.cell_size_mm)
+	var origin: Vector2i = scene.craft_origin_dm()
+	var sx: int = MHRMath.rdiv(MHCourseLayout.world_mm(origin.x, centre.x * 100), scene.editor.grid.cell_size_mm)
+	var sy: int = MHRMath.rdiv(MHCourseLayout.world_mm(origin.y, centre.y * 100), scene.editor.grid.cell_size_mm)
 
 	# Edit through the normal world terrain path.
 	scene.editor.set_paint_brush(MHSplatMap.Layer.WATER, 1, 1000)
