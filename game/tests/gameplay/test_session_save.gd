@@ -463,3 +463,35 @@ func test_reader_requirement_is_monotonic_across_checkpoint_capabilities() -> vo
 	assert_int(MHSessionSave._required_reader_version(legacy_course, false, true, true, true)).is_equal(5)
 	assert_int(MHSessionSave._required_reader_version(legacy_course, true, true, true, true)).is_equal(6)
 	assert_int(MHSessionSave._required_reader_version(primitive_course, true, true, true, true)).is_equal(6)
+
+func test_three_hole_world_route_survives_checkpoint_exactly() -> void:
+	var s: MHGameSession = MHGameSession.create()
+	var scene: MHLiveConstruction = auto_free(MHLiveConstruction.new())
+	scene.session = s
+	var doc: Dictionary = scene._new_document()
+	var craft: MHCraftCourse = MHCraftCourse.new()
+	craft.ensure_holes(3)
+	var defs: Array = craft.valid_hole_defs()
+	var origins: Array = []
+	for i: int in range(3):
+		var o: Vector2i = craft.origin(i)
+		origins.append([o.x, o.y])
+	var encoded: MHSaveResult = MHCourseLayout.encode(defs, doc["course"] as Dictionary, origins)
+	assert_bool(encoded.is_ok()).override_failure_message(encoded.message).is_true()
+	if not encoded.is_ok():
+		return
+	doc["course"] = encoded.value
+	assert_bool(s.submit_course(defs)["ok"]).is_true()
+	assert_bool(s.set_hole_origins_dm(origins)).is_true()
+	var before: Array = s.hole_world_points_m()
+	var captured: MHSaveResult = MHSessionSave.capture(s, doc)
+	assert_bool(captured.is_ok()).override_failure_message(captured.message).is_true()
+	if not captured.is_ok():
+		return
+	var restored: MHSaveResult = MHSessionSave.restore(captured.value as Dictionary, s.ledger)
+	assert_bool(restored.is_ok()).override_failure_message(restored.message).is_true()
+	if not restored.is_ok():
+		return
+	var rs: MHGameSession = restored.value as MHGameSession
+	assert_array(rs.hole_origins_dm()).is_equal(origins)
+	assert_array(rs.hole_world_points_m()).is_equal(before)
