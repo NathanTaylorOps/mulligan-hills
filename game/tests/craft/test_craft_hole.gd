@@ -168,6 +168,16 @@ func test_craft_course_rejects_out_of_range_world_origins() -> void:
 	assert_object(MHCraftCourse.from_dict(saved)).is_not_null()
 
 
+func test_future_default_course_origins_are_integer_only() -> void:
+	var craft: MHCraftCourse = MHCraftCourse.new()
+	craft.ensure_holes(6)
+	for origin_value: Variant in craft.origins_dm:
+		var origin: Array = origin_value as Array
+		assert_int(typeof(origin[0])).is_equal(TYPE_INT)
+		assert_int(typeof(origin[1])).is_equal(TYPE_INT)
+	assert_object(MHCraftCourse.from_dict(craft.to_dict())).is_not_null()
+
+
 func test_craft_course_rejects_coerced_metadata_extra_keys_and_bad_active_index() -> void:
 	var craft: MHCraftCourse = MHCraftCourse.new()
 	var saved: Dictionary = craft.to_dict()
