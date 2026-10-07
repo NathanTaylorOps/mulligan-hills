@@ -55,6 +55,7 @@ static func capture(session: MHGameSession, source: Dictionary, craft_draft: Dic
 		"customers": session.customers.to_dict(),
 		"ledger_hash": MHSaveGame.canonical_json(session.ledger.to_dict()).sha256_text(),
 		"terrain_bytes_hash": str((source.get("runtime", {}) as Dictionary).get("terrain_bytes_hash", "0".repeat(64)))}
+	doc["min_reader_version"] = maxi(int(doc["min_reader_version"]), 6)
 	if session.practice != null:
 		doc["runtime"]["practice"] = session.practice.to_dict()
 		doc["min_reader_version"] = 3
