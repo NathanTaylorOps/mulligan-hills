@@ -394,7 +394,10 @@ static func from_dict(raw: Variant) -> MHCraftHole:
 	if typeof(raw) != TYPE_DICTIONARY:
 		return null
 	var d: Dictionary = raw as Dictionary
-	for key: String in ["v", "cols", "rows", "surface", "height_mm", "tees", "pins", "trees", "rocks", "flowers"]:
+	var allowed: Array = ["v", "cols", "rows", "surface", "height_mm", "tees", "pins", "trees", "rocks", "flowers"]
+	if d.size() != allowed.size():
+		return null
+	for key: String in allowed:
 		if not d.has(key):
 			return null
 	if not MHRValidate.is_int_value(d["v"]) or int(d["v"]) != 1:
@@ -429,6 +432,8 @@ static func from_dict(raw: Variant) -> MHCraftHole:
 			return null
 		var a: Array = value as Array
 		if not MHRValidate.is_int_value(a[0]) or not MHRValidate.is_int_value(a[1]):
+			return null
+		if absi(int(a[0])) > 1200 or absi(int(a[1])) > 1200:
 			return null
 		out.trees.append(Vector2i(int(a[0]), int(a[1])))
 	if not MHRValidate.is_int_value(d["rocks"]) or not MHRValidate.is_int_value(d["flowers"]):
