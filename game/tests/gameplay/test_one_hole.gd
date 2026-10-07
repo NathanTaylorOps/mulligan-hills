@@ -318,6 +318,32 @@ func test_normal_editor_and_build_play_share_water_path_and_height() -> void:
 	scene._active = false
 
 
+func test_fresh_scene_stamps_all_starter_holes_into_shared_world() -> void:
+	var run_id: String = str(Time.get_ticks_usec())
+	var scene: MHLiveConstruction = auto_free(MHLiveConstruction.new())
+	scene.store = MHSaveStore.new("user://test_multi_hole_world_seed_" + run_id)
+	scene.ledger_dir = "user://test_multi_hole_world_seed_ledger_" + run_id
+	add_child(scene)
+	assert_bool(scene._active).is_true()
+	for i: int in range(MHCraftCourse.NIGHT_SLICE_HOLES):
+		assert_bool(scene.select_craft_hole(i)).is_true()
+		var fairway_tile: Vector2i = Vector2i(-1, -1)
+		for r: int in range(scene.craft_hole.rows):
+			for col: int in range(scene.craft_hole.cols):
+				if scene.craft_hole.get_surface(col, r) == MHCraftHole.Surface.FAIRWAY:
+					fairway_tile = Vector2i(col, r)
+					break
+			if fairway_tile.x >= 0:
+				break
+		assert_bool(fairway_tile.x >= 0).is_true()
+		var centre: Vector2i = scene.craft_hole.tile_centre_yd(fairway_tile.x, fairway_tile.y)
+		var origin: Vector2i = scene.craft_origin_dm()
+		var sx: int = MHRMath.rdiv(MHCourseLayout.world_mm(origin.x, centre.x * 100), scene.editor.grid.cell_size_mm)
+		var sy: int = MHRMath.rdiv(MHCourseLayout.world_mm(origin.y, centre.y * 100), scene.editor.grid.cell_size_mm)
+		assert_int(scene.editor.splat.get_weight(sx, sy, MHSplatMap.Layer.FAIRWAY)).is_equal(255)
+	scene._active = false
+
+
 func test_repairing_water_at_pin_keeps_existing_green_inside_owned_land() -> void:
 	var run_id: String = str(Time.get_ticks_usec())
 	var scene: MHLiveConstruction = auto_free(MHLiveConstruction.new())
