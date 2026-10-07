@@ -135,6 +135,16 @@ func staff_view() -> Dictionary:
 func staff_report() -> Dictionary:
 	return staff.report(staff_view())
 
+func customer_summary() -> Dictionary:
+	return {"regulars": customers.regular_count(), "eligible": customers.eligible_count(),
+		"named_members": customers.member_count(), "membership_capacity": economy.members()}
+
+func accept_customer_membership(customer_id: int) -> bool:
+	# The calibrated economy controls membership capacity; the RPG ledger controls who occupies those slots.
+	if customers.member_count() >= economy.members():
+		return false
+	return customers.accept_membership(customer_id)
+
 func record_customer_visit(customer_id: int, holes_played: int, wait_minutes: int) -> Dictionary:
 	var report: Dictionary = staff_report()
 	var experience: Dictionary = MHGolferExperience.evaluate(economy.rating, economy.fee, economy.suggest_fee(),
@@ -307,6 +317,8 @@ func handle_intent(id: StringName, args: Dictionary) -> Dictionary:
 		&"set_green_fee":
 			economy.set_green_fee(int(args.get("cents", economy.fee)))
 			out = _result(true)
+		&"accept_membership":
+			out = _result(accept_customer_membership(int(args.get("customer_id", -1))), "membership")
 		&"recovery_loan":
 			out = _result(economy.take_bank_loan() >= 0, "recovery")
 		&"recovery_tokens":
