@@ -75,6 +75,44 @@ func test_runtime_schema_rejects_bad_types_ranges_and_old_reader() -> void:
 		MHSaveGame.seal(doc)
 		assert_bool(MHSessionSave.restore(doc, MHTokenLedger.new()).is_ok()).is_false()
 
+func test_restore_rejects_future_dated_staff_checkpoint() -> void:
+	var s: MHGameSession = MHGameSession.create()
+	var doc: Dictionary = _checkpoint(s)
+	var roster: Dictionary = (doc["club"] as Dictionary)["staff_roster"] as Dictionary
+	roster["last_day"] = s.economy.day + 1
+	MHSaveGame.seal(doc)
+	var restored: MHSaveResult = MHSessionSave.restore(doc, s.ledger)
+	assert_bool(restored.is_ok()).is_false()
+	assert_str(restored.message).is_equal("staff checkpoint is from the future")
+
+	s.economy.set_tier(s.economy.params.building_index("maintenance"), 1)
+	var view: Dictionary = s.staff_view()
+	var hired: Dictionary = s.staff.hire("groundskeeper", s.economy.day, view, 100000000)
+	assert_bool(bool(hired["ok"])).is_true()
+	doc = _checkpoint(s)
+	roster = (doc["club"] as Dictionary)["staff_roster"] as Dictionary
+	((roster["employees"] as Array)[0] as Dictionary)["hired_day"] = s.economy.day + 1
+	MHSaveGame.seal(doc)
+	restored = MHSessionSave.restore(doc, s.ledger)
+	assert_bool(restored.is_ok()).is_false()
+	assert_str(restored.message).is_equal("staff checkpoint is from the future")
+
+
+func test_runtime_craft_course_requires_reader_five_and_valid_shape() -> void:
+	var doc: Dictionary = _checkpoint(MHGameSession.create())
+	doc["runtime"]["craft_course"] = MHCraftCourse.new().to_dict()
+	doc["min_reader_version"] = 4
+	MHSaveGame.seal(doc)
+	var errors: Array = MHSaveGame.validate(doc)
+	assert_bool(errors.has("craft course requires reader 5")).is_true()
+
+	doc["min_reader_version"] = MHSaveGame.READER_VERSION
+	doc["runtime"]["craft_course"]["origins_dm"] = [[-1, 560]]
+	MHSaveGame.seal(doc)
+	errors = MHSaveGame.validate(doc)
+	assert_bool(errors.has("craft course invalid")).is_true()
+
+
 func test_legacy_slot_stays_readable_but_is_not_silently_reinitialized() -> void:
 	var doc: Dictionary = Fixture.make_doc()
 	MHSaveGame.seal(doc)
@@ -223,6 +261,8 @@ func test_unfinalized_craft_draft_survives_cold_reopen_exactly() -> void:
 	var expected: Dictionary = scene.craft_hole.to_dict()
 	assert_bool(scene.save_now()).is_true()
 	assert_int(int(scene.document["min_reader_version"])).is_equal(6)
+	assert_bool((scene.document["runtime"] as Dictionary).has("craft_course")).is_true()
+	assert_bool((scene.document["runtime"] as Dictionary).has("craft_draft")).is_false()
 	scene._active = false
 	scene.queue_free()
 	await get_tree().process_frame
@@ -282,6 +322,29 @@ func test_live_scene_finalization_can_save_and_reload_practice() -> void:
 	scene._active = false
 
 
+func test_restore_rejects_stale_finalized_craft_course_checkpoint() -> void:
+	var scene: MHLiveConstruction = auto_free(MHLiveConstruction.new())
+	scene.store = MHSaveStore.new(DIR)
+	scene.ledger_dir = LEDGERS
+	add_child(scene)
+	assert_bool(scene._active).is_true()
+	scene._open_craft_hole()
+	scene.one_hole._finalize()
+	assert_bool(scene.save_now()).is_true()
+	var loaded: MHSaveResult = scene.store.load_slot(0)
+	assert_bool(loaded.is_ok()).is_true()
+	var saved: Dictionary = ((loaded.value as MHLoadedSave).data as Dictionary).duplicate(true)
+	# Keep the craft block structurally valid but change authoritative relief beside the already-rated canonical hole.
+	saved["runtime"]["craft_course"]["holes"][0]["height_mm"][0] = int(saved["runtime"]["craft_course"]["holes"][0]["height_mm"][0]) + 250
+	MHSaveGame.seal(saved)
+	var ledger: MHSaveResult = MHSessionSave.load_ledger(saved, LEDGERS)
+	assert_bool(ledger.is_ok()).is_true()
+	var restored: MHSaveResult = MHSessionSave.restore(saved, ledger.value as MHTokenLedger)
+	assert_bool(restored.is_ok()).is_false()
+	assert_str(restored.message).is_equal("craft course and canonical course disagree")
+	scene._active = false
+
+
 func test_elevated_live_scene_cold_reopen_accepts_saved_relief() -> void:
 	var scene: MHLiveConstruction = MHLiveConstruction.new()
 	scene.store = MHSaveStore.new(DIR)
@@ -321,7 +384,10 @@ func test_screen_aim_projection_sets_target_without_playing_or_charging() -> voi
 	scene.one_hole._finalize()
 	var before: Dictionary = scene.session.practice.to_dict()
 	var cash: int = scene.session.economy.cash
-	var screen: Vector2 = scene.controller.camera.unproject_position(Vector3(48.0, 0.0, 79.72))
+	var origin: Vector2i = scene.one_hole._active_play_origin()
+	var target: Vector3 = Vector3(float(MHCourseLayout.world_mm(origin.x, 0)) / 1000.0, 0.0,
+		float(MHCourseLayout.world_mm(origin.y, 5000)) / 1000.0)
+	var screen: Vector2 = scene.controller.camera.unproject_position(target)
 	assert_bool(scene.one_hole.aim_from_screen(screen)).is_true()
 	assert_int(scene.one_hole.aim_x).is_equal(0)
 	assert_int(scene.one_hole.aim_y).is_equal(5000)

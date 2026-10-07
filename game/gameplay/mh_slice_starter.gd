@@ -32,6 +32,13 @@ static func build_next_hole(session: MHGameSession) -> String:
 	defs.append(MHSliceLayout.hole_template(slot))
 	var result: Dictionary = session.submit_course(defs)
 	if bool(result.get("ok", false)):
+		var origins: Array = session.hole_origins_dm()
+		while origins.size() < defs.size():
+			var def: Dictionary = defs[origins.size()] as Dictionary
+			var origin_index: int = clampi(int(def["slot_id"]), 0, MHSliceLayout.HOLE_ORIGINS_DM.size() - 1)
+			origins.append((MHSliceLayout.HOLE_ORIGINS_DM[origin_index] as Array).duplicate())
+		if not session.set_hole_origins_dm(origins):
+			return "course origin assignment failed"
 		return ""
 	return MHSliceText.intent_words(str(result.get("reason", "")))
 

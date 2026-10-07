@@ -155,6 +155,49 @@ func test_craft_draft_serialization_preserves_exact_state() -> void:
 	assert_int(restored.undo_count()).is_equal(0)
 
 
+func test_craft_course_rejects_out_of_range_world_origins() -> void:
+	var craft: MHCraftCourse = MHCraftCourse.new()
+	var saved: Dictionary = craft.to_dict()
+	saved["origins_dm"] = [[-1, 560]]
+	assert_object(MHCraftCourse.from_dict(saved)).is_null()
+	saved = craft.to_dict()
+	saved["origins_dm"] = [[65536, 560]]
+	assert_object(MHCraftCourse.from_dict(saved)).is_null()
+	saved = craft.to_dict()
+	saved["origins_dm"] = [[600, 65535]]
+	assert_object(MHCraftCourse.from_dict(saved)).is_not_null()
+
+
+func test_all_default_course_origins_are_unique_integer_only_and_round_trip() -> void:
+	var craft: MHCraftCourse = MHCraftCourse.new()
+	craft.ensure_holes(MHCraftCourse.MAX_HOLES)
+	var seen: Dictionary = {}
+	for origin_value: Variant in craft.origins_dm:
+		var origin: Array = origin_value as Array
+		assert_int(typeof(origin[0])).is_equal(TYPE_INT)
+		assert_int(typeof(origin[1])).is_equal(TYPE_INT)
+		var key: String = "%d,%d" % [int(origin[0]), int(origin[1])]
+		assert_bool(seen.has(key)).override_failure_message("duplicate origin " + key).is_false()
+		seen[key] = true
+	var restored: MHCraftCourse = MHCraftCourse.from_dict(craft.to_dict())
+	assert_object(restored).is_not_null()
+	if restored != null:
+		assert_array(restored.origins_dm).is_equal(craft.origins_dm)
+
+
+func test_craft_course_rejects_coerced_metadata_extra_keys_and_bad_active_index() -> void:
+	var craft: MHCraftCourse = MHCraftCourse.new()
+	var saved: Dictionary = craft.to_dict()
+	saved["v"] = "2"
+	assert_object(MHCraftCourse.from_dict(saved)).is_null()
+	saved = craft.to_dict()
+	saved["extra"] = 1
+	assert_object(MHCraftCourse.from_dict(saved)).is_null()
+	saved = craft.to_dict()
+	saved["active"] = 1
+	assert_object(MHCraftCourse.from_dict(saved)).is_null()
+
+
 func test_one_tee_and_four_pins_rotate_by_round() -> void:
 	var h: MHCraftHole = MHCraftHole.new(24, 40)
 	assert_int(h.add_tee(11, 0)).is_equal(0)

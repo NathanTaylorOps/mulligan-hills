@@ -77,7 +77,9 @@ static func from_dict(raw: Variant) -> MHGolferCustomers:
 	if typeof(raw) != TYPE_DICTIONARY:
 		return null
 	var d: Dictionary = raw as Dictionary
-	if int(d.get("v", -1)) != SAVE_VERSION or typeof(d.get("rows", null)) != TYPE_ARRAY:
+	if d.size() != 2 or not d.has("v") or not d.has("rows"):
+		return null
+	if typeof(d["v"]) != TYPE_INT or int(d["v"]) != SAVE_VERSION or typeof(d["rows"]) != TYPE_ARRAY:
 		return null
 	var src: Array = d["rows"] as Array
 	if src.size() != COUNT:
@@ -87,6 +89,12 @@ static func from_dict(raw: Variant) -> MHGolferCustomers:
 		if typeof(src[i]) != TYPE_DICTIONARY:
 			return null
 		var r: Dictionary = src[i] as Dictionary
+		var required: Array = ["id", "visits", "satisfaction", "good_member_visits", "regular", "member_eligible", "member"]
+		if r.size() != required.size():
+			return null
+		for key: Variant in r.keys():
+			if not required.has(str(key)):
+				return null
 		for key: String in ["id", "visits", "satisfaction", "good_member_visits"]:
 			if typeof(r.get(key, null)) != TYPE_INT:
 				return null

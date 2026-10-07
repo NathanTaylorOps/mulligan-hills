@@ -209,6 +209,15 @@ func test_the_real_session_can_build_the_starter_holes_and_they_are_not_dead() -
 		assert_bool(bool(row["valid"])).is_true()
 		assert_bool(bool(row["dead"])).override_failure_message("score %d" % int(row["score"])).is_false()
 
+func test_slice_starter_populates_world_points_for_every_hole() -> void:
+	var s: MHGameSession = MHGameSession.create()
+	assert_object(s).is_not_null()
+	var view: MHLiveGameStateView = MHLiveGameStateView.new(s)
+	assert_str(MHSliceStarter.setup(s, view)).is_equal("")
+	assert_int(s.hole_origins_dm().size()).is_equal(MHSliceStarter.STARTER_HOLES)
+	assert_int(s.hole_world_points_m().size()).is_equal(MHSliceStarter.STARTER_HOLES)
+
+
 func test_origin_aware_hole_points_ignore_slot_placement() -> void:
 	var h: Dictionary = {"slot_id": 0, "tee": [0, 0], "green": [0, 100, 8], "features": []}
 	var a: Dictionary = MHSliceLayout.hole_points_at_origin_m(h, [600, 560])
@@ -217,6 +226,16 @@ func test_origin_aware_hole_points_ignore_slot_placement() -> void:
 	assert_float((b["tee"] as Vector2).x).is_equal_approx(132.0, 0.001)
 	assert_float((a["green"] as Vector2).y).is_equal_approx(147.44, 0.001)
 	assert_float((b["green"] as Vector2).y).is_equal_approx(147.44, 0.001)
+
+func test_session_rejects_out_of_range_hole_origins() -> void:
+	var s: MHGameSession = MHGameSession.create()
+	var craft: MHCraftCourse = MHCraftCourse.new()
+	var defs: Array = craft.valid_hole_defs()
+	assert_bool(s.submit_course(defs)["ok"]).is_true()
+	assert_bool(s.set_hole_origins_dm([[-1, 0]])).is_false()
+	assert_bool(s.set_hole_origins_dm([[65536, 0]])).is_false()
+	assert_bool(s.set_hole_origins_dm([[0, 65535]])).is_true()
+
 
 func test_session_world_route_uses_persisted_origins_not_slot_defaults() -> void:
 	var s: MHGameSession = MHGameSession.create()

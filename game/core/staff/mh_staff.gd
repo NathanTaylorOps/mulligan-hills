@@ -200,6 +200,16 @@ func to_save_block() -> Dictionary:
 
 ## Replaces the whole state from a save block. A save written before staff existed has no block: do not call this, the
 ## fresh state from create() is the documented default. Returns false and changes nothing when the block is invalid.
+func checkpoint_not_from_future(current_day: int) -> bool:
+	if grounds.last_day > current_day:
+		return false
+	for value: Variant in roster.employees:
+		var employee: Dictionary = value as Dictionary
+		if int(employee["hired_day"]) > current_day:
+			return false
+	return true
+
+
 func from_save_block(block: Dictionary) -> bool:
 	var errs: Array = []
 	var norm: Variant = MHDataJson.normalize(block, errs, "$")

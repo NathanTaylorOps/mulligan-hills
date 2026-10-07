@@ -90,9 +90,19 @@ func test_buy_all_in_recommended_order() -> void:
 	assert_bool(total > 0).is_true()
 
 
-func test_recommended_prefers_golf_then_facility_then_homes() -> void:
-	assert_int(_land.recommended_next()).is_equal(1)
+func test_recommended_prefers_spatially_useful_golf_expansion() -> void:
+	assert_int(_land.recommended_next()).is_equal(13)
 	assert_str(_land.kind_of(_land.recommended_next())).is_equal("golf")
+	var golf_order: Array = []
+	for _i: int in range(MHLandModel.GOLF_EXPANSION_PRIORITY.size()):
+		var id: int = _land.recommended_next()
+		assert_str(_land.kind_of(id)).is_equal("golf")
+		golf_order.append(id)
+		assert_int(_land.buy(id)).is_greater(-1)
+	assert_array(golf_order).is_equal(MHLandModel.GOLF_EXPANSION_PRIORITY)
+	assert_int(_land.hole_capacity()).is_equal(18)
+	# Once golf is complete, the existing kind priority still guides facility before homes.
+	assert_str(_land.kind_of(_land.recommended_next())).is_equal("facility")
 
 
 func test_hole_capacity_steps() -> void:

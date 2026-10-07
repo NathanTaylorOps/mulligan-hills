@@ -57,9 +57,67 @@ func highlighted(surface: int, x_yd: float, y_yd: float, along_angle: float) -> 
 	return false
 
 func to_dict() -> Dictionary:
-	return {"v": 1, "fairway_pattern": int(fairway_pattern), "green_pattern": int(green_pattern),
-		"fairway_width_yd": fairway_width_yd, "green_width_yd": green_width_yd,
-		"direction_deg": direction_deg, "intensity": intensity}
+	return {"v": 1,
+		"fairway_pattern": clampi(int(fairway_pattern), 0, Pattern.size() - 1),
+		"green_pattern": clampi(int(green_pattern), 0, Pattern.size() - 1),
+		"fairway_width_yd": clampi(fairway_width_yd, MIN_WIDTH_YD, MAX_WIDTH_YD),
+		"green_width_yd": clampi(green_width_yd, MIN_WIDTH_YD, MAX_WIDTH_YD),
+		"direction_deg": posmod(direction_deg, 180),
+		"intensity_pm": clampi(roundi(intensity * 1000.0), 20, 140)}
+
+
+static func is_save_dict_valid(raw: Variant) -> bool:
+	if typeof(raw) != TYPE_DICTIONARY:
+		return false
+	var d: Dictionary = raw as Dictionary
+	var keys: Array = ["v", "fairway_pattern", "green_pattern", "fairway_width_yd",
+		"green_width_yd", "direction_deg", "intensity_pm"]
+	if d.size() != keys.size():
+		return false
+	for key: String in keys:
+		if not d.has(key) or not MHRValidate.is_int_value(d[key]):
+			return false
+	return (
+		int(d["v"]) == 1
+		and int(d["fairway_pattern"]) >= 0 and int(d["fairway_pattern"]) < Pattern.size()
+		and int(d["green_pattern"]) >= 0 and int(d["green_pattern"]) < Pattern.size()
+		and int(d["fairway_width_yd"]) >= MIN_WIDTH_YD and int(d["fairway_width_yd"]) <= MAX_WIDTH_YD
+		and int(d["green_width_yd"]) >= MIN_WIDTH_YD and int(d["green_width_yd"]) <= MAX_WIDTH_YD
+		and int(d["direction_deg"]) >= 0 and int(d["direction_deg"]) < 180
+		and int(d["intensity_pm"]) >= 20 and int(d["intensity_pm"]) <= 140
+	)
+
+
+static func is_legacy_save_dict_valid(raw: Variant) -> bool:
+	if typeof(raw) != TYPE_DICTIONARY:
+		return false
+	var d: Dictionary = raw as Dictionary
+	var keys: Array = ["v", "fairway_pattern", "green_pattern", "fairway_width_yd",
+		"green_width_yd", "direction_deg", "intensity"]
+	if d.size() != keys.size():
+		return false
+	for key: String in keys:
+		if not d.has(key):
+			return false
+	for key: String in ["v", "fairway_pattern", "green_pattern", "fairway_width_yd",
+		"green_width_yd", "direction_deg"]:
+		if not MHRValidate.is_int_value(d[key]):
+			return false
+	var intensity_value: Variant = d["intensity"]
+	if typeof(intensity_value) not in [TYPE_INT, TYPE_FLOAT]:
+		return false
+	var legacy_intensity: float = float(intensity_value)
+	if legacy_intensity != legacy_intensity or legacy_intensity < 0.02 or legacy_intensity > 0.14:
+		return false
+	return (
+		int(d["v"]) == 1
+		and int(d["fairway_pattern"]) >= 0 and int(d["fairway_pattern"]) < Pattern.size()
+		and int(d["green_pattern"]) >= 0 and int(d["green_pattern"]) < Pattern.size()
+		and int(d["fairway_width_yd"]) >= MIN_WIDTH_YD and int(d["fairway_width_yd"]) <= MAX_WIDTH_YD
+		and int(d["green_width_yd"]) >= MIN_WIDTH_YD and int(d["green_width_yd"]) <= MAX_WIDTH_YD
+		and int(d["direction_deg"]) >= 0 and int(d["direction_deg"]) < 180
+	)
+
 
 static func from_dict(raw: Variant) -> MHMowingDesign:
 	var out: MHMowingDesign = MHMowingDesign.new()
@@ -71,7 +129,11 @@ static func from_dict(raw: Variant) -> MHMowingDesign:
 	out.fairway_width_yd = clampi(int(d.get("fairway_width_yd", 4)), MIN_WIDTH_YD, MAX_WIDTH_YD)
 	out.green_width_yd = clampi(int(d.get("green_width_yd", 2)), MIN_WIDTH_YD, MAX_WIDTH_YD)
 	out.direction_deg = posmod(int(d.get("direction_deg", 0)), 180)
-	out.intensity = clampf(float(d.get("intensity", 0.065)), 0.02, 0.14)
+	if typeof(d.get("intensity_pm", null)) == TYPE_INT:
+		out.intensity = clampf(float(int(d["intensity_pm"])) / 1000.0, 0.02, 0.14)
+	else:
+		# Reader compatibility for draft saves made before intensity became integer-backed.
+		out.intensity = clampf(float(d.get("intensity", 0.065)), 0.02, 0.14)
 	return out
 
 static func _band(value: float, width: float) -> bool:

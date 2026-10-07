@@ -288,8 +288,9 @@ func test_normal_editor_and_build_play_share_water_path_and_height() -> void:
 	assert_bool(scene._active).is_true()
 	var tile: Vector2i = Vector2i(8, 12)
 	var centre: Vector2i = scene.craft_hole.tile_centre_yd(tile.x, tile.y)
-	var sx: int = MHRMath.rdiv(MHCourseLayout.world_mm(480, centre.x * 100), scene.editor.grid.cell_size_mm)
-	var sy: int = MHRMath.rdiv(MHCourseLayout.world_mm(340, centre.y * 100), scene.editor.grid.cell_size_mm)
+	var origin: Vector2i = scene.craft_origin_dm()
+	var sx: int = MHRMath.rdiv(MHCourseLayout.world_mm(origin.x, centre.x * 100), scene.editor.grid.cell_size_mm)
+	var sy: int = MHRMath.rdiv(MHCourseLayout.world_mm(origin.y, centre.y * 100), scene.editor.grid.cell_size_mm)
 
 	# Edit through the normal world terrain path.
 	scene.editor.set_paint_brush(MHSplatMap.Layer.WATER, 1, 1000)
@@ -317,6 +318,32 @@ func test_normal_editor_and_build_play_share_water_path_and_height() -> void:
 	scene._active = false
 
 
+func test_fresh_scene_stamps_all_starter_holes_into_shared_world() -> void:
+	var run_id: String = str(Time.get_ticks_usec())
+	var scene: MHLiveConstruction = auto_free(MHLiveConstruction.new())
+	scene.store = MHSaveStore.new("user://test_multi_hole_world_seed_" + run_id)
+	scene.ledger_dir = "user://test_multi_hole_world_seed_ledger_" + run_id
+	add_child(scene)
+	assert_bool(scene._active).is_true()
+	for i: int in range(MHCraftCourse.NIGHT_SLICE_HOLES):
+		assert_bool(scene.select_craft_hole(i)).is_true()
+		var fairway_tile: Vector2i = Vector2i(-1, -1)
+		for r: int in range(scene.craft_hole.rows):
+			for col: int in range(scene.craft_hole.cols):
+				if scene.craft_hole.get_surface(col, r) == MHCraftHole.Surface.FAIRWAY:
+					fairway_tile = Vector2i(col, r)
+					break
+			if fairway_tile.x >= 0:
+				break
+		assert_bool(fairway_tile.x >= 0).is_true()
+		var centre: Vector2i = scene.craft_hole.tile_centre_yd(fairway_tile.x, fairway_tile.y)
+		var origin: Vector2i = scene.craft_origin_dm()
+		var sx: int = MHRMath.rdiv(MHCourseLayout.world_mm(origin.x, centre.x * 100), scene.editor.grid.cell_size_mm)
+		var sy: int = MHRMath.rdiv(MHCourseLayout.world_mm(origin.y, centre.y * 100), scene.editor.grid.cell_size_mm)
+		assert_int(scene.editor.splat.get_weight(sx, sy, MHSplatMap.Layer.FAIRWAY)).is_equal(255)
+	scene._active = false
+
+
 func test_repairing_water_at_pin_keeps_existing_green_inside_owned_land() -> void:
 	var run_id: String = str(Time.get_ticks_usec())
 	var scene: MHLiveConstruction = auto_free(MHLiveConstruction.new())
@@ -336,8 +363,9 @@ func test_repairing_water_at_pin_keeps_existing_green_inside_owned_land() -> voi
 	assert_int(MHCraftConvert.green_radius_yd(scene.craft_hole)).is_equal(original_radius)
 	assert_array(MHCraftConvert.problems(scene.craft_hole)).is_empty()
 	var layout: Dictionary = scene.canonical_craft_draft()
+	var origin: Vector2i = scene.craft_origin_dm()
 	var encoded: MHSaveResult = MHCourseLayout.encode([layout],
-		scene.document["course"] as Dictionary, [MHOneHolePanel.ORIGIN])
+		scene.document["course"] as Dictionary, [[origin.x, origin.y]])
 	assert_bool(encoded.is_ok()).override_failure_message(encoded.message).is_true()
 	scene.one_hole._finalize()
 	assert_int(scene.session.hole_definitions().size()).is_equal(3)
@@ -362,8 +390,9 @@ func test_green_repair_expands_only_a_genuinely_small_green() -> void:
 	assert_bool(MHCraftConvert.green_radius_yd(scene.craft_hole) >= 5).is_true()
 	assert_array(MHCraftConvert.problems(scene.craft_hole)).is_empty()
 	var layout: Dictionary = scene.canonical_craft_draft()
+	var origin: Vector2i = scene.craft_origin_dm()
 	var encoded: MHSaveResult = MHCourseLayout.encode([layout],
-		scene.document["course"] as Dictionary, [MHOneHolePanel.ORIGIN])
+		scene.document["course"] as Dictionary, [[origin.x, origin.y]])
 	assert_bool(encoded.is_ok()).override_failure_message(encoded.message).is_true()
 	scene._active = false
 
@@ -591,6 +620,81 @@ func test_three_default_holes_encode_on_owned_land_without_overlap() -> void:
 	assert_bool(encoded.is_ok()).override_failure_message(encoded.message).is_true()
 	if encoded.is_ok():
 		assert_array(MHCourseLayout.origins(encoded.value as Dictionary)).is_equal(origins)
+
+func test_six_default_holes_fit_initially_owned_golf_land_without_overlap() -> void:
+	var session: MHGameSession = MHGameSession.create()
+	assert_int(session.land.hole_capacity()).is_equal(6)
+	var scene: MHLiveConstruction = auto_free(MHLiveConstruction.new())
+	scene.session = session
+	var course_doc: Dictionary = scene._new_document()["course"] as Dictionary
+	# Exclude the starter facility parcel from this geometry proof: the six holes must fit golf land alone.
+	for parcel_value: Variant in (course_doc["world"] as Dictionary)["parcels"]:
+		var parcel: Dictionary = parcel_value as Dictionary
+		var parcel_id: int = int(parcel["parcel_id"])
+		parcel["owned"] = session.land.is_owned(parcel_id) and session.land.kind_of(parcel_id) == "golf"
+	var craft: MHCraftCourse = MHCraftCourse.new()
+	craft.ensure_holes(6)
+	var defs: Array = craft.valid_hole_defs()
+	var origins: Array = []
+	for i: int in range(craft.count()):
+		var origin: Vector2i = craft.origin(i)
+		origins.append([origin.x, origin.y])
+	var encoded: MHSaveResult = MHCourseLayout.encode(defs, course_doc, origins)
+	assert_bool(encoded.is_ok()).override_failure_message(encoded.message).is_true()
+
+
+func test_default_course_prefix_fits_each_recommended_land_capacity() -> void:
+	var session: MHGameSession = MHGameSession.create()
+	var scene: MHLiveConstruction = auto_free(MHLiveConstruction.new())
+	scene.session = session
+	var craft: MHCraftCourse = MHCraftCourse.new()
+	for step: int in range(MHLandModel.GOLF_EXPANSION_PRIORITY.size() + 1):
+		var capacity: int = session.land.hole_capacity()
+		craft.ensure_holes(capacity)
+		var defs: Array = craft.valid_hole_defs()
+		assert_int(defs.size()).is_equal(capacity)
+		var origins: Array = []
+		for i: int in range(capacity):
+			var origin: Vector2i = craft.origin(i)
+			origins.append([origin.x, origin.y])
+		var course_doc: Dictionary = scene._new_document()["course"] as Dictionary
+		# A default course must use golf land, never a facility/homes parcel that happens to be owned.
+		for parcel_value: Variant in (course_doc["world"] as Dictionary)["parcels"]:
+			var parcel: Dictionary = parcel_value as Dictionary
+			var parcel_id: int = int(parcel["parcel_id"])
+			parcel["owned"] = session.land.is_owned(parcel_id) and session.land.kind_of(parcel_id) == "golf"
+		var encoded: MHSaveResult = MHCourseLayout.encode(defs, course_doc, origins)
+		assert_bool(encoded.is_ok()).override_failure_message(
+			"capacity %d after %d guided purchases: %s" % [capacity, step, encoded.message]).is_true()
+		if step < MHLandModel.GOLF_EXPANSION_PRIORITY.size():
+			var parcel_id: int = session.land.recommended_next()
+			assert_int(parcel_id).is_equal(MHLandModel.GOLF_EXPANSION_PRIORITY[step])
+			assert_int(session.land.buy(parcel_id)).is_greater(-1)
+
+
+func test_all_eighteen_default_holes_fit_golf_land_without_overlap() -> void:
+	var session: MHGameSession = MHGameSession.create()
+	var scene: MHLiveConstruction = auto_free(MHLiveConstruction.new())
+	scene.session = session
+	var course_doc: Dictionary = scene._new_document()["course"] as Dictionary
+	# Isolate the geometry contract: only golf parcels count as buildable here.
+	# Facility and homes parcels remain unowned so a default hole cannot depend on them accidentally.
+	for parcel_value: Variant in (course_doc["world"] as Dictionary)["parcels"]:
+		var parcel: Dictionary = parcel_value as Dictionary
+		parcel["owned"] = session.land.kind_of(int(parcel["parcel_id"])) == "golf"
+	var craft: MHCraftCourse = MHCraftCourse.new()
+	craft.ensure_holes(MHCraftCourse.MAX_HOLES)
+	var defs: Array = craft.valid_hole_defs()
+	assert_int(defs.size()).is_equal(MHCraftCourse.MAX_HOLES)
+	var origins: Array = []
+	for i: int in range(craft.count()):
+		var origin: Vector2i = craft.origin(i)
+		origins.append([origin.x, origin.y])
+	var encoded: MHSaveResult = MHCourseLayout.encode(defs, course_doc, origins)
+	assert_bool(encoded.is_ok()).override_failure_message(encoded.message).is_true()
+	if encoded.is_ok():
+		assert_array(MHCourseLayout.origins(encoded.value as Dictionary)).is_equal(origins)
+
 
 func test_course_codec_rejects_overlapping_hole_geometry() -> void:
 	var session: MHGameSession = MHGameSession.create()

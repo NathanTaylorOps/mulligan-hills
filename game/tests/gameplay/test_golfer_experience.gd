@@ -55,6 +55,16 @@ func test_restore_rejects_impossible_customer_relationship_state() -> void:
 	(rows[5] as Dictionary)["member"] = true
 	assert_object(MHGolferCustomers.from_dict(raw)).is_null()
 
+func test_customer_restore_rejects_extra_fields_and_coerced_version() -> void:
+	var c: MHGolferCustomers = MHGolferCustomers.new()
+	var raw: Dictionary = c.to_dict()
+	raw["v"] = "1"
+	assert_object(MHGolferCustomers.from_dict(raw)).is_null()
+	raw = c.to_dict()
+	((raw["rows"] as Array)[0] as Dictionary)["unexpected"] = 1
+	assert_object(MHGolferCustomers.from_dict(raw)).is_null()
+
+
 func test_incomplete_course_can_explain_dissatisfaction() -> void:
 	var tiers := PackedInt32Array([5,5,5,5,5,5,5,5,5,5])
 	var result: Dictionary = MHGolferExperience.evaluate(100, 1000, 5000, tiers, 1, 0)
