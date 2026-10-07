@@ -252,9 +252,44 @@ func _surface_thumbnail(surface_id: int) -> Texture2D:
 
 func _mode_button(parent: Control, title: String, mode: StringName) -> void:
 	var b: MHTapButton = _button(parent, title, _select_mode.bind(mode))
-	b.custom_minimum_size = Vector2(155, 64)
+	b.icon = _mode_thumbnail(mode)
+	b.icon_alignment = HORIZONTAL_ALIGNMENT_LEFT
+	b.custom_minimum_size = Vector2(160, 78)
 	_craft_tool_buttons[mode] = b
 	_refresh_tool_button_styles()
+
+
+func _mode_thumbnail(mode: StringName) -> Texture2D:
+	var img: Image = Image.create(48, 48, false, Image.FORMAT_RGBA8)
+	var background: Color = Color(0.15, 0.36, 0.19)
+	var accent: Color = Color(0.62, 0.85, 0.43)
+	for py: int in range(48):
+		for px: int in range(48):
+			var dx: float = float(px - 24)
+			var dy: float = float(py - 24)
+			var distance: float = sqrt(dx * dx + dy * dy)
+			var color: Color = background
+			match mode:
+				&"raise":
+					if float(py) > 30.0 - 0.57 * absf(dx):
+						color = accent
+				&"lower":
+					if distance < 18.0:
+						color = Color(0.06, 0.18, 0.11) if distance < 12.0 else accent
+				&"smooth":
+					if absi((px + roundi(4.0 * sin(float(py) * 0.3))) % 14 - 7) <= 2:
+						color = accent
+				&"level":
+					if py >= 19 and py <= 28:
+						color = accent
+				&"tee":
+					if distance <= 8.0:
+						color = Color.WHITE
+				&"pin":
+					if absf(dx) <= 1.0 or (py >= 10 and py <= 22 and px > 24 and px < 38 - (py - 10) / 2):
+						color = Color(0.95, 0.85, 0.50)
+			img.set_pixel(px, py, color)
+	return ImageTexture.create_from_image(img)
 
 
 func _select_surface(surface_id: int) -> void:
