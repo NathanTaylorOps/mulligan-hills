@@ -179,6 +179,8 @@ static func restore(source: Dictionary, ledger: MHTokenLedger) -> MHSaveResult:
 		if restored_customers == null:
 			return _bad("customer checkpoint invalid")
 		s.customers = restored_customers
+		if s.customers.member_count() > s.economy.members():
+			return _bad("named members exceed accounting membership capacity")
 	if rt.has("practice"):
 		if not MHRValidate.is_int_value(rt["practice"].get("slot_id", null)):
 			return _bad("practice hole identity invalid")
