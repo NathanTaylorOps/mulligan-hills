@@ -372,9 +372,15 @@ func _rebuild_course(owned: PackedInt32Array) -> void:
 	_ground.material_override = _mat
 	_ground.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	if not flag_xf.is_empty():
-		_course_root.add_child(MHArtMaterials.make_multimesh(MHPropMeshes.build(MHPropMeshes.KIND_FLAG, 0, 0), _mat, flag_xf))
+		const FLAG_KEY: String = "course:flag:0:0"
+		if not _mesh_cache.has(FLAG_KEY):
+			_mesh_cache[FLAG_KEY] = MHPropMeshes.build(MHPropMeshes.KIND_FLAG, 0, 0)
+		_course_root.add_child(MHArtMaterials.make_multimesh(_mesh_cache[FLAG_KEY] as Mesh, _mat, flag_xf))
 	if not tree_xf.is_empty():
-		_course_root.add_child(MHArtMaterials.make_multimesh(MHNatureMeshes.build("pine", 0, 0), _mat, tree_xf))
+		const PINE_KEY: String = "course:pine:0:0"
+		if not _mesh_cache.has(PINE_KEY):
+			_mesh_cache[PINE_KEY] = MHNatureMeshes.build("pine", 0, 0)
+		_course_root.add_child(MHArtMaterials.make_multimesh(_mesh_cache[PINE_KEY] as Mesh, _mat, tree_xf))
 
 
 func _add_hole_geometry(b: MHMeshBuilder, slot: int, def: Dictionary, origin_dm: Array, flag_xf: Array, tree_xf: Array) -> void:
