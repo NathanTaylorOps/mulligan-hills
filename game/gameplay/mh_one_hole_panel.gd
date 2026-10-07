@@ -1202,11 +1202,14 @@ func _draw_craft_grid(hole: MHCraftHole, relief_hole: MHRHole) -> void:
 
 
 func _draw_surface_edges(hole: MHCraftHole, relief_hole: MHRHole) -> void:
-	# Sparse borders only where high-value golf surfaces meet another surface.
+	# Sparse borders only where course-reading benefits from them. Fringe and tee
+	# edges matter on a phone too, but ordinary fairway/rough boundaries stay
+	# borderless so the course does not turn into a checkerboard.
 	for r: int in range(hole.rows):
 		for c: int in range(hole.cols):
 			var s: int = hole.get_surface(c, r)
-			if s != MHCraftHole.Surface.GREEN and s != MHCraftHole.Surface.BUNKER and s != MHCraftHole.Surface.WATER:
+			if s not in [MHCraftHole.Surface.GREEN, MHCraftHole.Surface.FRINGE,
+					MHCraftHole.Surface.TEE, MHCraftHole.Surface.BUNKER, MHCraftHole.Surface.WATER]:
 				continue
 			var centre: Vector2i = hole.tile_centre_yd(c, r)
 			for d: Vector2i in [Vector2i(-1, 0), Vector2i(1, 0), Vector2i(0, -1), Vector2i(0, 1)]:
@@ -1224,9 +1227,11 @@ func _draw_surface_edges(hole: MHCraftHole, relief_hole: MHRHole) -> void:
 
 func _edge_color(surface_id: int) -> Color:
 	match surface_id:
-		MHCraftHole.Surface.GREEN: return Color(0.66, 0.86, 0.40)
-		MHCraftHole.Surface.BUNKER: return Color(0.83, 0.76, 0.56)
-		MHCraftHole.Surface.WATER: return Color(0.22, 0.55, 0.82)
+		MHCraftHole.Surface.GREEN: return Color(0.70, 0.90, 0.42)
+		MHCraftHole.Surface.FRINGE: return Color(0.50, 0.76, 0.30)
+		MHCraftHole.Surface.TEE: return Color(0.58, 0.82, 0.34)
+		MHCraftHole.Surface.BUNKER: return Color(0.88, 0.80, 0.58)
+		MHCraftHole.Surface.WATER: return Color(0.25, 0.62, 0.88)
 		_: return Color.WHITE
 
 func _craft_normal(relief_hole: MHRHole, x: int, y: int) -> Vector3:
