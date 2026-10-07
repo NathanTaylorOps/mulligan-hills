@@ -405,6 +405,12 @@ func _refresh_canonical_craft() -> void:
 		_draw()
 
 
+func _placement_problem_text(message: String) -> String:
+	if message == "hole geometry must remain on owned land":
+		return "part of this hole crosses land you do not own. Move or shrink the course feature, or buy the neighbouring parcel."
+	return message
+
+
 func _set_validation_message(message: String) -> void:
 	if _validation_hint != null:
 		_validation_hint.text = message
@@ -507,8 +513,9 @@ func _finalize() -> void:
 		live.aim_input.cancel_all()
 	var encoded: MHSaveResult = MHCourseLayout.encode([h], live.document["course"] as Dictionary, [ORIGIN])
 	if not encoded.is_ok():
-		_info.text = encoded.message
-		_set_validation_message("SAVE FORMAT: " + encoded.message)
+		var explanation: String = _placement_problem_text(encoded.message)
+		_info.text = "Cannot build: " + explanation
+		_set_validation_message("TO BUILD: " + explanation)
 		return
 	var result: Dictionary = live.session.submit_course([h])
 	if not bool(result["ok"]):
@@ -609,7 +616,16 @@ func _describe() -> void:
 		_info.text = "%d yd  |  %s  |  Build: $%d" % [hole_length, tool_name, price / 100]
 		var problems: Array = MHCraftConvert.problems(craft)
 		if problems.is_empty():
-			_set_validation_message("READY TO BUILD  •  Tee, green and flag valid  •  $%d" % [price / 100])
+			# Craft/rating geometry can be valid while its world-space origin is
+			# outside owned parcels. Do not advertise READY until the exact save
+			# boundary has also confirmed land ownership.
+			var layout: Dictionary = live.canonical_craft_draft()
+			var placed: MHSaveResult = MHCourseLayout.encode(
+				[layout], live.document["course"] as Dictionary, [ORIGIN])
+			if placed.is_ok():
+				_set_validation_message("READY TO BUILD  •  Tee, green, flag and land valid  •  $%d" % [price / 100])
+			else:
+				_set_validation_message("TO BUILD: " + _placement_problem_text(placed.message))
 		else:
 			var labels: PackedStringArray = PackedStringArray()
 			for problem: Variant in problems:
