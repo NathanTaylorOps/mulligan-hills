@@ -208,3 +208,28 @@ func test_the_real_session_can_build_the_starter_holes_and_they_are_not_dead() -
 		var row: Dictionary = r
 		assert_bool(bool(row["valid"])).is_true()
 		assert_bool(bool(row["dead"])).override_failure_message("score %d" % int(row["score"])).is_false()
+
+func test_origin_aware_hole_points_ignore_slot_placement() -> void:
+	var h: Dictionary = {"slot_id": 0, "tee": [0, 0], "green": [0, 100, 8], "features": []}
+	var a: Dictionary = MHSliceLayout.hole_points_at_origin_m(h, [600, 560])
+	var b: Dictionary = MHSliceLayout.hole_points_at_origin_m(h, [1320, 560])
+	assert_float((a["tee"] as Vector2).x).is_equal_approx(60.0, 0.001)
+	assert_float((b["tee"] as Vector2).x).is_equal_approx(132.0, 0.001)
+	assert_float((a["green"] as Vector2).y).is_equal_approx(147.44, 0.001)
+	assert_float((b["green"] as Vector2).y).is_equal_approx(147.44, 0.001)
+
+func test_session_world_route_uses_persisted_origins_not_slot_defaults() -> void:
+	var s: MHGameSession = MHGameSession.create()
+	var craft: MHCraftCourse = MHCraftCourse.new()
+	craft.ensure_holes(3)
+	var defs: Array = craft.valid_hole_defs()
+	assert_bool(s.submit_course(defs)["ok"]).is_true()
+	var origins: Array = [[600, 560], [960, 560], [1320, 560]]
+	assert_bool(s.set_hole_origins_dm(origins)).is_true()
+	var route: Array = s.hole_world_points_m()
+	assert_int(route.size()).is_equal(3)
+	for i: int in range(3):
+		var tee: Vector2 = (route[i] as Dictionary)["tee"] as Vector2
+		assert_float(tee.x).is_equal_approx(float(origins[i][0]) * 0.1 + float((defs[i] as Dictionary)["tee"][0]) * 0.9144, 0.001)
+		assert_int(int((route[i] as Dictionary)["slot_id"])).is_equal(i)
+	assert_bool(((route[0] as Dictionary)["tee"] as Vector2).is_equal_approx((route[1] as Dictionary)["tee"] as Vector2)).is_false()
