@@ -27,7 +27,7 @@ Shared code: `_shared/` (crypto, google_auth, play_purchases, integrity, entitle
 | `INTEGRITY_ALLOW_BASIC` | `false` (default) or `true` (accept MEETS_BASIC_INTEGRITY) |
 | `ACKNOWLEDGE_ON_SERVER` | `true` (default) |
 
-## Service account setup (summary; numbered steps for Nathan are in docs/phase0/platform.md)
+## Service account setup
 1. One Google Cloud project, the same one linked under Play Console > App integrity.
 2. Enable APIs: "Google Play Android Developer API" and "Play Integrity API".
 3. Create a service account (no project roles needed), create a JSON key.
