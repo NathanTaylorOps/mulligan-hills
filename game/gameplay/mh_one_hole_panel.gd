@@ -23,6 +23,7 @@ var _craft_stroke_open: bool = false
 var _craft_last_tile: Vector2i = Vector2i(-1, -1)
 var _craft_level_height: int = 0
 var _craft_tool_buttons: Dictionary = {}
+var _craft_preview_dirty: bool = false
 ## Header only (body hidden). Layout is recomputed by the scene on `layout_changed`.
 var collapsed: bool = false
 signal layout_changed()
@@ -105,6 +106,12 @@ func setup(scene: MHLiveConstruction) -> void:
 		_sync_legacy_controls(layouts[0] as Dictionary)
 	_describe()
 	hide()
+
+
+func _process(_delta: float) -> void:
+	if _craft_preview_dirty and _preview_draft and is_visible_in_tree():
+		_craft_preview_dirty = false
+		_draw()
 
 func set_collapsed(value: bool) -> void:
 	collapsed = value
@@ -811,6 +818,7 @@ func craft_stroke_begin_from_screen(pos: Vector2) -> bool:
 	if craft_mode == &"level":
 		_craft_level_height = live.craft_hole.get_height(tile.x, tile.y)
 	_apply_craft_stroke_tile(tile)
+	_craft_preview_dirty = true
 	return true
 
 
@@ -827,6 +835,7 @@ func craft_stroke_move_from_screen(pos: Vector2) -> bool:
 		var r: int = start.y + roundi(float(tile.y - start.y) * float(i) / float(steps))
 		_apply_craft_stroke_tile(Vector2i(c, r))
 	_craft_last_tile = tile
+	_craft_preview_dirty = true
 	return true
 
 
@@ -835,7 +844,11 @@ func craft_stroke_end() -> bool:
 		return false
 	_craft_stroke_open = false
 	_craft_last_tile = Vector2i(-1, -1)
+	_craft_preview_dirty = false
+	if _preview_draft and _world != null:
+		_draw()
 	var changed: bool = live.craft_hole.commit_stroke()
+	_craft_preview_dirty = false
 	if changed:
 		_refresh_canonical_craft()
 	return changed
