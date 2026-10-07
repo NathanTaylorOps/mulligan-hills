@@ -148,6 +148,10 @@ func _craft_mouse_button(m: InputEventMouseButton) -> void:
 
 
 func _craft_mouse_motion(m: InputEventMouseMotion) -> void:
+	if not _mouse_rotate and not _mouse_pan:
+		panel.preview_brush_from_screen(m.position)
+	else:
+		panel.clear_brush_preview()
 	if _mouse_craft:
 		if panel.blocks_world_tap(m.position):
 			panel.craft_stroke_cancel()

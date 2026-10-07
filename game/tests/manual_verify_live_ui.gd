@@ -6,6 +6,8 @@ extends SceneTree
 ## This intentionally does not depend on gdUnit4 (which may be absent locally).
 
 func _initialize() -> void:
+	# Headless defaults can be square; exercise the Android-first landscape layout.
+	root.size = Vector2i(1280, 720)
 	call_deferred("_verify")
 
 
@@ -150,6 +152,45 @@ func _verify() -> void:
 	if panel._scroll.size.y < shell.ctx.touch_min():
 		_fail("Design navigation left no usable material palette")
 		return
+	# Brush presets change the authoritative footprint, not just its highlight.
+	panel._select_category(&"terrain")
+	panel._select_mode(&"raise")
+	panel._select_brush_radius(0)
+	var neighbour_before: int = live.craft_hole.get_height_mm(tile.x + 2, tile.y)
+	if not panel.craft_at_tile(tile.x, tile.y):
+		_fail("Detail sculpt brush failed")
+		return
+	if live.craft_hole.get_height_mm(tile.x + 2, tile.y) != neighbour_before:
+		_fail("Detail brush changed ground outside its footprint")
+		return
+	panel._craft_undo()
+	panel._select_brush_radius(3)
+	var outside_before: int = live.craft_hole.get_height_mm(tile.x + 4, tile.y)
+	if not panel.craft_at_tile(tile.x, tile.y):
+		_fail("Wide sculpt brush failed")
+		return
+	if live.craft_hole.get_height_mm(tile.x + 2, tile.y) != neighbour_before + 1000 or live.craft_hole.get_height_mm(tile.x + 4, tile.y) != outside_before:
+		_fail("Wide brush does not match its canonical footprint")
+		return
+	panel._brush_tile = tile
+	panel._refresh_brush_preview()
+	if panel._brush_preview == null or panel._brush_preview.mesh == null or not panel._brush_preview.visible:
+		_fail("Live brush highlight missing")
+		return
+	var vertices: PackedVector3Array = panel._brush_preview.mesh.surface_get_arrays(0)[Mesh.ARRAY_VERTEX]
+	if vertices.size() != 29 * 6:
+		_fail("Wide brush highlight disagrees with the 29-tile canonical disc")
+		return
+	panel._craft_undo()
+	if live.craft_hole.get_height_mm(tile.x, tile.y) != height_before or live.craft_hole.get_height_mm(tile.x + 2, tile.y) != neighbour_before:
+		_fail("Sculpt undo did not restore exact terrain")
+		return
+	panel._select_category(&"markers")
+	if panel._brush_tools.visible or panel._brush_hint.visible or (panel._brush_preview != null and panel._brush_preview.visible):
+		_fail("Marker tools retained a paint/sculpt brush")
+		return
+	panel._select_brush_radius(1)
+	panel._select_category(&"surfaces")
 	live.one_hole.craft_mode = &"surface"
 	live.one_hole.craft_surface = MHCraftHole.Surface.PATH
 	if not live.one_hole.craft_at_tile(tile.x, tile.y):
@@ -233,5 +274,35 @@ func _verify() -> void:
 	if live.one_hole._category_row.visible or live.one_hole._history_row.visible or live.one_hole._finalize_button.visible:
 		_fail("Craft-only menu still visible on finalized practice hole")
 		return
-	print("LIVE_UI_PROBE PASS: HUD/layout, editors, sculpt-only grid, marker repair, hole finalization and practice")
+	# Read the actual disk checkpoint, including its paired ledger and terrain.
+	live.session.clock.pause()
+	live.one_hole._shoot()
+	if live.session.practice.strokes < 1:
+		_fail("Practice did not play a shot before saving")
+		return
+	if not live.save_now():
+		_fail("Could not save built hole/practice checkpoint")
+		return
+	var loaded: MHSaveResult = live.store.load_slot(0)
+	if not loaded.is_ok():
+		_fail("Could not reload saved checkpoint: " + loaded.message)
+		return
+	var saved: MHLoadedSave = loaded.value as MHLoadedSave
+	var ledger: MHSaveResult = MHSessionSave.load_ledger(saved.data, live.ledger_dir)
+	if not ledger.is_ok():
+		_fail("Could not reload checkpoint ledger: " + ledger.message)
+		return
+	var restored: MHSaveResult = MHSessionSave.restore(saved.data, ledger.value as MHTokenLedger)
+	var terrain: MHTerrainSave.LoadResult = MHTerrainSave.decode(saved.blob)
+	if not restored.is_ok() or terrain.error != OK:
+		_fail("Saved session/terrain did not restore")
+		return
+	var resumed: MHGameSession = restored.value as MHGameSession
+	if resumed.hole_definitions() != live.session.hole_definitions() or resumed.practice == null or resumed.practice.to_dict() != live.session.practice.to_dict():
+		_fail("Reload changed exact hole or practice state")
+		return
+	if not terrain.grid.equals(live.editor.grid) or terrain.splat.get_weight(sample_x, sample_y, MHSplatMap.Layer.PATH) != 255:
+		_fail("Reload changed shared terrain")
+		return
+	print("LIVE_UI_PROBE PASS: landscape layout, navigation, brushes, sculpt-only grid, marker repair, build, practice and disk reload")
 	quit(0)

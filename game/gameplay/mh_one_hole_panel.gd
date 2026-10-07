@@ -23,6 +23,12 @@ var _undo_button: MHTapButton
 var _redo_button: MHTapButton
 var _terrain_mode: StringName = &"raise"
 var _marker_mode: StringName = &"tee"
+var craft_radius: int = 1
+var _brush_tools: HFlowContainer
+var _brush_buttons: Dictionary = {}
+var _brush_hint: Label
+var _brush_tile: Vector2i = Vector2i(-1, -1)
+var _brush_preview: MeshInstance3D
 var craft_surface: int = MHCraftHole.Surface.FAIRWAY
 var craft_mode: StringName = &"surface"
 var _craft_stroke_open: bool = false
@@ -98,6 +104,14 @@ func setup(scene: MHLiveConstruction) -> void:
 	_feedback = MHUIKit.label("Select a material then paint the ground.")
 	_feedback.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	content.add_child(_feedback)
+	_brush_tools = MHUIKit.flow(6)
+	content.add_child(_brush_tools)
+	for radius: int in [0, 1, 3]:
+		var brush_name: String = "Detail" if radius == 0 else ("Small" if radius == 1 else "Wide")
+		var brush_button: MHTapButton = _button(_brush_tools, brush_name, _select_brush_radius.bind(radius))
+		_brush_buttons[radius] = brush_button
+	_brush_hint = MHUIKit.label("", &"SmallLabel")
+	content.add_child(_brush_hint)
 	_craft_tools = MHUIKit.flow(8)
 	content.add_child(_craft_tools)
 	_surface_button(_craft_tools, "Rough", MHCraftHole.Surface.ROUGH)
@@ -157,6 +171,10 @@ func _sync_mode_controls() -> void:
 		_practice_tools.visible = not _preview_draft
 	if _finalize_button != null:
 		_finalize_button.visible = _preview_draft
+	if _brush_tools != null:
+		_brush_tools.visible = _preview_draft and _craft_category != &"markers"
+	if _brush_hint != null:
+		_brush_hint.visible = _preview_draft and _craft_category != &"markers"
 	if _title != null:
 		_title.text = "HOLE 1 • DESIGN" if _preview_draft else "HOLE 1 • PRACTICE"
 	for key: Variant in _craft_category_buttons.keys():
@@ -349,6 +367,89 @@ func _cancel_tool_gesture() -> void:
 		live.aim_input.cancel_all()
 	if _craft_stroke_open:
 		craft_stroke_cancel()
+	clear_brush_preview()
+
+
+func _select_brush_radius(radius: int) -> void:
+	if radius not in [0, 1, 3]:
+		return
+	_cancel_tool_gesture()
+	craft_radius = radius
+	_describe()
+
+
+func clear_brush_preview() -> void:
+	_brush_tile = Vector2i(-1, -1)
+	if _brush_preview != null and is_instance_valid(_brush_preview):
+		_brush_preview.hide()
+
+
+func preview_brush_from_screen(pos: Vector2) -> void:
+	if not _preview_draft or not is_visible_in_tree() or blocks_world_tap(pos) or craft_mode in [&"tee", &"pin"]:
+		clear_brush_preview()
+		return
+	var tile: Vector2i = _craft_tile_from_screen(pos)
+	if tile == _brush_tile:
+		return
+	_brush_tile = tile
+	_refresh_brush_preview()
+
+
+func _refresh_brush_preview() -> void:
+	if _brush_tile.x < 0 or live == null or live.craft_hole == null or not _preview_draft:
+		if _brush_preview != null and is_instance_valid(_brush_preview):
+			_brush_preview.hide()
+		return
+	var hole: MHCraftHole = live.craft_hole
+	if not hole.in_bounds(_brush_tile.x, _brush_tile.y):
+		return
+	var layout: Dictionary = _layout()
+	var relief: Dictionary = MHCraftConvert.relief_for(hole)
+	if relief.is_empty():
+		layout.erase("relief")
+	else:
+		layout["relief"] = relief
+	var relief_hole: MHRHole = MHRHole.from_def(layout)
+	var st: SurfaceTool = SurfaceTool.new()
+	st.begin(Mesh.PRIMITIVE_TRIANGLES)
+	# Match the canonical disc's integer tile mask exactly. One batched mesh,
+	# no per-tile nodes, and no grid added when painting a surface.
+	for dr: int in range(-craft_radius, craft_radius + 1):
+		for dc: int in range(-craft_radius, craft_radius + 1):
+			if dc * dc + dr * dr > craft_radius * craft_radius:
+				continue
+			var c: int = _brush_tile.x + dc
+			var r: int = _brush_tile.y + dr
+			if not hole.in_bounds(c, r):
+				continue
+			var x0: int = hole.tile_x0_yd(c) * 100
+			var y0: int = hole.tile_y0_yd(r) * 100
+			var step: int = MHCraftHole.TILE_YD * 100
+			for point: Vector2i in [Vector2i(x0, y0), Vector2i(x0 + step, y0), Vector2i(x0 + step, y0 + step),
+					Vector2i(x0, y0), Vector2i(x0 + step, y0 + step), Vector2i(x0, y0 + step)]:
+				st.add_vertex(_position(point.x, point.y, float(relief_hole.z_at(point.x, point.y)) / 1000.0 + 0.10))
+	if _brush_preview == null or not is_instance_valid(_brush_preview):
+		_brush_preview = MeshInstance3D.new()
+		var material: StandardMaterial3D = StandardMaterial3D.new()
+		material.albedo_color = Color(1.0, 0.88, 0.35, 0.28)
+		material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+		material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+		material.cull_mode = BaseMaterial3D.CULL_DISABLED
+		_brush_preview.material_override = material
+		_brush_preview.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		_world.add_child(_brush_preview)
+	_brush_preview.mesh = st.commit()
+	_brush_preview.show()
+	_update_brush_hint()
+
+
+func _update_brush_hint() -> void:
+	if _brush_hint == null:
+		return
+	_brush_hint.text = "%d yd brush%s" % [(2 * craft_radius + 1) * MHCraftHole.TILE_YD,
+		" • Level samples the starting height" if craft_mode == &"level" else ""]
+	if live != null and live.craft_hole != null and live.craft_hole.in_bounds(_brush_tile.x, _brush_tile.y):
+		_brush_hint.text += " • Ground %.1f m" % (float(live.craft_hole.get_height_mm(_brush_tile.x, _brush_tile.y)) / 1000.0)
 
 
 func _active_tool_key() -> StringName:
@@ -644,6 +745,10 @@ func _shoot() -> void:
 func _describe() -> void:
 	if live == null:
 		return
+	for key: Variant in _brush_buttons.keys():
+		var button: MHTapButton = _brush_buttons[key] as MHTapButton
+		button.theme_type_variation = &"SelectedButton" if int(key) == craft_radius else &"ChipButton"
+	_update_brush_hint()
 	if live.craft_hole != null:
 		if _undo_button != null:
 			_undo_button.disabled = not live.craft_hole.can_undo()
@@ -686,6 +791,7 @@ func _describe() -> void:
 
 func _draw() -> void:
 	_path = null
+	_brush_preview = null
 	for child: Node in _world.get_children():
 		_world.remove_child(child)
 		child.queue_free()
@@ -778,6 +884,7 @@ func _draw_craft_terrain(hole: MHCraftHole) -> void:
 		_box(_position_on_ground(pc.x * 100, pc.y * 100, 0.75), Vector3(0.08, 1.5, 0.08), Color.WHITE)
 	for tree: Variant in hole.trees:
 		_draw_craft_tree(tree as Vector2i)
+	_refresh_brush_preview()
 
 func _append_craft_tile(st: SurfaceTool, relief_hole: MHRHole, hole: MHCraftHole, c: int, r: int) -> void:
 	var x0: int = hole.tile_x0_yd(c) * 100
@@ -1113,13 +1220,13 @@ func _apply_craft_stroke_tile(tile: Vector2i) -> bool:
 		return false
 	var h: MHCraftHole = live.craft_hole
 	if craft_mode == &"raise" or craft_mode == &"lower":
-		h.raise_disc(tile.x, tile.y, 1, 1 if craft_mode == &"raise" else -1)
+		h.raise_disc(tile.x, tile.y, craft_radius, 1 if craft_mode == &"raise" else -1)
 	elif craft_mode == &"smooth":
-		h.smooth_disc(tile.x, tile.y, 1)
+		h.smooth_disc(tile.x, tile.y, craft_radius)
 	elif craft_mode == &"level":
-		h.level_disc(tile.x, tile.y, 1, _craft_level_height)
+		h.level_disc(tile.x, tile.y, craft_radius, _craft_level_height)
 	elif craft_mode == &"surface":
-		h.paint_disc(tile.x, tile.y, 1, craft_surface)
+		h.paint_disc(tile.x, tile.y, craft_radius, craft_surface)
 	else:
 		return false
 	return true
@@ -1137,6 +1244,7 @@ func craft_stroke_begin_from_screen(pos: Vector2) -> bool:
 		return false
 	_craft_stroke_open = true
 	_craft_last_tile = tile
+	_brush_tile = tile
 	if craft_mode == &"level":
 		_craft_level_height = live.craft_hole.get_height(tile.x, tile.y)
 	_apply_craft_stroke_tile(tile)
@@ -1157,6 +1265,7 @@ func craft_stroke_move_from_screen(pos: Vector2) -> bool:
 		var r: int = start.y + roundi(float(tile.y - start.y) * float(i) / float(steps))
 		_apply_craft_stroke_tile(Vector2i(c, r))
 	_craft_last_tile = tile
+	_brush_tile = tile
 	_craft_preview_dirty = true
 	return true
 
@@ -1168,6 +1277,7 @@ func craft_stroke_end() -> bool:
 	_craft_last_tile = Vector2i(-1, -1)
 	var changed: bool = live.craft_hole.commit_stroke()
 	_craft_preview_dirty = false
+	clear_brush_preview()
 	if changed:
 		live.sync_craft_tiles_to_world(live.craft_hole.last_changed_tiles())
 		_refresh_canonical_craft()
@@ -1175,6 +1285,7 @@ func craft_stroke_end() -> bool:
 
 
 func craft_stroke_cancel() -> void:
+	clear_brush_preview()
 	if live != null and live.craft_hole != null and live.craft_hole.is_stroke_open():
 		live.craft_hole.cancel_stroke()
 	_craft_stroke_open = false
