@@ -70,7 +70,7 @@ keystore/release_user=""
 keystore/release_password=""
 screen/immersive_mode=true
 user_data_backup/allow=false
-permissions/internet=false
+permissions/internet=true
 
 [preset.1]
 
@@ -123,7 +123,7 @@ keystore/release_user=""
 keystore/release_password=""
 screen/immersive_mode=true
 user_data_backup/allow=false
-permissions/internet=false
+permissions/internet=true
 
 [preset.2]
 
@@ -176,7 +176,7 @@ keystore/release_user="@@ANDROID_RELEASE_USER@@"
 keystore/release_password="@@ANDROID_RELEASE_PASSWORD@@"
 screen/immersive_mode=true
 user_data_backup/allow=false
-permissions/internet=false
+permissions/internet=true
 
 [preset.3]
 
