@@ -1311,20 +1311,23 @@ func _surface_name(surface_id: int) -> String:
 
 
 func _surface_color(surface_id: int) -> Color:
+	# Deliberately compressed, warm golf-course palette: distinct enough to read
+	# at phone scale without the neon mini-golf look. Lighting/material response
+	# provides the second cue instead of relying on colour alone.
 	match surface_id:
-		MHCraftHole.Surface.FAIRWAY: return Color(0.36, 0.64, 0.23)
-		MHCraftHole.Surface.FIRST_CUT: return Color(0.31, 0.55, 0.21)
-		MHCraftHole.Surface.DEEP_ROUGH: return Color(0.18, 0.36, 0.14)
-		MHCraftHole.Surface.GREEN: return Color(0.5, 0.78, 0.3)
-		MHCraftHole.Surface.FRINGE: return Color(0.42, 0.68, 0.26)
-		MHCraftHole.Surface.TEE: return Color(0.46, 0.72, 0.29)
-		MHCraftHole.Surface.BUNKER: return Color(0.72, 0.66, 0.48)
-		MHCraftHole.Surface.WASTE: return Color(0.57, 0.49, 0.35)
-		MHCraftHole.Surface.WATER: return Color(0.12, 0.4, 0.7)
-		MHCraftHole.Surface.OUT_OF_BOUNDS: return Color(0.24, 0.20, 0.18)
-		MHCraftHole.Surface.PATH: return Color(0.42, 0.40, 0.36)
-		MHCraftHole.Surface.DIRT: return Color(0.45, 0.32, 0.20)
-		_: return Color(0.27, 0.44, 0.21)
+		MHCraftHole.Surface.FAIRWAY: return Color(0.34, 0.62, 0.25)
+		MHCraftHole.Surface.FIRST_CUT: return Color(0.29, 0.52, 0.22)
+		MHCraftHole.Surface.DEEP_ROUGH: return Color(0.16, 0.32, 0.15)
+		MHCraftHole.Surface.GREEN: return Color(0.47, 0.76, 0.32)
+		MHCraftHole.Surface.FRINGE: return Color(0.39, 0.66, 0.27)
+		MHCraftHole.Surface.TEE: return Color(0.43, 0.70, 0.30)
+		MHCraftHole.Surface.BUNKER: return Color(0.76, 0.68, 0.49)
+		MHCraftHole.Surface.WASTE: return Color(0.55, 0.46, 0.34)
+		MHCraftHole.Surface.WATER: return Color(0.10, 0.38, 0.66)
+		MHCraftHole.Surface.OUT_OF_BOUNDS: return Color(0.20, 0.18, 0.16)
+		MHCraftHole.Surface.PATH: return Color(0.44, 0.42, 0.37)
+		MHCraftHole.Surface.DIRT: return Color(0.43, 0.30, 0.19)
+		_: return Color(0.24, 0.42, 0.20)
 
 func _marker_at(pos: Vector3, color: Color, radius: float) -> MeshInstance3D:
 	var marker: MeshInstance3D = _marker(color, radius)
