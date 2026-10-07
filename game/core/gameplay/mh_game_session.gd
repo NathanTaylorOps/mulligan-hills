@@ -190,8 +190,15 @@ func submit_course(hole_defs: Array) -> Dictionary:
 		return _result(false, "cash")
 	var rated: Dictionary = MHRatingEngine.rate_course(hole_defs, {"save_secret": save_secret, "rating_epoch": rating_epoch})
 	for v: Variant in rated["holes"]:
-		if not bool((v as Dictionary).get("valid", false)):
-			return _result(false, "invalid_rating")
+		var hole_rating: Dictionary = v as Dictionary
+		if not bool(hole_rating.get("valid", false)):
+			# Keep the stable reason code for existing callers, but expose the
+			# actual RC/engine errors to Build UI and deterministic smoke tests.
+			# Otherwise a perfectly valid schema error (e.g. radius RC006) is
+			# indistinguishable from a simulated all-pickup RC007.
+			var failure: Dictionary = _result(false, "invalid_rating")
+			failure["rating_reasons"] = (hole_rating.get("reasons", []) as Array).duplicate()
+			return failure
 	if cost > 0 and economy.spend(cost) != MHEconomy.OK:
 		return _result(false, "cash")
 	_holes = hole_defs.duplicate(true)
