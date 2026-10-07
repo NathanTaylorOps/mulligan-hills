@@ -36,7 +36,7 @@ Status meanings: **FIXED** verified in source and corrected; **CONFIRMED** real 
 | 90 integration coverage lag | CONFIRMED | Stabilization sprint is addressing it. |
 | 91 ownership integration tests | PARTIAL | Staff/customer/session tests exist; full EDIT→BUILD→PLAY→SAVE→RELOAD test remains. |
 | 92 save/schema atomicity | PARTIAL | Customer save path now includes schema/validator/serializer/restore/tests; process rule should be retained. |
-| 93 reader-version logic scattered | CONFIRMED | Reader 6 works but capability calculation should later be centralized. |
+| 93 reader-version logic scattered | FIXED/PARTIAL | Found and fixed a real downgrade bug where practice reset reader 6 to 3, invalidating customer+practice saves. Added regression. Capability calculation should still be centralized later. |
 | 97 MHGameSession growth | WATCH | Keep orchestration only; do not move domain calculations into it. |
 | 100 condition satisfaction invisible | PARTIAL | Mechanical connection exists; player-facing explanation needs condition as explicit component. |
 | 102 final integration-quality gate | CONFIRMED | This is the stabilization target. |
