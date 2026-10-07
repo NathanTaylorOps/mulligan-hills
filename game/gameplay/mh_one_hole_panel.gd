@@ -26,6 +26,8 @@ var _craft_tool_buttons: Dictionary = {}
 var _craft_category_buttons: Dictionary = {}
 var _craft_category: StringName = &"surfaces"
 var _surface_icons: Dictionary = {}
+var _category_row: HFlowContainer
+var _history_row: HFlowContainer
 var _craft_tools: HFlowContainer
 var _terrain_tools: HFlowContainer
 var _marker_tools: HFlowContainer
@@ -74,11 +76,11 @@ func setup(scene: MHLiveConstruction) -> void:
 	_feedback = MHUIKit.label("Select a material then paint the ground.")
 	_feedback.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	content.add_child(_feedback)
-	var category_row: HFlowContainer = MHUIKit.flow(6)
-	content.add_child(category_row)
-	_category_button(category_row, "SURFACES", &"surfaces")
-	_category_button(category_row, "TERRAIN", &"terrain")
-	_category_button(category_row, "TEE & PIN", &"markers")
+	_category_row = MHUIKit.flow(6)
+	content.add_child(_category_row)
+	_category_button(_category_row, "SURFACES", &"surfaces")
+	_category_button(_category_row, "TERRAIN", &"terrain")
+	_category_button(_category_row, "TEE & PIN", &"markers")
 	_craft_tools = MHUIKit.flow(8)
 	content.add_child(_craft_tools)
 	_surface_button(_craft_tools, "Rough", MHCraftHole.Surface.ROUGH)
@@ -105,10 +107,10 @@ func setup(scene: MHLiveConstruction) -> void:
 	_mode_button(_marker_tools, "Place tee", &"tee")
 	_mode_button(_marker_tools, "Place pin", &"pin")
 	_button(_marker_tools, "Repair markers", _repair_hole_markers)
-	var history_row: HFlowContainer = MHUIKit.flow(6)
-	content.add_child(history_row)
-	_button(history_row, "Undo", _craft_undo)
-	_button(history_row, "Redo", _craft_redo)
+	_history_row = MHUIKit.flow(6)
+	content.add_child(_history_row)
+	_button(_history_row, "Undo", _craft_undo)
+	_button(_history_row, "Redo", _craft_redo)
 	_practice_tools = MHUIKit.flow(6)
 	content.add_child(_practice_tools)
 	_button(_practice_tools, "Aim at cup", _aim_cup)
@@ -131,6 +133,10 @@ func setup(scene: MHLiveConstruction) -> void:
 
 
 func _sync_mode_controls() -> void:
+	if _category_row != null:
+		_category_row.visible = _preview_draft
+	if _history_row != null:
+		_history_row.visible = _preview_draft
 	if _craft_tools != null:
 		_craft_tools.visible = _preview_draft and _craft_category == &"surfaces"
 	if _terrain_tools != null:
