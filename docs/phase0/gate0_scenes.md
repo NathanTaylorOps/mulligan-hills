@@ -1,5 +1,7 @@
 # Gate 0 phone scenes
 
+> **Historical Phase 0 record.** This file documents original Gate 0 proof scenes. Current player paths and quality gates are described by `docs/ARCHITECTURE.md`, `docs/STATUS.md` and `docs/QUALITY_GATES.md`.
+
 Status 2026-09-29: every scene and test below is WRITTEN, NOT YET RUN. No Godot was available, so nothing has been parsed, loaded, or tried on a phone. Owner: workstream E (files under `game/gate0/`, tests under `game/tests/gate0/` and `game/tests/input/`).
 
 All scenes show a big text panel: title, a live line, a result box, large buttons, and four built-in buttons: `Copy` (whole result text to the clipboard), `Up` and `Down` (scroll the result box), `Back` (returns to `res://ui/mh_launcher.tscn` if that scene is in the build). Every result is also written to `user://gate0_<name>.txt` on the phone. Each result ends with (or offers) an evidence JSON block with the fields `docs/phase0/GATE0.md` requires: `item`, `commit_sha`, `godot_version`, `device`, `renderer`, `date_utc`, `result`, plus measurements. `commit_sha` comes from `res://build_info.json` (CI writes it); it reads `dev` if that file is missing.
