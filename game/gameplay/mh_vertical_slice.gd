@@ -51,6 +51,7 @@ var _ready_ok: bool = false
 var _last_usec: int = 0
 var _last_hour: int = 0
 var _first_booked_serial: int = 0
+var _group_customer_ids: Dictionary = {}
 var _sig: int = -1
 var _course_sig: String = ""
 var _hud_timer: float = 0.0
@@ -207,13 +208,14 @@ func _poll_arrivals() -> void:
 		_spawn_group(g as Dictionary)
 
 
-func _on_golfers_booked(count: int) -> void:
-	schedule.add_booked_golfers(count)
+func _on_golfers_booked(count: int, customer_ids: Array) -> void:
+	schedule.add_booked_golfers(count, customer_ids)
 
 func _spawn_group(g: Dictionary) -> void:
 	if hole_points.is_empty():
 		return
 	var serial: int = int(g["serial"])
+	_group_customer_ids[serial] = (g.get("customer_ids", []) as Array).duplicate()
 	var route: Array = []
 	for pts_value: Variant in hole_points:
 		var pts: Dictionary = pts_value as Dictionary
@@ -233,8 +235,11 @@ func _on_visual_round_complete(row: Dictionary) -> void:
 	var new_regulars: int = 0
 	var member_candidates: int = 0
 	var experience: Dictionary = {}
+	var booked_ids: Array = _group_customer_ids.get(serial, []) as Array
 	for member: int in range(size):
-		var customer_id: int = MHSliceSchedule.look_index(serial, member, MHGolferCustomers.COUNT)
+		if member >= booked_ids.size():
+			continue
+		var customer_id: int = int(booked_ids[member])
 		var visit: Dictionary = session.record_customer_visit(customer_id, holes_played,
 			schedule.waiting_golfers() * schedule.interval_min)
 		if visit.is_empty():
@@ -246,6 +251,7 @@ func _on_visual_round_complete(row: Dictionary) -> void:
 			new_regulars += 1
 		if not bool(before["member_eligible"]) and bool(after["member_eligible"]):
 			member_candidates += 1
+	_group_customer_ids.erase(serial)
 	if experience.is_empty():
 		return
 	var tail: String = ""
