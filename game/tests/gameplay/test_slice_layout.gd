@@ -227,6 +227,16 @@ func test_origin_aware_hole_points_ignore_slot_placement() -> void:
 	assert_float((a["green"] as Vector2).y).is_equal_approx(147.44, 0.001)
 	assert_float((b["green"] as Vector2).y).is_equal_approx(147.44, 0.001)
 
+func test_session_rejects_out_of_range_hole_origins() -> void:
+	var s: MHGameSession = MHGameSession.create()
+	var craft: MHCraftCourse = MHCraftCourse.new()
+	var defs: Array = craft.valid_hole_defs()
+	assert_bool(s.submit_course(defs)["ok"]).is_true()
+	assert_bool(s.set_hole_origins_dm([[-1, 0]])).is_false()
+	assert_bool(s.set_hole_origins_dm([[65536, 0]])).is_false()
+	assert_bool(s.set_hole_origins_dm([[0, 65535]])).is_true()
+
+
 func test_session_world_route_uses_persisted_origins_not_slot_defaults() -> void:
 	var s: MHGameSession = MHGameSession.create()
 	var craft: MHCraftCourse = MHCraftCourse.new()
