@@ -1,6 +1,6 @@
 class_name MHOneHolePanel
 extends VBoxContainer
-## Development controls for an exact player-edited short par 3. Not final phone UI or career golf.
+## Course-design and practice overlay for the canonical player-built hole.
 var live: MHLiveConstruction
 var length_yd: int = 60
 var half_width_yd: int = 8
@@ -17,6 +17,12 @@ var _path: Node3D
 var _feedback: Label
 var _scroll: MHScrollBox
 var _toggle: MHTapButton
+var _close: MHTapButton
+var _title: Label
+var _undo_button: MHTapButton
+var _redo_button: MHTapButton
+var _terrain_mode: StringName = &"raise"
+var _marker_mode: StringName = &"tee"
 var craft_surface: int = MHCraftHole.Surface.FAIRWAY
 var craft_mode: StringName = &"surface"
 var _craft_stroke_open: bool = false
@@ -50,21 +56,37 @@ func setup(scene: MHLiveConstruction) -> void:
 	add_theme_constant_override("separation", 8)
 	var head: HBoxContainer = MHUIKit.hbox(8)
 	add_child(head)
-	var title: Label = MHUIKit.label("HOLE 1 • COURSE DESIGN", &"", false)
-	title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	title.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	title.clip_text = true
-	title.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
-	head.add_child(title)
+	_title = MHUIKit.label("HOLE 1", &"", false)
+	_title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_title.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	_title.clip_text = true
+	_title.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+	head.add_child(_title)
 	_finalize_button = MHUIKit.button(live.shell.ctx, "Build hole", &"GreenButton", 122)
 	_finalize_button.pressed.connect(_finalize)
 	head.add_child(_finalize_button)
-	_toggle = MHUIKit.button(live.shell.ctx, "Hide", &"ChipButton", 100)
+	_toggle = MHUIKit.button(live.shell.ctx, "−", &"ChipButton")
+	_toggle.tooltip_text = "Hide tools"
 	_toggle.pressed.connect(toggle_collapsed)
 	head.add_child(_toggle)
+	_close = MHUIKit.button(live.shell.ctx, "×", &"ChipButton")
+	_close.tooltip_text = "Close course design"
+	_close.pressed.connect(close_preview)
+	head.add_child(_close)
 	_validation_hint = MHUIKit.label("Design a playable hole to build it.")
 	_validation_hint.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	add_child(_validation_hint)
+	# Navigation and history never scroll away with the material palette.
+	# Flow containers wrap at narrow widths rather than pushing into the world.
+	_category_row = MHUIKit.flow(6)
+	add_child(_category_row)
+	_category_button(_category_row, "Surfaces", &"surfaces")
+	_category_button(_category_row, "Terrain", &"terrain")
+	_category_button(_category_row, "Tee & pin", &"markers")
+	_history_row = MHUIKit.flow(6)
+	add_child(_history_row)
+	_undo_button = _button(_history_row, "Undo", _craft_undo)
+	_redo_button = _button(_history_row, "Redo", _craft_redo)
 	_scroll = MHScrollBox.new()
 	add_child(_scroll)
 	var content: VBoxContainer = MHUIKit.vbox(8)
@@ -76,11 +98,6 @@ func setup(scene: MHLiveConstruction) -> void:
 	_feedback = MHUIKit.label("Select a material then paint the ground.")
 	_feedback.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	content.add_child(_feedback)
-	_category_row = MHUIKit.flow(6)
-	content.add_child(_category_row)
-	_category_button(_category_row, "SURFACES", &"surfaces")
-	_category_button(_category_row, "TERRAIN", &"terrain")
-	_category_button(_category_row, "TEE & PIN", &"markers")
 	_craft_tools = MHUIKit.flow(8)
 	content.add_child(_craft_tools)
 	_surface_button(_craft_tools, "Rough", MHCraftHole.Surface.ROUGH)
@@ -107,10 +124,6 @@ func setup(scene: MHLiveConstruction) -> void:
 	_mode_button(_marker_tools, "Place tee", &"tee")
 	_mode_button(_marker_tools, "Place pin", &"pin")
 	_button(_marker_tools, "Repair markers", _repair_hole_markers)
-	_history_row = MHUIKit.flow(6)
-	content.add_child(_history_row)
-	_button(_history_row, "Undo", _craft_undo)
-	_button(_history_row, "Redo", _craft_redo)
 	_practice_tools = MHUIKit.flow(6)
 	content.add_child(_practice_tools)
 	_button(_practice_tools, "Aim at cup", _aim_cup)
@@ -118,9 +131,6 @@ func setup(scene: MHLiveConstruction) -> void:
 	_button(_practice_tools, "Course overview", _overview)
 	_button(_practice_tools, "Play shot", _shoot)
 	_button(_practice_tools, "New practice round", _restart)
-	var common_tools: HFlowContainer = MHUIKit.flow(6)
-	content.add_child(common_tools)
-	_button(common_tools, "Close", close_preview)
 	_world = Node3D.new()
 	live.add_child(_world)
 	_world.hide()
@@ -134,9 +144,9 @@ func setup(scene: MHLiveConstruction) -> void:
 
 func _sync_mode_controls() -> void:
 	if _category_row != null:
-		_category_row.visible = _preview_draft
+		_category_row.visible = _preview_draft and not collapsed
 	if _history_row != null:
-		_history_row.visible = _preview_draft
+		_history_row.visible = _preview_draft and not collapsed
 	if _craft_tools != null:
 		_craft_tools.visible = _preview_draft and _craft_category == &"surfaces"
 	if _terrain_tools != null:
@@ -147,6 +157,8 @@ func _sync_mode_controls() -> void:
 		_practice_tools.visible = not _preview_draft
 	if _finalize_button != null:
 		_finalize_button.visible = _preview_draft
+	if _title != null:
+		_title.text = "HOLE 1 • DESIGN" if _preview_draft else "HOLE 1 • PRACTICE"
 	for key: Variant in _craft_category_buttons.keys():
 		var tab: MHTapButton = _craft_category_buttons[key] as MHTapButton
 		if tab != null:
@@ -163,17 +175,18 @@ func set_collapsed(value: bool) -> void:
 	if _scroll != null:
 		_scroll.visible = not collapsed
 	if _toggle != null:
-		_toggle.text = "Show" if collapsed else "Hide"
+		_toggle.text = "+" if collapsed else "−"
+		_toggle.tooltip_text = "Show tools" if collapsed else "Hide tools"
 	if _validation_hint != null:
 		_validation_hint.visible = not collapsed
+	_sync_mode_controls()
 	layout_changed.emit()
 
 func toggle_collapsed() -> void:
 	set_collapsed(not collapsed)
 
 func close_preview() -> void:
-	if live != null and live.aim_input != null:
-		live.aim_input.cancel_all()
+	_cancel_tool_gesture()
 	hide()
 	if _world != null:
 		_world.hide()
@@ -207,18 +220,26 @@ func _button(parent: Control, title: String, action: Callable) -> MHTapButton:
 
 func _category_button(parent: Control, title: String, category: StringName) -> void:
 	var b: MHTapButton = _button(parent, title, _select_category.bind(category))
-	b.custom_minimum_size = Vector2(142, 54)
+	b.add_theme_font_size_override("font_size", live.shell.ctx.scaled(MHTheme.FONT_SMALL))
+	b.icon = _surface_thumbnail(MHCraftHole.Surface.FAIRWAY) if category == &"surfaces" else _mode_thumbnail(&"raise" if category == &"terrain" else &"pin")
+	b.add_theme_constant_override("icon_max_width", 24)
+	b.custom_minimum_size = Vector2(130, maxf(54, live.shell.ctx.touch_min()))
 	_craft_category_buttons[category] = b
 
 
 func _select_category(category: StringName) -> void:
+	if category not in [&"surfaces", &"terrain", &"markers"]:
+		return
+	_cancel_tool_gesture()
 	_craft_category = category
 	if category == &"surfaces":
 		craft_mode = &"surface"
 	elif category == &"terrain":
-		craft_mode = &"raise"
+		craft_mode = _terrain_mode
 	else:
-		craft_mode = &"tee"
+		craft_mode = _marker_mode
+	if _scroll != null:
+		_scroll.scroll_vertical = 0
 	_sync_mode_controls()
 	_refresh_tool_button_styles()
 	_describe()
@@ -299,6 +320,7 @@ func _mode_thumbnail(mode: StringName) -> Texture2D:
 
 
 func _select_surface(surface_id: int) -> void:
+	_cancel_tool_gesture()
 	craft_surface = surface_id
 	craft_mode = &"surface"
 	_refresh_tool_button_styles()
@@ -308,11 +330,25 @@ func _select_surface(surface_id: int) -> void:
 
 
 func _select_mode(mode: StringName) -> void:
+	_cancel_tool_gesture()
 	craft_mode = mode
+	if mode in [&"raise", &"lower", &"smooth", &"level"]:
+		_terrain_mode = mode
+	elif mode in [&"tee", &"pin"]:
+		_marker_mode = mode
 	_refresh_tool_button_styles()
 	_describe()
 	if _preview_draft and _world != null:
 		_draw()
+
+
+func _cancel_tool_gesture() -> void:
+	# A second finger can tap a tool while the first still owns a stroke.
+	# Roll that gesture back before changing its meaning.
+	if live != null and live.aim_input != null:
+		live.aim_input.cancel_all()
+	if _craft_stroke_open:
+		craft_stroke_cancel()
 
 
 func _active_tool_key() -> StringName:
@@ -608,6 +644,11 @@ func _shoot() -> void:
 func _describe() -> void:
 	if live == null:
 		return
+	if live.craft_hole != null:
+		if _undo_button != null:
+			_undo_button.disabled = not live.craft_hole.can_undo()
+		if _redo_button != null:
+			_redo_button.disabled = not live.craft_hole.can_redo()
 	if _preview_draft and live.craft_hole != null:
 		var craft: MHCraftHole = live.craft_hole
 		var hole_length: int = MHCraftConvert.length_yd(craft, 0, 0)
@@ -1167,7 +1208,12 @@ func _refresh_path() -> void:
 	_world.add_child(_path)
 	var r: MHPracticeRound = live.session.practice
 	if _preview_draft:
-		_feedback.text = "Tap or drag to paint. Right-drag rotates; wheel zooms. Terrain tools reveal a temporary sculpt grid."
+		if _craft_category == &"markers":
+			_feedback.text = "Tap to place a tee or flag. Two fingers move the camera."
+		elif _craft_category == &"terrain":
+			_feedback.text = "Drag to shape the ground. Two fingers move the camera."
+		else:
+			_feedback.text = "Drag to paint the ground. Two fingers move the camera."
 		return
 	if r == null:
 		_feedback.text = "Finalize the hole to begin practice."

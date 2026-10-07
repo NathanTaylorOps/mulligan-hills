@@ -97,6 +97,59 @@ func _verify() -> void:
 	if live.craft_hole.get_surface(tile.x, tile.y) != MHCraftHole.Surface.WATER:
 		_fail("Build/play lost normal editor water")
 		return
+	# The palette may scroll, but navigation and history must stay reachable.
+	var panel: MHOneHolePanel = live.one_hole
+	if panel._scroll.is_ancestor_of(panel._category_row) or panel._scroll.is_ancestor_of(panel._history_row):
+		_fail("Design navigation/history scroll away with the palette")
+		return
+	panel._select_category(&"terrain")
+	panel._select_mode(&"smooth")
+	panel._select_category(&"markers")
+	panel._select_mode(&"pin")
+	panel._select_category(&"terrain")
+	if panel.craft_mode != &"smooth":
+		_fail("Category switch forgot the selected terrain tool")
+		return
+	panel._select_category(&"markers")
+	if panel.craft_mode != &"pin":
+		_fail("Category switch forgot the selected marker tool")
+		return
+	panel.set_collapsed(true)
+	if panel._category_row.visible or panel._history_row.visible or panel._scroll.visible:
+		_fail("Hidden tools still occupy the collapsed panel")
+		return
+	if not panel._close.visible or not panel._finalize_button.visible:
+		_fail("Collapsed design lost Close or Build")
+		return
+	panel.set_collapsed(false)
+	panel._select_category(&"surfaces")
+	# Switching categories during an unfinished stroke must restore the ground.
+	var height_before: int = live.craft_hole.get_height_mm(tile.x, tile.y)
+	var history_before: int = live.craft_hole.undo_count()
+	if not live.craft_hole.begin_stroke():
+		_fail("Could not start navigation cancellation regression")
+		return
+	panel._craft_stroke_open = true
+	live.craft_hole.raise_disc(tile.x, tile.y, 0, 1)
+	panel._select_category(&"terrain")
+	if live.craft_hole.is_stroke_open() or panel._craft_stroke_open or live.craft_hole.get_height_mm(tile.x, tile.y) != height_before:
+		_fail("Category switch did not roll back the unfinished stroke")
+		return
+	if live.craft_hole.undo_count() != history_before:
+		_fail("Category switch added an unfinished edit to history")
+		return
+	panel._select_category(&"surfaces")
+	await process_frame
+	await process_frame
+	live._relayout()
+	var frame_rect: Rect2 = live._panel_frame.get_global_rect()
+	for control: Control in [panel._close, panel._finalize_button, panel._category_row, panel._history_row]:
+		if not frame_rect.encloses(control.get_global_rect()):
+			_fail("Design navigation escaped its panel: " + str(control.get_global_rect()))
+			return
+	if panel._scroll.size.y < shell.ctx.touch_min():
+		_fail("Design navigation left no usable material palette")
+		return
 	live.one_hole.craft_mode = &"surface"
 	live.one_hole.craft_surface = MHCraftHole.Surface.PATH
 	if not live.one_hole.craft_at_tile(tile.x, tile.y):
