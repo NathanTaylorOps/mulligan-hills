@@ -307,6 +307,20 @@ func set_canonical_draft(layout: Dictionary) -> bool:
 		_describe()
 	return true
 
+func enter_craft_draft() -> void:
+	# Editing must remain available even if the player paints water over the pin
+	# or removes the last green. A temporarily invalid draft is not a finalized
+	# practice hole; never fall back to practice-only UI in this state.
+	_preview_draft = true
+	canonical_draft.clear()
+	if live != null and live.craft_hole != null:
+		var draft: Dictionary = live.canonical_craft_draft()
+		if not draft.is_empty():
+			canonical_draft = draft.duplicate(true)
+	_sync_mode_controls()
+	_describe()
+
+
 func clear_canonical_draft() -> void:
 	canonical_draft.clear()
 
