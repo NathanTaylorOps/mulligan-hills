@@ -1,35 +1,26 @@
-# Open questions for Nathan (backend and store pack)
+# Open release questions
 
-Written 2026-10-04. Numbers are referenced from the other files in this folder. "Default" is what I assumed; tell me if you want different.
+These are the current release-operations questions only. Resolved product questions belong in DECISIONS.md.
 
-| # | Question | Why it matters | Default I used |
-| --- | --- | --- | --- |
-| 1 | **Do paid token packs ship in v1?** DEC-053 allows paid tokens (consumable purchases). Today: no token products exist, the UI screen says "not on sale", and the server only verifies the one-time unlock. Selling consumables needs a server check, consume/acknowledge handling, restore and refund handling, store review, and a changed Data safety and terms. | Changes listing text, data safety, terms, and the work in `verify-purchase` | Pack not on sale; docs mention tokens only as an IF block. Note the HUD says speeds above 1x need tokens, so with no packs only earned tokens exist |
-| 2 | When does the game create the anonymous account: at first launch, or only when the player first uses cloud save or the daily challenge? | Privacy policy and Data safety wording (D1) | On first use of an online feature |
-| 3 | Where will the privacy policy, terms and account deletion page be hosted (GitHub Pages or a domain)? | Play requires public URLs before the first test review | GitHub Pages |
-| 4 | Who is the publisher: your own name or a company (name, ABN, address)? Playstore shows the name publicly; some countries show an address (VERIFY). | Listing, policy, terms, tax, developer account type (12 testers rule) | Placeholders |
-| 5 | Which support email address? | Required, public | placeholder |
-| 6 | Final unlock price and regional prices: keep 4.99 USD provisional (fallback 3.99, DEC-006)? | Listing text says "one-time unlock" without a number on purpose | 4.99 provisional |
-| 7 | iPhone: offer "link Google" sign in? Apple may then require an equivalent sign in option (VERIFY the current rule). Alternative: anonymous plus transfer code only on iOS. | Later; avoids a review rejection | Transfer code only on iOS |
-| 8 | Supabase region (Sydney, US East, other)? | Latency for most players and the privacy policy wording | Closest to most testers |
-| 9 | Which countries at launch? | Content ratings, tax, consumer law, GDPR scope, trademark classes | Australia, USA, UK, Canada, New Zealand; EU only after the lawyer reviews |
-| 10 | Delete anonymous accounts that were inactive for N months? Nothing expires today. | Privacy policy retention line; storage cost | Not built; 24 months proposed |
-| 11 | Purchase verification rows (token hash, order id) are kept 400 days and are not linked to an account, so they are not removed by Delete account. Acceptable? | Privacy statement | Yes, disclosed |
-| 12 | Where does the in-game feedback text go (if it has text)? No backend exists for it. | Privacy policy and Data safety | Not collected yet |
-| 13 | Is the web deletion page (needs a 15 minute code made in the game) enough for Google's account deletion requirement, given accounts are anonymous? Fallback: support email. | Play account deletion declaration; I could not verify what Google accepts | Page plus email fallback; ask the lawyer or Google |
-| 14 | Who is the lawyer, and what is the budget, for: privacy policy, terms, data safety review, trademark (Mulligan Hills), children's privacy, business entity? | Everything marked LAWYER in this folder | none chosen |
-| 15 | Patent or trade dress review of game mechanics similar to older tycoon games, and the rating axes names (DECISIONS item 9). | Lawyer scope | include in 14 |
-| 16 | Package id and bundle id: keep `com.mulliganhills.game` only if the name clears (Q23 in OPEN_QUESTIONS). | Cannot change after the first upload | decide after the trademark check |
-| 17 | Who will you recruit and when to start the 14 day clock? (`tester_recruitment_plan.md`) | Longest wait before production access | start recruiting 3 weeks before the closed track |
-| 18 | Cloud save size and storage budget: cap 8 MiB per slot, 5 slots. Real save size is unknown until the terrain blob format is final (2048 cells per side is 8.4 MB raw). Should cloud save only cover the autosave slot to save space? | Free tier storage, cost | 5 slots, 8 MiB cap |
-| 19 | Free plan pauses inactive projects (VERIFY). During the 14 day test someone must use it daily anyway. Paid plan before public launch (DEC-059). Do you want the paid plan from the start of the closed test (small monthly cost, VERIFY) to avoid pause surprises? | Reliability during the test | free plan |
-| 20 | Tournament names (local, regional, national, major) and sponsor names: all fictional? Real championship names are trademarks. | Listing, rating notes | fictional |
-| 21 | EU consent: DEC-057 opt-in everywhere is the strict choice and I followed it. Is a "no" leaving no record acceptable to the lawyer? (A "no" is only remembered on the phone.) | GDPR proof of consent | yes |
-| 22 | Turn on the Play Integrity attestation for daily score submissions (`DAILY_REQUIRE_ATTESTATION=true`)? Keeps casual cheaters out, but locks out rooted phones and needs the Google setup to work first. | Leaderboard honesty | off for the closed test |
-| 23 | Who monitors the kill switches and the support inbox during the staged rollout (DEC-044)? | Launch safety | Nathan |
+| # | Question | Why it matters |
+| --- | --- | --- |
+| 1 | What legal/publisher entity will ship the game? | Store identity, tax, policy and legal documents |
+| 2 | Where will privacy, terms and account-deletion pages be hosted? | Public store URLs |
+| 3 | Which countries/regions are in the first public launch? | Consumer law, privacy, ratings and support scope |
+| 4 | What account-deletion path will be accepted for anonymous users who already uninstalled? | Store/account-deletion compliance |
+| 5 | What final data-retention/logging behavior exists in the production backend? | Privacy disclosures and Data Safety |
+| 6 | Has real staging validated cloud save, purchase verification, integrity and account flows? | Release safety |
+| 7 | Has the final game name/branding received the required clearance for target markets? | Store identity and branding risk |
+| 8 | What is the final one-time unlock price? | Store listing and commercial positioning |
 
-## Things I found that are not questions but need someone to act
-- **No "Master Plan" files exist under `docs/`.** The task pointed to them, but the plan lives in a Docs artifact (project id 5991cb68-b96d-45aa-a0ac-f25408624480), which I could not open. I used `docs/DECISIONS.md` (which records the plan's decisions), the specs and the code. Wherever DECISIONS and the plan disagree, the plan wins (DECISIONS header).
-- **Client code for these backend features does not exist yet** (`game/platform/` has the purchase and integrity client only): a cloud sync service (`MHCloudService` was drafted, not built), a remote config fetcher, the analytics sender (mock only), the real account service (the base class returns "not implemented"), and the screens for the cloud conflict prompt, transfer code, and unlock. The contract is in `supabase/README.md`.
-- **Documents out of date after DEC-052 and DEC-058:** `docs/spec/data/SAVE_MIGRATION.md` still describes Ironman and "resume at the start of the day" (already noted in `docs/phase1/save.md`). I did not edit them.
-- **Existing code review notes** (the cut-off work in `supabase/functions/`): the two functions and the shared code type-check, their pure logic passes, and I made two changes: a token reuse counter (best effort, fails open) and a note that the `purchase_flow` kill switch must not block restore. Not fixed because it needs a decision or a real project: refunds are not revoked (no Real-time developer notifications), Apple verification is missing, the Play Developer API and Play Integrity endpoint shapes remain UNVERIFIED (`docs/phase0/platform.md` section 4 item 5), and `verify-integrity` signs its attestation with the same RSA key as entitlements (separate prefix `mhi1`, so they cannot be confused, but a key leak affects both).
+## Before submission
+
+Reconcile these answers against:
+
+- the release-candidate binary;
+- the live/staging backend configuration;
+- docs/DECISIONS.md;
+- docs/STATUS.md;
+- the current Google Play/App Store forms.
+
+Do not keep resolved questions here "just in case"; move their outcome to the appropriate current decision or release record.
