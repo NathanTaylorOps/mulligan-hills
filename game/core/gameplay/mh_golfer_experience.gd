@@ -18,12 +18,12 @@ static func evaluate(course_rating: int, fee_cents: int, suggested_fee_cents: in
 	score = clampi(score, 0, 100)
 	var best_key: String = "course"
 	var best: int = quality
-	for pair: Array in [["value", value], ["amenities", amenities], ["pace", pace]]:
+	for pair: Array in [["value", value], ["amenities", amenities], ["pace", pace], ["completeness", completeness]]:
 		if int(pair[1]) > best:
 			best_key = str(pair[0]); best = int(pair[1])
 	var worst_key: String = "course"
 	var worst: int = quality
-	for pair: Array in [["value", value], ["amenities", amenities], ["pace", pace]]:
+	for pair: Array in [["value", value], ["amenities", amenities], ["pace", pace], ["completeness", completeness]]:
 		if int(pair[1]) < worst:
 			worst_key = str(pair[0]); worst = int(pair[1])
 	return {"score": score, "course": quality, "value": value, "amenities": amenities, "pace": pace,
