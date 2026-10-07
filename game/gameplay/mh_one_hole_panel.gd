@@ -1106,6 +1106,9 @@ func _finalize() -> void:
 	canonical_draft.clear()
 	_sync_mode_controls()
 	live.document["course"] = encoded.value
+	if not live.session.set_hole_origins_dm(origins):
+		_set_validation_message("NOT READY: built course origins could not be activated.")
+		return
 	live.document["min_reader_version"] = 3
 	live.session.practice = null # A redesign cannot continue a round on a previous layout.
 	_restart()
