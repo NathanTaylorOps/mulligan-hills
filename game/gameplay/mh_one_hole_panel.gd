@@ -608,7 +608,7 @@ func _screen_ground_hit(pos: Vector2, layout: Dictionary) -> Dictionary:
 	# authoritative bilinear heightfield. This keeps screen picking aligned with
 	# visible hills instead of pretending every edit happens on y=0.
 	var low_t: float = 0.0
-	var low_plane: float = float(MHCraftHole.HEIGHT_MIN_M - 2)
+	var low_plane: float = -40.0 # Below the rating schema minimum relief (-32.768 m).
 	var high_t: float = (low_plane - origin.y) / direction.y
 	if high_t <= 0.0:
 		return {"ok": false}
