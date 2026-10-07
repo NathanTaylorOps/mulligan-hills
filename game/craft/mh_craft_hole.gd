@@ -20,6 +20,7 @@ const HEIGHT_MIN_M: int = -4
 const HEIGHT_MAX_M: int = 16
 const MAX_TEES: int = 1
 const MAX_PINS: int = 4
+const MAX_TREES: int = 1500
 const UNDO_LIMIT: int = 100
 
 var cols: int
