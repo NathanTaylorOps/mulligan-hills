@@ -450,3 +450,14 @@ func test_practice_checkpoint_never_downgrades_customer_reader_requirement() -> 
 		assert_bool((doc["runtime"] as Dictionary).has("customers")).is_true()
 		assert_bool((doc["runtime"] as Dictionary).has("practice")).is_true()
 		assert_bool(MHSessionSave.restore(doc, s.ledger).is_ok()).is_true()
+
+func test_reader_requirement_is_monotonic_across_checkpoint_capabilities() -> void:
+	var legacy_course: Dictionary = {"schema_version": 1}
+	var primitive_course: Dictionary = {"schema_version": 2}
+	assert_int(MHSessionSave._required_reader_version(legacy_course, false, false, false, false)).is_equal(2)
+	assert_int(MHSessionSave._required_reader_version(primitive_course, false, false, false, false)).is_equal(3)
+	assert_int(MHSessionSave._required_reader_version(legacy_course, false, true, false, false)).is_equal(3)
+	assert_int(MHSessionSave._required_reader_version(legacy_course, false, true, true, false)).is_equal(4)
+	assert_int(MHSessionSave._required_reader_version(legacy_course, false, true, true, true)).is_equal(5)
+	assert_int(MHSessionSave._required_reader_version(legacy_course, true, true, true, true)).is_equal(6)
+	assert_int(MHSessionSave._required_reader_version(primitive_course, true, true, true, true)).is_equal(6)
