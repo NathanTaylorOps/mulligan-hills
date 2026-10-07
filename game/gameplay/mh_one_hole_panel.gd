@@ -1197,8 +1197,13 @@ func _draw_hazard_depth(hole: MHCraftHole, relief_hole: MHRHole) -> void:
 					var tangent: Vector2i = Vector2i(-d.y, d.x)
 					var a: Vector2i = Vector2i(ex, ey) + tangent * half
 					var b: Vector2i = Vector2i(ex, ey) - tangent * half
-					var inset: Vector2i = Vector2i(ex, ey) - d * 16
-					var depth: float = 0.12 if hazard == MHCraftHole.Surface.BUNKER else 0.08
+					# Deterministic micro-offsets break the perfectly straight visual inset
+					# without moving the authoritative hazard boundary.
+					var wobble_seed: int = absi(c * 92821 + r * 68917 + d.x * 313 + d.y * 911 + hazard * 37)
+					var inset_amount: int = 14 + (wobble_seed % 11)
+					var tangent_shift: int = (wobble_seed % 13) - 6
+					var inset: Vector2i = Vector2i(ex, ey) - d * inset_amount + tangent * tangent_shift
+					var depth: float = 0.13 if hazard == MHCraftHole.Surface.BUNKER else 0.09
 					for p: Vector2i in [a, b, inset]:
 						var z: float = float(relief_hole.z_at(p.x, p.y)) / 1000.0
 						st.add_vertex(_position(p.x, p.y, z + 0.045 - (depth if p == inset else 0.0)))
