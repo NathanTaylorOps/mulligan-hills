@@ -1231,8 +1231,9 @@ func _describe() -> void:
 			# outside owned parcels. Do not advertise READY until the exact save
 			# boundary has also confirmed land ownership.
 			var layout: Dictionary = live.canonical_craft_draft()
+			var craft_origin: Vector2i = live.craft_origin_dm()
 			var placed: MHSaveResult = MHCourseLayout.encode(
-				[layout], live.document["course"] as Dictionary, [ORIGIN])
+				[layout], live.document["course"] as Dictionary, [[craft_origin.x, craft_origin.y]])
 			if placed.is_ok():
 				_set_validation_message("READY TO BUILD  •  Tee, green, flag and land valid  •  $%d" % [price / 100])
 			else:
@@ -1896,7 +1897,7 @@ func blocks_world_tap(pos: Vector2) -> bool:
 			return true
 	return false
 
-func _screen_ground_hit(pos: Vector2, layout: Dictionary) -> Dictionary:
+func _screen_ground_hit(pos: Vector2, layout: Dictionary, origin_dm: Vector2i) -> Dictionary:
 	var camera: Camera3D = live.controller.camera
 	var origin: Vector3 = camera.project_ray_origin(pos)
 	var direction: Vector3 = camera.project_ray_normal(pos)
@@ -1923,8 +1924,8 @@ func _screen_ground_hit(pos: Vector2, layout: Dictionary) -> Dictionary:
 	for i: int in range(1, steps + 1):
 		var sample_t: float = max_t * float(i) / float(steps)
 		var sample: Vector3 = origin + direction * sample_t
-		var local_x_mm: int = roundi(sample.x * 1000.0) - int(ORIGIN[0]) * 100
-		var local_y_mm: int = roundi(sample.z * 1000.0) - int(ORIGIN[1]) * 100
+		var local_x_mm: int = roundi(sample.x * 1000.0) - origin_dm.x * 100
+		var local_y_mm: int = roundi(sample.z * 1000.0) - origin_dm.y * 100
 		var x_cy: int = MHRMath.rdiv(local_x_mm * 1000, 9144)
 		var y_cy: int = MHRMath.rdiv(local_y_mm * 1000, 9144)
 		var ground: float = float(relief_hole.z_at(x_cy, y_cy)) / 1000.0
@@ -1937,8 +1938,8 @@ func _screen_ground_hit(pos: Vector2, layout: Dictionary) -> Dictionary:
 	for _i: int in range(20):
 		var mid_t: float = (above_t + hit_t) * 0.5
 		var point: Vector3 = origin + direction * mid_t
-		var local_x_mm: int = roundi(point.x * 1000.0) - int(ORIGIN[0]) * 100
-		var local_y_mm: int = roundi(point.z * 1000.0) - int(ORIGIN[1]) * 100
+		var local_x_mm: int = roundi(point.x * 1000.0) - origin_dm.x * 100
+		var local_y_mm: int = roundi(point.z * 1000.0) - origin_dm.y * 100
 		var x_cy: int = MHRMath.rdiv(local_x_mm * 1000, 9144)
 		var y_cy: int = MHRMath.rdiv(local_y_mm * 1000, 9144)
 		var ground: float = float(relief_hole.z_at(x_cy, y_cy)) / 1000.0
@@ -1958,12 +1959,13 @@ func _craft_tile_from_screen(pos: Vector2) -> Vector2i:
 		layout.erase("relief")
 	else:
 		layout["relief"] = relief
-	var result: Dictionary = _screen_ground_hit(pos, layout)
+	var craft_origin: Vector2i = live.craft_origin_dm()
+	var result: Dictionary = _screen_ground_hit(pos, layout, craft_origin)
 	if not bool(result.get("ok", false)):
 		return Vector2i(-1, -1)
 	var hit: Vector3 = result["hit"] as Vector3
-	var local_x_mm: int = roundi(hit.x * 1000.0) - int(ORIGIN[0]) * 100
-	var local_y_mm: int = roundi(hit.z * 1000.0) - int(ORIGIN[1]) * 100
+	var local_x_mm: int = roundi(hit.x * 1000.0) - craft_origin.x * 100
+	var local_y_mm: int = roundi(hit.z * 1000.0) - craft_origin.y * 100
 	# Reverse MHCourseLayout.world_mm() into centiyards. The previous code
 	# produced centiyards but passed them to tile_at_yd(), a factor-of-100 error
 	# that sent almost every visible click outside the craft grid.
@@ -2064,16 +2066,21 @@ func craft_stroke_cancel() -> void:
 
 func aim_from_screen(pos: Vector2) -> bool:
 	var layouts: Array = live.session.hole_definitions()
-	var layout: Dictionary = _layout() if layouts.is_empty() or _preview_draft else _active_play_layout()
-	var result: Dictionary = _screen_ground_hit(pos, layout)
+	var use_craft: bool = layouts.is_empty() or _preview_draft
+	var layout: Dictionary = _layout() if use_craft else _active_play_layout()
+	var pick_origin: Vector2i = live.craft_origin_dm() if use_craft else _active_play_origin()
+	var result: Dictionary = _screen_ground_hit(pos, layout, pick_origin)
 	if not bool(result.get("ok", false)):
 		return false
 	var hit: Vector3 = result["hit"] as Vector3
-	if hit.x < 0.0 or hit.x >= 128.0 or hit.z < 0.0 or hit.z >= 128.0:
+	var world: Dictionary = (live.document.get("course", {}) as Dictionary).get("world", {}) as Dictionary
+	var width_m: float = float(int(world.get("width_dm", 0))) * 0.1
+	var height_m: float = float(int(world.get("height_dm", 0))) * 0.1
+	if width_m <= 0.0 or height_m <= 0.0 or hit.x < 0.0 or hit.x >= width_m or hit.z < 0.0 or hit.z >= height_m:
 		return false
 	# Only the input/render boundary uses float coordinates; gameplay aim remains integer centiyards.
-	aim_x = MHRMath.rdiv((roundi(hit.x * 1000.0) - int(ORIGIN[0]) * 100) * 1000, 9144)
-	aim_y = MHRMath.rdiv((roundi(hit.z * 1000.0) - int(ORIGIN[1]) * 100) * 1000, 9144)
+	aim_x = MHRMath.rdiv((roundi(hit.x * 1000.0) - pick_origin.x * 100) * 1000, 9144)
+	aim_y = MHRMath.rdiv((roundi(hit.z * 1000.0) - pick_origin.y * 100) * 1000, 9144)
 	_move_aim()
 	return true
 
