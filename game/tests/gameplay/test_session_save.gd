@@ -238,6 +238,8 @@ func test_unfinalized_craft_draft_survives_cold_reopen_exactly() -> void:
 	var expected: Dictionary = scene.craft_hole.to_dict()
 	assert_bool(scene.save_now()).is_true()
 	assert_int(int(scene.document["min_reader_version"])).is_equal(6)
+	assert_bool((scene.document["runtime"] as Dictionary).has("craft_course")).is_true()
+	assert_bool((scene.document["runtime"] as Dictionary).has("craft_draft")).is_false()
 	scene._active = false
 	scene.queue_free()
 	await get_tree().process_frame
