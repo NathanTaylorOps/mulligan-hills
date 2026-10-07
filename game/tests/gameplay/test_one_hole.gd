@@ -532,3 +532,15 @@ func test_course_dressing_meshes_fit_mobile_budgets() -> void:
 			var mesh: ArrayMesh = MHPropMeshes.build(kind, lod, 0)
 			assert_bool(mesh.get_surface_count() > 0).is_true()
 			assert_int(MHMeshBuilder.mesh_tri_count(mesh)).is_less_equal(MHPropMeshes.budget(kind, lod))
+
+
+func test_visual_quality_keeps_course_readability_features() -> void:
+	var low: Dictionary = MHVisualQuality.settings(MHVisualQuality.Tier.LOW)
+	var medium: Dictionary = MHVisualQuality.settings(MHVisualQuality.Tier.MEDIUM)
+	var high: Dictionary = MHVisualQuality.settings(MHVisualQuality.Tier.HIGH)
+	assert_bool(bool(low["mowing"])).is_true()
+	assert_bool(bool(low["edge_accents"])).is_false()
+	assert_bool(bool(medium["edge_accents"])).is_true()
+	assert_bool(bool(high["terrain_detail"])).is_true()
+	assert_bool(float(low["decor_density"]) < float(medium["decor_density"])).is_true()
+	assert_bool(float(medium["decor_density"]) < float(high["decor_density"])).is_true()
