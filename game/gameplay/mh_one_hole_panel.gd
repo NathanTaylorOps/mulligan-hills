@@ -23,9 +23,16 @@ var _craft_stroke_open: bool = false
 var _craft_last_tile: Vector2i = Vector2i(-1, -1)
 var _craft_level_height: int = 0
 var _craft_tool_buttons: Dictionary = {}
+var _craft_category_buttons: Dictionary = {}
+var _craft_category: StringName = &"surfaces"
+var _surface_icons: Dictionary = {}
 var _craft_tools: HFlowContainer
+var _terrain_tools: HFlowContainer
+var _marker_tools: HFlowContainer
 var _design_tools: HFlowContainer
 var _practice_tools: HFlowContainer
+var _finalize_button: MHTapButton
+var _validation_hint: Label
 var _craft_preview_dirty: bool = false
 ## Header only (body hidden). Layout is recomputed by the scene on `layout_changed`.
 var collapsed: bool = false
@@ -42,28 +49,38 @@ func setup(scene: MHLiveConstruction) -> void:
 	add_theme_constant_override("separation", 8)
 	var head: HBoxContainer = MHUIKit.hbox(8)
 	add_child(head)
-	var title: Label = MHUIKit.label("One-hole practice", &"", false)
+	var title: Label = MHUIKit.label("HOLE 1 • COURSE DESIGN", &"", false)
 	title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	title.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	title.clip_text = true
 	title.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 	head.add_child(title)
-	_toggle = MHUIKit.button(live.shell.ctx, "Collapse", &"ChipButton", 112)
+	_finalize_button = MHUIKit.button(live.shell.ctx, "Build hole", &"GreenButton", 122)
+	_finalize_button.pressed.connect(_finalize)
+	head.add_child(_finalize_button)
+	_toggle = MHUIKit.button(live.shell.ctx, "Hide", &"ChipButton", 100)
 	_toggle.pressed.connect(toggle_collapsed)
 	head.add_child(_toggle)
+	_validation_hint = MHUIKit.label("Design a playable hole to build it.")
+	_validation_hint.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	add_child(_validation_hint)
 	_scroll = MHScrollBox.new()
 	add_child(_scroll)
 	var content: VBoxContainer = MHUIKit.vbox(8)
 	content.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_scroll.add_child(content)
-	content.add_child(MHUIKit.label("Development prototype: no prizes or XP."))
 	_info = MHUIKit.label("")
 	content.add_child(_info)
 	_info.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	_feedback = MHUIKit.label("Tap the course to aim. Play shot is a separate confirmation.")
+	_feedback = MHUIKit.label("Select a material then paint the ground.")
 	_feedback.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	content.add_child(_feedback)
-	_craft_tools = MHUIKit.flow(6)
+	var category_row: HFlowContainer = MHUIKit.flow(6)
+	content.add_child(category_row)
+	_category_button(category_row, "SURFACES", &"surfaces")
+	_category_button(category_row, "TERRAIN", &"terrain")
+	_category_button(category_row, "TEE & PIN", &"markers")
+	_craft_tools = MHUIKit.flow(8)
 	content.add_child(_craft_tools)
 	_surface_button(_craft_tools, "Rough", MHCraftHole.Surface.ROUGH)
 	_surface_button(_craft_tools, "Fairway", MHCraftHole.Surface.FAIRWAY)
@@ -78,14 +95,21 @@ func setup(scene: MHLiveConstruction) -> void:
 	_surface_button(_craft_tools, "Out of bounds", MHCraftHole.Surface.OUT_OF_BOUNDS)
 	_surface_button(_craft_tools, "Path", MHCraftHole.Surface.PATH)
 	_surface_button(_craft_tools, "Dirt", MHCraftHole.Surface.DIRT)
-	_mode_button(_craft_tools, "Raise", &"raise")
-	_mode_button(_craft_tools, "Lower", &"lower")
-	_mode_button(_craft_tools, "Smooth", &"smooth")
-	_mode_button(_craft_tools, "Level", &"level")
-	_mode_button(_craft_tools, "Place tee", &"tee")
-	_mode_button(_craft_tools, "Place pin", &"pin")
-	_button(_craft_tools, "Undo craft", _craft_undo)
-	_button(_craft_tools, "Redo craft", _craft_redo)
+	_terrain_tools = MHUIKit.flow(8)
+	content.add_child(_terrain_tools)
+	_mode_button(_terrain_tools, "Raise", &"raise")
+	_mode_button(_terrain_tools, "Lower", &"lower")
+	_mode_button(_terrain_tools, "Smooth", &"smooth")
+	_mode_button(_terrain_tools, "Level", &"level")
+	_marker_tools = MHUIKit.flow(8)
+	content.add_child(_marker_tools)
+	_mode_button(_marker_tools, "Place tee", &"tee")
+	_mode_button(_marker_tools, "Place pin", &"pin")
+	_button(_marker_tools, "Repair markers", _repair_hole_markers)
+	var history_row: HFlowContainer = MHUIKit.flow(6)
+	content.add_child(history_row)
+	_button(history_row, "Undo", _craft_undo)
+	_button(history_row, "Redo", _craft_redo)
 	_design_tools = MHUIKit.flow(6)
 	content.add_child(_design_tools)
 	# The old rectangular Length/Narrow/Side-water controls modified a parallel
@@ -116,11 +140,21 @@ func setup(scene: MHLiveConstruction) -> void:
 
 func _sync_mode_controls() -> void:
 	if _craft_tools != null:
-		_craft_tools.visible = _preview_draft
+		_craft_tools.visible = _preview_draft and _craft_category == &"surfaces"
+	if _terrain_tools != null:
+		_terrain_tools.visible = _preview_draft and _craft_category == &"terrain"
+	if _marker_tools != null:
+		_marker_tools.visible = _preview_draft and _craft_category == &"markers"
 	if _design_tools != null:
 		_design_tools.visible = _preview_draft
 	if _practice_tools != null:
 		_practice_tools.visible = not _preview_draft
+	if _finalize_button != null:
+		_finalize_button.visible = _preview_draft
+	for key: Variant in _craft_category_buttons.keys():
+		var tab: MHTapButton = _craft_category_buttons[key] as MHTapButton
+		if tab != null:
+			tab.theme_type_variation = &"SelectedButton" if StringName(key) == _craft_category else &"ChipButton"
 
 
 func _process(_delta: float) -> void:
@@ -133,7 +167,9 @@ func set_collapsed(value: bool) -> void:
 	if _scroll != null:
 		_scroll.visible = not collapsed
 	if _toggle != null:
-		_toggle.text = "Expand" if collapsed else "Collapse"
+		_toggle.text = "Show" if collapsed else "Hide"
+	if _validation_hint != null:
+		_validation_hint.visible = not collapsed
 	layout_changed.emit()
 
 func toggle_collapsed() -> void:
