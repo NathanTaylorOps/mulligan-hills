@@ -1,6 +1,6 @@
-# SimGolf reference study (from Nathan's clips, 5 Oct 2026)
+# Competitive reference study: SimGolf and Under Par (5 Oct 2026)
 
-Source: three short clips supplied by Nathan (two of Sid Meier's SimGolf, one of Under Par Golf Architect, a current mobile rival). This records design PATTERNS only. No SimGolf assets, text or code are used or to be used (DEC-086 note: match the look, never the files).
+Source: three supplied reference clips (two of Sid Meier's SimGolf and one of Under Par Golf Architect). This records interaction and presentation patterns only. Mulligan Hills should abstract useful principles and differentiate through its own art, UI, writing and systems; no competitor assets, text or code are used.
 
 ## What SimGolf does (clips 1 and 2)
 - **Camera:** fixed isometric view, the map is a diamond slab floating in black with a soil edge. Hole labels ("Hole 3, 381 yards, Par 4") float over the tee with a thin white line to the green.
