@@ -175,10 +175,20 @@ func customer_summary() -> Dictionary:
 		"named_members": customers.member_count(), "membership_capacity": economy.members()}
 
 func accept_customer_membership(customer_id: int) -> bool:
-	# The calibrated economy controls membership capacity; the RPG ledger controls who occupies those slots.
+	# The calibrated economy controls how many slots exist; named members occupy a subset of that aggregate.
 	if customers.member_count() >= economy.members():
 		return false
-	return customers.accept_membership(customer_id)
+	var accepted: bool = customers.accept_membership(customer_id)
+	if accepted:
+		_reconcile_named_membership_floor()
+	return accepted
+
+
+func _reconcile_named_membership_floor() -> void:
+	# Named members are persistent people. The aggregate model may add anonymous members, but must not
+	# later shrink below people the player has already accepted.
+	economy.members_milli = maxi(economy.members_milli, customers.member_count() * 1000)
+
 
 func record_customer_visit(customer_id: int, holes_played: int, wait_minutes: int) -> Dictionary:
 	if customer_id < 0 or customer_id >= MHGolferCustomers.COUNT:
@@ -313,6 +323,7 @@ func advance(delta_us: int, wall_unix: int) -> void:
 			economy.incur_loss(wage)
 		hourly = true
 		if bool(tick["day_rolled"]):
+			_reconcile_named_membership_floor()
 			var sv: Dictionary = staff_view()
 			staff.on_day(economy.day, sv, save_secret)
 			economy.set_demand_modifier(staff.demand_permille(sv))
