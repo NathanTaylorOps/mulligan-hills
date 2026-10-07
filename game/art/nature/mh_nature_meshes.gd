@@ -5,7 +5,7 @@ extends RefCounted
 ## vertex colours (palette from MHPalette), one surface per mesh so a MultiMesh can draw it.
 ##
 ## LODs: 0 (near), 1 (mid), 2 (far, a handful of triangles). Triangle budgets are in BUDGETS and are
-## enforced by tests/art/test_nature_meshes.gd. Every tree LOD0 is under 400 triangles.
+## enforced by tests/art/test_nature_meshes.gd. Near trees deliberately spend more geometry on silhouette and layered foliage; mid/far LODs retain the original mobile budget discipline.
 ## `variant` (0..VARIANTS-1, any int works) changes proportions, jitter and colour drift, but the
 ## same (kind, lod, variant) always gives the same vertices.
 ##
@@ -28,18 +28,18 @@ const KINDS: Array = ["pine", "oak", "birch", "palm", "bush", "rock", "rock_clus
 	"flower_patch", "reeds", "cattails", "tall_grass"]
 const VARIANTS: int = 4
 const LOD_COUNT: int = 3
-const TREE_LOD0_LIMIT: int = 400
+const TREE_LOD0_LIMIT: int = 760
 
 ## Maximum triangles per kind, indexed by LOD. Actual counts are lower; tests check actual <= budget.
 const BUDGETS: Dictionary = {
-	"pine": [220, 60, 24],
-	"oak": [330, 130, 40],
-	"birch": [260, 70, 24],
-	"palm": [230, 90, 24],
-	"bush": [150, 40, 16],
-	"rock": [64, 30, 12],
-	"rock_cluster": [130, 50, 16],
-	"flower_patch": [80, 40, 12],
+	"pine": [520, 60, 24],
+	"oak": [760, 130, 40],
+	"birch": [560, 70, 24],
+	"palm": [520, 90, 24],
+	"bush": [280, 40, 16],
+	"rock": [110, 30, 12],
+	"rock_cluster": [230, 50, 16],
+	"flower_patch": [140, 40, 12],
 	"reeds": [80, 20, 8],
 	"cattails": [170, 64, 12],
 	"tall_grass": [40, 20, 8],
@@ -154,6 +154,14 @@ static func _pine(b: MHMeshBuilder, lod: int, variant: int) -> void:
 		_crown(b, top + Vector3(1.0, -1.3, 0.6), Vector3(1.5, 0.8, 1.4), 3, 9, low, high, variant * 3 + 2, 0.16)
 		_crown(b, top + Vector3(-0.9, -1.5, -0.6), Vector3(1.4, 0.75, 1.3), 3, 9, low, high, variant * 3 + 3, 0.16)
 		_crown(b, top + Vector3(0.1, 0.5, 0.0), Vector3(1.0, 0.6, 1.0), 2, 6, low, high, variant * 3 + 4, 0.12)
+		# Near silhouette: irregular lower boughs and smaller foliage pads stop the
+		# tree reading as stacked spheres at the normal gameplay camera.
+		for i in range(4):
+			var a: float = TAU * float(i) / 4.0 + rng.range_f(-0.22, 0.22)
+			var branch_base: Vector3 = Vector3(lean * 0.45, h * (0.43 + 0.07 * float(i)), 0.0)
+			var branch_tip: Vector3 = branch_base + Vector3(cos(a) * 1.45, 0.25 + 0.12 * float(i), sin(a) * 1.45)
+			b.tube(branch_base, branch_tip, 0.10, 0.035, 4, bark, MHPalette.BARK_DARK)
+			_crown(b, branch_tip, Vector3(1.05, 0.48, 0.85), 2, 6, low, high, variant * 17 + i, 0.20)
 	elif lod == 1:
 		b.tube(Vector3.ZERO, top, 0.30, 0.16, 5, bark, bark)
 		_crown(b, top + Vector3(0.0, -0.6, 0.0), Vector3(2.1, 1.1, 2.0), 2, 6, low, high, variant + 11, 0.14)
@@ -184,6 +192,13 @@ static func _oak(b: MHMeshBuilder, lod: int, variant: int) -> void:
 		_crown(b, Vector3(0.3, cy - 0.3, 1.9) * scale, Vector3(1.7, 1.2, 1.6) * scale, 3, 8, low, high, variant * 7 + 4, 0.15)
 		_crown(b, Vector3(-0.4, cy - 0.4, -1.9) * scale, Vector3(1.6, 1.2, 1.5) * scale, 3, 8, low, high, variant * 7 + 5, 0.15)
 		_crown(b, Vector3(0.2, cy + 1.0 * scale, 0.1), Vector3(1.6, 1.0, 1.5) * scale, 3, 8, low, high, variant * 7 + 6, 0.15)
+		# Break the canopy into sunlit outer pads, matching the richer reference
+		# silhouette while retaining a single procedural mesh.
+		for i in range(5):
+			var a: float = TAU * float(i) / 5.0 + rng.range_f(-0.18, 0.18)
+			var radius: float = 2.2 + rng.range_f(-0.25, 0.35)
+			var pad: Vector3 = Vector3(cos(a) * radius, cy + rng.range_f(-0.45, 0.65), sin(a) * radius) * scale
+			_crown(b, pad, Vector3(1.15, 0.82, 1.1) * scale, 2, 6, low.lerp(high, 0.18), high, variant * 23 + i, 0.18)
 	elif lod == 1:
 		b.frustum(0.0, 2.4, 0.5, 0.3, 5, bark, bark, false, false)
 		_crown(b, Vector3(0.0, cy, 0.0), Vector3(2.7, 1.8, 2.6) * scale, 3, 7, low, high, variant + 31, 0.14)
@@ -311,6 +326,10 @@ static func _bush(b: MHMeshBuilder, lod: int, variant: int) -> void:
 		_crown(b, Vector3(0.65, 0.42, 0.25) * s, Vector3(0.6, 0.45, 0.6) * s, 3, 7, low, high, variant * 4 + 2, 0.16)
 		_crown(b, Vector3(-0.6, 0.4, -0.2) * s, Vector3(0.6, 0.45, 0.55) * s, 3, 7, low, high, variant * 4 + 3, 0.16)
 		_crown(b, Vector3(0.1, 0.38, -0.65) * s, Vector3(0.55, 0.4, 0.5) * s, 3, 7, low, high, variant * 4 + 4, 0.16)
+		for i in range(3):
+			var a2: float = TAU * float(i) / 3.0 + rng.range_f(-0.3, 0.3)
+			_crown(b, Vector3(cos(a2) * 0.72, 0.60 + rng.range_f(-0.08, 0.18), sin(a2) * 0.72) * s,
+				Vector3(0.48, 0.42, 0.48) * s, 2, 6, low.lerp(high, 0.2), high, variant * 13 + i, 0.20)
 		if variant % 2 == 1:
 			var petal: Color = MHPalette.pick(MHPalette.FLOWERS, variant)
 			for i in range(6):
