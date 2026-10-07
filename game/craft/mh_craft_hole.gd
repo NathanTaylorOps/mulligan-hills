@@ -497,8 +497,9 @@ static func from_dict(raw: Variant) -> MHCraftHole:
 	out.rocks = int(d["rocks"])
 	out.flowers = int(d["flowers"])
 	if d.has("mowing"):
-		if not MHMowingDesign.is_save_dict_valid(d["mowing"]):
+		if not MHMowingDesign.is_save_dict_valid(d["mowing"]) and not MHMowingDesign.is_legacy_save_dict_valid(d["mowing"]):
 			return null
+		# Legacy float-backed mowing is normalized to the current integer-backed save shape on read.
 		out.mowing = MHMowingDesign.from_dict(d["mowing"]).to_dict()
 	else:
 		out.mowing = MHMowingDesign.new().to_dict()
