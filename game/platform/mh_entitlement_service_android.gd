@@ -75,6 +75,13 @@ func _handle_owned_purchase(p: Dictionary) -> void:
 	var token: String = _seam_purchase_token(p)
 	if token == "" or _busy_tokens.has(token):
 		return
+	if _cached_entitlement_is_fresh():
+		if not _seam_is_acknowledged(p):
+			_seam_acknowledge(token)
+		if _pending_restore:
+			_pending_restore = false
+			restore_finished.emit(true, "restored")
+		return
 	_busy_tokens[token] = true
 	var integrity_token: String = ""
 	if _integrity != null and _integrity.is_supported():
@@ -95,6 +102,15 @@ func _handle_owned_purchase(p: Dictionary) -> void:
 	else:
 		# Network failure keeps the purchase in Play; next launch re-queries and retries.
 		purchase_finished.emit(MHPlatformConfig.PRODUCT_UNLOCK, PurchaseResult.VERIFY_FAILED, str(res["error"]))
+
+## A valid cached entitlement is deliberately not re-verified on every Play ownership query. The signed token
+## remains valid offline; its ref field is the server's soft refresh time.
+func _cached_entitlement_is_fresh(now_unix: int = -1) -> bool:
+	if not is_unlocked() or _token == "":
+		return false
+	var now: int = now_unix if now_unix >= 0 else int(Time.get_unix_time_from_system())
+	return not MHEntitlementToken.needs_refresh(_payload, now)
+
 
 # ---- signal handlers (plugin -> our signals) -------------------------------------------------
 
