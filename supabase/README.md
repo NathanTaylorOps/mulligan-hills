@@ -1,7 +1,7 @@
 # supabase/ : Mulligan Hills backend
 
-Owner: backend workstream. Written 2026-10-04. Decisions this implements: DEC-012, DEC-016, DEC-029, DEC-030, DEC-031, DEC-036, DEC-044, DEC-057, DEC-058, DEC-059, PROP-03, PROP-04.
-Setup for a non-programmer: `supabase/FOR_NATHAN.md`. Store paperwork: `docs/store/`.
+Status: backend implementation and validation notes. Initial implementation checkpoint: 2026-10-04. Current product decisions are tracked in `docs/DECISIONS.md`.
+Staging setup: `supabase/SETUP.md`. Store/release material: `docs/store/`.
 
 ## Status: what was run and what was not
 | Part | Status |
@@ -127,4 +127,4 @@ Two tests keep copies in step with `docs/spec/data/`: `_shared/analytics_catalog
 6. **`purchase_flow` kill switch** is client side only; `verify-purchase` stays open so Restore always works.
 7. **Refund revocation** (Real-time developer notifications) and Apple verification are still not built.
 8. **Save content is opaque to the server.** It cannot check that an uploaded save is valid; the game validates after download (SAVE_MIGRATION.md rule 6).
-9. **Client schema gaps** noted by the save workstream (`progress.playtime_s`) affect the conflict prompt: the `summary` here already carries `playtime_s`.
+9. **Client schema gaps** noted by the save layer (`progress.playtime_s`) affect the conflict prompt: the `summary` here already carries `playtime_s`.
