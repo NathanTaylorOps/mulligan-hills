@@ -724,7 +724,7 @@ alter table public.purchase_verifications
 
 create or replace function public.purchase_verification_record(
   p_hash text, p_product text, p_order text, p_test boolean, p_window_days int default 30) returns jsonb
-language plpgsql security definer set search_path = '' as $
+language plpgsql security definer set search_path = '' as $$
 declare r public.purchase_verifications;
 begin
   insert into public.purchase_verifications (token_hash, product_id, order_id, is_test, window_started_at)
@@ -746,7 +746,7 @@ begin
     'count', r.verify_count,
     'first_seen', r.first_seen,
     'window_started_at', r.window_started_at);
-end $;
+end $$;
 
 revoke all on function public.purchase_verification_record(text, text, text, boolean, int) from public, anon, authenticated;
 grant execute on function public.purchase_verification_record(text, text, text, boolean, int) to service_role;
