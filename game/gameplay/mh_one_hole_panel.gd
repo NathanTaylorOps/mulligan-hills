@@ -936,7 +936,7 @@ func _refresh_path() -> void:
 	_world.add_child(_path)
 	var r: MHPracticeRound = live.session.practice
 	if _preview_draft:
-		_feedback.text = "Edit hole: choose a tool, then click or drag on the course. Desktop: right-drag rotate, middle-drag pan, wheel zoom. Touch: one finger edits; two fingers move the camera."
+		_feedback.text = "Edit hole: choose a tool, then click or drag on the shared course terrain. Changes also appear in main Edit. Desktop: right-drag rotate, middle-drag pan, wheel zoom. Touch: one finger edits; two fingers move the camera."
 		return
 	if r == null:
 		_feedback.text = "Finalize the hole to begin practice."
