@@ -139,6 +139,8 @@ static func restore(source: Dictionary, ledger: MHTokenLedger) -> MHSaveResult:
 	s.rating_epoch = int(doc["sim"]["rating_epoch"])
 	if not s.restore_course(layouts.value as Array):
 		return _bad("saved course cannot be officially rated")
+	if not s.set_hole_origins_dm(MHCourseLayout.origins(doc["course"] as Dictionary)):
+		return _bad("saved course origins disagree")
 	if s.economy.holes != s.hole_scores().size() or s.economy.rating != int(s.course_result().get("course_x10", 0)) / 10 or s.economy.parcels != s.land.owned_count():
 		return _bad("accounting and course disagree")
 	var club: Dictionary = doc["club"]
