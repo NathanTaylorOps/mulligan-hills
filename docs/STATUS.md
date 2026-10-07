@@ -1,8 +1,5 @@
 # Mulligan Hills status
 
-Snapshot branch: fix/canonical-relief-save
-Snapshot commit: b3c228cc2a755a1a83ea0aa750631b3b927705d6
-
 Mulligan Hills is in pre-alpha / active development. This file separates implemented, verified and planned work.
 
 ## Current vertical spine
