@@ -196,7 +196,7 @@ func test_live_scene_finalization_can_save_and_reload_practice() -> void:
 	add_child(scene)
 	assert_bool(scene._active).is_true()
 	scene.session.clock.pause()
-	scene.one_hole.open()
+	scene._open_craft_hole()
 	scene.one_hole._finalize()
 	assert_int(scene.session.hole_definitions().size()).is_equal(1)
 	assert_int(int(scene.document["min_reader_version"])).is_equal(3)
@@ -250,7 +250,7 @@ func test_screen_aim_projection_sets_target_without_playing_or_charging() -> voi
 	scene.store = MHSaveStore.new(DIR)
 	scene.ledger_dir = LEDGERS
 	add_child(scene)
-	scene.one_hole.open()
+	scene._open_craft_hole()
 	scene.one_hole._finalize()
 	var before: Dictionary = scene.session.practice.to_dict()
 	var cash: int = scene.session.economy.cash
@@ -271,7 +271,7 @@ func test_camera_follow_and_overview_preserve_gameplay_state() -> void:
 	scene.store = MHSaveStore.new(DIR)
 	scene.ledger_dir = LEDGERS
 	add_child(scene)
-	scene.one_hole.open()
+	scene._open_craft_hole()
 	scene.one_hole._finalize()
 	var before: Dictionary = scene.session.practice.to_dict()
 	var cash: int = scene.session.economy.cash
