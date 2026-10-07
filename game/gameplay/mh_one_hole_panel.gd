@@ -156,7 +156,10 @@ func open() -> void:
 	if live.aim_input != null:
 		live.aim_input.taps.clear()
 	live.shell.show_root(MHScreenIds.HUD)
-	live.chunks.hide() # Flat exact-layout view; arbitrary brush terrain is not claimed as rated geometry.
+	# The exact-hole editor is an overlay on the same persisted terrain used by the
+	# normal editor. Keep the world chunks visible so landscaping outside the rated
+	# hole footprint never appears to vanish when entering Build/play.
+	live.chunks.show()
 	show()
 	_world.show()
 	_follow_camera()
@@ -418,7 +421,6 @@ func _draw() -> void:
 	for child: Node in _world.get_children():
 		_world.remove_child(child)
 		child.queue_free()
-	_box(Vector3(64, -0.1, 64), Vector3(128, 0.1, 128), Color(0.27, 0.44, 0.21))
 	var layouts: Array = live.session.hole_definitions()
 	var drawing_craft: bool = live != null and live.craft_hole != null and (_preview_draft or layouts.is_empty())
 	var h: Dictionary = _layout() if layouts.is_empty() or _preview_draft else layouts[0]
