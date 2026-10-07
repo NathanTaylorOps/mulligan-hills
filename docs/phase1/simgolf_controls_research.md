@@ -1,10 +1,10 @@
 # Personal golf controls: SimGolf research and proposed direction
 
-Date: 5 October 2026. Nathan requested SimGolf mechanics research during the one-hole prototype. Nathan accepted the target/shot-style automatic-execution direction; it is now DEC-076. Detailed numeric/progression proposals below remain open. DEC-072 still requires a controllable golfer, training, progression, personal tournaments and private NPC matches.
+Date: 5 October 2026. Research conducted during the one-hole prototype. The target/shot-style automatic-execution direction was adopted as DEC-076. Detailed numeric/progression proposals below remain open. DEC-072 still requires a controllable golfer, training, progression, personal tournaments and private NPC matches.
 
 ## What the 2002 Sid Meier game did
 
-Research specifically concerns **Sid Meier's SimGolf (2002)**. The separate 1996 SimGolf has MouseSwing/three-click controls and is not the reference Nathan means.
+Research specifically concerns **Sid Meier's SimGolf (2002)**. The separate 1996 SimGolf has MouseSwing/three-click controls and is not the reference used for this design study.
 
 A contemporary [GameSpot review](https://www.gamespot.com/reviews/simgolf-review/1900-2843958/) describes choosing a stroke type and a target/trajectory to set the shot's strength. It describes ten golfer abilities, checked by the game according to the shot situation, and character advancement through play. Competition winnings feed course development. This is evidence for decisions and character ability driving golf within the management game; it is not evidence of a timing-bar requirement.
 
