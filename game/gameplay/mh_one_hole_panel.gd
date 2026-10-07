@@ -59,6 +59,13 @@ var _history_row: HBoxContainer
 var _craft_tools: HBoxContainer
 var _terrain_tools: HBoxContainer
 var _marker_tools: HBoxContainer
+var _mowing_tools: HBoxContainer
+var _mowing_surface_button: MHTapButton
+var _mowing_pattern_button: MHTapButton
+var _mowing_width_button: MHTapButton
+var _mowing_direction_button: MHTapButton
+var _mowing_intensity_button: MHTapButton
+var _mowing_surface: int = MHCraftHole.Surface.FAIRWAY
 var _practice_tools: HFlowContainer
 var _finalize_button: MHTapButton
 var _validation_hint: Label
@@ -107,6 +114,7 @@ func setup(scene: MHLiveConstruction) -> void:
 	_category_button(_category_row, "Surfaces", &"surfaces")
 	_category_button(_category_row, "Terrain", &"terrain")
 	_category_button(_category_row, "Hole", &"markers")
+	_category_button(_category_row, "Mowing", &"mowing")
 	_history_row = MHUIKit.hbox(6)
 	_navigation.add_child(_history_row)
 	_undo_button = _button(_history_row, "Undo", _craft_undo)
@@ -150,6 +158,16 @@ func setup(scene: MHLiveConstruction) -> void:
 	_pin_slot_button.tooltip_text = "Choose an existing pin to move, or the next empty slot. Pin 1 is used for current practice."
 	_remove_pin_button = _button(_marker_tools, "Remove pin", _remove_pin)
 	_button(_marker_tools, "Repair markers", _repair_hole_markers)
+	_mowing_tools = MHUIKit.hbox(8)
+	content.add_child(_mowing_tools)
+	_mowing_surface_button = _button(_mowing_tools, "", _cycle_mowing_surface)
+	_mowing_pattern_button = _button(_mowing_tools, "", _cycle_mowing_pattern)
+	_mowing_width_button = _button(_mowing_tools, "", _cycle_mowing_width)
+	_mowing_direction_button = _button(_mowing_tools, "", _cycle_mowing_direction)
+	_mowing_intensity_button = _button(_mowing_tools, "", _cycle_mowing_intensity)
+	for mowing_button: MHTapButton in [_mowing_surface_button, _mowing_pattern_button, _mowing_width_button,
+			_mowing_direction_button, _mowing_intensity_button]:
+		mowing_button.custom_minimum_size = Vector2(145, maxf(64, live.shell.ctx.touch_min()))
 	_practice_content = MHUIKit.vbox(6)
 	_practice_content.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	content.add_child(_practice_content)
@@ -278,6 +296,8 @@ func _sync_mode_controls() -> void:
 		_terrain_tools.visible = _preview_draft and _craft_category == &"terrain"
 	if _marker_tools != null:
 		_marker_tools.visible = _preview_draft and _craft_category == &"markers"
+	if _mowing_tools != null:
+		_mowing_tools.visible = _preview_draft and _craft_category == &"mowing"
 	if _practice_tools != null:
 		_practice_tools.visible = not _preview_draft
 	if _finalize_button != null:
@@ -288,6 +308,7 @@ func _sync_mode_controls() -> void:
 		_brush_hint.visible = _preview_draft and not collapsed and _craft_category != &"markers"
 	_refresh_surface_group()
 	_refresh_marker_controls()
+	_refresh_mowing_controls()
 	for key: Variant in _craft_category_buttons.keys():
 		var tab: MHTapButton = _craft_category_buttons[key] as MHTapButton
 		if tab != null:
@@ -352,14 +373,14 @@ func _button(parent: Control, title: String, action: Callable) -> MHTapButton:
 func _category_button(parent: Control, title: String, category: StringName) -> void:
 	var b: MHTapButton = _button(parent, title, _select_category.bind(category))
 	b.add_theme_font_size_override("font_size", live.shell.ctx.scaled(MHTheme.FONT_SMALL))
-	b.icon = _surface_thumbnail(MHCraftHole.Surface.FAIRWAY) if category == &"surfaces" else _mode_thumbnail(&"raise" if category == &"terrain" else &"pin")
+	b.icon = _surface_thumbnail(MHCraftHole.Surface.FAIRWAY) if category in [&"surfaces", &"mowing"] else _mode_thumbnail(&"raise" if category == &"terrain" else &"pin")
 	b.add_theme_constant_override("icon_max_width", 24)
 	b.custom_minimum_size = Vector2(130, maxf(54, live.shell.ctx.touch_min()))
 	_craft_category_buttons[category] = b
 
 
 func _select_category(category: StringName) -> void:
-	if category not in [&"surfaces", &"terrain", &"markers"]:
+	if category not in [&"surfaces", &"terrain", &"markers", &"mowing"]:
 		return
 	_cancel_tool_gesture()
 	_craft_category = category
@@ -367,8 +388,10 @@ func _select_category(category: StringName) -> void:
 		craft_mode = &"surface"
 	elif category == &"terrain":
 		craft_mode = _terrain_mode
-	else:
+	elif category == &"markers":
 		craft_mode = _marker_mode
+	else:
+		craft_mode = &"mowing"
 	if _scroll != null:
 		_scroll.scroll_horizontal = 0
 		_scroll.scroll_vertical = 0
@@ -377,6 +400,75 @@ func _select_category(category: StringName) -> void:
 	_describe()
 	if _preview_draft and _world != null:
 		_draw()
+
+
+func _cycle_mowing_surface() -> void:
+	_mowing_surface = MHCraftHole.Surface.GREEN if _mowing_surface == MHCraftHole.Surface.FAIRWAY else MHCraftHole.Surface.FAIRWAY
+	_refresh_mowing_controls()
+
+
+func _cycle_mowing_pattern() -> void:
+	var current: int = int(mowing_design.pattern_for(_mowing_surface))
+	set_mowing_pattern(_mowing_surface, ((current + 1) % MHMowingDesign.Pattern.size()) as MHMowingDesign.Pattern)
+	_refresh_mowing_controls()
+
+
+func _cycle_mowing_width() -> void:
+	var next_width: int = mowing_design.width_for(_mowing_surface) + 2
+	if next_width > MHMowingDesign.MAX_WIDTH_YD:
+		next_width = MHMowingDesign.MIN_WIDTH_YD
+	if _mowing_surface == MHCraftHole.Surface.GREEN:
+		mowing_design.green_width_yd = next_width
+	else:
+		mowing_design.fairway_width_yd = next_width
+	_save_mowing_design()
+
+
+func _cycle_mowing_direction() -> void:
+	set_mowing_direction(mowing_design.direction_deg + 15)
+	_refresh_mowing_controls()
+
+
+func _cycle_mowing_intensity() -> void:
+	var levels: Array[float] = [0.04, 0.065, 0.09, 0.12]
+	var nearest: int = 0
+	var best: float = 99.0
+	for i: int in range(levels.size()):
+		var distance: float = absf(levels[i] - mowing_design.intensity)
+		if distance < best:
+			best = distance
+			nearest = i
+	mowing_design.intensity = levels[(nearest + 1) % levels.size()]
+	_save_mowing_design()
+
+
+func _save_mowing_design() -> void:
+	if live != null and live.craft_hole != null:
+		live.craft_hole.mowing = mowing_design.to_dict()
+		live._request_save()
+	_refresh_mowing_controls()
+	if _world != null and is_inside_tree():
+		_draw()
+
+
+func _refresh_mowing_controls() -> void:
+	if _mowing_surface_button == null:
+		return
+	var surface_name: String = "Green" if _mowing_surface == MHCraftHole.Surface.GREEN else "Fairway"
+	_mowing_surface_button.text = "Area: " + surface_name
+	_mowing_pattern_button.text = "Pattern: " + mowing_design.pattern_name(mowing_design.pattern_for(_mowing_surface))
+	_mowing_width_button.text = "Width: %d yd" % mowing_design.width_for(_mowing_surface)
+	_mowing_direction_button.text = "Direction: %d°" % mowing_design.direction_deg
+	var intensity_names: Array[String] = ["Subtle", "Classic", "Strong", "Tournament"]
+	var levels: Array[float] = [0.04, 0.065, 0.09, 0.12]
+	var nearest: int = 0
+	var best: float = 99.0
+	for i: int in range(levels.size()):
+		var distance: float = absf(levels[i] - mowing_design.intensity)
+		if distance < best:
+			best = distance
+			nearest = i
+	_mowing_intensity_button.text = "Contrast: " + intensity_names[nearest]
 
 
 func _surface_button(parent: Control, title: String, surface_id: int) -> void:
