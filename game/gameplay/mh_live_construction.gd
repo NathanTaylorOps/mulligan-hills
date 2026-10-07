@@ -4,7 +4,7 @@ extends Node3D
 ## Isolated development slot/ledger never overwrite ordinary saves or token balances.
 const SAVE_DIR: String = "user://phase1_live/saves"
 const LEDGER_DIR: String = "user://phase1_live/ledgers"
-const CELLS: int = 128 # Integration surface, not a measured final course/map budget.
+const CELLS: int = 192 # Three distinct compact craft footprints plus mobile-safe surrounding terrain.
 
 ## Tests may isolate ledger files as well as their MHSaveStore directory.
 var ledger_dir: String = LEDGER_DIR
@@ -83,7 +83,7 @@ func _ready() -> void:
 	controller = MHCameraController.new()
 	controller.config = cfg
 	add_child(controller)
-	controller.rig.target = Vector3(64, 0, 64)
+	controller.rig.target = Vector3(96, 0, 96)
 	controller.desktop_pan(Vector2.ZERO)
 	var layer: CanvasLayer = CanvasLayer.new()
 	add_child(layer)
@@ -153,13 +153,13 @@ func _ready() -> void:
 	# saves now carry the exact draft. Legacy unfinalized saves are migrated once by
 	# importing non-default world paint and height into the starter craft grid.
 	if session.hole_definitions().is_empty() and restored_craft == null:
-		MHCraftTerrainBridge.overlay_nondefault_from_world(craft_hole, editor, Vector2i(480, 340))
+		MHCraftTerrainBridge.overlay_nondefault_from_world(craft_hole, editor, craft_origin_dm())
 		# A brand-new slice gets the starter fairway/green stamped into the world.
 		# Existing saves keep their authored 1 m terrain exactly; the overlay above
 		# imports it into craft without rasterising the whole footprint back to 2 yd.
 		if not loaded_existing:
 			_syncing_craft_terrain = true
-			MHCraftTerrainBridge.sync_to_world(craft_hole, editor, Vector2i(480, 340), false)
+			MHCraftTerrainBridge.sync_to_world(craft_hole, editor, craft_origin_dm(), false)
 			_syncing_craft_terrain = false
 	one_hole.visibility_changed.connect(_on_panel_visibility)
 	one_hole.layout_changed.connect(_relayout)
@@ -362,7 +362,7 @@ func _sync_craft_from_world_dirty() -> void:
 		return
 	var dirty: Rect2i = _terrain_dirty_for_craft
 	_terrain_dirty_for_craft = Rect2i()
-	MHCraftTerrainBridge.sync_from_world_rect(craft_hole, editor, Vector2i(480, 340), dirty)
+	MHCraftTerrainBridge.sync_from_world_rect(craft_hole, editor, craft_origin_dm(), dirty)
 	if one_hole != null:
 		one_hole._refresh_canonical_craft()
 
@@ -371,7 +371,7 @@ func sync_craft_to_world(record_undo: bool = true) -> bool:
 	if craft_hole == null or editor == null or not session.hole_definitions().is_empty():
 		return false
 	_syncing_craft_terrain = true
-	var changed: bool = MHCraftTerrainBridge.sync_to_world(craft_hole, editor, Vector2i(480, 340), record_undo)
+	var changed: bool = MHCraftTerrainBridge.sync_to_world(craft_hole, editor, craft_origin_dm(), record_undo)
 	_syncing_craft_terrain = false
 	_terrain_dirty_for_craft = Rect2i()
 	return changed
@@ -382,7 +382,7 @@ func sync_craft_tiles_to_world(tiles: Array, record_undo: bool = true) -> bool:
 		return false
 	_syncing_craft_terrain = true
 	var changed: bool = MHCraftTerrainBridge.sync_tiles_to_world(
-		craft_hole, editor, Vector2i(480, 340), tiles, record_undo)
+		craft_hole, editor, craft_origin_dm(), tiles, record_undo)
 	_syncing_craft_terrain = false
 	_terrain_dirty_for_craft = Rect2i()
 	return changed
@@ -512,7 +512,7 @@ func _new_document() -> Dictionary:
 		"course": {"schema": "mh.course", "schema_version": 1,
 			"rating_engine_version": MHRatingEngine.RATING_VERSION,
 			"course_id": "00000000-0000-0000-0000-000000000002", "name_preset_id": 0,
-			"world": {"width_dm": 1280, "height_dm": 1280, "parcels": parcels},
+			"world": {"width_dm": CELLS * 10, "height_dm": CELLS * 10, "parcels": parcels},
 			"terrain": {"format_version": MHTerrainSave.VERSION, "file": "slot_0.mhts", "content_hash": "00000000",
 				"width_cells": CELLS, "height_cells": CELLS, "cell_size_dm": 10, "height_unit_mm": 1,
 				"height_min_mm": -32768, "height_max_mm": 32767, "surface_layers": MHSplatMap.LAYER_NAMES.duplicate()},
@@ -534,6 +534,12 @@ func select_craft_hole(index: int) -> bool:
 	if one_hole != null:
 		one_hole._refresh_canonical_craft()
 	return true
+
+func craft_origin_dm(index: int = -1) -> Vector2i:
+	if craft_course == null:
+		return Vector2i(120, 120)
+	var wanted: int = craft_course.active_index if index < 0 else index
+	return craft_course.origin(wanted)
 
 func craft_hole_number() -> int:
 	return 1 if craft_course == null else craft_course.active_index + 1
