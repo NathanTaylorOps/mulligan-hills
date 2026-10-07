@@ -1,5 +1,7 @@
 # Device Runbook (Phase 0): testing builds on real phones
 
+> **Historical Phase 0 record.** This device procedure predates the current verification system and contains old person-specific/repository assumptions. Use `docs/verification/DEVICE_TESTING.md` for current device evidence.
+
 Owner: workstream I (device). Status: written, NOT YET RUN on any device. Nothing here has been tried on a physical phone. Updated 2026-09-29 with the real workflow, artifact and benchmark screen names from `ci.md`, `forest.md`, `gestures.md` and the code in `game/bench/`.
 
 This document is for Nathan. It assumes no technical knowledge. Menu names differ between phone makers and Android versions. If you cannot find something, open Settings, tap the magnifier at the top and type the word.
