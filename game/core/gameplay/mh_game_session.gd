@@ -27,6 +27,7 @@ var practice: MHPracticeRound = null
 var _holes: Array = []
 var _ratings: Array = []
 var _course: Dictionary = {}
+var _hole_origins_dm: Array = []
 
 
 static func create() -> MHGameSession:
@@ -49,6 +50,43 @@ static func create() -> MHGameSession:
 
 func hole_definitions() -> Array:
 	return _holes.duplicate(true)
+
+
+func hole_origins_dm() -> Array:
+	return _hole_origins_dm.duplicate(true)
+
+
+func set_hole_origins_dm(origins: Array) -> bool:
+	if origins.size() != _holes.size():
+		return false
+	var clean: Array = []
+	for value: Variant in origins:
+		if typeof(value) != TYPE_ARRAY or (value as Array).size() != 2:
+			return false
+		var point: Array = value as Array
+		if not MHRValidate.is_int_value(point[0]) or not MHRValidate.is_int_value(point[1]):
+			return false
+		clean.append([int(point[0]), int(point[1])])
+	_hole_origins_dm = clean
+	return true
+
+
+func hole_world_points_m() -> Array:
+	var out: Array = []
+	if _hole_origins_dm.size() != _holes.size():
+		return out
+	for i: int in range(_holes.size()):
+		var h: Dictionary = _holes[i] as Dictionary
+		var origin: Array = _hole_origins_dm[i] as Array
+		var tee: Array = h["tee"] as Array
+		var green: Array = h["green"] as Array
+		out.append({"slot_id": int(h["slot_id"]),
+			"tee": Vector2(float(MHCourseLayout.world_mm(int(origin[0]), int(tee[0]) * 100)) / 1000.0,
+				float(MHCourseLayout.world_mm(int(origin[1]), int(tee[1]) * 100)) / 1000.0),
+			"green": Vector2(float(MHCourseLayout.world_mm(int(origin[0]), int(green[0]) * 100)) / 1000.0,
+				float(MHCourseLayout.world_mm(int(origin[1]), int(green[1]) * 100)) / 1000.0),
+			"green_radius_m": float(int(green[2])) * 0.9144})
+	return out
 
 
 ## Checkpoint restore re-rates designs without charging construction or granting achievement rewards.
