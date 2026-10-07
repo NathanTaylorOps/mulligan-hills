@@ -39,9 +39,9 @@ const BUDGETS: Dictionary = {
 	"flag": [40, 14],
 	"hole_cup": [28, 8],
 	"tee_marker": [40, 20],
-	"bench": [120, 56],
-	"cart": [240, 100],
-	"sign": [32, 28],
+	"bench": [180, 56],
+	"cart": [380, 100],
+	"sign": [60, 28],
 	"fence": [120, 40],
 	"golf_bag": [60, 28],
 	"bin": [48, 20],
@@ -169,6 +169,11 @@ static func _bench(b: MHMeshBuilder, lod: int, variant: int) -> void:
 			b.box(Vector3(0.0, 0.45, z), Vector3(1.6, 0.04, 0.13), seat, seat, seat_dark)
 		b.box(Vector3(0.0, 0.70, -0.23), Vector3(1.6, 0.12, 0.03), seat, seat, seat_dark)
 		b.box(Vector3(0.0, 0.86, -0.23), Vector3(1.6, 0.12, 0.03), seat, seat, seat_dark)
+		# Arm rests give the near silhouette the resort-furniture character visible
+		# in the richer references while the far LOD stays unchanged.
+		for ax in [-0.68, 0.68]:
+			b.box(Vector3(float(ax), 0.62, 0.03), Vector3(0.06, 0.06, 0.46), frame, frame, frame)
+			b.box(Vector3(float(ax), 0.52, -0.16), Vector3(0.05, 0.24, 0.05), frame, frame, frame)
 		for sx in [-0.72, 0.72]:
 			var x: float = float(sx)
 			b.box(Vector3(x, 0.225, 0.0), Vector3(0.06, 0.45, 0.46), frame, frame, frame)
@@ -197,6 +202,14 @@ static func _cart(b: MHMeshBuilder, lod: int, variant: int) -> void:
 		b.box(Vector3(0.0, 0.50, 0.85), Vector3(1.1, 0.30, 0.55), body, body_dark, body_dark)
 		b.box(Vector3(0.0, 0.70, -0.45), Vector3(1.0, 0.12, 0.55), seat, seat, seat)
 		b.box(Vector3(0.0, 0.98, -0.78), Vector3(1.0, 0.45, 0.10), seat, seat, seat)
+		# Steering wheel, dashboard and rear bag well are cheap hero details that
+		# make parked/celebrity carts read as vehicles rather than coloured boxes.
+		b.box(Vector3(0.0, 0.88, 0.43), Vector3(0.82, 0.12, 0.08), body_dark, body_dark, body_dark)
+		b.tube(Vector3(0.0, 0.80, 0.42), Vector3(0.0, 1.04, 0.28), 0.022, 0.018, 5, metal, metal)
+		b.set_xf(Transform3D(Basis(Vector3(1.0, 0.0, 0.0), PI * 0.5), Vector3(0.0, 1.05, 0.26)))
+		b.frustum(-0.025, 0.025, 0.16, 0.16, 8, rubber, rubber, false, false)
+		b.reset_xf()
+		b.box(Vector3(0.0, 0.58, -1.02), Vector3(0.82, 0.32, 0.08), MHPalette.METAL_DARK, MHPalette.METAL_DARK, MHPalette.METAL_DARK)
 		b.tube(Vector3(0.0, 0.62, 0.55), Vector3(0.0, 0.92, 0.38), 0.025, 0.025, 4, MHPalette.METAL_DARK, MHPalette.METAL_DARK)
 		b.box(Vector3(0.0, 1.92, 0.05), Vector3(1.2, 0.06, 1.7), roof, roof, body_dark)
 		for px in [-0.52, 0.52]:
