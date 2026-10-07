@@ -59,9 +59,10 @@ static func split_groups(n: int, size_limit: int) -> Array:
 
 ## Queues an authoritative whole-golfer count already booked by MHEconomy.
 ## No demand, acceptance or money is recomputed here.
-func add_booked_golfers(count: int, customer_ids: Array = []) -> int:
+func add_booked_golfers(count: int, customer_ids: Array = [], booked_minute: int = -1) -> int:
 	var whole: int = maxi(0, count)
 	var cursor: int = 0
+	var booked_at: int = next_tee_minute if booked_minute < 0 else booked_minute
 	for size_value: Variant in split_groups(whole, group_size):
 		var size: int = int(size_value)
 		var ids: Array = []
@@ -72,7 +73,7 @@ func add_booked_golfers(count: int, customer_ids: Array = []) -> int:
 		# Booked groups are authoritative business traffic: never discard them because a visual queue is busy.
 		# MHSliceGolfers has its own rendering caps, so retaining this tiny dictionary queue is cheap.
 		queue.append({"serial": next_serial, "size": size, "customer_ids": ids,
-			"booked_minute": next_tee_minute})
+			"booked_minute": booked_at})
 		next_serial += 1
 	return whole
 
