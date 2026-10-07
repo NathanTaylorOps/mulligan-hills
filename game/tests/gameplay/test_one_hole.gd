@@ -643,6 +643,35 @@ func test_six_default_holes_fit_initially_owned_golf_land_without_overlap() -> v
 	assert_bool(encoded.is_ok()).override_failure_message(encoded.message).is_true()
 
 
+func test_default_course_prefix_fits_each_recommended_land_capacity() -> void:
+	var session: MHGameSession = MHGameSession.create()
+	var scene: MHLiveConstruction = auto_free(MHLiveConstruction.new())
+	scene.session = session
+	var craft: MHCraftCourse = MHCraftCourse.new()
+	for step: int in range(MHLandModel.GOLF_EXPANSION_PRIORITY.size() + 1):
+		var capacity: int = session.land.hole_capacity()
+		craft.ensure_holes(capacity)
+		var defs: Array = craft.valid_hole_defs()
+		assert_int(defs.size()).is_equal(capacity)
+		var origins: Array = []
+		for i: int in range(capacity):
+			var origin: Vector2i = craft.origin(i)
+			origins.append([origin.x, origin.y])
+		var course_doc: Dictionary = scene._new_document()["course"] as Dictionary
+		# A default course must use golf land, never a facility/homes parcel that happens to be owned.
+		for parcel_value: Variant in (course_doc["world"] as Dictionary)["parcels"]:
+			var parcel: Dictionary = parcel_value as Dictionary
+			var parcel_id: int = int(parcel["parcel_id"])
+			parcel["owned"] = session.land.is_owned(parcel_id) and session.land.kind_of(parcel_id) == "golf"
+		var encoded: MHSaveResult = MHCourseLayout.encode(defs, course_doc, origins)
+		assert_bool(encoded.is_ok()).override_failure_message(
+			"capacity %d after %d guided purchases: %s" % [capacity, step, encoded.message]).is_true()
+		if step < MHLandModel.GOLF_EXPANSION_PRIORITY.size():
+			var parcel_id: int = session.land.recommended_next()
+			assert_int(parcel_id).is_equal(MHLandModel.GOLF_EXPANSION_PRIORITY[step])
+			assert_int(session.land.buy(parcel_id)).is_greater(-1)
+
+
 func test_all_eighteen_default_holes_fit_golf_land_without_overlap() -> void:
 	var session: MHGameSession = MHGameSession.create()
 	var scene: MHLiveConstruction = auto_free(MHLiveConstruction.new())
