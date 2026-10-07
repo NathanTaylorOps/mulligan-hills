@@ -7,6 +7,7 @@ extends RefCounted
 
 signal changed()
 signal autosave_requested()
+signal golfers_booked(count: int, customer_ids: Array, booked_minute: int)
 
 var clock: MHGameClock = MHGameClock.new()
 var ledger: MHTokenLedger = MHTokenLedger.new()
@@ -317,7 +318,7 @@ func advance(delta_us: int, wall_unix: int) -> void:
 		var booked: int = int(tick.get("golfers", 0))
 		if booked > 0:
 			var absolute_hour: int = economy.day * MHEconomy.HOURS_PER_DAY + handled_hour
-			golfers_booked.emit(booked, customer_ids_for_booking(booked, absolute_hour))
+			golfers_booked.emit(booked, customer_ids_for_booking(booked, absolute_hour), clock.total_minutes())
 		var wage: int = staff.pay_hour(handled_hour)
 		if wage > 0:
 			economy.incur_loss(wage)
