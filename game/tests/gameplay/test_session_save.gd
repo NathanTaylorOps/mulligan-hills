@@ -501,3 +501,20 @@ func test_three_hole_world_route_survives_checkpoint_exactly() -> void:
 	var rs: MHGameSession = restored.value as MHGameSession
 	assert_array(rs.hole_origins_dm()).is_equal(origins)
 	assert_array(rs.hole_world_points_m()).is_equal(before)
+
+func test_restore_rejects_named_members_above_accounting_capacity() -> void:
+	var s: MHGameSession = MHGameSession.create()
+	var doc: Dictionary = _checkpoint(s)
+	var row: Dictionary = doc["runtime"]["customers"]["rows"][0] as Dictionary
+	row["visits"] = MHGolferCustomers.REGULAR_VISITS + MHGolferCustomers.MEMBER_EXTRA_VISITS
+	row["satisfaction"] = MHGolferCustomers.MEMBER_MIN_SAT
+	row["regular"] = true
+	row["member_eligible"] = false
+	row["member"] = true
+	row["good_member_visits"] = MHGolferCustomers.MEMBER_EXTRA_VISITS
+	# Economy starts with no aggregate membership capacity, so this is individually valid but cross-system impossible.
+	assert_int(int(doc["club"]["members"])).is_equal(0)
+	MHSaveGame.seal(doc)
+	var restored: MHSaveResult = MHSessionSave.restore(doc, s.ledger)
+	assert_bool(restored.is_ok()).is_false()
+	assert_str(restored.message).is_equal("named members exceed accounting membership capacity")
