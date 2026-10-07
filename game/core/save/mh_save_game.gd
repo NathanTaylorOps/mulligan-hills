@@ -377,6 +377,8 @@ static func _validate_club(d: Dictionary, strict: bool, errs: Array) -> void:
 			errs.append("$.club.design_style.style_id malformed")
 		_int_in(ds, "points", 0, 1000000, "$.club.design_style", errs, false)
 	if club.has("staff_roster"):
+		if typeof(d.get("min_reader_version", null)) != TYPE_INT or int(d["min_reader_version"]) < 6:
+			errs.append("staff roster requires reader 6")
 		_validate_staff_roster(club, errs)
 	if strict:
 		_only_keys(club, ["name_preset_id", "cash", "lifetime_earned", "green_fee", "members", "reputation",
