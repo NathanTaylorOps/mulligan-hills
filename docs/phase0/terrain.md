@@ -1,5 +1,7 @@
 # Phase 0 status: Terrain (workstream C)
 
+> **Historical Phase 0 record.** This file captures the initial terrain feasibility work. Current course/terrain architecture is in `docs/ARCHITECTURE.md`, `docs/phase1/terrain_designer.md` and current source/tests.
+
 **Status: code written, Python references (brush and save fixtures) RUN, all GDScript, shader, scene and gdUnit4 tests NOT YET RUN.** Nobody has executed Godot in this sandbox. Treat everything under "GDScript" below as unverified until CI is green.
 
 ## README block
