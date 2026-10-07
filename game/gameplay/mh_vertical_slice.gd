@@ -348,12 +348,17 @@ func _rebuild_course(owned: PackedInt32Array) -> void:
 	hole_points = []
 	var flag_xf: Array = []
 	var tree_xf: Array = []
-	for d: Variant in session.hole_definitions():
-		var def: Dictionary = d
+	var defs: Array = session.hole_definitions()
+	var origins: Array = session.hole_origins_dm()
+	var authoritative_points: Array = session.hole_world_points_m()
+	for i: int in range(defs.size()):
+		var def: Dictionary = defs[i] as Dictionary
 		var slot: int = int(def["slot_id"])
 		built_slots.append(slot)
-		hole_points.append(MHSliceLayout.hole_points_m(def))
-		_add_hole_geometry(b, slot, def, flag_xf, tree_xf)
+		if i < authoritative_points.size():
+			hole_points.append((authoritative_points[i] as Dictionary).duplicate(true))
+		var origin: Array = origins[i] as Array if i < origins.size() else (MHSliceLayout.HOLE_ORIGINS_DM[clampi(slot, 0, MHSliceLayout.HOLE_ORIGINS_DM.size() - 1)] as Array)
+		_add_hole_geometry(b, slot, def, origin, flag_xf, tree_xf)
 	_ground.mesh = b.to_mesh()
 	_ground.material_override = _mat
 	_ground.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
@@ -363,22 +368,22 @@ func _rebuild_course(owned: PackedInt32Array) -> void:
 		_course_root.add_child(MHArtMaterials.make_multimesh(MHNatureMeshes.build("pine", 0, 0), _mat, tree_xf))
 
 
-func _add_hole_geometry(b: MHMeshBuilder, slot: int, def: Dictionary, flag_xf: Array, tree_xf: Array) -> void:
-	var pts: Dictionary = MHSliceLayout.hole_points_m(def)
+func _add_hole_geometry(b: MHMeshBuilder, slot: int, def: Dictionary, origin_dm: Array, flag_xf: Array, tree_xf: Array) -> void:
+	var pts: Dictionary = MHSliceLayout.hole_points_at_origin_m(def, origin_dm)
 	var tee: Vector2 = pts["tee"] as Vector2
 	var green: Vector2 = pts["green"] as Vector2
 	for f: Variant in def["features"]:
 		var feat: Dictionary = f
 		var kind: String = str(feat["t"])
 		if kind == "fairway":
-			_flat_rect(b, MHSliceLayout.feature_rect_m(slot, feat["rect"] as Array), 0.08, MHPalette.GRASS_LIGHT)
+			_flat_rect(b, MHSliceLayout.feature_rect_at_origin_m(origin_dm, feat["rect"] as Array), 0.08, MHPalette.GRASS_LIGHT)
 		elif kind == "bunker":
 			_flat_rect(b, MHSliceLayout.feature_rect_m(slot, feat["rect"] as Array), 0.16, MHPalette.SAND)
 		elif kind == "water":
 			_flat_rect(b, MHSliceLayout.feature_rect_m(slot, feat["rect"] as Array), 0.16, MHPalette.WATER)
 		elif kind == "tree":
 			for t: Variant in feat["at"]:
-				var p: Vector2 = MHSliceLayout.hole_point_m(slot, int((t as Array)[0]), int((t as Array)[1]))
+				var p: Vector2 = MHSliceLayout.origin_point_m(origin_dm, int((t as Array)[0]), int((t as Array)[1]))
 				tree_xf.append(Transform3D(Basis.from_scale(Vector3(1.0, 1.0, 1.0)), Vector3(p.x, 0.0, p.y)))
 	b.disc(Vector3(green.x, 0.24, green.y), float(pts["green_radius_m"]), 14, MHPalette.GRASS_DARK)
 	_flat_rect(b, Rect2(tee.x - 1.5, tee.y - 1.0, 3.0, 2.0), 0.16, MHPalette.PATH_STONE)
