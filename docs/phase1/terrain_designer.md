@@ -1,6 +1,6 @@
 # Terrain designer ("craft") spec
 
-Status: 5 October 2026. Core model and converter written with tests (CI green). Screens, rendering and shot overlay NOT built. Sources: DEC-084 (craft), DEC-085 (isometric camera), DEC-086 (SimGolf quality bar), DEC-088 to DEC-090 (v1 scope), `simgolf_reference.md`.
+Status: 6 October 2026. Core model/converter, live craft controls, shared-world bridge and exact-draft persistence are implemented on the current integration branch. Godot/device verification is still required before merge. Sources: DEC-084 (craft), DEC-085 (isometric camera), DEC-086 (SimGolf quality bar), DEC-088 to DEC-090 (v1 scope), `simgolf_reference.md`.
 
 ## What the player does
 Paint a hole tile by tile, sculpt its height, place one tee, one to four pins and scenery, see the shot line and numbers, and get the rating. Square tiles, drawn with smoothed edges (logic stays on the grid).
@@ -34,5 +34,5 @@ Painting to rating input (RHI v1, whole yards, hole-local frame), deterministic 
 
 ## Open questions for the lead
 1. Tile size: 2 yd is good for a phone finger on an 18-hole course; 1 yd is finer but four times the tiles. Keep 2?
-2. Should the rating engine read elevation (valleys, slopes, uphill shots)? Today it does not.
-3. Do holes share one map, or does each hole get its own edit grid placed on the 16-parcel map (the slice does the second)?
+2. Elevation is resolved by DEC-091: rating and ball roll read relief.
+3. Shared-map architecture is resolved by DEC-092: the persisted world terrain is shared; each hole carries a semantic/rating craft grid over its footprint rather than owning a separate terrain world.
