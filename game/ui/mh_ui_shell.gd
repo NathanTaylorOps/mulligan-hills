@@ -36,7 +36,7 @@ var _modal: MHScreen = null
 var _modal_id: String = ""
 var _mode: int = Mode.EDIT
 var _backdrop: ColorRect
-var _host: MarginContainer
+var _host: Control
 var _overlay_layer: Control
 var _modal_layer: Control
 var _toast_layer: VBoxContainer
@@ -63,8 +63,12 @@ func setup(p_view: MHGameStateView, p_settings: MHUISettings = null) -> void:
 	_backdrop.set_anchors_preset(Control.PRESET_FULL_RECT)
 	_backdrop.visible = false
 	add_child(_backdrop)
-	_host = MarginContainer.new()
-	_host.set_anchors_preset(Control.PRESET_FULL_RECT)
+	# Screen host must be a plain Control, not a MarginContainer. Container
+	# minimum-size negotiation could shrink the full HUD to the content size
+	# (Cash/Speed/Nav in the top third), leaving its expanding spacer ineffective.
+	# Safe-area insets are applied as a viewport-relative rect in _recompute().
+	_host = Control.new()
+	_host.set_anchors_preset(Control.PRESET_TOP_LEFT)
 	_host.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(_host)
 	_overlay_layer = _make_layer()
@@ -245,6 +249,9 @@ func _make_screen(id: String, args: Dictionary) -> MHScreen:
 	node.intent.connect(_on_screen_intent)
 	node.back_requested.connect(pop_screen)
 	_host.add_child(node)
+	# Reset offsets only after the Control has its actual parent/viewport rect.
+	# Child sizing is then deterministic even when buttons wrap at small widths.
+	node.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	return node
 
 
@@ -491,10 +498,10 @@ func _recompute() -> void:
 	var old_kind: int = ctx.layout_kind
 	ctx.recompute(window_px, units, dpi, safe)
 	var ins: Vector4 = ctx.safe_insets
-	_host.add_theme_constant_override("margin_left", int(ins.x))
-	_host.add_theme_constant_override("margin_top", int(ins.y))
-	_host.add_theme_constant_override("margin_right", int(ins.z))
-	_host.add_theme_constant_override("margin_bottom", int(ins.w))
+	_host.position = Vector2(ins.x, ins.y)
+	_host.size = Vector2(
+		maxf(0.0, units.x - ins.x - ins.z),
+		maxf(0.0, units.y - ins.y - ins.w))
 	if old_kind != ctx.layout_kind and not _nodes.is_empty():
 		_rebuild_all()
 
