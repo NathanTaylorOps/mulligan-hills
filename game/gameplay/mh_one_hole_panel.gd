@@ -1110,6 +1110,7 @@ func _draw() -> void:
 	_move_aim()
 
 func _draw_craft_terrain(hole: MHCraftHole) -> void:
+	mowing_design = MHMowingDesign.from_dict(hole.mowing)
 	# Height preview must follow the editable grid even while the draft is
 	# temporarily invalid (for example while moving a pin off a green).
 	var layout: Dictionary = _layout()
@@ -1266,12 +1267,18 @@ func _draw_mowing_accents(hole: MHCraftHole, relief_hole: MHRHole) -> void:
 
 func set_mowing_pattern(surface: int, pattern: MHMowingDesign.Pattern) -> void:
 	mowing_design.set_surface_pattern(surface, pattern)
+	if live != null and live.craft_hole != null:
+		live.craft_hole.mowing = mowing_design.to_dict()
+		live._request_save()
 	if _world != null and is_inside_tree():
 		_draw()
 
 
 func set_mowing_direction(degrees: int) -> void:
 	mowing_design.direction_deg = posmod(degrees, 180)
+	if live != null and live.craft_hole != null:
+		live.craft_hole.mowing = mowing_design.to_dict()
+		live._request_save()
 	if _world != null and is_inside_tree():
 		_draw()
 
