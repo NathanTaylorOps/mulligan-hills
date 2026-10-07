@@ -220,6 +220,21 @@ func test_live_build_play_entry_uses_owned_canonical_craft_draft() -> void:
 	scene._active = false
 
 
+func test_entering_normal_editor_immediately_owns_world_input() -> void:
+	var scene: MHLiveConstruction = auto_free(MHLiveConstruction.new())
+	scene.store = MHSaveStore.new("user://test_editor_input_handoff")
+	scene.ledger_dir = "user://test_editor_input_handoff_ledgers"
+	add_child(scene)
+	assert_bool(scene._active).is_true()
+	scene.shell.push_screen(MHScreenIds.EDITOR)
+	await get_tree().process_frame
+	assert_str(scene.shell.current_screen_id()).is_equal(MHScreenIds.EDITOR)
+	assert_bool(scene.router.accept_world_input).is_true()
+	assert_int(scene.editor.brush_mode).is_equal(MHBrush.Mode.RAISE)
+	assert_int(scene.editor.brush_radius).is_equal(MHEditorTools.RADIUS_DEFAULT)
+	scene._active = false
+
+
 func test_one_hole_mode_has_real_panel_area_and_editor_navigation_closes_it() -> void:
 	var scene: MHLiveConstruction = auto_free(MHLiveConstruction.new())
 	scene.store = MHSaveStore.new("user://test_one_hole_layout_mode")
