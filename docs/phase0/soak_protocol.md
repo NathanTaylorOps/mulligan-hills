@@ -1,5 +1,7 @@
 # Soak Protocol (Phase 0): 20 minute thermal and stability test
 
+> **Historical Phase 0 record.** This file contains the original soak-test procedure. Current physical-device and performance evidence should follow `docs/verification/DEVICE_TESTING.md` and `docs/verification/PERFORMANCE.md`.
+
 Owner: workstream I (device). Status: written, NOT YET RUN. Thresholds updated 2026-09-29 to DEC-046 and DEC-047 (placeholders until measured). Steps for the manager are in `device_runbook.md` (sections 6 A4 and 7 B2).
 
 ## 1. Purpose
