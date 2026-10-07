@@ -299,7 +299,8 @@ func _sync_world(force: bool) -> void:
 		return
 	_sig = sig
 	var owned: PackedInt32Array = session.land.owned_ids()
-	var course_sig: String = "%s|%d" % [str(owned), session.economy.holes]
+	# Static geometry changes only when land, authored hole geometry, or persisted origins change.
+	var course_sig: String = "%s|%s|%s" % [str(owned), str(session.hole_definitions()), str(session.hole_origins_dm())]
 	if course_sig != _course_sig or force:
 		_course_sig = course_sig
 		_rebuild_course(owned)
