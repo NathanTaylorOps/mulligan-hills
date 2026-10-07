@@ -69,6 +69,7 @@ signal layout_changed()
 var _aim: MeshInstance3D
 var visual_quality: MHVisualQuality.Tier = MHVisualQuality.automatic()
 var _visual_settings: Dictionary = {}
+var mowing_design: MHMowingDesign = MHMowingDesign.new()
 const ORIGIN: Array = [480, 340]
 
 func setup(scene: MHLiveConstruction) -> void:
@@ -1222,13 +1223,12 @@ func _draw_hazard_depth(hole: MHCraftHole, relief_hole: MHRHole) -> void:
 
 
 func _draw_mowing_accents(hole: MHCraftHole, relief_hole: MHRHole) -> void:
-	# Long mowing bands follow the dominant tee-to-pin axis. The old tile parity
-	# pattern could read as a checkerboard; this keeps the authoritative tile mesh
-	# untouched while giving fairways the intentional striped look of the references.
+	# Sample the configurable design at tile centres and emit one translucent
+	# batch. Fairways and greens can use independent patterns and widths.
 	var tee: Vector2i = hole.tees[0] as Vector2i if not hole.tees.is_empty() else Vector2i(hole.cols / 2, 0)
 	var pin: Vector2i = hole.pins[0] as Vector2i if not hole.pins.is_empty() else Vector2i(hole.cols / 2, hole.rows - 1)
-	var delta: Vector2i = pin - tee
-	var along_rows: bool = absi(delta.y) >= absi(delta.x)
+	var delta: Vector2 = Vector2(float(pin.x - tee.x), float(pin.y - tee.y))
+	var along_angle: float = atan2(delta.y, delta.x)
 	var st: SurfaceTool = SurfaceTool.new()
 	st.begin(Mesh.PRIMITIVE_TRIANGLES)
 	var added: bool = false
@@ -1237,9 +1237,8 @@ func _draw_mowing_accents(hole: MHCraftHole, relief_hole: MHRHole) -> void:
 			var surface: int = hole.get_surface(c, r)
 			if surface not in [MHCraftHole.Surface.FAIRWAY, MHCraftHole.Surface.GREEN, MHCraftHole.Surface.TEE]:
 				continue
-			# Four-yard passes are broad enough to survive the mobile camera.
-			var cross_index: int = c if along_rows else r
-			if (cross_index / 2) % 2 != 0:
+			var centre_yd: Vector2i = hole.tile_centre_yd(c, r)
+			if not mowing_design.highlighted(surface, float(centre_yd.x), float(centre_yd.y), along_angle):
 				continue
 			var x0: int = hole.tile_x0_yd(c) * 100
 			var x1: int = (hole.tile_x0_yd(c) + MHCraftHole.TILE_YD) * 100
@@ -1255,7 +1254,7 @@ func _draw_mowing_accents(hole: MHCraftHole, relief_hole: MHRHole) -> void:
 		return
 	var mesh: ArrayMesh = st.commit()
 	var material: StandardMaterial3D = StandardMaterial3D.new()
-	material.albedo_color = Color(0.82, 0.95, 0.55, 0.065)
+	material.albedo_color = Color(0.82, 0.95, 0.55, mowing_design.intensity)
 	material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
 	material.roughness = 0.78
 	var instance: MeshInstance3D = MeshInstance3D.new()
@@ -1263,6 +1262,18 @@ func _draw_mowing_accents(hole: MHCraftHole, relief_hole: MHRHole) -> void:
 	instance.material_override = material
 	instance.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	_world.add_child(instance)
+
+
+func set_mowing_pattern(surface: int, pattern: MHMowingDesign.Pattern) -> void:
+	mowing_design.set_surface_pattern(surface, pattern)
+	if _world != null and is_inside_tree():
+		_draw()
+
+
+func set_mowing_direction(degrees: int) -> void:
+	mowing_design.direction_deg = posmod(degrees, 180)
+	if _world != null and is_inside_tree():
+		_draw()
 
 
 func _draw_craft_grid(hole: MHCraftHole, relief_hole: MHRHole) -> void:
