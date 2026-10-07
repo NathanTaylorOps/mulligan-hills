@@ -626,3 +626,23 @@ func test_legacy_terrain_expansion_preserves_existing_samples_exactly() -> void:
 	# Newly-added land is clean rough, not a stretched copy of an old edge.
 	assert_int(grid.get_h(180, 180)).is_equal(0)
 	assert_int(splat.get_weight(180, 180, MHSplatMap.Layer.ROUGH)).is_equal(255)
+
+func test_legacy_stacked_finalized_course_remains_readable_but_cannot_be_reencoded_overlapping() -> void:
+	var session: MHGameSession = MHGameSession.create()
+	var scene: MHLiveConstruction = auto_free(MHLiveConstruction.new())
+	scene.session = session
+	var course: Dictionary = scene._new_document()["course"] as Dictionary
+	var craft: MHCraftCourse = MHCraftCourse.new()
+	craft.ensure_holes(3)
+	var defs: Array = craft.valid_hole_defs()
+	course["schema_version"] = 2
+	course["rating_engine_version"] = MHRatingEngine.RATING_VERSION
+	course["holes"] = []
+	for i: int in range(defs.size()):
+		course["holes"].append({"hole_no": i + 1, "origin_dm": [960, 560],
+			"layout": (defs[i] as Dictionary).duplicate(true)})
+	assert_bool(MHCourseLayout.decode(course).is_ok()).is_true()
+	var rejected: MHSaveResult = MHCourseLayout.encode(defs, course,
+		[[960, 560], [960, 560], [960, 560]])
+	assert_bool(rejected.is_ok()).is_false()
+	assert_str(rejected.message).is_equal("hole geometry overlaps another hole")
