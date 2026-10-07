@@ -21,7 +21,7 @@ extends RefCounted
 const SCHEMA_ID: String = "mh.save"
 const SAVE_VERSION: int = 1
 ## Highest min_reader_version this build can read. Bump when a save change is not readable by older apps.
-const READER_VERSION: int = 5
+const READER_VERSION: int = 6
 const MAX_SLOTS: int = 5
 const MAX_INT: int = 9007199254740991
 const MAX_FILE_BYTES: int = 16777216
