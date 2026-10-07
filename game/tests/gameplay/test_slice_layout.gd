@@ -209,6 +209,15 @@ func test_the_real_session_can_build_the_starter_holes_and_they_are_not_dead() -
 		assert_bool(bool(row["valid"])).is_true()
 		assert_bool(bool(row["dead"])).override_failure_message("score %d" % int(row["score"])).is_false()
 
+func test_slice_starter_populates_world_points_for_every_hole() -> void:
+	var s: MHGameSession = MHGameSession.create()
+	assert_object(s).is_not_null()
+	var view: MHLiveGameStateView = MHLiveGameStateView.new(s)
+	assert_str(MHSliceStarter.setup(s, view)).is_equal("")
+	assert_int(s.hole_origins_dm().size()).is_equal(MHSliceStarter.STARTER_HOLES)
+	assert_int(s.hole_world_points_m().size()).is_equal(MHSliceStarter.STARTER_HOLES)
+
+
 func test_origin_aware_hole_points_ignore_slot_placement() -> void:
 	var h: Dictionary = {"slot_id": 0, "tee": [0, 0], "green": [0, 100, 8], "features": []}
 	var a: Dictionary = MHSliceLayout.hole_points_at_origin_m(h, [600, 560])
