@@ -15,6 +15,8 @@ var analytics_opt_in: bool = false
 var consent_shown: bool = false
 var text_scale_pct: int = 100
 var left_handed: bool = false
+## The course grid is the default in-world view; the player can hide it temporarily.
+var grid_visible: bool = true
 var colorblind: int = 0
 var tutorial_done: bool = false
 var frame_cap: String = "auto"
@@ -67,6 +69,11 @@ func set_left_handed(v: bool) -> void:
 	changed.emit("left_handed")
 
 
+func set_grid_visible(v: bool) -> void:
+	grid_visible = v
+	changed.emit("grid_visible")
+
+
 func set_colorblind(v: int) -> void:
 	colorblind = normalize_colorblind(v)
 	changed.emit("colorblind")
@@ -89,6 +96,7 @@ func to_dict() -> Dictionary:
 		"consent_shown": consent_shown,
 		"text_scale_pct": text_scale_pct,
 		"left_handed": left_handed,
+		"grid_visible": grid_visible,
 		"colorblind": colorblind,
 		"tutorial_done": tutorial_done,
 		"frame_cap": frame_cap,
@@ -102,6 +110,7 @@ func apply_dict(d: Dictionary) -> void:
 	consent_shown = bool(d.get("consent_shown", consent_shown))
 	text_scale_pct = MHTheme.clamp_text_scale(int(d.get("text_scale_pct", text_scale_pct)))
 	left_handed = bool(d.get("left_handed", left_handed))
+	grid_visible = bool(d.get("grid_visible", grid_visible))
 	colorblind = normalize_colorblind(int(d.get("colorblind", colorblind)))
 	tutorial_done = bool(d.get("tutorial_done", tutorial_done))
 	frame_cap = MHFrameGovernor.normalize_setting(str(d.get("frame_cap", frame_cap)))
