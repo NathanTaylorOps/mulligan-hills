@@ -165,7 +165,8 @@ func customer_ids_for_booking(count: int, absolute_hour: int) -> Array:
 	# never to rendering; 29 is coprime with 128 so a batch cannot repeat until the roster wraps.
 	var out: Array = []
 	var base: int = posmod(absolute_hour * 37 + save_secret, MHGolferCustomers.COUNT)
-	for i: int in range(maxi(0, count)):
+	var unique_count: int = clampi(count, 0, MHGolferCustomers.COUNT)
+	for i: int in range(unique_count):
 		out.append(posmod(base + i * 29, MHGolferCustomers.COUNT))
 	return out
 
@@ -180,6 +181,8 @@ func accept_customer_membership(customer_id: int) -> bool:
 	return customers.accept_membership(customer_id)
 
 func record_customer_visit(customer_id: int, holes_played: int, wait_minutes: int) -> Dictionary:
+	if customer_id < 0 or customer_id >= MHGolferCustomers.COUNT:
+		return {}
 	var report: Dictionary = staff_report()
 	var experience: Dictionary = MHGolferExperience.evaluate(economy.rating, economy.fee, economy.suggest_fee(),
 		economy.tiers, holes_played, wait_minutes)
@@ -195,9 +198,7 @@ func record_customer_visit(customer_id: int, holes_played: int, wait_minutes: in
 			experience["worst"] = "condition"
 		experience["reaction"] = MHGolferExperience.reaction(int(experience["score"]), str(experience["best"]),
 			"course condition" if str(experience["worst"]) == "condition" else str(experience["worst"]))
-	var before: Dictionary = {}
-	if customer_id >= 0 and customer_id < MHGolferCustomers.COUNT:
-		before = (customers.rows[customer_id] as Dictionary).duplicate(true)
+	var before: Dictionary = (customers.rows[customer_id] as Dictionary).duplicate(true)
 	var after: Dictionary = customers.record_visit(customer_id, int(experience["score"]))
 	if after.is_empty():
 		return {}
