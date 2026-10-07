@@ -16,7 +16,8 @@ var land: MHLandModel
 var bridge: MHProgressBridge
 var demo: bool = true
 var club_name: String = "Mulligan Hills"
-var staff: int = 0 # No staffing rules exist yet. Do not invent employees to unlock tournaments.
+var staff: MHStaff
+var staff_defs: MHStaffDefs
 var save_secret: int = 0
 var rating_epoch: int = 0
 var unix_now: int = 0
@@ -35,8 +36,10 @@ static func create() -> MHGameSession:
 		return null
 	s.economy = MHEconomy.create_from_defs(params, s.defs)
 	s.land = MHLandModel.create(s.defs)
+	s.staff_defs = MHStaffDefs.load_default()
+	s.staff = MHStaff.create(s.staff_defs)
 	s.bridge = MHProgressBridge.create()
-	if s.economy == null or not s.bridge.is_ready():
+	if s.economy == null or s.staff == null or not s.bridge.is_ready():
 		return null
 	s._apply_course()
 	s._sync_progress()
@@ -122,15 +125,20 @@ func gate_view() -> MHGateView:
 
 
 func pace_score() -> int:
-	# Same course pace statistic used by the rating engine, converted to a 0..100 score.
-	# Until the authoritative pace-to-entry conversion exists, zero keeps the gate honest.
-	return 0
+	# Staff is the first authoritative live pace contribution; future course-flow pace can add to this.
+	return clampi(staff.pace_points(), 0, 100)
+
+func staff_view() -> Dictionary:
+	return MHStaffView.make(tiers(), land.owned_ids(), MHStaffView.kinds_from_defs(defs))
+
+func staff_report() -> Dictionary:
+	return staff.report(staff_view())
 
 
 func _club_view() -> Dictionary:
 	var g: MHGateView = gate_view()
 	return {"holes": g.holes, "avg_hole_score": g.avg_hole_score, "pace_score": pace_score(),
-		"staff": staff, "tiers": g.tiers}
+		"staff": staff.gate_staff_count(staff_view()), "tiers": g.tiers}
 
 
 func _sync_progress() -> void:
@@ -222,9 +230,16 @@ func advance(delta_us: int, wall_unix: int) -> void:
 	for i: int in range(0, events.size(), MHGameClock.EVENT_STRIDE):
 		if events[i] != MHGameClock.EV_HOUR:
 			continue
+		var handled_hour: int = economy.hour
 		var tick: Dictionary = economy.tick_hour()
+		var wage: int = staff.pay_hour(handled_hour)
+		if wage > 0:
+			economy.incur_loss(wage)
 		hourly = true
 		if bool(tick["day_rolled"]):
+			var sv: Dictionary = staff_view()
+			staff.on_day(economy.day, sv, save_secret)
+			economy.set_demand_modifier(staff.demand_permille(sv))
 			recent_scores.append(int(_course.get("course_x10", 0)) / 10)
 			if recent_scores.size() > 14:
 				recent_scores.remove_at(0)
