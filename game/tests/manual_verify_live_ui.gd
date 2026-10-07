@@ -105,6 +105,18 @@ func _verify() -> void:
 	if live.editor.splat.get_weight(sample_x, sample_y, MHSplatMap.Layer.PATH) != 255:
 		_fail("Craft path did not reach shared terrain")
 		return
+	# A craft area may be valid RHI geometry but cross an unowned property
+	# parcel. Build readiness must surface this BEFORE the player clicks Build.
+	# Tile (0,5) falls on unowned parcel 4 in the starter property map.
+	live.one_hole.craft_surface = MHCraftHole.Surface.WATER
+	if not live.one_hole.craft_at_tile(0, 5):
+		_fail("Could not paint test area crossing unowned land")
+		return
+	if not live.one_hole._validation_hint.text.contains("do not own"):
+		_fail("Build readiness did not explain unowned land: " + live.one_hole._validation_hint.text)
+		return
+	live.one_hole._craft_undo()
+	live.one_hole.craft_surface = MHCraftHole.Surface.PATH
 	if live.one_hole._is_sculpt_mode():
 		_fail("Design grid would show while painting a surface")
 		return
