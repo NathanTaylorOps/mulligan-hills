@@ -222,6 +222,11 @@ func _verify() -> void:
 	if not live.session.hole_definitions().is_empty() or not panel._validation_hint.visible:
 		_fail("Build ignored an unconfirmed marker preview")
 		return
+	panel._cancel_marker_preview()
+	if not panel._validation_hint.text.begins_with("READY TO BUILD"):
+		_fail("Cancelling preview left a stale Build warning")
+		return
+	panel.stage_marker_at_tile(Vector2i(12, 30))
 	panel._confirm_marker()
 	if live.craft_hole.pins[0] != Vector2i(12, 30) or live.craft_hole.undo_count() != marker_history + 1 or not live._pending_save:
 		_fail("Confirmed pin did not record one undo and request a save")

@@ -501,6 +501,7 @@ func clear_brush_preview() -> void:
 	_brush_tile = Vector2i(-1, -1)
 	if _brush_preview != null and is_instance_valid(_brush_preview):
 		_brush_preview.hide()
+	_update_brush_hint()
 
 
 func preview_brush_from_screen(pos: Vector2) -> void:
@@ -733,12 +734,15 @@ func _confirm_marker() -> void:
 
 
 func _cancel_marker_preview() -> void:
+	var had_preview: bool = _pending_marker.x >= 0
 	_pending_marker = Vector2i(-1, -1)
 	if _marker_preview != null and is_instance_valid(_marker_preview):
 		_marker_preview.hide()
 	_refresh_marker_controls()
 	if _feedback != null and _preview_draft and _craft_category == &"markers":
 		_feedback.text = "Tap to preview a tee or pin, then Confirm. Pin 1 is used for practice."
+	if had_preview:
+		_describe() # Remove a stale "confirm or cancel" Build warning.
 	layout_changed.emit()
 
 
