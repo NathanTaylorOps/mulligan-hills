@@ -24,6 +24,9 @@ var total_cap: int = 10
 
 ## Golfers alive: Array of Dictionary {group, member, size, look, t, tee (Vector2), dir (Vector2), len, green (Vector2)}.
 var golfers: Array = []
+## serial -> ordered Array of {tee: Vector2, green: Vector2}; visual-only route.
+var _group_routes: Dictionary = {}
+var _completed_groups: Array = []
 ## Counts of the last draw, for the HUD and tests.
 var last_figures: int = 0
 var last_baked: int = 0
@@ -57,13 +60,35 @@ func set_caps(near: int, total: int) -> void:
 
 ## Adds one group that teed off just now. tee and green are world x,z in metres.
 func spawn_group(serial: int, size: int, tee: Vector2, green: Vector2) -> void:
+	spawn_course_group(serial, size, [{"tee": tee, "green": green}])
+
+## Adds a group to an ordered multi-hole route. Revenue is deliberately NOT touched here.
+func spawn_course_group(serial: int, size: int, route: Array) -> void:
+	if route.is_empty():
+		return
+	_group_routes[serial] = route.duplicate(true)
+	_spawn_hole_members(serial, clampi(size, 1, 4), 0)
+
+func _spawn_hole_members(serial: int, size: int, hole_index: int) -> void:
+	var route: Array = _group_routes.get(serial, []) as Array
+	if hole_index < 0 or hole_index >= route.size():
+		return
+	var pts: Dictionary = route[hole_index] as Dictionary
+	var tee: Vector2 = pts["tee"] as Vector2
+	var green: Vector2 = pts["green"] as Vector2
 	var delta: Vector2 = green - tee
 	var length: float = delta.length()
 	var dir: Vector2 = Vector2(0.0, 1.0) if length < 0.001 else delta / length
 	for member: int in range(size):
-		golfers.append({"group": serial, "member": member, "size": size,
+		golfers.append({"group": serial, "member": member, "size": size, "hole": hole_index,
 			"look": MHSliceSchedule.look_index(serial, member, LOOK_POOL), "t": 0.0,
 			"tee": tee, "dir": dir, "len": length, "green": green})
+
+## Completion rows since the previous drain. One row per group, never per golfer.
+func drain_completed_groups() -> Array:
+	var out: Array = _completed_groups.duplicate(true)
+	_completed_groups.clear()
+	return out
 
 
 func golfer_count() -> int:
@@ -74,15 +99,33 @@ func golfer_count() -> int:
 func advance(dt: float, cam_pos: Vector3) -> void:
 	var live: Array = []
 	var states: Array = []
+	var finished: Dictionary = {}
 	for g: Variant in golfers:
 		var d: Dictionary = g
 		d["t"] = float(d["t"]) + maxf(dt, 0.0)
 		var st: Dictionary = MHSliceRound.state(float(d["t"]), int(d["member"]), int(d["size"]), float(d["len"]))
 		if int(st["phase"]) == MHSliceRound.Phase.DONE:
+			var serial: int = int(d["group"])
+			var row: Dictionary = finished.get(serial, {"count": 0, "size": int(d["size"]), "hole": int(d.get("hole", 0))})
+			row["count"] = int(row["count"]) + 1
+			finished[serial] = row
 			continue
 		live.append(d)
 		states.append(st)
 	golfers = live
+	for key: Variant in finished.keys():
+		var serial2: int = int(key)
+		var done: Dictionary = finished[key] as Dictionary
+		if int(done["count"]) < int(done["size"]):
+			continue
+		var next_hole: int = int(done["hole"]) + 1
+		var route: Array = _group_routes.get(serial2, []) as Array
+		if next_hole < route.size():
+			_spawn_hole_members(serial2, int(done["size"]), next_hole)
+		else:
+			_completed_groups.append({"serial": serial2, "size": int(done["size"]), "holes": route.size()})
+			_group_routes.erase(serial2)
+	# New-hole members begin next frame; state arrays must remain aligned with the old live set.
 	_render(states, cam_pos)
 
 
