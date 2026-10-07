@@ -1141,6 +1141,8 @@ func _draw_craft_terrain(hole: MHCraftHole) -> void:
 		_draw_surface_edges(hole, relief_hole)
 	if bool(_visual_settings.get("mowing", true)):
 		_draw_mowing_accents(hole, relief_hole)
+	if bool(_visual_settings.get("terrain_detail", true)):
+		_draw_hazard_depth(hole, relief_hole)
 	if _preview_draft and _is_sculpt_mode():
 		_draw_craft_grid(hole, relief_hole)
 	for tee: Variant in hole.tees:
@@ -1170,6 +1172,48 @@ func _append_craft_tile(st: SurfaceTool, relief_hole: MHRHole, hole: MHCraftHole
 
 func _is_sculpt_mode() -> bool:
 	return craft_mode == &"raise" or craft_mode == &"lower" or craft_mode == &"smooth" or craft_mode == &"level"
+
+func _draw_hazard_depth(hole: MHCraftHole, relief_hole: MHRHole) -> void:
+	# Dark inset rims give bunkers and ponds readable depth at normal camera zoom.
+	# Only exposed perimeter edges are emitted, in one batched mesh per hazard type.
+	for hazard: int in [MHCraftHole.Surface.BUNKER, MHCraftHole.Surface.WATER]:
+		var st: SurfaceTool = SurfaceTool.new()
+		st.begin(Mesh.PRIMITIVE_TRIANGLES)
+		var added: bool = false
+		for r: int in range(hole.rows):
+			for c: int in range(hole.cols):
+				if hole.get_surface(c, r) != hazard:
+					continue
+				var centre: Vector2i = hole.tile_centre_yd(c, r)
+				var half: int = MHCraftHole.TILE_YD * 50
+				for d: Vector2i in [Vector2i(-1, 0), Vector2i(1, 0), Vector2i(0, -1), Vector2i(0, 1)]:
+					var nc: int = c + d.x
+					var nr: int = r + d.y
+					if hole.in_bounds(nc, nr) and hole.get_surface(nc, nr) == hazard:
+						continue
+					var ex: int = centre.x * 100 + d.x * half
+					var ey: int = centre.y * 100 + d.y * half
+					var tangent: Vector2i = Vector2i(-d.y, d.x)
+					var a: Vector2i = Vector2i(ex, ey) + tangent * half
+					var b: Vector2i = Vector2i(ex, ey) - tangent * half
+					var inset: Vector2i = Vector2i(ex, ey) - d * 16
+					var depth: float = 0.12 if hazard == MHCraftHole.Surface.BUNKER else 0.08
+					for p: Vector2i in [a, b, inset]:
+						var z: float = float(relief_hole.z_at(p.x, p.y)) / 1000.0
+						st.add_vertex(_position(p.x, p.y, z + 0.045 - (depth if p == inset else 0.0)))
+					added = true
+		if not added:
+			continue
+		var mesh: ArrayMesh = st.commit()
+		var material: StandardMaterial3D = StandardMaterial3D.new()
+		material.albedo_color = Color(0.50, 0.40, 0.25) if hazard == MHCraftHole.Surface.BUNKER else Color(0.055, 0.20, 0.30)
+		material.roughness = 1.0 if hazard == MHCraftHole.Surface.BUNKER else 0.30
+		var instance: MeshInstance3D = MeshInstance3D.new()
+		instance.mesh = mesh
+		instance.material_override = material
+		instance.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		_world.add_child(instance)
+
 
 func _draw_mowing_accents(hole: MHCraftHole, relief_hole: MHRHole) -> void:
 	# One batched, translucent mesh suggests alternating mowing passes without
