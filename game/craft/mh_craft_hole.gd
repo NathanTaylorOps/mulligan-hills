@@ -98,6 +98,16 @@ func tile_at_yd(x: int, y: int) -> Vector2i:
 	return Vector2i(c, r)
 
 
+
+func tile_at_cy(x_cy: int, y_cy: int) -> Vector2i:
+	var span: int = TILE_YD * 100
+	var c: int = MHRMath.fdiv(x_cy, span) + cols / 2
+	var r: int = MHRMath.fdiv(y_cy, span)
+	if not in_bounds(c, r):
+		return Vector2i(-1, -1)
+	return Vector2i(c, r)
+
+
 # ---------------------------------------------------------------- strokes and undo
 
 func begin_stroke() -> bool:
