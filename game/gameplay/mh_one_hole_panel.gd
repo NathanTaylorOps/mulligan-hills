@@ -6,6 +6,8 @@ var length_yd: int = 60
 var half_width_yd: int = 8
 var water: bool = false
 var _preview_draft: bool = false
+var _play_hole_index: int = 0
+var _course_strokes: int = 0
 var canonical_draft: Dictionary = {}
 var follow_ball: bool = true
 var aim_x: int = 0
@@ -1078,10 +1080,12 @@ func _restart() -> void:
 	_preview_draft = false
 	canonical_draft.clear()
 	_sync_mode_controls()
-	var current: Dictionary = layouts[0]
+	_play_hole_index = 0
+	_course_strokes = 0
+	var current: Dictionary = layouts[_play_hole_index] as Dictionary
 	_sync_legacy_controls(current)
-	live.session.practice = MHPracticeRound.create(layouts[0] as Dictionary,
-		MHRatingEngine.seed_for(0, {"save_secret": live.session.save_secret, "rating_epoch": live.session.rating_epoch}))
+	live.session.practice = MHPracticeRound.create(current,
+		MHRatingEngine.seed_for(_play_hole_index, {"save_secret": live.session.save_secret, "rating_epoch": live.session.rating_epoch}))
 	live._request_save()
 	_aim_cup()
 	_follow_camera()
@@ -1130,6 +1134,24 @@ func _shoot() -> void:
 		_info.text += " | Penalty +1"
 	elif bool(result["tree"]):
 		_info.text += " | Tree hit"
+	if bool(result.get("finished", false)):
+		_course_strokes += int(result.get("strokes", 0))
+		var layouts: Array = live.session.hole_definitions()
+		if _play_hole_index + 1 < layouts.size():
+			_play_hole_index += 1
+			var next_hole: Dictionary = layouts[_play_hole_index] as Dictionary
+			_sync_legacy_controls(next_hole)
+			live.session.practice = MHPracticeRound.create(next_hole,
+				MHRatingEngine.seed_for(_play_hole_index, {"save_secret": live.session.save_secret,
+					"rating_epoch": live.session.rating_epoch}))
+			live._request_save()
+			_aim_cup()
+			_follow_camera()
+			_draw()
+			_describe()
+			_info.text = "Hole %d complete. Now playing Hole %d of %d." % [_play_hole_index, _play_hole_index + 1, layouts.size()]
+		else:
+			_info.text = "%d-hole round complete in %d strokes. Start a new round to play again." % [layouts.size(), _course_strokes]
 
 func _describe() -> void:
 	if live == null:
@@ -1194,7 +1216,7 @@ func _draw() -> void:
 		child.queue_free()
 	var layouts: Array = live.session.hole_definitions()
 	var drawing_craft: bool = live != null and live.craft_hole != null and (_preview_draft or layouts.is_empty())
-	var h: Dictionary = _layout() if layouts.is_empty() or _preview_draft else layouts[0]
+	var h: Dictionary = _layout() if layouts.is_empty() or _preview_draft else layouts[clampi(_play_hole_index, 0, layouts.size() - 1)]
 	if drawing_craft:
 		# The craft mesh already owns every painted surface and marker. Do not draw
 		# the legacy rectangle proxy over it; that hid invalid/intermediate edits
