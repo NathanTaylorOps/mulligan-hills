@@ -231,3 +231,16 @@ func test_course_mesh_signature_changes_for_geometry_and_origin_not_customer_sta
 		assert_bool(scene.session.set_hole_origins_dm(origins)).is_true()
 		scene._sync_world(false)
 		assert_str(scene._course_sig).is_not_equal(base)
+
+func test_course_rebuild_reuses_immutable_flag_and_tree_meshes() -> void:
+	var scene: MHVerticalSlice = _scene()
+	scene._sync_world(true)
+	var flag_key: String = "course:flag:0:0"
+	var pine_key: String = "course:pine:0:0"
+	assert_bool(scene._mesh_cache.has(flag_key)).is_true()
+	assert_bool(scene._mesh_cache.has(pine_key)).is_true()
+	var flag_mesh: Mesh = scene._mesh_cache[flag_key] as Mesh
+	var pine_mesh: Mesh = scene._mesh_cache[pine_key] as Mesh
+	scene._sync_world(true)
+	assert_bool((scene._mesh_cache[flag_key] as Mesh) == flag_mesh).is_true()
+	assert_bool((scene._mesh_cache[pine_key] as Mesh) == pine_mesh).is_true()
