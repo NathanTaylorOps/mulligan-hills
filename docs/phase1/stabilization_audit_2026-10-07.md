@@ -56,3 +56,5 @@ Do not resume broad feature development until:
 6. One cross-system EDIT → BUILD → PLAY → customer progression → SAVE → RELOAD test passes.
 
 After this gate, implement real per-hole world placement before expanding RPG/content scope.
+
+| Multi-hole physical world placement | FIXED/PARTIAL | Craft course v2 persists distinct origins; new 192 m live worlds derive parcel geometry from world size; new finalization uses per-hole origins; built geometry overlap is rejected; legacy v1 drafts migrate; legacy 128 m unfinalized terrain expands losslessly; legacy stacked finalized courses remain readable. Runtime verification and authored-course customer routing remain open. |
