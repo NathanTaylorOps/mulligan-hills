@@ -18,6 +18,10 @@ func test_tile_yard_mapping_round_trips() -> void:
 	var t: Vector2i = h.tile_at_yd(centre.x, centre.y)
 	assert_int(t.x).is_equal(11)
 	assert_int(t.y).is_equal(0)
+	assert_bool(h.tile_at_cy(centre.x * 100, centre.y * 100) == Vector2i(11, 0)).is_true()
+	# Near a 2-yard boundary the centiyard lookup must not round into the next tile.
+	assert_bool(h.tile_at_cy(199, 199) == Vector2i(12, 0)).is_true()
+	assert_bool(h.tile_at_cy(200, 200) == Vector2i(13, 1)).is_true()
 	assert_int(h.tile_at_yd(-1000, 5).x).is_equal(-1)
 
 
