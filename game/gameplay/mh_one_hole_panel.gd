@@ -506,7 +506,10 @@ func _finalize() -> void:
 		var explanation: String = str(result["reason"])
 		var rating_reasons: Array = result.get("rating_reasons", []) as Array
 		if not rating_reasons.is_empty():
-			explanation += " (" + ", ".join(PackedStringArray(rating_reasons)) + ")"
+			var detail: PackedStringArray = PackedStringArray()
+			for reason: Variant in rating_reasons:
+				detail.append(str(reason))
+			explanation += " (" + ", ".join(detail) + ")"
 		_info.text = "Cannot build: " + explanation
 		_set_validation_message("NOT READY: " + explanation)
 		return
