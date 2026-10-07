@@ -1297,28 +1297,54 @@ func _draw_craft_grid(hole: MHCraftHole, relief_hole: MHRHole) -> void:
 
 
 func _draw_surface_edges(hole: MHCraftHole, relief_hole: MHRHole) -> void:
-	# Sparse borders only where course-reading benefits from them. Fringe and tee
-	# edges matter on a phone too, but ordinary fairway/rough boundaries stay
-	# borderless so the course does not turn into a checkerboard.
+	# Batch accent ribbons by surface. This replaces hundreds of tiny BoxMesh nodes
+	# with at most five drawables while preserving the same readable boundaries.
+	var builders: Dictionary = {}
+	var added: Dictionary = {}
+	for surface: int in [MHCraftHole.Surface.GREEN, MHCraftHole.Surface.FRINGE,
+			MHCraftHole.Surface.TEE, MHCraftHole.Surface.BUNKER, MHCraftHole.Surface.WATER]:
+		var st: SurfaceTool = SurfaceTool.new()
+		st.begin(Mesh.PRIMITIVE_TRIANGLES)
+		builders[surface] = st
+		added[surface] = false
+	var half: int = MHCraftHole.TILE_YD * 50
+	var ribbon_half: int = 4
 	for r: int in range(hole.rows):
 		for c: int in range(hole.cols):
-			var s: int = hole.get_surface(c, r)
-			if s not in [MHCraftHole.Surface.GREEN, MHCraftHole.Surface.FRINGE,
-					MHCraftHole.Surface.TEE, MHCraftHole.Surface.BUNKER, MHCraftHole.Surface.WATER]:
+			var surface: int = hole.get_surface(c, r)
+			if not builders.has(surface):
 				continue
 			var centre: Vector2i = hole.tile_centre_yd(c, r)
-			for d: Vector2i in [Vector2i(-1, 0), Vector2i(1, 0), Vector2i(0, -1), Vector2i(0, 1)]:
+			for d: Vector2i in [Vector2i.LEFT, Vector2i.RIGHT, Vector2i.UP, Vector2i.DOWN]:
 				var nc: int = c + d.x
 				var nr: int = r + d.y
-				if hole.in_bounds(nc, nr) and hole.get_surface(nc, nr) == s:
+				if hole.in_bounds(nc, nr) and hole.get_surface(nc, nr) == surface:
 					continue
-				var half: int = MHCraftHole.TILE_YD * 50
-				var ex: int = centre.x * 100 + d.x * half
-				var ey: int = centre.y * 100 + d.y * half
-				var length_m: float = float(MHCraftHole.TILE_YD) * 0.9144
-				var size: Vector3 = Vector3(0.045, 0.035, length_m) if d.x != 0 else Vector3(length_m, 0.035, 0.045)
-				var z: float = float(relief_hole.z_at(ex, ey)) / 1000.0 + 0.065
-				_box(_position(ex, ey, z), size, _edge_color(s))
+				var edge: Vector2i = centre * 100 + d * half
+				var tangent: Vector2i = Vector2i(-d.y, d.x)
+				var p0: Vector2i = edge - tangent * half - d * ribbon_half
+				var p1: Vector2i = edge + tangent * half - d * ribbon_half
+				var p2: Vector2i = edge + tangent * half + d * ribbon_half
+				var p3: Vector2i = edge - tangent * half + d * ribbon_half
+				var st: SurfaceTool = builders[surface] as SurfaceTool
+				for p: Vector2i in [p0, p1, p2, p0, p2, p3]:
+					st.set_normal(_craft_normal(relief_hole, p.x, p.y))
+					var z: float = float(relief_hole.z_at(p.x, p.y)) / 1000.0
+					st.add_vertex(_position(p.x, p.y, z + 0.066))
+				added[surface] = true
+	for key: Variant in builders.keys():
+		var surface: int = int(key)
+		if not bool(added[surface]):
+			continue
+		var mesh: ArrayMesh = (builders[surface] as SurfaceTool).commit()
+		var material: StandardMaterial3D = StandardMaterial3D.new()
+		material.albedo_color = _edge_color(surface)
+		material.roughness = 0.86
+		var instance: MeshInstance3D = MeshInstance3D.new()
+		instance.mesh = mesh
+		instance.material_override = material
+		instance.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		_world.add_child(instance)
 
 func _edge_color(surface_id: int) -> Color:
 	match surface_id:
