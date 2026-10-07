@@ -1,61 +1,15 @@
-# Temporary lead handover (5 October 2026)
+# Historical lead handover
 
-> Historical handover for the 5 October increment. Its branch instructions, zero-hole limits and next-work priorities are superseded by the [current README](../../README.md), [development guide](../DEVELOPMENT.md) and [live-course architecture](live_construction.md).
+This file previously contained a temporary 5 October 2026 handover and branch-specific working notes.
 
+It is no longer current project guidance.
 
-> 5 October follow-up: `one_hole.md` adds an exact short-hole finalization/rating/save and aim-controlled practice prototype. Earlier zero-hole limits below describe the preceding increment. Legacy polygon conversion, full terrain authoring and finished golfer RPG remain unresolved. See `simgolf_controls_research.md` for Nathan's requested controls research.
+Use:
 
+- [Status](../STATUS.md)
+- [Architecture](../ARCHITECTURE.md)
+- [Roadmap](../ROADMAP.md)
+- [Verification](../VERIFICATION.md)
+- [Decisions](../DECISIONS.md)
 
-## Purpose and scope
-Repair phase1 CI, verify the DEC-069 economy, and connect the existing modules into a live loop. Nathan authorises work directly on phase1; main is untouched until all four workflows pass and independent verification is complete. No spending, new accounts, or public publishing is authorised.
-
-## Verified baseline
-phase1 ff0125be3173585721f193302e83e16c349d9330: import passed; 940 test cases executed, nine failing cases / 15 assertion failures. Determinism, screenshots/bench, and Android export passed. Main c9f6799 remains green.
-
-## First repair
-Updated stale start-cash and tournament-money assertions to DEC-065/069. Updated the gallery affordability expectation (its sample Clubhouse costs more than sample cash). Tested achievement filtering on an explicit mixed-category input rather than obsolete sample catalogue counts. The daily board retains attempts, so two attempts produce two rows while completion and streak remain once per day. A finished tournament record remains until acknowledged, as MHTournamentState documents; the bridge test now verifies both stages.
-
-No shipping rules or rating goldens changed in this repair. Python economy selftest passes. GDScript repair NOT YET RUN until the next CI run.
-
-Repair pushed as c72ce1c. All three triggered jobs remained queued with no runner assigned; determinism was not triggered by test-only paths. The next economy/core change triggers all four workflows. Do not infer green from queued jobs.
-
-## Current checkpoint
-
-Economy audit/renovation correction pushed as f029fcf. Full simulation re-run, Python self-check and schema validation pass. Goldens retain identical numerical content. `docs/phase1/economy_audit.md` records the historical failed earned-token hours assumption. The 12-minute proposal was withdrawn before implementation; Nathan subsequently approved DEC-070/071: 25-minute days and about 50 running hours.
-
-Live session and adapter foundation is in `docs/phase1/gameplay.md`. It coordinates clock hours, cash, purchases, official ratings, daily submissions and tournament settlement, but scene/editor and validated autosave wiring remain unfinished. Independent static review found two S1 bugs, corrected with tests; reputation achievement scale is explicitly deferred rather than using a guessed conversion. No end-to-end completion or device sign-off claimed.
-
-## Next work and risks
-- Economy re-run complete: median 49.6 normal-speed running hours; 92.6% of non-novice modelled players finish by day 150. Pauses/design time and real staffing gates remain outside the model. Demo building progression is extremely short.
-- Build the live adapter and loop, hourly income/autosave, purchases and daily tournament/progression updates.
-- Money boundary: economy cents; UI, tournament and save cash whole dollars. Preserve fractional cents in an optional validated economy save block.
-- No real staff source currently exists; do not manufacture staff to bypass tournament gates.
-- Existing status documents contain stale NOT YET RUN claims and obsolete open questions; use CI evidence and newest locked decisions.
-
-## For Nathan
-Device checks remain unrun: install a green Android debug APK; run Sim hash first, then Benchmark Quick 60s. Low-end phone purchase, Supabase setup and official trademark search remain Nathan's tasks.
-
-## Approved pacing checkpoint
-
-DEC-070/071, clock compatibility, Python/Godot regressions and editor pause control are updated. Python checks pass; Godot CI remains pending. Research proposals in `activities_research.md` are not implemented or automatically added to frozen v1. `pacing_verification.md` records separate review with completion certification withheld.
-
-## Clarified golfer/club RPG intent
-
-Nathan clarified the playable golfer career, training attributes, played tournaments/private NPC matches, celebrity residences/VIP membership, wildlife/pests, staff placement and personal/delegated grounds maintenance, funny interactions and trophy/building-skin rewards. `rpg_scope.md` distinguishes foundations from missing systems and contains PROP-11–14 for launch/campaign reconciliation. `activities_research.md` is corrected so personal golf is central to the intended product, not optional filler. Frozen-scope/cut decisions are not silently changed; no new mechanics are implemented by these documents. First proof: one built hole, controllable golfer, training, rival and visible reward, after live scene/save integration. CI remains queued; earlier cancelled workflows are not passes.
-
-## Required v1 RPG approval
-
-Nathan answered “must ship” to PROP-11–14. DEC-072–075 now lock personal golfer/control/training/competition, living-club systems and visible trophy/skin rewards at launch, plus the joint golfer/club campaign definition. No second approval is needed for launch inclusion. Final career milestone and numerical rules remain open. `rpg_scope.md` records the build order; schedule re-estimation follows measured one-hole prototype evidence. No new gameplay implementation or green CI claimed by this documentation change.
-
-## Live construction implementation checkpoint
-
-New live launcher scene connects ground editing, pause/history, real club menus and accounting to official isolated save slots. Optional reader-2 runtime retains exact money/clock state; content-addressed external ledger and full terrain-byte pairing protect recovery. Separate review found four defects (paint-only torn pairing, malformed capture indexing, official/runtime world mismatch, stale pointer routing); corrected with regressions. The integration remains zero-finalized-hole only. See `live_construction.md` and `live_construction_verification.md`. No player golf or overall completion claimed; Godot CI still pending.
-
-5 October aiming follow-up: DEC-076 locks automatic execution with target/shot-style decisions. `aiming.md` adds tap-to-aim and non-consuming path/reach/spread feedback; engine/device checks remain pending.
-
-5 October follow-up: practice camera follow/overview/back are implemented in `golfer_camera.md`, pending Godot/device checks. `docs/spec/golfer_controls.md` records the detailed attribute/style proposal; numerical mechanics remain unimplemented/unlocked.
-
-Nathan requested Luck on 5 October 2026: seven proposed golfer attributes now include bounded positive encounters/stories/interactions and golf breaks. Details in `docs/spec/golfer_controls.md`; growth and coefficients remain open, and no Luck runtime implementation is claimed.
-
-Luck scope clarified by Nathan: also affects encounter frequency for animals/celebrities and private-match/challenge offers from NPC pros. Proposal includes eligibility, cooldowns, offer limits and explicit player acceptance; not runtime implemented.
-
+The original handover remains available through repository history for forensic traceability.
