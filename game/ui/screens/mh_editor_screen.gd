@@ -1,5 +1,9 @@
 class_name MHEditorScreen
 extends MHScreen
+
+# Explicit preload is required for fresh-clone --script runs before Godot has
+# populated its global class cache for newly added scripts.
+const SurfaceIcon = preload("res://ui/mh_world_surface_icon.gd")
 ## Hole editor toolbar (overlay on the 3D view): raise, lower, smooth, level, paint, brush radius, surface picker
 ## (only while Paint is chosen), Undo and Redo (always visible), Done. It only reports the chosen brush:
 ## editor_tool {tool, brush_mode, radius, surface, surface_layer}, editor_undo, editor_redo.
@@ -88,7 +92,7 @@ func _build() -> void:
 	for sname: Variant in MHEditorTools.surface_names():
 		var sn: String = str(sname)
 		var sb: MHTapButton = MHUIKit.button(ctx, MHStrings.t(MHEditorTools.surface_label_key(sn)), &"ChipButton", 132.0)
-		sb.icon = MHWorldSurfaceIcon.make(MHEditorTools.surface_layer(sn))
+		sb.icon = SurfaceIcon.make(MHEditorTools.surface_layer(sn))
 		sb.icon_alignment = HORIZONTAL_ALIGNMENT_LEFT
 		sb.custom_minimum_size = Vector2(132.0, 74.0)
 		sb.pressed.connect(_on_surface.bind(sn))
