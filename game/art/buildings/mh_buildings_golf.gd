@@ -22,6 +22,20 @@ static func clubhouse(b: MHMeshBuilder, tier: int, spec: int, th: MHBuildingThem
 	slab(b, Vector3(0.0, 0.0, d * 0.5 + 1.3), Vector3(pw, 0.2, 2.2), MHPalette.PATH_STONE, MHPalette.PATH_EDGE)
 	slab(b, Vector3(w * 0.28, top + rise * 0.3, -d * 0.15), Vector3(0.7, rise * 0.9, 0.7),
 		MHBuildingTheme.WALL_BRICK, MHBuildingTheme.WALL_BRICK)
+	# Even the entry clubhouse needs a recognizable resort frontage. These
+	# architectural layers replace the prototype 'single block' read with a
+	# veranda, entrance surround, dormer rhythm and landscaped arrival edge.
+	var veranda_w: float = minf(w * 0.72, 10.0)
+	slab(b, Vector3(0.0, 0.12, d * 0.5 + 1.65), Vector3(veranda_w, 0.12, 2.5), MHPalette.WOOD_LIGHT, MHPalette.WOOD_DARK)
+	for i in range(5):
+		var vx: float = (float(i) - 2.0) * veranda_w * 0.22
+		column(b, vx, d * 0.5 + 2.65, 0.24, 2.65, 0.065, 5, th.trim)
+	shed(b, Vector3(0.0, 2.88, d * 0.5 + 1.72), veranda_w + 0.5, 2.65, 0.72, th.roof)
+	# Recessed-looking entrance surround and paired planters.
+	slab(b, Vector3(0.0, 0.30, d * 0.5 + 0.08), Vector3(1.65, 2.55, 0.10), th.trim, th.trim)
+	slab(b, Vector3(0.0, 0.35, d * 0.5 + 0.15), Vector3(1.20, 2.25, 0.08), th.glass, MHPalette.METAL_DARK)
+	shrub(b, Vector3(-veranda_w * 0.5 - 0.55, 0.0, d * 0.5 + 1.65), 0.72, 201)
+	shrub(b, Vector3(veranda_w * 0.5 + 0.55, 0.0, d * 0.5 + 1.65), 0.72, 202)
 	if tier >= 2:
 		flagpole(b, Vector3(w * 0.5 + 1.8, 0.0, d * 0.5 + 1.5), 6.0, th.accent)
 		shed(b, Vector3(0.0, 2.5, d * 0.5 + 1.3), pw, 2.2, 0.7, th.roof)
@@ -44,6 +58,11 @@ static func clubhouse(b: MHMeshBuilder, tier: int, spec: int, th: MHBuildingThem
 		shrub(b, Vector3(-w * 0.1, 0.0, -d * 0.5 - 0.8), 0.6, 15)
 		shrub(b, Vector3(w * 0.1, 0.0, -d * 0.5 - 0.8), 0.6, 16)
 	if tier >= 4:
+		# Upper-level balcony and roof accents make the mature clubhouse a hero
+		# building at management-camera distance without texture-heavy materials.
+		for i in range(3):
+			var dx: float = (float(i) - 1.0) * w * 0.23
+			gable(b, Vector3(dx, top, d * 0.18), minf(2.8, w * 0.16), 2.4, 1.05, 0.16, th.roof, th.trim)
 		var tx: float = -sx * (w * 0.5 - 2.2)
 		wing(b, Vector3(tx, 0.3, -d * 0.5 + 0.5), 0.0, 3.4, 3.4, 3.0, 3, th.wall_alt, th.roof, th.trim,
 			th.glass, ROOF_HIP, 2.2, 1, false)
