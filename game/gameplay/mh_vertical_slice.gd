@@ -52,6 +52,7 @@ var _last_usec: int = 0
 var _last_hour: int = 0
 var _first_booked_serial: int = 0
 var _group_customer_ids: Dictionary = {}
+var _group_wait_minutes: Dictionary = {}
 var _sig: int = -1
 var _course_sig: String = ""
 var _hud_timer: float = 0.0
@@ -216,6 +217,7 @@ func _spawn_group(g: Dictionary) -> void:
 		return
 	var serial: int = int(g["serial"])
 	_group_customer_ids[serial] = (g.get("customer_ids", []) as Array).duplicate()
+	_group_wait_minutes[serial] = maxi(0, int(g.get("wait_minutes", 0)))
 	var route: Array = []
 	for pts_value: Variant in hole_points:
 		var pts: Dictionary = pts_value as Dictionary
@@ -232,6 +234,7 @@ func _on_visual_round_complete(row: Dictionary) -> void:
 	var serial: int = int(row.get("serial", 0))
 	if serial < _first_booked_serial:
 		_group_customer_ids.erase(serial)
+		_group_wait_minutes.erase(serial)
 		return # opening ambience never mutates customer progression
 	var new_regulars: int = 0
 	var member_candidates: int = 0
@@ -242,7 +245,7 @@ func _on_visual_round_complete(row: Dictionary) -> void:
 			continue
 		var customer_id: int = int(booked_ids[member])
 		var visit: Dictionary = session.record_customer_visit(customer_id, holes_played,
-			schedule.waiting_golfers() * schedule.interval_min)
+			int(_group_wait_minutes.get(serial, 0)))
 		if visit.is_empty():
 			continue
 		experience = visit["experience"] as Dictionary
@@ -253,6 +256,7 @@ func _on_visual_round_complete(row: Dictionary) -> void:
 		if not bool(before["member_eligible"]) and bool(after["member_eligible"]):
 			member_candidates += 1
 	_group_customer_ids.erase(serial)
+	_group_wait_minutes.erase(serial)
 	if experience.is_empty():
 		return
 	var tail: String = ""
@@ -378,9 +382,9 @@ func _add_hole_geometry(b: MHMeshBuilder, slot: int, def: Dictionary, origin_dm:
 		if kind == "fairway":
 			_flat_rect(b, MHSliceLayout.feature_rect_at_origin_m(origin_dm, feat["rect"] as Array), 0.08, MHPalette.GRASS_LIGHT)
 		elif kind == "bunker":
-			_flat_rect(b, MHSliceLayout.feature_rect_m(slot, feat["rect"] as Array), 0.16, MHPalette.SAND)
+			_flat_rect(b, MHSliceLayout.feature_rect_at_origin_m(origin_dm, feat["rect"] as Array), 0.16, MHPalette.SAND)
 		elif kind == "water":
-			_flat_rect(b, MHSliceLayout.feature_rect_m(slot, feat["rect"] as Array), 0.16, MHPalette.WATER)
+			_flat_rect(b, MHSliceLayout.feature_rect_at_origin_m(origin_dm, feat["rect"] as Array), 0.16, MHPalette.WATER)
 		elif kind == "tree":
 			for t: Variant in feat["at"]:
 				var p: Vector2 = MHSliceLayout.origin_point_m(origin_dm, int((t as Array)[0]), int((t as Array)[1]))
