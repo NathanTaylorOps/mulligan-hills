@@ -5,7 +5,7 @@ extends GdUnitTestSuite
 func _hole() -> MHCraftHole:
 	var h: MHCraftHole = MHCraftHole.new(24, 40)
 	h.paint_rect(10, 0, 13, 29, MHCraftHole.Surface.FAIRWAY)
-	h.paint_rect(11, 30, 12, 31, MHCraftHole.Surface.GREEN)
+	h.paint_rect(9, 30, 14, 35, MHCraftHole.Surface.GREEN)
 	h.add_tee(11, 0)
 	h.add_pin(11, 30)
 	return h
@@ -41,7 +41,7 @@ func test_tee_green_and_heights() -> void:
 	var g: Array = def["green"] as Array
 	assert_int(int(g[0])).is_equal(-1)
 	assert_int(int(g[1])).is_equal(61)
-	assert_int(int(g[2])).is_equal(2) # 4 tiles x 4 square yards = 16, radius floor(sqrt(16 x 7 / 22)) = 2
+	assert_int(int(g[2])).is_equal(6) # 36 tiles x 4 sq yd = 144 sq yd -> radius floor(sqrt(144 x 7/22)) = 6
 	assert_int(int(def["tee_z_mm"])).is_equal(2000)
 	assert_int(int(def["green_z_mm"])).is_equal(3000)
 
@@ -126,6 +126,34 @@ func test_problems_stop_a_hole_that_cannot_be_rated() -> void:
 	assert_array(MHCraftConvert.problems(_hole())).is_empty()
 
 
+func test_craft_green_and_length_requirements_match_rating_engine() -> void:
+	var h: MHCraftHole = _hole()
+	assert_int(MHCraftConvert.green_radius_yd(h)).is_equal(6)
+	assert_bool(MHRHole.from_def(MHCraftConvert.to_hole_def(h, 0, 0, 0)).valid).is_true()
+	# Legacy four-cell putting greens passed craft validation even though the
+	# rating engine rejected radius=2 (RC006), blocking every Build click.
+	h.paint_rect(9, 30, 14, 35, MHCraftHole.Surface.ROUGH)
+	h.paint_rect(11, 30, 12, 31, MHCraftHole.Surface.GREEN)
+	assert_int(MHCraftConvert.green_radius_yd(h)).is_equal(2)
+	assert_bool(MHCraftConvert.problems(h).has("green_too_small")).is_true()
+	assert_bool(MHCraftConvert.to_hole_def(h, 0, 0, 0).is_empty()).is_true()
+	# Moving the tee too near the pin must produce a build hint, not RC003.
+	h.paint_rect(9, 30, 14, 35, MHCraftHole.Surface.GREEN)
+	h.tees.clear()
+	h.add_tee(11, 20)
+	assert_bool(MHCraftConvert.problems(h).has("hole_too_short")).is_true()
+
+
+func test_session_surfaces_rating_reason_for_legacy_undersized_green() -> void:
+	var def: Dictionary = MHCraftConvert.to_hole_def(_hole(), 0, 0, 0)
+	(def["green"] as Array)[2] = 2 # Historically accepted by craft, rejected as RC006.
+	var session: MHGameSession = MHGameSession.create()
+	var attempt: Dictionary = session.submit_course([def])
+	assert_bool(bool(attempt["ok"])).is_false()
+	assert_str(str(attempt["reason"])).is_equal("invalid_rating")
+	assert_bool((attempt.get("rating_reasons", []) as Array).has("RC006")).is_true()
+
+
 func test_each_round_uses_the_next_pin() -> void:
 	var h: MHCraftHole = _hole()
 	h.paint_rect(10, 30, 13, 31, MHCraftHole.Surface.GREEN)
@@ -174,3 +202,28 @@ func test_hill_hole_passes_validation_and_counts_as_elevation() -> void:
 	var hd: MHRHole = MHRHole.from_def(inp["hole"] as Dictionary)
 	assert_int(hd.relief_range).is_equal(6000)
 	assert_bool(hd.elev_mm() >= 3600).is_true()
+
+
+func test_elevated_craft_hole_crosses_canonical_course_save_boundary() -> void:
+	var h: MHCraftHole = _hole()
+	h.set_height_tile(11, 15, 6)
+	var layout: Dictionary = MHCraftConvert.to_hole_def(h, 0, 0, 0)
+	assert_bool(layout.has("relief")).is_true()
+	var course: Dictionary = {
+		"schema_version": 1,
+		"rating_engine_version": MHRatingEngine.RATING_VERSION,
+		"world": {
+			"width_dm": 1000,
+			"height_dm": 1000,
+			"parcels": [{"parcel_id": 0, "x0": 0, "y0": 0, "x1": 999, "y1": 999, "owned": true}],
+		},
+		"holes": [],
+	}
+	var encoded: MHSaveResult = MHCourseLayout.encode([layout], course, [[100, 100]])
+	assert_bool(encoded.is_ok()).override_failure_message(encoded.message).is_true()
+	if not encoded.is_ok():
+		return
+	var decoded: MHSaveResult = MHCourseLayout.decode(encoded.value as Dictionary)
+	assert_bool(decoded.is_ok()).override_failure_message(decoded.message).is_true()
+	if decoded.is_ok():
+		assert_array(decoded.value as Array).contains_exactly([layout])

@@ -1,5 +1,9 @@
 class_name MHEditorScreen
 extends MHScreen
+
+# Explicit preload is required for fresh-clone --script runs before Godot has
+# populated its global class cache for newly added scripts.
+const SurfaceIcon = preload("res://ui/mh_world_surface_icon.gd")
 ## Hole editor toolbar (overlay on the 3D view): raise, lower, smooth, level, paint, brush radius, surface picker
 ## (only while Paint is chosen), Undo and Redo (always visible), Done. It only reports the chosen brush:
 ## editor_tool {tool, brush_mode, radius, surface, surface_layer}, editor_undo, editor_redo.
@@ -49,6 +53,12 @@ func _build() -> void:
 		margin.add_theme_constant_override("margin_" + side, MHTheme.GUTTER)
 	add_child(margin)
 	var root: VBoxContainer = MHUIKit.vbox(8)
+	# This overlay uses an expanding spacer as the authoritative world/free zone.
+	# The VBox itself must fill the full MarginContainer or the spacer collapses,
+	# causing live-construction controls and the one-hole panel to overlap the
+	# editor toolbar at the top of the viewport.
+	root.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	root.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	margin.add_child(root)
 
 	var top: HFlowContainer = MHUIKit.flow(8)
@@ -81,7 +91,10 @@ func _build() -> void:
 	root.add_child(_surface_row)
 	for sname: Variant in MHEditorTools.surface_names():
 		var sn: String = str(sname)
-		var sb: MHTapButton = MHUIKit.button(ctx, MHStrings.t(MHEditorTools.surface_label_key(sn)), &"ChipButton", 96.0)
+		var sb: MHTapButton = MHUIKit.button(ctx, MHStrings.t(MHEditorTools.surface_label_key(sn)), &"ChipButton", 132.0)
+		sb.icon = SurfaceIcon.make(MHEditorTools.surface_layer(sn))
+		sb.icon_alignment = HORIZONTAL_ALIGNMENT_LEFT
+		sb.custom_minimum_size = Vector2(132.0, 74.0)
 		sb.pressed.connect(_on_surface.bind(sn))
 		_surface_row.add_child(sb)
 		_surface_buttons[sn] = sb

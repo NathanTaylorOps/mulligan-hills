@@ -1,38 +1,48 @@
-# Terrain designer ("craft") spec
+# Canonical terrain and hole authoring
 
-Status: 5 October 2026. Core model and converter written with tests (CI green). Screens, rendering and shot overlay NOT built. Sources: DEC-084 (craft), DEC-085 (isometric camera), DEC-086 (SimGolf quality bar), DEC-088 to DEC-090 (v1 scope), `simgolf_reference.md`.
+Current implementation contract, 7 October 2026. Design sources: DEC-084, DEC-088 through DEC-094. See [editor experience](editor_experience.md) for visual direction and [live construction](live_construction.md) for integration/save limits.
 
-## What the player does
-Paint a hole tile by tile, sculpt its height, place one tee, one to four pins and scenery, see the shot line and numbers, and get the rating. Square tiles, drawn with smoothed edges (logic stays on the grid).
+## Data already in use
 
-## Data (built: `game/craft/mh_craft_hole.gd`)
-- Hole-local grid of tiles, 2 yards a side (`TILE_YD`). x across with 0 on the centre line, y from the tee end toward the green. Default 24 by 40 tiles (48 by 80 yd) for the slice; real holes use more rows.
-- 13 surfaces: rough, fairway, first cut, deep rough, green, fringe, tee, bunker, waste, water, out of bounds, path, dirt. (These are the player's tools. The existing 11-layer paint map in `game/terrain/` stays the renderer's blend source.)
-- Height per tile in whole metres, -4 to +16 (`HEIGHT_MIN_M`, `HEIGHT_MAX_M`).
-- One tee box (DEC-090). Up to four pin positions; the hole plays pin `round mod count` each round (DEC-088). Trees as yard points; rock and flower counts.
-- Undo and redo: one finger stroke is one step, 100 deep, empty strokes dropped, cancel rolls back (built). The undo button must stay usable while the game is paused.
+`MHCraftHole` is the canonical semantic authoring grid placed over shared course terrain, not a separate terrain world. Default development size is 24 by 40 tiles, each 2 yards square. Coordinates remain hole-local; conversion to the world uses the existing rational yard/dm/mm boundary.
 
-## Converter (built: `game/craft/mh_craft_convert.gd`)
-Painting to rating input (RHI v1, whole yards, hole-local frame), deterministic and integer only:
-- fairway and first cut become fairway rectangles; deep rough, water and out of bounds map to their own types; bunker and waste both count as sand; green, fringe, tee, path, dirt and rough add no area feature.
-- Rectangles come from a greedy scan (row 0 upward, left to right, longest run, grown over rows with the same columns), so the same painting always gives the same list.
-- Green is a circle at the round's pin with radius floor(sqrt(green tiles x 16 x 7 / 22)) yards, at least 1. Tee point and heights (`tee_z_mm`, `green_z_mm`) come from the tee and pin tiles.
-- Blocking problems, in plain words for the UI: no tee, no green, no pin, pin not on the green, tee in water or out of bounds, too many trees (over 1,500), too complex (over 3,000 features), too large (beyond 1,200 yd).
-- Limit to check: the rating engine reads only area rectangles, so slopes affect nothing but the two heights. Elevation as a rating factor is the engine owner's call (open question 2).
+| Data | Contract |
+| --- | --- |
+| Surfaces | Rough, fairway, first cut, deep rough, green, fringe, tee, bunker, waste, water, OB, path, dirt |
+| Elevation | Authoritative integer `height_mm`, clamped from -4,000 to 16,000 mm; `height_m` is a rounded compatibility cache |
+| Markers | One tee and up to four distinct pin tile positions |
+| Trees | Real hole-local yard coordinates |
+| Rocks / flowers | Counts only; do not invent authoritative placement coordinates |
+| History | Up to 100 committed strokes with tile deltas and marker before/after snapshots; cancel restores both; empty edits do not consume history |
+| Persistence | Existing versioned craft dictionary, including exact heights and marker coordinates; history and placement previews are transient |
 
-## Tools and screens (to build)
-1. **Bottom bar, edit mode** (SimGolf pattern): palette pods in two rows with labels, price on hover or long press; height pods (raise, lower, flatten, smooth) with brush size; Undo and Redo buttons; Test shot; Rate.
-2. **Edit grid** shown in edit mode only; hole label and tee-to-green line as in the slice.
-3. **Shot analysis**: from the tee, three arcs (low, normal, high) with landing zone, carry and roll, wind arrow, plus the text readout the slice already has. Uses the rating engine's planner, so the numbers match the score.
-4. **Smooth edges**: draw each surface with marching squares on the tile grid so tiles look rounded while rules stay square. Water, sand and fairway edges get a shore or lip.
-5. **Pins**: tap a green tile to add a pin (up to four); pins show numbered flags and the current round's pin is highlighted.
-6. **Tree and plant brush** uses the content catalogue (15 tree styles x 3 heights, 10 plants x 15 colours). Placement snaps to a half tile.
-7. **Costs**: every tool has a price, paid through the session like building. Undo refunds the stroke.
+## Current tools
 
-## Build order
-1. Craft model and converter (done). 2. Wire a `MHCraftHole` into the session as a hole definition (replaces the fixed slice designs). 3. Tile renderer with edit grid and height. 4. Bottom bar tools and undo. 5. Shot overlay. 6. Smooth edges. 7. Content catalogue brushes. 8. Save format (`course.schema.json` terrain block) and migration.
+- **Surfaces:** illustrated material tray grouped into Turf, Hazards, and Paths & dirt. Detail/Small/Wide use radii 0/1/3 tiles, or 2/6/14-yard bounding diameters. The footprint uses the same integer disc mask as the edit.
+- **Terrain:** Raise and Lower use 250/500/1,000 mm steps. Smooth averages exact millimetre neighbors before writing a dab. Level holds the exact starting height throughout a stroke. Imported fractional heights must not be rounded away.
+- **Hole:** Place tee / Place pin stages an on-course preview. Confirm applies one undoable edit; Cancel and focus/tool changes discard it. Cycle pin slots to move an existing pin or add the next available one, with at most four. Duplicate placement cannot clear the other pins. Removal and marker repair are undoable.
+- **Readiness:** current yardage, geometry requirements and owned-land placement are checked before Build. A blocked build expands its explanation. Pending marker placement must be confirmed or cancelled first.
 
-## Open questions for the lead
-1. Tile size: 2 yd is good for a phone finger on an 18-hole course; 1 yd is finer but four times the tiles. Keep 2?
-2. Should the rating engine read elevation (valleys, slopes, uphill shots)? Today it does not.
-3. Do holes share one map, or does each hole get its own edit grid placed on the 16-parcel map (the slice does the second)?
+Normal course viewing and surface painting have no permanent grid. Raise/Lower/Smooth/Level show temporary sculpt feedback only (DEC-093). Terrain rendering remains batched by surface; the footprint and marker candidate each use a single extra mesh.
+
+## Deterministic conversion and gameplay relief
+
+`MHCraftConvert` emits the existing rating input. Fairway/first cut become fairway rectangles; deep rough, water and OB retain their feature types; bunker/waste use sand. Greedy rectangle coverage has deterministic scan order. Rough, fringe, tee, path and dirt do not invent extra rating feature types.
+
+The rating green is a circle centered at the chosen pin, with equivalent-area radius derived from painted green tile count times **4 square yards per tile**, using the existing integer square-root calculation. Accepted radius is 5–30 yards. Tee-to-pin length is 60–1,000 yards. All pins must lie on green, the tee must avoid water/OB, and tree/feature/bounds limits remain authoritative.
+
+The relief grid carries exact tile-center millimetres. `MHRHole.z_at` interpolates it for rating, shots and roll; display and picking use the same relief. The previous assertion that elevation only affects endpoint heights is obsolete (DEC-091).
+
+`MHCraftTerrainBridge` synchronizes the semantic footprint with the shared world. Do not change units, introduce float simulation, or add a parallel hole representation for visual convenience.
+
+## Built versus still outstanding
+
+The model, converter, terrain bridge, draft checkpoint, editor, finalization and practice path exist. New dock/precision/marker behavior is syntax-checked and awaits Godot/device validation; the historical baseline passed separately.
+
+Still outstanding: polished authored terrain art, shaped bunker/water transitions, a supported editor roundtrip for finalized holes, course routing beyond the one-hole development origin, finalized multi-round pin scheduling, placed landscaping coordinates/migration, and touch occlusion tuning. Existing tree coordinates can support real placement later; rock/flower counts need an explicit canonical migration first.
+
+Do not assume per-stroke prices, automatic pin rotation in current practice, final shot-style overlays or landscaping placement are implemented just because older proposal notes described them. Future costs belong in the existing session/economy command path when designed.
+
+## Regression priorities
+
+Preserve exact elevation through paint/sculpt/undo/redo/conversion/save; preserve markers through confirm/cancel/history/draft disk reload; reject duplicate/fifth pins without data loss; keep the brush mesh and canonical footprint aligned. Retain green repair bounds, early owned-land warnings and EDIT → BUILD → PLAY → SAVE → RELOAD.

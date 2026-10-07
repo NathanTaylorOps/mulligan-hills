@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://schemas.mulliganhills.example/save.schema.json",
   "title": "Mulligan Hills save file v1",
-  "description": "One save slot. Rules: every integer is within +/-2^53 (Godot JSON parses numbers as float64; 64-bit values such as RNG state are stored as 16-char hex strings). No floats. NO entitlement, unlock flag or receipt is ever stored here (additionalProperties is false, so a stray 'unlocked' key fails validation); the paid unlock lives in the separate signed entitlement cache. In-flight guest golfers are not saved: the simulation resumes at world.minute_of_day of the saved day with a fresh golfer roster (DEC-052). Ironman was cut (DEC-058): the legacy 'ironman' key is optional and must be false. Fields added after the first v1 files (world.minute_of_day, progress.playtime_s, progress.stats, progress.streak, progress.daily, progress.tournaments counters) are all optional so older v1 saves stay valid; readers default them. See SAVE_MIGRATION.md. Optional runtime stores exact live clock/economy accounting. Files containing it require min_reader_version 2; older saves remain readable. Cross-field clock/day/hour and club/land/building consistency are checked by MHSessionSave. Primitive course v2 and optional personal practice checkpoints require reader3.",
+  "description": "One save slot. Rules: every integer is within +/-2^53 (Godot JSON parses numbers as float64; 64-bit values such as RNG state are stored as 16-char hex strings). No floats. NO entitlement, unlock flag or receipt is ever stored here (additionalProperties is false, so a stray 'unlocked' key fails validation); the paid unlock lives in the separate signed entitlement cache. In-flight guest golfers are not saved: the simulation resumes at world.minute_of_day of the saved day with a fresh golfer roster (DEC-052). Ironman was cut (DEC-058): the legacy 'ironman' key is optional and must be false. Fields added after the first v1 files (world.minute_of_day, progress.playtime_s, progress.stats, progress.streak, progress.daily, progress.tournaments counters) are all optional so older v1 saves stay valid; readers default them. See SAVE_MIGRATION.md. Optional runtime stores exact live clock/economy accounting. Files containing it require min_reader_version 2; older saves remain readable. Cross-field clock/day/hour and club/land/building consistency are checked by MHSessionSave. Primitive course v2 and optional personal practice checkpoints require reader3. Exact unfinalized craft drafts require reader4.",
   "type": "object",
   "additionalProperties": false,
   "required": [
@@ -1503,6 +1503,58 @@
           "pattern": "^[0-9a-f]{64}$",
           "description": "SHA256 of lowercase hex text of the complete compressed terrain blob; pairs heights AND paint with the accounting checkpoint."
         },
+        "craft_draft": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["v", "cols", "rows", "surface", "height_mm", "tees", "pins", "trees", "rocks", "flowers"],
+          "properties": {
+            "v": {"const": 1},
+            "cols": {"type": "integer", "minimum": 2, "maximum": 600, "multipleOf": 2},
+            "rows": {"type": "integer", "minimum": 2, "maximum": 600},
+            "surface": {
+              "type": "array",
+              "maxItems": 360000,
+              "items": {"type": "integer", "minimum": 0, "maximum": 12}
+            },
+            "height_mm": {
+              "type": "array",
+              "maxItems": 360000,
+              "items": {"type": "integer", "minimum": -4000, "maximum": 16000}
+            },
+            "tees": {
+              "type": "array",
+              "maxItems": 1,
+              "items": {
+                "type": "array",
+                "minItems": 2,
+                "maxItems": 2,
+                "items": {"type": "integer", "minimum": 0, "maximum": 599}
+              }
+            },
+            "pins": {
+              "type": "array",
+              "maxItems": 4,
+              "items": {
+                "type": "array",
+                "minItems": 2,
+                "maxItems": 2,
+                "items": {"type": "integer", "minimum": 0, "maximum": 599}
+              }
+            },
+            "trees": {
+              "type": "array",
+              "maxItems": 1500,
+              "items": {
+                "type": "array",
+                "minItems": 2,
+                "maxItems": 2,
+                "items": {"type": "integer", "minimum": -1200, "maximum": 1200}
+              }
+            },
+            "rocks": {"type": "integer", "minimum": 0, "maximum": 1500},
+            "flowers": {"type": "integer", "minimum": 0, "maximum": 1500}
+          }
+        },
         "practice": {
           "type": "object",
           "additionalProperties": false,
@@ -1636,6 +1688,27 @@
         "properties": {
           "min_reader_version": {
             "minimum": 3
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "runtime": {
+            "required": [
+              "craft_draft"
+            ]
+          }
+        },
+        "required": [
+          "runtime"
+        ]
+      },
+      "then": {
+        "properties": {
+          "min_reader_version": {
+            "minimum": 4
           }
         }
       }

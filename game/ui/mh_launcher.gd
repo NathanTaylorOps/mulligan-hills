@@ -1,5 +1,5 @@
 extends Control
-## Phase 0 scene launcher: the default main scene. One big button per scene that exists.
+## Development launcher: saved-course authoring first, then supporting demos/tools.
 ##
 ## Back-to-launcher convention: any scene may add a Button that calls
 ##   get_tree().change_scene_to_file(MHLauncher.LAUNCHER_PATH)
@@ -12,8 +12,8 @@ const LAUNCHER_PATH: String = "res://ui/mh_launcher.tscn"
 
 ## [label, path]. Order is display order. Missing scenes are hidden.
 const SCENES: Array = [
-	["Vertical slice (buildings, golfers, HUD)", "res://gameplay/mh_vertical_slice.tscn"],
-	["Live construction (ground, club, saves)", "res://gameplay/mh_live_construction.tscn"],
+	["Course design & practice", "res://gameplay/mh_live_construction.tscn"],
+	["Presentation demo (sample course)", "res://gameplay/mh_vertical_slice.tscn"],
 	["Bench (forest + terrain)", "res://bench/bench_scene.tscn"],
 	["Gesture sandbox", "res://input/mh_gesture_sandbox.tscn"],
 	["Terrain demo", "res://terrain/demo/terrain_demo.tscn"],
@@ -57,11 +57,11 @@ func _ready() -> void:
 	scroll.add_child(box)
 
 	var title: Label = Label.new()
-	title.text = "Mulligan Hills: Phase 0"
+	title.text = "MULLIGAN HILLS"
 	title.add_theme_font_size_override("font_size", 40)
 	box.add_child(title)
 	var info: Label = Label.new()
-	info.text = MHBuildInfo.label_text()
+	info.text = "Choose Course design & practice to build and play your saved course.\n" + MHBuildInfo.label_text()
 	info.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	info.add_theme_font_size_override("font_size", 22)
 	box.add_child(info)
@@ -86,4 +86,5 @@ func _open(path: String) -> void:
 	var err: Error = get_tree().change_scene_to_file(path)
 	if err != OK:
 		push_error("launcher: cannot open %s (error %d)" % [path, err])
+
 

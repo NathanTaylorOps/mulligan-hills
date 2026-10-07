@@ -189,6 +189,52 @@ func test_live_scene_routes_pause_paint_history_purchase_and_reload() -> void:
 	scene._active = false
 
 
+func test_save_refuses_half_finished_craft_stroke() -> void:
+	var scene: MHLiveConstruction = auto_free(MHLiveConstruction.new())
+	scene.store = MHSaveStore.new(DIR)
+	scene.ledger_dir = LEDGERS
+	add_child(scene)
+	assert_bool(scene._active).is_true()
+	assert_bool(scene.craft_hole.begin_stroke()).is_true()
+	scene.craft_hole.paint_tile(8, 12, MHCraftHole.Surface.WATER)
+	assert_bool(scene.save_now()).is_false()
+	scene.craft_hole.cancel_stroke()
+	assert_bool(scene.save_now()).is_true()
+	scene._active = false
+
+
+func test_unfinalized_craft_draft_survives_cold_reopen_exactly() -> void:
+	var scene: MHLiveConstruction = MHLiveConstruction.new()
+	scene.store = MHSaveStore.new(DIR)
+	scene.ledger_dir = LEDGERS
+	add_child(scene)
+	assert_bool(scene._active).is_true()
+	scene.craft_hole.paint_tile(4, 5, MHCraftHole.Surface.OUT_OF_BOUNDS)
+	scene.craft_hole.paint_tile(8, 12, MHCraftHole.Surface.WATER)
+	scene.craft_hole.set_height_mm_tile(8, 12, 650)
+	scene.craft_hole.tees.clear()
+	scene.craft_hole.add_tee(12, 1)
+	scene.craft_hole.pins.clear()
+	scene.craft_hole.add_pin(11, 30)
+	scene.craft_hole.add_pin(12, 31)
+	var expected: Dictionary = scene.craft_hole.to_dict()
+	assert_bool(scene.save_now()).is_true()
+	assert_int(int(scene.document["min_reader_version"])).is_equal(4)
+	scene._active = false
+	scene.queue_free()
+	await get_tree().process_frame
+
+	var reopened: MHLiveConstruction = auto_free(MHLiveConstruction.new())
+	reopened.store = MHSaveStore.new(DIR)
+	reopened.ledger_dir = LEDGERS
+	add_child(reopened)
+	assert_bool(reopened._active).is_true()
+	assert_dict(reopened.craft_hole.to_dict()).is_equal(expected)
+	assert_int(reopened.craft_hole.get_height_mm(8, 12)).is_equal(650)
+	assert_int(reopened.craft_hole.get_surface(4, 5)).is_equal(MHCraftHole.Surface.OUT_OF_BOUNDS)
+	reopened._active = false
+
+
 func test_live_scene_finalization_can_save_and_reload_practice() -> void:
 	var scene: MHLiveConstruction = auto_free(MHLiveConstruction.new())
 	scene.store = MHSaveStore.new(DIR)
@@ -196,7 +242,7 @@ func test_live_scene_finalization_can_save_and_reload_practice() -> void:
 	add_child(scene)
 	assert_bool(scene._active).is_true()
 	scene.session.clock.pause()
-	scene.one_hole.open()
+	scene._open_craft_hole()
 	scene.one_hole._finalize()
 	assert_int(scene.session.hole_definitions().size()).is_equal(1)
 	assert_int(int(scene.document["min_reader_version"])).is_equal(3)
@@ -217,12 +263,40 @@ func test_live_scene_finalization_can_save_and_reload_practice() -> void:
 	scene._active = false
 
 
+func test_elevated_live_scene_cold_reopen_accepts_saved_relief() -> void:
+	var scene: MHLiveConstruction = MHLiveConstruction.new()
+	scene.store = MHSaveStore.new(DIR)
+	scene.ledger_dir = LEDGERS
+	add_child(scene)
+	assert_bool(scene._active).is_true()
+	scene.craft_hole.set_height_tile(11, 15, 6)
+	var expected: Dictionary = scene.canonical_craft_draft()
+	assert_bool(expected.has("relief")).is_true()
+	assert_bool(scene.one_hole.set_canonical_draft(expected)).is_true()
+	scene.one_hole._finalize()
+	assert_bool(scene.save_now()).is_true()
+	scene._active = false
+	scene.queue_free()
+	await get_tree().process_frame
+
+	var reopened: MHLiveConstruction = auto_free(MHLiveConstruction.new())
+	reopened.store = MHSaveStore.new(DIR)
+	reopened.ledger_dir = LEDGERS
+	add_child(reopened)
+	assert_bool(reopened._active).is_true()
+	assert_array(reopened.session.hole_definitions()).contains_exactly([expected])
+	assert_bool(MHOneHolePanel.supported(reopened.document["course"] as Dictionary)).is_true()
+	reopened._open_craft_hole()
+	assert_bool(reopened.one_hole.visible).is_true()
+	reopened._active = false
+
+
 func test_screen_aim_projection_sets_target_without_playing_or_charging() -> void:
 	var scene: MHLiveConstruction = auto_free(MHLiveConstruction.new())
 	scene.store = MHSaveStore.new(DIR)
 	scene.ledger_dir = LEDGERS
 	add_child(scene)
-	scene.one_hole.open()
+	scene._open_craft_hole()
 	scene.one_hole._finalize()
 	var before: Dictionary = scene.session.practice.to_dict()
 	var cash: int = scene.session.economy.cash
@@ -243,7 +317,7 @@ func test_camera_follow_and_overview_preserve_gameplay_state() -> void:
 	scene.store = MHSaveStore.new(DIR)
 	scene.ledger_dir = LEDGERS
 	add_child(scene)
-	scene.one_hole.open()
+	scene._open_craft_hole()
 	scene.one_hole._finalize()
 	var before: Dictionary = scene.session.practice.to_dict()
 	var cash: int = scene.session.economy.cash
@@ -264,3 +338,37 @@ func test_camera_follow_and_overview_preserve_gameplay_state() -> void:
 	scene.one_hole._shoot()
 	assert_bool(scene.controller.rig.target == overview).is_true()
 	scene._active = false
+
+
+func test_elevated_craft_hole_practice_state_survives_checkpoint_exactly() -> void:
+	var s: MHGameSession = MHGameSession.create()
+	var craft: MHCraftHole = MHCraftHole.new(24, 40)
+	craft.paint_rect(10, 0, 13, 29, MHCraftHole.Surface.FAIRWAY)
+	craft.paint_rect(11, 30, 12, 31, MHCraftHole.Surface.GREEN)
+	craft.add_tee(11, 0)
+	craft.add_pin(11, 30)
+	craft.set_height_tile(11, 15, 6)
+	var layout: Dictionary = MHCraftConvert.to_hole_def(craft, 0, 0, 0)
+	assert_bool(layout.has("relief")).is_true()
+	assert_bool(s.submit_course([layout])["ok"]).is_true()
+	s.practice = MHPracticeRound.create(layout, 123456, 500)
+	assert_object(s.practice).is_not_null()
+	var shot: Dictionary = s.practice.play(s.practice.hole.gx, s.practice.hole.gy)
+	assert_bool(bool(shot["ok"])).is_true()
+	var doc: Dictionary = _document(s)
+	var encoded: MHSaveResult = MHCourseLayout.encode([layout], doc["course"] as Dictionary, [[100, 100]])
+	assert_bool(encoded.is_ok()).override_failure_message(encoded.message).is_true()
+	if not encoded.is_ok():
+		return
+	doc["course"] = encoded.value
+	doc["min_reader_version"] = 3
+	var captured: MHSaveResult = MHSessionSave.capture(s, doc)
+	assert_bool(captured.is_ok()).override_failure_message(captured.message).is_true()
+	if not captured.is_ok():
+		return
+	var restored: MHSaveResult = MHSessionSave.restore(captured.value as Dictionary, s.ledger)
+	assert_bool(restored.is_ok()).override_failure_message(restored.message).is_true()
+	if restored.is_ok():
+		var rs: MHGameSession = restored.value
+		assert_array(rs.hole_definitions()).contains_exactly([layout])
+		assert_dict(rs.practice.to_dict()).is_equal(s.practice.to_dict())

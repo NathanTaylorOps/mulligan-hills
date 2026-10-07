@@ -1,6 +1,7 @@
 class_name MHLiveLayout
 extends RefCounted
-## Pure zone maths for the live construction scene (no nodes, no engine state, testable without a window).
+## Pure zone maths for the live construction scene (no nodes, no engine state).
+## Focused course design uses editor_dock_rect(); compute() retains the general HUD zone contract below.
 ##
 ## The HUD (or editor toolbar) owns the top band and the bottom nav bar and reports the rectangle left between
 ## them (`MHUIShell.overlay_free_rect()`). Everything the live scene adds lives INSIDE that free rectangle, split
@@ -68,6 +69,15 @@ static func panel_header_height(touch_min: float) -> float:
 
 static func status_height(line_h: float) -> float:
 	return float(STATUS_LINES) * maxf(1.0, line_h) + 2.0 * STATUS_PAD_V
+
+
+## Focused course editor: a full-width bottom dock, sized from its visible controls.
+## The caller owns scrolling inside the dock; preserve world space above it.
+static func editor_dock_rect(free: Rect2, desired_height: float) -> Rect2:
+	if not free.has_area():
+		return Rect2()
+	var height: float = clampf(desired_height, 0.0, free.size.y * (1.0 - WORLD_MIN_FRACTION))
+	return Rect2(free.position.x, free.end.y - height, free.size.x, height)
 
 
 ## Zone rectangles inside `free`. Keys: "actions", "status", "panel" (Rect2, empty size when the zone is not shown),

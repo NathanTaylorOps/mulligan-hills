@@ -1,5 +1,8 @@
 # Temporary lead handover (5 October 2026)
 
+> Historical handover for the 5 October increment. Its branch instructions, zero-hole limits and next-work priorities are superseded by the [current README](../../README.md), [development guide](../DEVELOPMENT.md) and [live-course architecture](live_construction.md).
+
+
 > 5 October follow-up: `one_hole.md` adds an exact short-hole finalization/rating/save and aim-controlled practice prototype. Earlier zero-hole limits below describe the preceding increment. Legacy polygon conversion, full terrain authoring and finished golfer RPG remain unresolved. See `simgolf_controls_research.md` for Nathan's requested controls research.
 
 
@@ -55,3 +58,4 @@ New live launcher scene connects ground editing, pause/history, real club menus 
 Nathan requested Luck on 5 October 2026: seven proposed golfer attributes now include bounded positive encounters/stories/interactions and golf breaks. Details in `docs/spec/golfer_controls.md`; growth and coefficients remain open, and no Luck runtime implementation is claimed.
 
 Luck scope clarified by Nathan: also affects encounter frequency for animals/celebrities and private-match/challenge offers from NPC pros. Proposal includes eligibility, cooldowns, offer limits and explicit player acceptance; not runtime implemented.
+

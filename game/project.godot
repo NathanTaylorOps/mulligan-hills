@@ -13,7 +13,7 @@ config_version=5
 
 config/name="Mulligan Hills"
 config/features=PackedStringArray("4.7")
-config/icon="res://icon.png"
+; Custom game icon will be added with the approved art assets.
 run/main_scene="res://ui/mh_launcher.tscn"
 
 [debug]

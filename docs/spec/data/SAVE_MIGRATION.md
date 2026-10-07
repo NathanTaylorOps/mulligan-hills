@@ -48,3 +48,10 @@ Schema: `save.schema.json`. Current `save_version`: 1. Code: `game/core/save/` (
 Course schema version 2 permits primitive holes (`hole_no`, `origin_dm`, `layout`) as a lossless alternative to legacy dm polygons. Local layout remains official RHI whole yards; no guessed polygon conversion. Files using this representation require `min_reader_version=3`. The optional runtime.practice record saves exact personal-practice position and next shot, bound to the hole's canonical geometry hash; it also requires reader3. Previous v1/reader2 files retain their compatibility. A development view may refuse a valid geometry profile it cannot display without changing that file. In-flight **guest** golfers still restart as before; this optional player practice checkpoint is separate.
 
 `one_hole_save.example.json` contains independently computed Python rating/flight values. Its zero terrain digest is a fixture placeholder, not a real binary pairing. No rating/sim version or product decision changed.
+
+
+## Reader 4: exact unfinalized craft draft
+
+The optional `runtime.craft_draft` record preserves an in-progress hole craft grid exactly before finalization: 2-yard surface cells, exact millimetre relief samples, tee/pin positions and craft object metadata. Files carrying it require `min_reader_version=4`; reader-1/2/3 files without it remain readable and are migrated in the live slice by sampling their persisted shared terrain over the starter craft footprint. The draft is not an entitlement or rating cache. Once a hole is finalized, canonical course schema-v2 geometry remains authoritative and the redundant draft is omitted.
+
+DEC-092 makes the persisted world terrain shared between the normal terrain editor and Build/play. The craft draft exists because the rating grid contains semantics the current 11-channel world splat cannot reproduce losslessly (for example deep rough/out-of-bounds identity and tee/pin metadata), not because Build/play owns a second terrain world.

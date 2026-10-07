@@ -46,9 +46,9 @@ static func visible_rect(b: Control) -> Rect2:
 	var clips: Array = []
 	var p: Node = b.get_parent()
 	while p != null:
-		var sc: ScrollContainer = p as ScrollContainer
-		if sc != null:
-			clips.append(sc.get_global_rect())
+		var control: Control = p as Control
+		if control != null and control.clip_contents:
+			clips.append(control.get_global_rect())
 		p = p.get_parent()
 	return clipped(b.get_global_rect(), clips)
 
@@ -119,7 +119,8 @@ func _input(event: InputEvent) -> void:
 			if btn != null and is_instance_valid(btn):
 				btn.modulate = Color(1, 1, 1, 1)
 				var still_tap: bool = not bool(d["moved"]) and not t.canceled
-				if still_tap and visible_rect(btn).has_point(t.position) and not btn.disabled:
+				var in_scope: bool = scope == null or scope == btn or scope.is_ancestor_of(btn)
+				if still_tap and in_scope and btn.is_visible_in_tree() and visible_rect(btn).has_point(t.position) and not btn.disabled:
 					btn.pressed.emit()
 				get_viewport().set_input_as_handled()
 	elif event is InputEventScreenDrag:
@@ -138,3 +139,17 @@ func _input(event: InputEvent) -> void:
 			if sc2 != null and is_instance_valid(sc2):
 				sc2.scroll_vertical = sc2.scroll_vertical - int(g.relative.y)
 				sc2.scroll_horizontal = sc2.scroll_horizontal - int(g.relative.x)
+
+
+func _clear_contacts() -> void:
+	for value: Variant in _down.values():
+		var row: Dictionary = value as Dictionary
+		var b: Button = _live_button(row.get("button", null))
+		if b != null:
+			b.modulate = Color(1, 1, 1, 1)
+	_down.clear()
+
+
+func _notification(what: int) -> void:
+	if what == NOTIFICATION_APPLICATION_PAUSED or what == NOTIFICATION_APPLICATION_FOCUS_OUT or what == NOTIFICATION_WM_WINDOW_FOCUS_OUT:
+		_clear_contacts()

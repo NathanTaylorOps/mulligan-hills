@@ -116,7 +116,7 @@ func test_malformed_round_and_forged_state_rejected() -> void:
 	assert_object(MHPracticeRound.restore(_layout(), d)).is_null()
 
 
-func test_bad_world_version_slot_and_unsupported_panel_profile_reject() -> void:
+func test_bad_world_version_slot_and_panel_origin_reject() -> void:
 	var s: MHGameSession = MHGameSession.create()
 	var source: Dictionary = _source(s)["course"]
 	for key: String in ["schema_version", "world"]:
@@ -139,3 +139,371 @@ func test_bad_world_version_slot_and_unsupported_panel_profile_reject() -> void:
 	encoded = MHCourseLayout.encode([h], source, [[480, 340]])
 	assert_bool(encoded.is_ok()).is_true()
 	assert_bool(MHOneHolePanel.supported(encoded.value)).is_false()
+
+	var craft: MHCraftHole = MHCraftHole.new(24, 40)
+	craft.paint_rect(10, 0, 13, 29, MHCraftHole.Surface.FAIRWAY)
+	craft.paint_rect(9, 30, 14, 35, MHCraftHole.Surface.GREEN)
+	craft.add_tee(11, 0)
+	craft.add_pin(11, 30)
+	craft.set_height_tile(11, 15, 6)
+	var relief_layout: Dictionary = MHCraftConvert.to_hole_def(craft, 0, 0, 0)
+	encoded = MHCourseLayout.encode([relief_layout], source, [[480, 340]])
+	assert_bool(encoded.is_ok()).is_true()
+	assert_bool(MHOneHolePanel.supported(encoded.value)).is_true()
+
+
+func test_live_panel_finalizes_exact_canonical_craft_relief_layout() -> void:
+	var scene: MHLiveConstruction = auto_free(MHLiveConstruction.new())
+	scene.store = MHSaveStore.new("user://test_one_hole_canonical")
+	scene.ledger_dir = "user://test_one_hole_canonical_ledgers"
+	add_child(scene)
+	assert_bool(scene._active).is_true()
+	scene.session.clock.pause()
+	var craft: MHCraftHole = MHCraftHole.new(24, 40)
+	craft.paint_rect(10, 0, 13, 29, MHCraftHole.Surface.FAIRWAY)
+	craft.paint_rect(9, 30, 14, 35, MHCraftHole.Surface.GREEN)
+	craft.add_tee(11, 0)
+	craft.add_pin(11, 30)
+	craft.set_height_tile(11, 15, 6)
+	scene.craft_hole = craft
+	var layout: Dictionary = MHCraftConvert.to_hole_def(craft, 0, 0, 0)
+	assert_bool(layout.has("relief")).is_true()
+	assert_bool(scene.one_hole.set_canonical_draft(layout)).is_true()
+	scene.one_hole._finalize()
+	assert_array(scene.session.hole_definitions()).contains_exactly([layout])
+	assert_object(scene.session.practice).is_not_null()
+	assert_str(scene.session.practice.hole.content_hash()).is_equal(MHRHole.from_def(layout).content_hash())
+	var decoded: MHSaveResult = MHCourseLayout.decode(scene.document["course"] as Dictionary)
+	assert_bool(decoded.is_ok()).override_failure_message(decoded.message).is_true()
+	if decoded.is_ok():
+		assert_array(decoded.value as Array).contains_exactly([layout])
+	scene._active = false
+
+
+func test_canonical_craft_draft_rotates_pins_by_round() -> void:
+	var scene: MHLiveConstruction = auto_free(MHLiveConstruction.new())
+	scene.store = MHSaveStore.new("user://test_craft_pin_rotation")
+	scene.ledger_dir = "user://test_craft_pin_rotation_ledgers"
+	add_child(scene)
+	assert_bool(scene._active).is_true()
+	scene.craft_hole.pins.clear()
+	scene.craft_hole.add_pin(11, 30)
+	scene.craft_hole.add_pin(12, 31)
+	var p0: Vector2i = scene.craft_hole.tile_centre_yd(11, 30)
+	var p1: Vector2i = scene.craft_hole.tile_centre_yd(12, 31)
+	var r0: Dictionary = scene.canonical_craft_draft(0)
+	var r1: Dictionary = scene.canonical_craft_draft(1)
+	var g0: Array = r0["green"] as Array
+	var g1: Array = r1["green"] as Array
+	assert_int(int(g0[0])).is_equal(p0.x)
+	assert_int(int(g0[1])).is_equal(p0.y)
+	assert_int(int(g1[0])).is_equal(p1.x)
+	assert_int(int(g1[1])).is_equal(p1.y)
+	scene._active = false
+
+
+func test_live_build_play_entry_uses_owned_canonical_craft_draft() -> void:
+	var scene: MHLiveConstruction = auto_free(MHLiveConstruction.new())
+	scene.store = MHSaveStore.new("user://test_one_hole_entry")
+	scene.ledger_dir = "user://test_one_hole_entry_ledgers"
+	add_child(scene)
+	assert_bool(scene._active).is_true()
+	assert_object(scene.craft_hole).is_not_null()
+	scene.craft_hole.set_height_tile(11, 15, 6)
+	var expected: Dictionary = scene.canonical_craft_draft()
+	assert_bool(expected.has("relief")).is_true()
+	scene._open_craft_hole()
+	assert_bool(scene.one_hole.visible).is_true()
+	assert_dict(scene.one_hole.canonical_draft).is_equal(expected)
+	scene.one_hole._finalize()
+	assert_array(scene.session.hole_definitions()).contains_exactly([expected])
+	scene._active = false
+
+
+func test_entering_normal_editor_immediately_owns_world_input() -> void:
+	var scene: MHLiveConstruction = auto_free(MHLiveConstruction.new())
+	scene.store = MHSaveStore.new("user://test_editor_input_handoff")
+	scene.ledger_dir = "user://test_editor_input_handoff_ledgers"
+	add_child(scene)
+	assert_bool(scene._active).is_true()
+	scene.shell.push_screen(MHScreenIds.EDITOR)
+	await get_tree().process_frame
+	assert_str(scene.shell.current_screen_id()).is_equal(MHScreenIds.EDITOR)
+	assert_bool(scene.router.accept_world_input).is_true()
+	assert_int(scene.editor.brush_mode).is_equal(MHBrush.Mode.RAISE)
+	assert_int(scene.editor.brush_radius).is_equal(MHEditorTools.RADIUS_DEFAULT)
+	scene._active = false
+
+
+func test_one_hole_mode_has_real_panel_area_and_editor_navigation_closes_it() -> void:
+	var scene: MHLiveConstruction = auto_free(MHLiveConstruction.new())
+	scene.store = MHSaveStore.new("user://test_one_hole_layout_mode")
+	scene.ledger_dir = "user://test_one_hole_layout_mode_ledgers"
+	add_child(scene)
+	assert_bool(scene._active).is_true()
+	scene._open_craft_hole()
+	await get_tree().process_frame
+	scene._relayout()
+	assert_bool(scene.one_hole.visible).is_true()
+	assert_bool(scene.one_hole._scroll.visible).is_true()
+	assert_float(scene._panel_frame.size.y).is_greater(MHLiveLayout.panel_header_height(scene.shell.ctx.touch_min()))
+	assert_float(scene._panel_frame.size.x).is_greater(200.0)
+	scene.shell.push_screen(MHScreenIds.EDITOR)
+	await get_tree().process_frame
+	assert_bool(scene.one_hole.visible).is_false()
+	assert_bool(scene.chunks.visible).is_true()
+	assert_bool(scene.router.accept_world_input).is_true()
+	scene._active = false
+
+
+func test_reopening_build_play_does_not_replace_finalized_layout_with_default_craft() -> void:
+	var scene: MHLiveConstruction = auto_free(MHLiveConstruction.new())
+	scene.store = MHSaveStore.new("user://test_one_hole_reopen")
+	scene.ledger_dir = "user://test_one_hole_reopen_ledgers"
+	add_child(scene)
+	assert_bool(scene._active).is_true()
+	scene.craft_hole.set_height_tile(11, 15, 6)
+	var finalized: Dictionary = scene.canonical_craft_draft()
+	assert_bool(scene.one_hole.set_canonical_draft(finalized)).is_true()
+	scene.one_hole._finalize()
+	scene.craft_hole = scene._default_craft_hole()
+	scene.one_hole.hide()
+	scene._open_craft_hole()
+	assert_bool(scene.one_hole.canonical_draft.is_empty()).is_true()
+	assert_array(scene.session.hole_definitions()).contains_exactly([finalized])
+	scene._active = false
+
+
+func test_normal_editor_and_build_play_share_water_path_and_height() -> void:
+	var scene: MHLiveConstruction = auto_free(MHLiveConstruction.new())
+	scene.store = MHSaveStore.new("user://test_shared_craft_world")
+	scene.ledger_dir = "user://test_shared_craft_world_ledgers"
+	add_child(scene)
+	assert_bool(scene._active).is_true()
+	var tile: Vector2i = Vector2i(8, 12)
+	var centre: Vector2i = scene.craft_hole.tile_centre_yd(tile.x, tile.y)
+	var sx: int = MHRMath.rdiv(MHCourseLayout.world_mm(480, centre.x * 100), scene.editor.grid.cell_size_mm)
+	var sy: int = MHRMath.rdiv(MHCourseLayout.world_mm(340, centre.y * 100), scene.editor.grid.cell_size_mm)
+
+	# Edit through the normal world terrain path.
+	scene.editor.set_paint_brush(MHSplatMap.Layer.WATER, 1, 1000)
+	scene.editor.begin_stroke()
+	scene.editor.apply_brush_at(sx, sy)
+	scene.editor.end_stroke()
+	scene.editor.set_brush(MHBrush.Mode.RAISE, 1, 700)
+	scene.editor.begin_stroke()
+	scene.editor.apply_brush_at(sx, sy)
+	scene.editor.end_stroke()
+	assert_int(scene.craft_hole.get_surface(tile.x, tile.y)).is_equal(MHCraftHole.Surface.WATER)
+	assert_int(scene.craft_hole.get_height_mm(tile.x, tile.y)).is_equal(700)
+
+	# Reopening Build/play must show the same authoritative craft state.
+	scene._open_craft_hole()
+	assert_int(scene.craft_hole.get_surface(tile.x, tile.y)).is_equal(MHCraftHole.Surface.WATER)
+	assert_int(roundi(scene.one_hole._ground_height(centre.x * 100, centre.y * 100) * 1000.0)).is_equal(700)
+
+	# Edit back through Build/play; the persisted world splat changes too.
+	scene.one_hole.craft_mode = &"surface"
+	scene.one_hole.craft_surface = MHCraftHole.Surface.PATH
+	assert_bool(scene.one_hole.craft_at_tile(tile.x, tile.y)).is_true()
+	assert_int(scene.editor.splat.get_weight(sx, sy, MHSplatMap.Layer.PATH)).is_equal(255)
+	assert_int(scene.editor.splat.get_weight(sx, sy, MHSplatMap.Layer.WATER)).is_equal(0)
+	scene._active = false
+
+
+func test_repairing_water_at_pin_keeps_existing_green_inside_owned_land() -> void:
+	var run_id: String = str(Time.get_ticks_usec())
+	var scene: MHLiveConstruction = auto_free(MHLiveConstruction.new())
+	scene.store = MHSaveStore.new("user://test_green_repair_" + run_id)
+	scene.ledger_dir = "user://test_green_repair_ledger_" + run_id
+	add_child(scene)
+	assert_bool(scene._active).is_true()
+	scene._open_craft_hole()
+	var original_radius: int = MHCraftConvert.green_radius_yd(scene.craft_hole)
+	assert_int(original_radius).is_equal(6)
+	var pin: Vector2i = scene.craft_hole.pins[0] as Vector2i
+	scene.one_hole.craft_mode = &"surface"
+	scene.one_hole.craft_surface = MHCraftHole.Surface.WATER
+	assert_bool(scene.one_hole.craft_at_tile(pin.x, pin.y)).is_true()
+	assert_bool(MHCraftConvert.problems(scene.craft_hole).has("pin_not_on_green")).is_true()
+	scene.one_hole._repair_hole_markers()
+	assert_int(MHCraftConvert.green_radius_yd(scene.craft_hole)).is_equal(original_radius)
+	assert_array(MHCraftConvert.problems(scene.craft_hole)).is_empty()
+	var layout: Dictionary = scene.canonical_craft_draft()
+	var encoded: MHSaveResult = MHCourseLayout.encode([layout],
+		scene.document["course"] as Dictionary, [MHOneHolePanel.ORIGIN])
+	assert_bool(encoded.is_ok()).override_failure_message(encoded.message).is_true()
+	scene.one_hole._finalize()
+	assert_int(scene.session.hole_definitions().size()).is_equal(1)
+	scene._active = false
+
+
+func test_green_repair_expands_only_a_genuinely_small_green() -> void:
+	var run_id: String = str(Time.get_ticks_usec())
+	var scene: MHLiveConstruction = auto_free(MHLiveConstruction.new())
+	scene.store = MHSaveStore.new("user://test_small_green_repair_" + run_id)
+	scene.ledger_dir = "user://test_small_green_repair_ledger_" + run_id
+	add_child(scene)
+	assert_bool(scene._active).is_true()
+	scene.craft_hole = MHCraftHole.new(24, 40)
+	scene.craft_hole.paint_rect(10, 0, 13, 29, MHCraftHole.Surface.FAIRWAY)
+	scene.craft_hole.paint_rect(11, 30, 12, 31, MHCraftHole.Surface.GREEN)
+	scene.craft_hole.add_tee(11, 0)
+	scene.craft_hole.add_pin(11, 30)
+	scene.one_hole.enter_craft_draft()
+	assert_int(MHCraftConvert.green_radius_yd(scene.craft_hole)).is_equal(2)
+	scene.one_hole._repair_hole_markers()
+	assert_bool(MHCraftConvert.green_radius_yd(scene.craft_hole) >= 5).is_true()
+	assert_array(MHCraftConvert.problems(scene.craft_hole)).is_empty()
+	var layout: Dictionary = scene.canonical_craft_draft()
+	var encoded: MHSaveResult = MHCourseLayout.encode([layout],
+		scene.document["course"] as Dictionary, [MHOneHolePanel.ORIGIN])
+	assert_bool(encoded.is_ok()).override_failure_message(encoded.message).is_true()
+	scene._active = false
+
+
+func test_live_craft_controls_mutate_authoritative_hole_and_undo_redo() -> void:
+	var scene: MHLiveConstruction = auto_free(MHLiveConstruction.new())
+	scene.store = MHSaveStore.new("user://test_craft_controls")
+	scene.ledger_dir = "user://test_craft_controls_ledgers"
+	add_child(scene)
+	assert_bool(scene._active).is_true()
+	scene._open_craft_hole()
+	var panel: MHOneHolePanel = scene.one_hole
+	panel.craft_mode = &"surface"
+	panel.craft_surface = MHCraftHole.Surface.BUNKER
+	var before: int = scene.craft_hole.get_surface(8, 12)
+	assert_bool(panel.craft_at_tile(8, 12)).is_true()
+	assert_int(scene.craft_hole.get_surface(8, 12)).is_equal(MHCraftHole.Surface.BUNKER)
+	assert_bool(scene.craft_hole.can_undo()).is_true()
+	panel._craft_undo()
+	assert_int(scene.craft_hole.get_surface(8, 12)).is_equal(before)
+	panel._craft_redo()
+	assert_int(scene.craft_hole.get_surface(8, 12)).is_equal(MHCraftHole.Surface.BUNKER)
+	panel.craft_mode = &"raise"
+	var z: int = scene.craft_hole.get_height(11, 15)
+	assert_bool(panel.craft_at_tile(11, 15)).is_true()
+	assert_int(scene.craft_hole.get_height(11, 15)).is_equal(z + 1)
+	assert_bool(panel.canonical_draft.has("relief")).is_true()
+	scene._active = false
+
+func test_live_craft_tee_and_pin_tools_update_canonical_draft() -> void:
+	var scene: MHLiveConstruction = auto_free(MHLiveConstruction.new())
+	scene.store = MHSaveStore.new("user://test_craft_markers")
+	scene.ledger_dir = "user://test_craft_markers_ledgers"
+	add_child(scene)
+	assert_bool(scene._active).is_true()
+	scene._open_craft_hole()
+	var panel: MHOneHolePanel = scene.one_hole
+	panel.craft_mode = &"tee"
+	assert_bool(panel.craft_at_tile(12, 1)).is_true()
+	assert_array(scene.craft_hole.tees).contains_exactly([Vector2i(12, 1)])
+	panel.craft_mode = &"pin"
+	assert_bool(panel.craft_at_tile(11, 31)).is_true()
+	assert_bool(scene.craft_hole.pins.has(Vector2i(11, 31))).is_true()
+	assert_bool(panel.canonical_draft.is_empty()).is_false()
+	assert_dict(panel.canonical_draft).is_equal(scene.canonical_craft_draft())
+	scene._active = false
+
+
+func test_relief_aware_screen_pick_hits_the_visible_craft_tile() -> void:
+	var scene: MHLiveConstruction = auto_free(MHLiveConstruction.new())
+	scene.store = MHSaveStore.new("user://test_craft_relief_pick")
+	scene.ledger_dir = "user://test_craft_relief_pick_ledgers"
+	add_child(scene)
+	assert_bool(scene._active).is_true()
+	scene.craft_hole.set_height_tile(11, 15, 6)
+	scene._open_craft_hole()
+	var centre: Vector2i = scene.craft_hole.tile_centre_yd(11, 15)
+	var world: Vector3 = scene.one_hole._position_on_ground(centre.x * 100, centre.y * 100, 0.0)
+	var screen: Vector2 = scene.controller.camera.unproject_position(world)
+	assert_bool(scene.one_hole._craft_tile_from_screen(screen) == Vector2i(11, 15)).is_true()
+	scene._active = false
+
+
+func test_drag_craft_edit_is_one_undoable_stroke() -> void:
+	var scene: MHLiveConstruction = auto_free(MHLiveConstruction.new())
+	scene.store = MHSaveStore.new("user://test_craft_drag_stroke")
+	scene.ledger_dir = "user://test_craft_drag_stroke_ledgers"
+	add_child(scene)
+	assert_bool(scene._active).is_true()
+	scene._open_craft_hole()
+	var panel: MHOneHolePanel = scene.one_hole
+	panel.craft_mode = &"surface"
+	panel.craft_surface = MHCraftHole.Surface.BUNKER
+	var a: Vector2i = scene.craft_hole.tile_centre_yd(8, 12)
+	var b: Vector2i = scene.craft_hole.tile_centre_yd(10, 12)
+	var sa: Vector2 = scene.controller.camera.unproject_position(panel._position_on_ground(a.x * 100, a.y * 100, 0.0))
+	var sb: Vector2 = scene.controller.camera.unproject_position(panel._position_on_ground(b.x * 100, b.y * 100, 0.0))
+	var before_undo: int = scene.craft_hole.undo_count()
+	assert_bool(panel.craft_stroke_begin_from_screen(sa)).is_true()
+	assert_bool(panel.craft_stroke_move_from_screen(sb)).is_true()
+	assert_bool(panel.craft_stroke_end()).is_true()
+	assert_int(scene.craft_hole.undo_count()).is_equal(before_undo + 1)
+	assert_int(scene.craft_hole.get_surface(8, 12)).is_equal(MHCraftHole.Surface.BUNKER)
+	assert_int(scene.craft_hole.get_surface(10, 12)).is_equal(MHCraftHole.Surface.BUNKER)
+	assert_bool(scene.craft_hole.undo()).is_true()
+	assert_bool(scene.craft_hole.get_surface(8, 12) != MHCraftHole.Surface.BUNKER).is_true()
+	scene._active = false
+
+
+func test_live_preview_ground_height_matches_rating_relief() -> void:
+	var scene: MHLiveConstruction = auto_free(MHLiveConstruction.new())
+	scene.store = MHSaveStore.new("user://test_craft_relief_render")
+	scene.ledger_dir = "user://test_craft_relief_render_ledgers"
+	add_child(scene)
+	assert_bool(scene._active).is_true()
+	scene.craft_hole.set_height_tile(11, 15, 6)
+	scene._open_craft_hole()
+	var layout: Dictionary = scene.canonical_craft_draft()
+	var hole: MHRHole = MHRHole.from_def(layout)
+	var centre: Vector2i = scene.craft_hole.tile_centre_yd(11, 15)
+	var cx: int = centre.x * 100
+	var cy: int = centre.y * 100
+	assert_float(scene.one_hole._ground_height(cx, cy)).is_equal_approx(float(hole.z_at(cx, cy)) / 1000.0, 0.001)
+	assert_float(scene.one_hole._ground_height(cx, cy)).is_equal_approx(6.0, 0.001)
+	scene._active = false
+
+
+func test_craft_preview_builds_surface_meshes_and_positioned_trees() -> void:
+	var scene: MHLiveConstruction = auto_free(MHLiveConstruction.new())
+	scene.store = MHSaveStore.new("user://test_craft_mesh")
+	scene.ledger_dir = "user://test_craft_mesh_ledgers"
+	add_child(scene)
+	assert_bool(scene._active).is_true()
+	scene.craft_hole.set_height_tile(11, 15, 6)
+	scene.craft_hole.add_tree_yd(6, 20)
+	scene._open_craft_hole()
+	var mesh_count: int = 0
+	for child: Node in scene.one_hole._world.get_children():
+		if child is MeshInstance3D:
+			mesh_count += 1
+	assert_bool(mesh_count > 0).is_true()
+	assert_bool(mesh_count < scene.craft_hole.cols * scene.craft_hole.rows).is_true()
+	var tree_ground: float = scene.one_hole._ground_height(600, 2000)
+	assert_float(tree_ground).is_equal_approx(float(MHRHole.from_def(scene.canonical_craft_draft()).z_at(600, 2000)) / 1000.0, 0.001)
+	scene._active = false
+
+
+func test_craft_relief_normal_is_not_flat_on_slope() -> void:
+	var scene: MHLiveConstruction = auto_free(MHLiveConstruction.new())
+	scene.store = MHSaveStore.new("user://test_craft_normals")
+	scene.ledger_dir = "user://test_craft_normals_ledgers"
+	add_child(scene)
+	assert_bool(scene._active).is_true()
+	scene.craft_hole.set_height_tile(11, 15, 6)
+	scene._open_craft_hole()
+	var hole: MHRHole = MHRHole.from_def(scene.canonical_craft_draft())
+	var centre: Vector2i = scene.craft_hole.tile_centre_yd(11, 15)
+	var n: Vector3 = scene.one_hole._craft_normal(hole, centre.x * 100, centre.y * 100)
+	assert_bool(n.is_normalized()).is_true()
+	assert_bool(absf(n.x) > 0.001 or absf(n.z) > 0.001).is_true()
+	assert_bool(n.y > 0.0).is_true()
+	scene._active = false
+
+func test_craft_water_material_is_transparent_and_low_roughness() -> void:
+	var panel: MHOneHolePanel = auto_free(MHOneHolePanel.new())
+	var material: StandardMaterial3D = panel._craft_material(MHCraftHole.Surface.WATER)
+	assert_int(material.transparency).is_equal(BaseMaterial3D.TRANSPARENCY_ALPHA)
+	assert_bool(material.albedo_color.a < 1.0).is_true()
+	assert_bool(material.roughness < 0.5).is_true()

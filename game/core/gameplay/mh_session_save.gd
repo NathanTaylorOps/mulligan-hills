@@ -4,7 +4,7 @@ extends RefCounted
 ## Legacy dm polygons require their own adapter; they must never be guessed or silently erased.
 @warning_ignore_start("integer_division")
 
-static func capture(session: MHGameSession, source: Dictionary) -> MHSaveResult:
+static func capture(session: MHGameSession, source: Dictionary, craft_draft: Dictionary = {}) -> MHSaveResult:
 	var nr: MHSaveResult = MHSaveGame.normalize(source)
 	if not nr.is_ok():
 		return nr
@@ -55,6 +55,11 @@ static func capture(session: MHGameSession, source: Dictionary) -> MHSaveResult:
 	if session.practice != null:
 		doc["runtime"]["practice"] = session.practice.to_dict()
 		doc["min_reader_version"] = 3
+	if not craft_draft.is_empty():
+		if MHCraftHole.from_dict(craft_draft) == null:
+			return _bad("craft draft checkpoint invalid")
+		doc["runtime"]["craft_draft"] = craft_draft.duplicate(true)
+		doc["min_reader_version"] = maxi(int(doc["min_reader_version"]), 4)
 	MHSaveGame.seal(doc)
 	var normalized: MHSaveResult = MHSaveGame.normalize(doc)
 	if not normalized.is_ok():

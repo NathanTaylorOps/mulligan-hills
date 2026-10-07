@@ -20,6 +20,7 @@ var store: MHSaveStore = MHSaveStore.new(SAVE_DIR)
 var document: Dictionary = {}
 var aim_input: MHPracticeAimInput
 var one_hole: MHOneHolePanel
+var craft_hole: MHCraftHole
 var _status: Label
 ## Responsive layout (MHLiveLayout zones inside the area the HUD leaves free). See docs/phase1/live_construction.md.
 var _dock: Control
@@ -29,13 +30,17 @@ var _status_zone: PanelContainer
 var _panel_frame: PanelContainer
 var _layout_key: Array = []
 var _pending_save: bool = false
+var _save_error: bool = false
 var _active: bool = false
 var _last_usec: int = 0
+var _syncing_craft_terrain: bool = false
+var _terrain_dirty_for_craft: Rect2i = Rect2i()
 
 func _ready() -> void:
 	MHOrientation.apply_game() # No-op off mobile; one switch, see MHOrientation.
 	var ledger: MHTokenLedger = MHTokenLedger.new()
 	var loaded: MHSaveResult = store.load_slot(0)
+	var loaded_existing: bool = loaded.is_ok()
 	if loaded.is_ok():
 		var saved: MHLoadedSave = loaded.value as MHLoadedSave
 		var ledger_result: MHSaveResult = MHSessionSave.load_ledger(saved.data, ledger_dir)
@@ -106,10 +111,12 @@ func _ready() -> void:
 	shell.screen_changed.connect(_screen_changed)
 	shell.show_root(MHScreenIds.HUD)
 	_dock = Control.new()
-	_dock.set_anchors_preset(Control.PRESET_FULL_RECT)
+	_dock.set_anchors_preset(Control.PRESET_TOP_LEFT)
 	_dock.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_dock.theme = shell.theme # The dock is a sibling of the shell, so it does not inherit the shell's theme.
+	_dock.theme = shell.theme # Sibling of shell: does not inherit its theme.
 	layer.add_child(_dock)
+	_dock.position = Vector2.ZERO
+	_dock.size = get_viewport().get_visible_rect().size
 	_actions = MHUIKit.flow(8)
 	_dock.add_child(_actions)
 	var save_button: MHTapButton = MHUIKit.button(shell.ctx, "Save", &"ChipButton", 96)
@@ -130,11 +137,30 @@ func _ready() -> void:
 	one_hole = MHOneHolePanel.new()
 	_panel_frame.add_child(one_hole)
 	one_hole.setup(self)
+	var restored_craft: MHCraftHole = null
+	if session.hole_definitions().is_empty() and typeof(document.get("runtime", null)) == TYPE_DICTIONARY:
+		var rt: Dictionary = document["runtime"] as Dictionary
+		if rt.has("craft_draft"):
+			restored_craft = MHCraftHole.from_dict(rt["craft_draft"])
+	craft_hole = restored_craft if restored_craft != null else _default_craft_hole()
+	# The old prototype had two unrelated terrain models: the normal editor edited
+	# the persisted world, while Build/play edited a private craft grid. Reader-4
+	# saves now carry the exact draft. Legacy unfinalized saves are migrated once by
+	# importing non-default world paint and height into the starter craft grid.
+	if session.hole_definitions().is_empty() and restored_craft == null:
+		MHCraftTerrainBridge.overlay_nondefault_from_world(craft_hole, editor, Vector2i(480, 340))
+		# A brand-new slice gets the starter fairway/green stamped into the world.
+		# Existing saves keep their authored 1 m terrain exactly; the overlay above
+		# imports it into craft without rasterising the whole footprint back to 2 yd.
+		if not loaded_existing:
+			_syncing_craft_terrain = true
+			MHCraftTerrainBridge.sync_to_world(craft_hole, editor, Vector2i(480, 340), false)
+			_syncing_craft_terrain = false
 	one_hole.visibility_changed.connect(_on_panel_visibility)
 	one_hole.layout_changed.connect(_relayout)
 	get_viewport().size_changed.connect(_relayout)
 	shell.screen_changed.connect(func(_id: String) -> void: _relayout())
-	play.pressed.connect(one_hole.open)
+	play.pressed.connect(_open_craft_hole)
 	router.register_ui_region(&"live_practice", _button_rect.bind(play))
 	router.register_ui_region(&"live_save", _button_rect.bind(save_button))
 	router.register_ui_region(&"live_back", _button_rect.bind(back))
@@ -145,14 +171,15 @@ func _ready() -> void:
 		else: shell.trigger_region(id))
 	# The status label sits in a container with a real width (an autowrap Label directly under a CanvasLayer has
 	# zero width and wraps one character per line) and is limited to MHLiveLayout.STATUS_LINES lines.
-	_status = MHUIKit.label("Live construction: ground edits are separate from the exact Build / play one hole layout.", &"SmallLabel")
+	_status = MHUIKit.label("Live construction: world terrain and Build / play one hole now share the same ground.", &"SmallLabel")
 	_status.max_lines_visible = MHLiveLayout.STATUS_LINES
 	_status.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 	_status_zone.add_child(_status)
 	editor.stroke_began.connect(func() -> void: view.changed.emit())
+	editor.cells_dirty.connect(_terrain_cells_dirty)
 	editor.stroke_ended.connect(_edited)
 	editor.history_applied.connect(_history)
-	editor.stroke_cancelled.connect(func() -> void: view.changed.emit())
+	editor.stroke_cancelled.connect(_terrain_cancelled)
 	session.autosave_requested.connect(_request_save)
 	aim_input = MHPracticeAimInput.new()
 	aim_input.panel = one_hole
@@ -186,22 +213,43 @@ func _panel_state() -> int:
 func _relayout() -> void:
 	if _dock == null or shell == null or one_hole == null:
 		return
+	var viewport_size: Vector2 = get_viewport().get_visible_rect().size
+	if _dock.size != viewport_size:
+		_dock.size = viewport_size
+		_layout_key = []
 	if _dock.theme != shell.theme:
 		_dock.theme = shell.theme # Text-size changes build a new theme.
-	var on: bool = shell.overlay_active()
-	_dock.visible = on
+	var on: bool = shell.overlay_active() and shell.current_screen_id() == MHScreenIds.HUD
+	var hud: MHHudScreen = shell._top_node() as MHHudScreen
+	if hud != null:
+		hud.set_course_focus(one_hole.visible)
 	if not on:
+		_dock.hide()
 		_layout_key = []
 		return
 	var free: Rect2 = shell.overlay_free_rect()
-	if free.size.x <= 0.0 or free.size.y <= 0.0:
-		return # Not laid out yet; the next frame asks again.
 	var tm: float = shell.ctx.touch_min()
+	if free.size.x <= 0.0 or free.size.y <= 0.0:
+		# Never expose the live controls at their default (0,0) position. Container
+		# layout can legitimately take a frame after launch/resize; wait for a real
+		# HUD free rectangle instead of drawing controls over Cash/Time/Score.
+		_dock.hide()
+		_layout_key = []
+		return
+	_dock.show()
 	var state: int = _panel_state()
-	var key: Array = [free, tm, state, shell.ctx.scaled(MHTheme.FONT_SMALL), shell.ctx.left_handed()]
+	var dock_height: float = one_hole.desired_dock_height() if one_hole.visible else 0.0
+	var key: Array = [free, tm, state, dock_height, _save_error, shell.ctx.scaled(MHTheme.FONT_SMALL), shell.ctx.left_handed()]
 	if key == _layout_key:
 		return
 	_layout_key = key
+	if one_hole.visible:
+		_actions.hide()
+		_place(_panel_frame, MHLiveLayout.editor_dock_rect(free, dock_height))
+		_status_zone.visible = _save_error
+		if _save_error:
+			_place(_status_zone, Rect2(free.position, Vector2(free.size.x, MHLiveLayout.status_height(float(shell.ctx.scaled(MHTheme.FONT_SMALL))))))
+		return
 	var widths: Array = []
 	for b: Variant in _action_buttons:
 		widths.append((b as Control).custom_minimum_size.x)
@@ -219,10 +267,20 @@ func _place(c: Control, r: Rect2) -> void:
 		c.size = r.size
 
 func _screen_changed(id: String) -> void:
+	# Exact one-hole authoring/practice is its own interaction mode. Leaving HUD
+	# closes it before normal terrain editing takes ownership.
+	if one_hole != null and one_hole.visible and id != MHScreenIds.HUD:
+		one_hole.close_preview()
 	if router == null:
 		return
-	router.accept_world_input = id == MHScreenIds.EDITOR and shell.modal_id() == "" and (one_hole == null or not one_hole.visible)
-	if not router.accept_world_input:
+	var editing: bool = id == MHScreenIds.EDITOR and shell.modal_id() == "" and (one_hole == null or not one_hole.visible)
+	router.accept_world_input = editing
+	if editing:
+		# A freshly constructed editor screen visually defaults to Raise/Brush 8.
+		# Apply the same defaults to the authoritative terrain editor immediately
+		# instead of relying on a later tool-button click.
+		editor.set_brush(MHBrush.Mode.RAISE, MHEditorTools.RADIUS_DEFAULT, 300)
+	else:
 		router.cancel_world_input()
 	for region: Variant in shell.region_rects().keys():
 		router.register_ui_region(StringName(region), _region_rect.bind(StringName(region)))
@@ -254,11 +312,61 @@ func _on_intent(id: StringName, args: Dictionary) -> void:
 			elif _status != null:
 				_status.text = "Action unavailable: " + str(result.get("reason", ""))
 
+func _terrain_cancelled() -> void:
+	# The editor already rolled the world stroke back, and craft was only updated
+	# on commit. Discard the accumulated dirty bridge area rather than re-importing
+	# a stroke that never happened.
+	_terrain_dirty_for_craft = Rect2i()
+	view.changed.emit()
+
+
+func _terrain_cells_dirty(rect: Rect2i) -> void:
+	if _syncing_craft_terrain or not rect.has_area():
+		return
+	_terrain_dirty_for_craft = rect if not _terrain_dirty_for_craft.has_area() else _terrain_dirty_for_craft.merge(rect)
+
+
+func _sync_craft_from_world_dirty() -> void:
+	if _syncing_craft_terrain or craft_hole == null or not session.hole_definitions().is_empty():
+		_terrain_dirty_for_craft = Rect2i()
+		return
+	if not _terrain_dirty_for_craft.has_area():
+		return
+	var dirty: Rect2i = _terrain_dirty_for_craft
+	_terrain_dirty_for_craft = Rect2i()
+	MHCraftTerrainBridge.sync_from_world_rect(craft_hole, editor, Vector2i(480, 340), dirty)
+	if one_hole != null:
+		one_hole._refresh_canonical_craft()
+
+
+func sync_craft_to_world(record_undo: bool = true) -> bool:
+	if craft_hole == null or editor == null or not session.hole_definitions().is_empty():
+		return false
+	_syncing_craft_terrain = true
+	var changed: bool = MHCraftTerrainBridge.sync_to_world(craft_hole, editor, Vector2i(480, 340), record_undo)
+	_syncing_craft_terrain = false
+	_terrain_dirty_for_craft = Rect2i()
+	return changed
+
+
+func sync_craft_tiles_to_world(tiles: Array, record_undo: bool = true) -> bool:
+	if craft_hole == null or editor == null or not session.hole_definitions().is_empty() or tiles.is_empty():
+		return false
+	_syncing_craft_terrain = true
+	var changed: bool = MHCraftTerrainBridge.sync_tiles_to_world(
+		craft_hole, editor, Vector2i(480, 340), tiles, record_undo)
+	_syncing_craft_terrain = false
+	_terrain_dirty_for_craft = Rect2i()
+	return changed
+
+
 func _edited(_count: int) -> void:
+	_sync_craft_from_world_dirty()
 	view.changed.emit()
 	_request_save()
 
 func _history(_undo: bool) -> void:
+	_sync_craft_from_world_dirty()
 	view.changed.emit()
 	_request_save()
 
@@ -266,30 +374,37 @@ func _request_save() -> void:
 	_pending_save = true
 
 func save_now() -> bool:
-	if not _active or editor.is_stroke_open():
+	if not _active or editor.is_stroke_open() or (craft_hole != null and craft_hole.is_stroke_open()):
 		return false
 	_pending_save = false # Failed writes require an explicit retry; never retry every frame.
-	var captured: MHSaveResult = MHSessionSave.capture(session, document)
+	var craft_checkpoint: Dictionary = {}
+	if session.hole_definitions().is_empty() and craft_hole != null:
+		craft_checkpoint = craft_hole.to_dict()
+	var captured: MHSaveResult = MHSessionSave.capture(session, document, craft_checkpoint)
 	if not captured.is_ok():
 		_status.text = "Save failed: " + captured.message
+		_save_error = true
 		return false
 	# Immutable separate ledger generation first: a failed world write cannot destroy the old pair.
 	var ledger_hash: String = str((captured.value as Dictionary)["runtime"]["ledger_hash"])
 	var token_error: int = session.ledger.save_to(ledger_dir + "/" + ledger_hash + ".json")
 	if token_error != OK:
 		_status.text = "Token save failed: " + str(token_error)
+		_save_error = true
 		return false
 	var saved: MHSaveResult = store.autosave(captured.value as Dictionary,
 		MHTerrainSave.encode(editor.grid, editor.splat), session.unix_now)
 	if not saved.is_ok():
 		_status.text = "Save failed: " + saved.message
+		_save_error = true
 		return false
 	var summary: MHSaveSummary = saved.value as MHSaveSummary
 	document = (captured.value as Dictionary).duplicate(true)
 	document["revision"] = summary.revision
 	document["saved_at_unix"] = summary.saved_at_unix
 	_pending_save = false
-	_status.text = "Saved: ground, club and exact hole/practice state."
+	_save_error = false
+	_status.text = "Course saved."
 	return true
 
 func _process(_delta: float) -> void:
@@ -304,7 +419,7 @@ func _process(_delta: float) -> void:
 	router.accept_world_input = shell.current_screen_id() == MHScreenIds.EDITOR and shell.modal_id() == "" and (one_hole == null or not one_hole.visible)
 	if not router.accept_world_input:
 		router.cancel_world_input()
-	if _pending_save and not editor.is_stroke_open():
+	if _pending_save and not editor.is_stroke_open() and (craft_hole == null or not craft_hole.is_stroke_open()):
 		save_now()
 
 func _notification(what: int) -> void:
@@ -312,6 +427,8 @@ func _notification(what: int) -> void:
 		return
 	if what == NOTIFICATION_APPLICATION_PAUSED or what == NOTIFICATION_APPLICATION_FOCUS_OUT:
 		router.cancel_world_input()
+		if aim_input != null:
+			aim_input.cancel_all()
 		save_now()
 
 func _exit_tree() -> void:
@@ -372,3 +489,32 @@ func _new_document() -> Dictionary:
 		"sim": {"rating_epoch": 0, "rng_seed": "0000000000000000", "rng_inc": "0000000000000001", "golfer_serial": 0},
 		"ratings": {"rating_version": MHRatingEngine.RATING_VERSION, "computed_day": 0, "course_score": 0, "holes": []},
 		"progress": {"tutorial_step": 0, "achievements": [], "tournaments": {"hosted_levels": [], "cooldown_until_day": 0}}}
+
+
+func _default_craft_hole() -> MHCraftHole:
+	var craft: MHCraftHole = MHCraftHole.new(24, 40)
+	craft.paint_rect(10, 0, 13, 29, MHCraftHole.Surface.FAIRWAY)
+	craft.paint_rect(9, 30, 14, 35, MHCraftHole.Surface.GREEN)
+	craft.add_tee(11, 0)
+	craft.add_pin(11, 30)
+	return craft
+
+func canonical_craft_draft(round_no: int = 0) -> Dictionary:
+	if craft_hole == null:
+		return {}
+	return MHCraftConvert.to_hole_def(craft_hole, 0, 0, round_no)
+
+func _open_craft_hole() -> void:
+	# A loaded finalized hole remains authoritative. Until an inverse layout->craft codec exists,
+	# never replace it merely because the player opened the practice panel.
+	if not session.hole_definitions().is_empty():
+		one_hole.open()
+		return
+	# Finish any pending world->craft synchronization before showing the exact
+	# editor. Both editor entrances now display the same terrain.
+	_sync_craft_from_world_dirty()
+	# Even an invalid unfinished draft must open in *editing* mode with
+	# Build/Repair available. Previously a failed converter left _preview_draft
+	# false and made the player think Finalize had vanished.
+	one_hole.enter_craft_draft()
+	one_hole.open()
