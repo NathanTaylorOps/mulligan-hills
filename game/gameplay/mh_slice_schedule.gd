@@ -59,13 +59,20 @@ static func split_groups(n: int, size_limit: int) -> Array:
 
 ## Queues an authoritative whole-golfer count already booked by MHEconomy.
 ## No demand, acceptance or money is recomputed here.
-func add_booked_golfers(count: int) -> int:
+func add_booked_golfers(count: int, customer_ids: Array = []) -> int:
 	var whole: int = maxi(0, count)
-	for size: Variant in split_groups(whole, group_size):
+	var cursor: int = 0
+	for size_value: Variant in split_groups(whole, group_size):
+		var size: int = int(size_value)
+		var ids: Array = []
+		for j: int in range(size):
+			if cursor + j < customer_ids.size():
+				ids.append(int(customer_ids[cursor + j]))
+		cursor += size
 		if queue.size() >= MAX_QUEUE:
 			dropped_groups += 1
 			continue
-		queue.append({"serial": next_serial, "size": int(size)})
+		queue.append({"serial": next_serial, "size": size, "customer_ids": ids})
 		next_serial += 1
 	return whole
 
