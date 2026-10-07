@@ -25,7 +25,7 @@ static func overlay_nondefault_from_world(hole: MHCraftHole, editor: MHTerrainEd
 static func sync_from_world(hole: MHCraftHole, editor: MHTerrainEditor, origin_dm: Vector2i) -> void:
 	if hole == null or editor == null:
 		return
-	_sync_from_world_rect(hole, editor, origin_dm,
+	sync_from_world_rect(hole, editor, origin_dm,
 		Rect2i(0, 0, editor.grid.samples_x, editor.grid.samples_y))
 
 
