@@ -19,7 +19,7 @@ static func capture(session: MHGameSession, source: Dictionary, craft_draft: Dic
 		return layouts
 	if layouts.value != session.hole_definitions():
 		return _bad("course geometry and live session disagree")
-	doc["min_reader_version"] = 3 if int(course.get("schema_version", 1)) == 2 else 2
+	doc["min_reader_version"] = _required_reader_version(course, true, false, false, false)
 	doc["world"] = {"day": session.clock.day(), "minute_of_day": session.clock.minute_of_day(),
 		"season": str((doc.get("world", {}) as Dictionary).get("season", "spring"))}
 	var club: Dictionary = doc["club"]
@@ -55,20 +55,18 @@ static func capture(session: MHGameSession, source: Dictionary, craft_draft: Dic
 		"customers": session.customers.to_dict(),
 		"ledger_hash": MHSaveGame.canonical_json(session.ledger.to_dict()).sha256_text(),
 		"terrain_bytes_hash": str((source.get("runtime", {}) as Dictionary).get("terrain_bytes_hash", "0".repeat(64)))}
-	doc["min_reader_version"] = maxi(int(doc["min_reader_version"]), 6)
+	doc["min_reader_version"] = _required_reader_version(course, true, session.practice != null,
+		not craft_draft.is_empty(), not craft_course.is_empty())
 	if session.practice != null:
 		doc["runtime"]["practice"] = session.practice.to_dict()
-		doc["min_reader_version"] = maxi(int(doc["min_reader_version"]), 3)
 	if not craft_draft.is_empty():
 		if MHCraftHole.from_dict(craft_draft) == null:
 			return _bad("craft draft checkpoint invalid")
 		doc["runtime"]["craft_draft"] = craft_draft.duplicate(true)
-		doc["min_reader_version"] = maxi(int(doc["min_reader_version"]), 4)
 	if not craft_course.is_empty():
 		if MHCraftCourse.from_dict(craft_course) == null:
 			return _bad("craft course checkpoint invalid")
 		doc["runtime"]["craft_course"] = craft_course.duplicate(true)
-		doc["min_reader_version"] = maxi(int(doc["min_reader_version"]), 5)
 	MHSaveGame.seal(doc)
 	var normalized: MHSaveResult = MHSaveGame.normalize(doc)
 	if not normalized.is_ok():
@@ -80,6 +78,22 @@ static func capture(session: MHGameSession, source: Dictionary, craft_draft: Dic
 	if not checked.is_ok():
 		return checked
 	return MHSaveResult.success(normalized.value)
+
+
+## Capability-derived reader floor. Keep this monotonic: adding a checkpoint feature can only
+## raise the required reader, never lower another feature's requirement.
+static func _required_reader_version(course: Dictionary, has_customers: bool, has_practice: bool,
+		has_craft_draft: bool, has_craft_course: bool) -> int:
+	var required: int = 3 if int(course.get("schema_version", 1)) == 2 else 2
+	if has_practice:
+		required = maxi(required, 3)
+	if has_craft_draft:
+		required = maxi(required, 4)
+	if has_craft_course:
+		required = maxi(required, 5)
+	if has_customers:
+		required = maxi(required, 6)
+	return required
 
 
 ## Returns a NEW fully restored session, never partly mutates a running one. Ledger remains separate.
