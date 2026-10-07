@@ -2,6 +2,12 @@ extends GdUnitTestSuite
 ## MHCraftHole: painting, heights, tees, pins, undo. Pure logic. NOT YET RUN in Godot.
 
 
+func test_minimum_grid_is_relief_safe() -> void:
+	var h: MHCraftHole = MHCraftHole.new(1, 1)
+	assert_int(h.cols).is_greater_equal(2)
+	assert_int(h.rows).is_greater_equal(2)
+
+
 func test_tile_yard_mapping_round_trips() -> void:
 	var h: MHCraftHole = MHCraftHole.new(24, 40)
 	assert_int(h.tile_x0_yd(12)).is_equal(0) # column cols/2 starts at x = 0
