@@ -821,12 +821,12 @@ func _craft_tile_from_screen(pos: Vector2) -> Vector2i:
 	var hit: Vector3 = result["hit"] as Vector3
 	var local_x_mm: int = roundi(hit.x * 1000.0) - int(ORIGIN[0]) * 100
 	var local_y_mm: int = roundi(hit.z * 1000.0) - int(ORIGIN[1]) * 100
-	# MHRMath.rdiv(mm * 1000, 9144) yields centiyards. MHCraftHole.tile_at_yd()
-	# expects whole yards, so convert mm directly to yards here. The previous
-	# factor-of-100 error made almost every visible click land outside the craft grid.
-	var x_yd: int = MHRMath.rdiv(local_x_mm * 10, 9144)
-	var y_yd: int = MHRMath.rdiv(local_y_mm * 10, 9144)
-	return live.craft_hole.tile_at_yd(x_yd, y_yd)
+	# Reverse MHCourseLayout.world_mm() into centiyards. The previous code
+	# produced centiyards but passed them to tile_at_yd(), a factor-of-100 error
+	# that sent almost every visible click outside the craft grid.
+	var x_cy: int = MHRMath.rdiv(local_x_mm * 1000, 9144)
+	var y_cy: int = MHRMath.rdiv(local_y_mm * 1000, 9144)
+	return live.craft_hole.tile_at_cy(x_cy, y_cy)
 
 
 func craft_from_screen(pos: Vector2) -> bool:
