@@ -414,7 +414,8 @@ func save_now() -> bool:
 	var course_checkpoint: Dictionary = {}
 	if craft_course != null:
 		course_checkpoint = craft_course.to_dict()
-	if session.hole_definitions().is_empty() and craft_hole != null:
+	elif session.hole_definitions().is_empty() and craft_hole != null:
+		# Legacy single-hole fallback only. New multi-hole saves have one craft authority: craft_course.
 		craft_checkpoint = craft_hole.to_dict()
 	var captured: MHSaveResult = MHSessionSave.capture(session, document, craft_checkpoint, course_checkpoint)
 	if not captured.is_ok():
