@@ -125,8 +125,13 @@ func advance(dt: float, cam_pos: Vector3) -> void:
 		else:
 			_completed_groups.append({"serial": serial2, "size": int(done["size"]), "holes": route.size()})
 			_group_routes.erase(serial2)
-	# New-hole members begin next frame; state arrays must remain aligned with the old live set.
+	# New-hole members begin next frame; render only the members whose states were sampled above.
+	var spawned_next: Array = []
+	if golfers.size() > states.size():
+		spawned_next = golfers.slice(states.size())
+		golfers = golfers.slice(0, states.size())
 	_render(states, cam_pos)
+	golfers.append_array(spawned_next)
 
 
 func _render(states: Array, cam_pos: Vector3) -> void:
