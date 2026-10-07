@@ -249,7 +249,9 @@ func craft_at_tile(c: int, r: int) -> bool:
 		if craft_mode == &"level":
 			_craft_level_height = h.get_height(c, r)
 		_apply_craft_stroke_tile(Vector2i(c, r))
-		h.commit_stroke()
+		var terrain_changed: bool = h.commit_stroke()
+		if terrain_changed:
+			live.sync_craft_to_world()
 	_refresh_canonical_craft()
 	return true
 
@@ -270,10 +272,12 @@ func _refresh_canonical_craft() -> void:
 
 func _craft_undo() -> void:
 	if live.craft_hole != null and live.craft_hole.undo():
+		live.sync_craft_to_world()
 		_refresh_canonical_craft()
 
 func _craft_redo() -> void:
 	if live.craft_hole != null and live.craft_hole.redo():
+		live.sync_craft_to_world()
 		_refresh_canonical_craft()
 
 func _draft_changed() -> void:
@@ -815,8 +819,11 @@ func _craft_tile_from_screen(pos: Vector2) -> Vector2i:
 	var hit: Vector3 = result["hit"] as Vector3
 	var local_x_mm: int = roundi(hit.x * 1000.0) - int(ORIGIN[0]) * 100
 	var local_y_mm: int = roundi(hit.z * 1000.0) - int(ORIGIN[1]) * 100
-	var x_yd: int = MHRMath.rdiv(local_x_mm * 1000, 9144)
-	var y_yd: int = MHRMath.rdiv(local_y_mm * 1000, 9144)
+	# MHRMath.rdiv(mm * 1000, 9144) yields centiyards. MHCraftHole.tile_at_yd()
+	# expects whole yards, so convert mm directly to yards here. The previous
+	# factor-of-100 error made almost every visible click land outside the craft grid.
+	var x_yd: int = MHRMath.rdiv(local_x_mm * 10, 9144)
+	var y_yd: int = MHRMath.rdiv(local_y_mm * 10, 9144)
 	return live.craft_hole.tile_at_yd(x_yd, y_yd)
 
 
@@ -888,6 +895,7 @@ func craft_stroke_end() -> bool:
 	var changed: bool = live.craft_hole.commit_stroke()
 	_craft_preview_dirty = false
 	if changed:
+		live.sync_craft_to_world()
 		_refresh_canonical_craft()
 	return changed
 
