@@ -532,6 +532,14 @@ func _move_aim() -> void:
 func _ground_height(cx: int, cy: int) -> float:
 	var layouts: Array = live.session.hole_definitions() if live != null else []
 	var h: Dictionary = _layout() if _preview_draft or layouts.is_empty() else layouts[0]
+	if _preview_draft and live != null and live.craft_hole != null:
+		# Keep markers and picking visually attached to the editable height grid even
+		# while a temporary validation problem has cleared canonical_draft.
+		var relief: Dictionary = MHCraftConvert.relief_for(live.craft_hole)
+		if relief.is_empty():
+			h.erase("relief")
+		else:
+			h["relief"] = relief
 	if h.has("relief"):
 		var hole: MHRHole = MHRHole.from_def(h)
 		return float(hole.z_at(cx, cy)) / 1000.0
