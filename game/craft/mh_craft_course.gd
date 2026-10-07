@@ -5,9 +5,15 @@ extends RefCounted
 
 const VERSION: int = 2
 const LEGACY_VERSION: int = 1
-# Centre lines sit inside the initially-owned central golf block. The rectangular craft grid is
-# an editing coordinate system; only authored golf geometry consumes/overlaps built land.
-const DEFAULT_ORIGINS_DM: Array = [[600, 560], [960, 560], [1320, 560]]
+# Deterministic world origins for the default 18-hole draft. The first three remain inside the
+# initially-owned central golf block. Later holes use only golf parcels in the 192 m live world;
+# the rectangular craft grid is only an editing envelope, so only authored golf geometry consumes land.
+const DEFAULT_ORIGINS_DM: Array = [
+	[600, 560], [960, 560], [1320, 560],
+	[70, 50], [240, 50], [250, 50], [420, 50], [760, 50], [960, 50],
+	[1490, 560], [1660, 560], [1670, 560],
+	[550, 1250], [720, 1250], [730, 1250], [900, 1250], [1070, 1250], [1080, 1250],
+]
 const NIGHT_SLICE_HOLES: int = 3
 const MAX_HOLES: int = 18
 
@@ -55,10 +61,9 @@ func origin(index: int) -> Vector2i:
 	return Vector2i(int(raw[0]), int(raw[1]))
 
 static func default_origin(index: int) -> Array:
-	if index < DEFAULT_ORIGINS_DM.size():
-		return (DEFAULT_ORIGINS_DM[index] as Array).duplicate()
-	# Future holes get deterministic rows on the expanded world; the night slice uses only the first three.
-	return [120 + (index % 3) * 580, 120 + MHRMath.idiv(index, 3) * 760]
+	if index < 0 or index >= DEFAULT_ORIGINS_DM.size():
+		return [0, 0]
+	return (DEFAULT_ORIGINS_DM[index] as Array).duplicate()
 
 static func from_dict(raw: Variant) -> MHCraftCourse:
 	if typeof(raw) != TYPE_DICTIONARY:
