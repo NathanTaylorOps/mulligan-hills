@@ -15,6 +15,8 @@ func test_customer_becomes_regular_then_membership_eligible() -> void:
 	assert_bool(bool((c.rows[id] as Dictionary)["regular"])).is_true()
 	assert_bool(bool((c.rows[id] as Dictionary)["member_eligible"])).is_false()
 	c.record_visit(id, 90)
+	assert_bool(bool((c.rows[id] as Dictionary)["member_eligible"])).is_false()
+	c.record_visit(id, 90)
 	assert_bool(bool((c.rows[id] as Dictionary)["member_eligible"])).is_true()
 
 func test_bad_post_regular_visit_resets_membership_streak() -> void:
@@ -38,3 +40,17 @@ func test_invalid_customer_id_is_rejected() -> void:
 	var c: MHGolferCustomers = MHGolferCustomers.new()
 	assert_bool(c.record_visit(-1, 80).is_empty()).is_true()
 	assert_bool(c.record_visit(MHGolferCustomers.COUNT, 80).is_empty()).is_true()
+
+func test_first_visit_satisfaction_is_clamped() -> void:
+	var c: MHGolferCustomers = MHGolferCustomers.new()
+	c.record_visit(1, 999)
+	assert_int(int((c.rows[1] as Dictionary)["satisfaction"])).is_equal(100)
+	c.record_visit(2, -999)
+	assert_int(int((c.rows[2] as Dictionary)["satisfaction"])).is_equal(0)
+
+func test_restore_rejects_impossible_customer_relationship_state() -> void:
+	var c: MHGolferCustomers = MHGolferCustomers.new()
+	var raw: Dictionary = c.to_dict()
+	var rows: Array = raw["rows"] as Array
+	(rows[5] as Dictionary)["member"] = true
+	assert_object(MHGolferCustomers.from_dict(raw)).is_null()
