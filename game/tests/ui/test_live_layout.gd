@@ -171,5 +171,5 @@ func test_touch_bridge_splits_nested_scroll_axes() -> void:
 	outer.add_child(inner)
 	await get_tree().process_frame
 	var targets: Dictionary = bridge._scroll_targets_at(Vector2(20, 20))
-	assert_object(targets["horizontal"]).is_same(inner)
-	assert_object(targets["vertical"]).is_same(outer)
+	assert_bool(targets["horizontal"] == inner).is_true()
+	assert_bool(targets["vertical"] == outer).is_true()
