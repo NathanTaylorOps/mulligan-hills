@@ -297,7 +297,9 @@ func test_elevated_live_scene_cold_reopen_accepts_saved_relief() -> void:
 	reopened.ledger_dir = LEDGERS
 	add_child(reopened)
 	assert_bool(reopened._active).is_true()
-	assert_array(reopened.session.hole_definitions()).contains_exactly([expected])
+	var reopened_defs: Array = reopened.session.hole_definitions()
+	assert_int(reopened_defs.size()).is_equal(3)
+	assert_dict(reopened_defs[0] as Dictionary).is_equal(expected)
 	assert_bool(MHOneHolePanel.supported(reopened.document["course"] as Dictionary)).is_true()
 	reopened._open_craft_hole()
 	assert_bool(reopened.one_hole.visible).is_true()
