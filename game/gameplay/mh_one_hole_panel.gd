@@ -415,6 +415,10 @@ func _problem_text(code: String) -> String:
 		"no_tee": return "place a tee"
 		"no_pin": return "place a flag"
 		"no_green": return "paint a putting green"
+		"green_too_small": return "enlarge green (minimum 5-yd rating radius)"
+		"green_too_large": return "shrink green (maximum 30-yd rating radius)"
+		"hole_too_short": return "move tee or flag farther apart (minimum 60 yd)"
+		"hole_too_long": return "reduce hole length (maximum 1000 yd)"
 		"pin_not_on_green": return "move flag onto green"
 		"tee_in_hazard": return "move tee out of water / OB"
 		"too_many_trees": return "remove some trees"
@@ -438,7 +442,10 @@ func _repair_hole_markers() -> void:
 		return
 	for point: Variant in hole.pins:
 		var pin: Vector2i = point as Vector2i
-		hole.paint_disc(pin.x, pin.y, 1, MHCraftHole.Surface.GREEN)
+		# Radius three *tiles* (six yards), large enough for the rating
+		# engine's minimum five-yard equivalent green radius. Old repairs used
+		# one tile and could NEVER fix an RC006 hole on a small starter green.
+		hole.paint_disc(pin.x, pin.y, 3, MHCraftHole.Surface.GREEN)
 	for point: Variant in hole.tees:
 		var tee: Vector2i = point as Vector2i
 		hole.paint_disc(tee.x, tee.y, 0, MHCraftHole.Surface.TEE)
@@ -496,8 +503,12 @@ func _finalize() -> void:
 		return
 	var result: Dictionary = live.session.submit_course([h])
 	if not bool(result["ok"]):
-		_info.text = "Cannot build: " + str(result["reason"])
-		_set_validation_message("NOT READY: " + str(result["reason"]))
+		var explanation: String = str(result["reason"])
+		var rating_reasons: Array = result.get("rating_reasons", []) as Array
+		if not rating_reasons.is_empty():
+			explanation += " (" + ", ".join(PackedStringArray(rating_reasons)) + ")"
+		_info.text = "Cannot build: " + explanation
+		_set_validation_message("NOT READY: " + explanation)
 		return
 	_preview_draft = false
 	canonical_draft.clear()
