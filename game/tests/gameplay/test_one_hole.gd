@@ -142,7 +142,7 @@ func test_bad_world_version_slot_and_panel_origin_reject() -> void:
 
 	var craft: MHCraftHole = MHCraftHole.new(24, 40)
 	craft.paint_rect(10, 0, 13, 29, MHCraftHole.Surface.FAIRWAY)
-	craft.paint_rect(11, 30, 12, 31, MHCraftHole.Surface.GREEN)
+	craft.paint_rect(9, 30, 14, 35, MHCraftHole.Surface.GREEN)
 	craft.add_tee(11, 0)
 	craft.add_pin(11, 30)
 	craft.set_height_tile(11, 15, 6)
@@ -161,7 +161,7 @@ func test_live_panel_finalizes_exact_canonical_craft_relief_layout() -> void:
 	scene.session.clock.pause()
 	var craft: MHCraftHole = MHCraftHole.new(24, 40)
 	craft.paint_rect(10, 0, 13, 29, MHCraftHole.Surface.FAIRWAY)
-	craft.paint_rect(11, 30, 12, 31, MHCraftHole.Surface.GREEN)
+	craft.paint_rect(9, 30, 14, 35, MHCraftHole.Surface.GREEN)
 	craft.add_tee(11, 0)
 	craft.add_pin(11, 30)
 	craft.set_height_tile(11, 15, 6)
