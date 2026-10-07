@@ -354,9 +354,54 @@ func _refresh_canonical_craft() -> void:
 		_sync_mode_controls()
 		var labels: PackedStringArray = PackedStringArray()
 		for problem: Variant in problems:
-			labels.append(str(problem))
-		_info.text = "Craft hole needs: " + ", ".join(labels)
+			labels.append(_problem_text(str(problem)))
+		_info.text = "Hole needs: " + ", ".join(labels)
+		_set_validation_message("TO BUILD: " + ", ".join(labels))
 		_draw()
+
+
+func _set_validation_message(message: String) -> void:
+	if _validation_hint != null:
+		_validation_hint.text = message
+
+
+func _problem_text(code: String) -> String:
+	match code:
+		"no_tee": return "place a tee"
+		"no_pin": return "place a flag"
+		"no_green": return "paint a putting green"
+		"pin_not_on_green": return "move flag onto green"
+		"tee_in_hazard": return "move tee out of water / OB"
+		"too_many_trees": return "remove some trees"
+		"too_complex": return "simplify painted hazards"
+		"too_large": return "reduce hole footprint"
+		_: return code.replace("_", " ")
+
+
+func _repair_hole_markers() -> void:
+	# Explicit user action: never silently erase an intentional water/OB hazard.
+	if live == null or live.craft_hole == null or not _preview_draft:
+		return
+	var hole: MHCraftHole = live.craft_hole
+	if hole.tees.is_empty():
+		hole.add_tee(hole.cols / 2 - 1, 0)
+	if hole.pins.is_empty():
+		hole.add_pin(hole.cols / 2 - 1, mini(hole.rows - 2, 30))
+	if hole.is_stroke_open():
+		hole.cancel_stroke()
+	if not hole.begin_stroke():
+		return
+	for point: Variant in hole.pins:
+		var pin: Vector2i = point as Vector2i
+		hole.paint_disc(pin.x, pin.y, 1, MHCraftHole.Surface.GREEN)
+	for point: Variant in hole.tees:
+		var tee: Vector2i = point as Vector2i
+		hole.paint_disc(tee.x, tee.y, 0, MHCraftHole.Surface.TEE)
+	if hole.commit_stroke():
+		live.sync_craft_tiles_to_world(hole.last_changed_tiles())
+	_refresh_canonical_craft()
+	_set_validation_message("TEE / GREEN RESTORED. Check the course, then press Build hole.")
+
 
 func _craft_undo() -> void:
 	if live.craft_hole != null and live.craft_hole.undo():
@@ -374,21 +419,27 @@ func _draft_changed() -> void:
 	_describe()
 
 func _finalize() -> void:
-	if live.shell.modal_id() != "":
+	if live == null or live.shell.modal_id() != "":
 		return
-	if not _preview_draft or live == null or live.craft_hole == null:
-		_info.text = "This saved hole is in play mode. Full saved-hole redesign needs the layout-to-craft editor path; it will not be replaced by a fallback hole."
+	if not _preview_draft or live.craft_hole == null:
+		_set_validation_message("Already built. Use practice controls to play.")
 		return
 	var problems: Array = MHCraftConvert.problems(live.craft_hole)
 	if not problems.is_empty():
 		var labels: PackedStringArray = PackedStringArray()
 		for problem: Variant in problems:
-			labels.append(str(problem))
-		_info.text = "Cannot finalize yet: " + ", ".join(labels)
+			labels.append(_problem_text(str(problem)))
+		var reason: String = ", ".join(labels)
+		_info.text = "Cannot build: " + reason
+		_set_validation_message("NOT READY: " + reason + ". Use TEE & PIN / Repair markers.")
 		return
 	var h: Dictionary = live.canonical_craft_draft()
-	if h.is_empty() or not set_canonical_draft(h):
-		_info.text = "Cannot finalize: the craft hole did not produce a valid canonical layout."
+	var rating_check: Dictionary = MHRatingEngine.validate_input({
+		"schema": 1, "engine": MHRatingEngine.RATING_VERSION, "hole": h})
+	if h.is_empty() or not bool(rating_check.get("ok", false)) or not set_canonical_draft(h):
+		var code: String = str(rating_check.get("code", "no layout"))
+		_info.text = "Cannot build: " + code
+		_set_validation_message("NOT READY: course rating check " + code)
 		return
 	live.router.cancel_world_input()
 	if live.aim_input != null:
@@ -396,10 +447,12 @@ func _finalize() -> void:
 	var encoded: MHSaveResult = MHCourseLayout.encode([h], live.document["course"] as Dictionary, [ORIGIN])
 	if not encoded.is_ok():
 		_info.text = encoded.message
+		_set_validation_message("SAVE FORMAT: " + encoded.message)
 		return
 	var result: Dictionary = live.session.submit_course([h])
 	if not bool(result["ok"]):
-		_info.text = "Cannot finalize: " + str(result["reason"])
+		_info.text = "Cannot build: " + str(result["reason"])
+		_set_validation_message("NOT READY: " + str(result["reason"]))
 		return
 	_preview_draft = false
 	canonical_draft.clear()
@@ -411,6 +464,7 @@ func _finalize() -> void:
 	live._request_save()
 	_draw()
 	_describe()
+	_set_validation_message("HOLE BUILT. Practice is ready to play.")
 
 
 func _restart() -> void:
@@ -484,18 +538,22 @@ func _describe() -> void:
 		var hole_length: int = MHCraftConvert.length_yd(craft, 0, 0)
 		var price: int = 0 if not live.session.hole_definitions().is_empty() else live.session.economy.hole_cost_cents()
 		var tool_name: String = _surface_name(craft_surface) if craft_mode == &"surface" else str(craft_mode).capitalize()
-		_info.text = "Craft draft: %d yd tee-to-pin | Finalize $%d | Tool: %s" % [hole_length, price / 100, tool_name]
+		_info.text = "%d yd  |  %s  |  Build: $%d" % [hole_length, tool_name, price / 100]
 		var problems: Array = MHCraftConvert.problems(craft)
-		if not problems.is_empty():
+		if problems.is_empty():
+			_set_validation_message("READY TO BUILD  •  Tee, green and flag valid  •  $%d" % [price / 100])
+		else:
 			var labels: PackedStringArray = PackedStringArray()
 			for problem: Variant in problems:
-				labels.append(str(problem))
-			_info.text += " | Needs: " + ", ".join(labels)
+				labels.append(_problem_text(str(problem)))
+			_set_validation_message("TO BUILD: " + ", ".join(labels))
 	else:
-		_info.text = "Finalized hole"
-	var r: MHPracticeRound = live.session.practice
-	if r != null:
-		_info.text += " | %d strokes | %s" % [r.strokes, "Picked up" if r.picked_up else ("Holed" if r.finished else "Playing")]
+		_info.text = "HOLE BUILT • PRACTICE MODE"
+		_set_validation_message("PLAY MODE  •  Tap the course to aim, then Play shot.")
+	var practice: MHPracticeRound = live.session.practice
+	if practice != null:
+		_info.text += " | %d strokes | %s" % [practice.strokes,
+			"Picked up" if practice.picked_up else ("Holed" if practice.finished else "Playing")]
 	var scores: Array = live.session.hole_results()
 	if not scores.is_empty():
 		_info.text += " | Official hole score %d/100" % int(scores[0]["score"])
@@ -1025,7 +1083,7 @@ func _refresh_path() -> void:
 	_world.add_child(_path)
 	var r: MHPracticeRound = live.session.practice
 	if _preview_draft:
-		_feedback.text = "Edit hole: choose a tool, then click or drag on the shared course terrain. Changes also appear in main Edit. Desktop: right-drag rotate, middle-drag pan, wheel zoom. Touch: one finger edits; two fingers move the camera."
+		_feedback.text = "Tap or drag to paint. Right-drag rotates; wheel zooms. Terrain tools reveal a temporary sculpt grid."
 		return
 	if r == null:
 		_feedback.text = "Finalize the hole to begin practice."
