@@ -1,8 +1,17 @@
 # Mulligan Hills — editor experience direction
-Status: proposed implementation direction, grounded in reference review; not a claim of validated usability.
+Status: direction plus implementation progress, grounded in reference review; not a claim of validated usability.
 Date: 2026-10-07 UTC.
 Confirmed priorities: mobile first, desktop also a first-class game version. Shared canonical world and game systems.
-Baseline: 940f3da navigation probe passed on user Windows Godot 4.7.2. Brush changes 4673daa pending runtime validation.
+Baseline: 940f3da navigation probe passed on user Windows Godot 4.7.2. Brush changes 4673daa and the later dock/precision/marker batch await runtime validation.
+
+## Implemented editor batch (pending engine/device acceptance)
+
+- `2af3b50`: precise millimetre sculpt operations, smoothing and unified terrain/marker history.
+- `a7331b8`: focused bottom dock and compact HUD; grouped horizontal material tray; Detail/Small/Wide brush cycling; fine/medium/coarse sculpt steps; exact Level sampling; tee/pin preview/confirm/cancel; recoverable draft pin slots; desktop shortcuts and gesture cancellation.
+- The live probe now covers the dock, precision, marker history and draft disk saves as well as owned-land repair/build/practice and complete checkpoint reload.
+- The new dock is implemented. The 65% unobstructed-world target, left-handed ergonomics, text scaling, authored artwork and device comfort still need evaluation. The current palette thumbnails are temporary.
+- Current finalization/practice uses pin 1. Extra pins persist in the unfinished draft; finalized multi-round schedules and editing a built hole remain outstanding.
+
 
 ## Reference findings and evidence limits
 Reviewed publicly available SimGolf screenshots, Under Par developer screenshots/devlog, developer commentary and independent reviews. No hands-on competitor testing in this session. Demo-era comments are historical anecdotes, not proof of current defects or population-level satisfaction.
@@ -42,7 +51,7 @@ Market leadership is an aspiration to validate with real playtesting, not a conc
 - Only one large editing panel at a time. Undo/Redo and a predictable Back/Close path remain reachable.
 - Target at least 65% unobstructed course area in typical editing states. Measure this after safe areas and controls; this is a proposed target, not current measured performance.
 - Collapse tools without leaving invisible input-blocking regions. Allow left-handed placement through existing settings.
-- Avoid putting the entire workflow in a narrow scrollable inspector. The current side panel is transitional.
+- Avoid putting the entire workflow in a narrow scrollable inspector. The previous side panel has been replaced by the bottom dock; measure the new layout on device.
 
 ## Desktop adaptation
 Use the same categories, canonical commands, state and save format.
@@ -56,7 +65,7 @@ Use the same categories, canonical commands, state and save format.
 - Every gesture has one owner. UI taps never paint; two-finger camera gestures cancel unfinished paint safely.
 - Brush feedback matches the authoritative disc and relief. Surface mode does not acquire a permanent grid; grid remains sculpt-only.
 - Detail/Small/Wide are understandable defaults. Preserve selection across categories.
-- Sculpt strength should eventually offer fine increments supported by canonical millimetres. Do not round imported terrain as a side effect of precision sculpting. Evaluate this before adding strength controls.
+- Sculpt strength now offers 0.25/0.50/1.00 m increments through canonical millimetres. Do not round imported terrain as a side effect; evaluate step comfort on device.
 - Level visibly explains the sampled starting height and retains it throughout the stroke.
 - Touch placement needs a visible target and reliable positioning; evaluate an offset reticle/fine adjustment for finger occlusion.
 - Freeform painting commits per stroke with undo. Discrete marker placement should support preview/confirm/cancel and undo through the canonical model.
@@ -70,7 +79,7 @@ Use the same categories, canonical commands, state and save format.
 - Character reactions should eventually connect visible choices to understandable consequences, based on real simulation evidence.
 
 ## Implementation order and boundaries
-1. Validate pending brush change, including landscape layout and disk reload.
+1. Validate the accumulated editor batch, including landscape layout, precision, marker workflow and disk reload.
 2. Consolidate the editor's presentation into the mobile dock and compact hole summary. Reuse existing canonical operations; do not introduce a second editor model.
 3. Improve sculpt precision and Level feedback; preserve exact height and stroke history.
 4. Improve surface palette hierarchy, previews and material consistency.
@@ -124,3 +133,4 @@ Five screenshots were inspected directly: three SimGolf views (terrain palette, 
 5. Quiet UI surfaces with original illustrated assets, allowing the landscape to supply most of the visual richness.
 
 Do not reproduce the references' exact colours, ornaments or screenshots as in-game assets. Evaluate palette density and event size in the actual mobile layout rather than inheriting them from these desktop screenshots.
+

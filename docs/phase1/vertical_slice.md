@@ -1,5 +1,8 @@
 # Phase 1: first playable vertical slice (buildings, nature, golfers, HUD)
 
+> Historical presentation demo using sample hole layouts. The saved player-built game path is now **Course design & practice** / [Live construction](live_construction.md). Preserve this demo as reference material; do not extend its fixed layouts into a second gameplay architecture.
+
+
 Status: 5 October 2026. Written without Godot. **NOT YET RUN**: no import, parse, test run, render or device check has happened. A bracket and indentation scan passed; that proves nothing about Godot 4.7.2 typing. Treat the first CI run as the first real test and expect small parse or typing fixes (see `README.md` lessons).
 
 ## What it is
@@ -82,3 +85,4 @@ Engine APIs and syntax used from memory of the Godot 4 docs, none exercised here
 1. Launcher -> Vertical slice. Expect a green course, trees around it, two holes and (after a minute or two) groups of golfers teeing off. If nothing moves, tell me the Golfers count on the top line.
 2. Tap Buildings, buy a Clubhouse: a building should appear on the facility parcel at the left. Buy more: the fifth lands in a strip below the map until you Buy land.
 3. Try Quality low/medium/high and Speed. Note the frame rate with the debug overlay on the S22 Ultra and a low-end phone; I need those numbers to set the golfer caps.
+

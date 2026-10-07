@@ -1,6 +1,7 @@
 class_name MHLiveLayout
 extends RefCounted
-## Pure zone maths for the live construction scene (no nodes, no engine state, testable without a window).
+## Pure zone maths for the live construction scene (no nodes, no engine state).
+## Focused course design uses editor_dock_rect(); compute() retains the general HUD zone contract below.
 ##
 ## The HUD (or editor toolbar) owns the top band and the bottom nav bar and reports the rectangle left between
 ## them (`MHUIShell.overlay_free_rect()`). Everything the live scene adds lives INSIDE that free rectangle, split

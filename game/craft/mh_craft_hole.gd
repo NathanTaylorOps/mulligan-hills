@@ -5,9 +5,9 @@ extends RefCounted
 ## tee end). One tile is TILE_YD whole yards. Every tile has a surface and an exact integer-millimetre height;
 ## sculpt tools and imported shared-world shaping preserve millimetre precision. Heights stay
 ## within HEIGHT_MIN_M..HEIGHT_MAX_M (valleys and high ground, DEC-088). One tee box (DEC-090), up to four pin positions
-## (the pin used rotates each round), trees as yard points, rock and flower counts.
+## (conversion can select by round; current practice uses pin 1), trees as yard points, rock and flower counts.
 ## Pure data and integer maths: no nodes, no randomness. Strokes are undoable (one undo per finger stroke).
-## NOT YET RUN in Godot.
+## Verification evidence and pending editor regressions: docs/phase1/terrain_designer.md.
 
 @warning_ignore_start("integer_division")
 
