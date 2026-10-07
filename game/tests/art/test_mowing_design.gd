@@ -73,6 +73,20 @@ func test_legacy_float_backed_mowing_is_strictly_migrated() -> void:
 	assert_bool(MHMowingDesign.is_legacy_save_dict_valid(legacy)).is_false()
 
 
+func test_craft_reader_accepts_and_normalizes_legacy_float_mowing() -> void:
+	var hole: MHCraftHole = MHCraftHole.new(8, 8)
+	var legacy: Dictionary = hole.to_dict()
+	var old_mowing: Dictionary = (legacy["mowing"] as Dictionary).duplicate(true)
+	old_mowing["intensity"] = 0.065
+	old_mowing.erase("intensity_pm")
+	legacy["mowing"] = old_mowing
+	var restored: MHCraftHole = MHCraftHole.from_dict(legacy)
+	assert_object(restored).is_not_null()
+	if restored != null:
+		assert_bool(MHMowingDesign.is_save_dict_valid(restored.mowing)).is_true()
+		assert_int(int(restored.mowing["intensity_pm"])).is_equal(65)
+
+
 func test_legacy_craft_save_gets_default_mowing() -> void:
 	var hole: MHCraftHole = MHCraftHole.new(8, 8)
 	var legacy: Dictionary = hole.to_dict()
