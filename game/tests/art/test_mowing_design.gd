@@ -61,6 +61,18 @@ func test_persisted_mowing_contract_rejects_malformed_values() -> void:
 	assert_bool(MHMowingDesign.is_save_dict_valid(saved)).is_false()
 
 
+func test_legacy_float_backed_mowing_is_strictly_migrated() -> void:
+	var legacy: Dictionary = MHMowingDesign.new().to_dict()
+	legacy["intensity"] = 0.065
+	legacy.erase("intensity_pm")
+	assert_bool(MHMowingDesign.is_legacy_save_dict_valid(legacy)).is_true()
+	assert_bool(MHMowingDesign.is_save_dict_valid(legacy)).is_false()
+	var restored: MHMowingDesign = MHMowingDesign.from_dict(legacy)
+	assert_int(int(restored.to_dict()["intensity_pm"])).is_equal(65)
+	legacy["extra"] = 1
+	assert_bool(MHMowingDesign.is_legacy_save_dict_valid(legacy)).is_false()
+
+
 func test_legacy_craft_save_gets_default_mowing() -> void:
 	var hole: MHCraftHole = MHCraftHole.new(8, 8)
 	var legacy: Dictionary = hole.to_dict()
