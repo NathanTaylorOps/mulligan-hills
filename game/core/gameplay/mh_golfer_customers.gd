@@ -37,6 +37,27 @@ func record_visit(id: int, score: int) -> Dictionary:
 	rows[id] = r
 	return r.duplicate(true)
 
+func regular_count() -> int:
+	var total: int = 0
+	for row: Variant in rows:
+		if bool((row as Dictionary)["regular"]):
+			total += 1
+	return total
+
+func eligible_count() -> int:
+	var total: int = 0
+	for row: Variant in rows:
+		if bool((row as Dictionary)["member_eligible"]):
+			total += 1
+	return total
+
+func member_count() -> int:
+	var total: int = 0
+	for row: Variant in rows:
+		if bool((row as Dictionary)["member"]):
+			total += 1
+	return total
+
 func accept_membership(id: int) -> bool:
 	if id < 0 or id >= COUNT:
 		return false
