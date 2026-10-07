@@ -76,7 +76,8 @@ func rebuild() -> void:
 		var centre_z: float = bb.position.z + bb.size.z * 0.5
 		var precinct_pos: Vector3 = Vector3(cursor + bb.size.x * 0.5 - centre_x, 0.0, -centre_z)
 		var made: Array = MHResortPrecinct.populate(_stage, id, tier, _spec, MHVisualQuality.Tier.HIGH, precinct_pos)
-		_instances.append(made[0] if not made.is_empty() else null)
+		if not made.is_empty():
+			_instances.append(made[0])
 		cursor += bb.size.x + GAP
 		max_depth = maxf(max_depth, bb.size.z)
 		lines.append("Tier %d: %d triangles, %.1f x %.1f x %.1f m" % [tier,
