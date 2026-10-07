@@ -180,6 +180,25 @@ func test_live_panel_finalizes_exact_canonical_craft_relief_layout() -> void:
 	scene._active = false
 
 
+func test_canonical_craft_draft_rotates_pins_by_round() -> void:
+	var scene: MHLiveConstruction = auto_free(MHLiveConstruction.new())
+	scene.store = MHSaveStore.new("user://test_craft_pin_rotation")
+	scene.ledger_dir = "user://test_craft_pin_rotation_ledgers"
+	add_child(scene)
+	assert_bool(scene._active).is_true()
+	scene.craft_hole.pins.clear()
+	scene.craft_hole.add_pin(11, 30)
+	scene.craft_hole.add_pin(12, 31)
+	var p0: Vector2i = scene.craft_hole.tile_centre_yd(11, 30)
+	var p1: Vector2i = scene.craft_hole.tile_centre_yd(12, 31)
+	var r0: Dictionary = scene.canonical_craft_draft(0)
+	var r1: Dictionary = scene.canonical_craft_draft(1)
+	assert_array(r0["green"]).contains_exactly([p0.x, p0.y, int((r0["green"] as Array)[2])])
+	assert_int(int((r1["green"] as Array)[0])).is_equal(p1.x)
+	assert_int(int((r1["green"] as Array)[1])).is_equal(p1.y)
+	scene._active = false
+
+
 func test_live_build_play_entry_uses_owned_canonical_craft_draft() -> void:
 	var scene: MHLiveConstruction = auto_free(MHLiveConstruction.new())
 	scene.store = MHSaveStore.new("user://test_one_hole_entry")
