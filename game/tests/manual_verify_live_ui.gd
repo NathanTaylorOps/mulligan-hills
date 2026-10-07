@@ -138,5 +138,8 @@ func _verify() -> void:
 	if live.session.practice == null:
 		_fail("Finalization did not create a practice round")
 		return
+	if live.one_hole._category_row.visible or live.one_hole._history_row.visible or live.one_hole._finalize_button.visible:
+		_fail("Craft-only menu still visible on finalized practice hole")
+		return
 	print("LIVE_UI_PROBE PASS: HUD/layout, editors, sculpt-only grid, marker repair, hole finalization and practice")
 	quit(0)
