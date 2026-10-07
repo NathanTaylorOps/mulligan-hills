@@ -210,6 +210,7 @@ func test_authoritative_completed_group_records_each_customer_once_and_never_mon
 	assert_int(scene.session.economy.total_revenue).is_equal(revenue)
 	assert_bool(scene._group_customer_ids.has(serial)).is_false()
 	assert_bool(scene._group_wait_minutes.has(serial)).is_false()
+	assert_bool(scene._consumed_group_serials.has(serial)).is_true()
 	# A duplicate cosmetic completion has no identities left and therefore cannot progress anyone again.
 	scene._on_visual_round_complete({"serial": serial, "size": 3, "holes": 3})
 	for i: int in range(ids.size()):
