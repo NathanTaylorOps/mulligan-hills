@@ -37,6 +37,17 @@ func test_mowing_design_round_trip_and_clamps() -> void:
 	assert_float(design.intensity).is_equal_approx(0.14, 0.0001)
 
 
+func test_serialized_mowing_contains_no_float_values() -> void:
+	var design: MHMowingDesign = MHMowingDesign.new()
+	design.intensity = 0.065
+	var saved: Dictionary = design.to_dict()
+	assert_bool(saved.has("intensity")).is_false()
+	assert_int(typeof(saved["intensity_pm"])).is_equal(TYPE_INT)
+	assert_int(int(saved["intensity_pm"])).is_equal(65)
+	var restored: MHMowingDesign = MHMowingDesign.from_dict(saved)
+	assert_float(restored.intensity).is_equal_approx(0.065, 0.0001)
+
+
 func test_legacy_craft_save_gets_default_mowing() -> void:
 	var hole: MHCraftHole = MHCraftHole.new(8, 8)
 	var legacy: Dictionary = hole.to_dict()
