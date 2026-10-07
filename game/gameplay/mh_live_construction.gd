@@ -39,6 +39,7 @@ func _ready() -> void:
 	MHOrientation.apply_game() # No-op off mobile; one switch, see MHOrientation.
 	var ledger: MHTokenLedger = MHTokenLedger.new()
 	var loaded: MHSaveResult = store.load_slot(0)
+	var loaded_existing: bool = loaded.is_ok()
 	if loaded.is_ok():
 		var saved: MHLoadedSave = loaded.value as MHLoadedSave
 		var ledger_result: MHSaveResult = MHSessionSave.load_ledger(saved.data, ledger_dir)
@@ -143,9 +144,13 @@ func _ready() -> void:
 	# the starter fairway/green fill untouched rough.
 	if session.hole_definitions().is_empty():
 		MHCraftTerrainBridge.overlay_nondefault_from_world(craft_hole, editor, Vector2i(480, 340))
-		_syncing_craft_terrain = true
-		MHCraftTerrainBridge.sync_to_world(craft_hole, editor, Vector2i(480, 340), false)
-		_syncing_craft_terrain = false
+		# A brand-new slice gets the starter fairway/green stamped into the world.
+		# Existing saves keep their authored 1 m terrain exactly; the overlay above
+		# imports it into craft without rasterising the whole footprint back to 2 yd.
+		if not loaded_existing:
+			_syncing_craft_terrain = true
+			MHCraftTerrainBridge.sync_to_world(craft_hole, editor, Vector2i(480, 340), false)
+			_syncing_craft_terrain = false
 	one_hole.visibility_changed.connect(_on_panel_visibility)
 	one_hole.layout_changed.connect(_relayout)
 	get_viewport().size_changed.connect(_relayout)
@@ -315,6 +320,17 @@ func sync_craft_to_world(record_undo: bool = true) -> bool:
 		return false
 	_syncing_craft_terrain = true
 	var changed: bool = MHCraftTerrainBridge.sync_to_world(craft_hole, editor, Vector2i(480, 340), record_undo)
+	_syncing_craft_terrain = false
+	_terrain_dirty_for_craft = Rect2i()
+	return changed
+
+
+func sync_craft_tiles_to_world(tiles: Array, record_undo: bool = true) -> bool:
+	if craft_hole == null or editor == null or not session.hole_definitions().is_empty() or tiles.is_empty():
+		return false
+	_syncing_craft_terrain = true
+	var changed: bool = MHCraftTerrainBridge.sync_tiles_to_world(
+		craft_hole, editor, Vector2i(480, 340), tiles, record_undo)
 	_syncing_craft_terrain = false
 	_terrain_dirty_for_craft = Rect2i()
 	return changed
