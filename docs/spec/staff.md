@@ -1,6 +1,6 @@
 # Staff, grounds condition and pests (DEC-073)
 
-Status: PARAMETERS, NOT FINAL. The numbers live in `docs/spec/data/staff.json` (runtime copy `game/data/staff.json`). The Python reference `tools/reference/staff/mh_staff.py` is the golden source; `game/core/staff/` mirrors it one to one. The Godot code is NOT YET RUN (see `docs/phase1/staff.md`).
+Status: CURRENT MECHANIC / PROVISIONAL BALANCE. Parameters live in `docs/spec/data/staff.json` with a runtime copy in `game/data/staff.json`. `tools/reference/staff/` provides independent deterministic reference coverage and `game/core/staff/` contains the runtime implementation. Current execution evidence belongs in `docs/VERIFICATION.md`; balance values remain subject to simulation and playtesting.
 
 All money is integer cents, all ratios are permille, all division is floor division of non-negative operands (or `MHStaffMath.fdiv`). No float in `game/core/staff`.
 
@@ -158,7 +158,7 @@ save:    club.staff_roster = staff.to_save_block()
 
 `save_version` is unchanged. The block `club.staff_roster` is OPTIONAL (a legacy save without it loads with an empty roster): `v`, `next_serial`, `last_day`, `employees` (max 120, each `serial, role, hired_day, tenure, areas`), four 16-integer arrays (`condition`, `pest`, `personal_work`, `personal_pest`) and `stats` (`hires, fires, wages_cents, incidents_hit, incidents_handled, sightings`). `from_save_block` is strict and atomic: any bad field rejects the whole block and leaves the state unchanged. The legacy `club.staff` counts are always written from the roster, so older readers still see a head count.
 
-## 14. Open questions for Nathan
+## 14. Open balance and integration questions
 
 1. The current `mh_session_save.gd` (gameplay) rejects a non-zero `club.staff`; `game/ui` and `MHGameSession` use `staff = 0`. Both must change when the roster is wired.
 2. Pace base: `min_pace_score` has no base source yet. Staff only adds points.
