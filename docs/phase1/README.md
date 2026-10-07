@@ -1,26 +1,25 @@
-# Development notes
+# Historical implementation notes
 
-The `phase1` folder contains implementation notes from several development stages; its name is historical. The current priority is **course-editor UX → sculpting → surface painting → hole design → terrain art**, with mobile first and desktop support alongside it.
+The **phase1** directory contains implementation notes created during rapid development. Its name is historical.
 
-Start with the [project README](../../README.md) and [development/testing guide](../DEVELOPMENT.md).
+For current project truth, start with:
 
-| Current reference | Contents |
-| --- | --- |
-| [Live construction](live_construction.md) | Canonical scene, terrain bridge, controls, checkpoint boundaries and limits |
-| [Terrain designer](terrain_designer.md) | Exact model, conversion, tools and outstanding authoring work |
-| [One hole and practice](one_hole.md) | Build/rating/practice/save contract |
-| [Editor experience](editor_experience.md) | SimGolf/Under Par reference findings, design direction and usability targets |
-| [Decisions](../DECISIONS.md) | Recorded constraints and superseded choices |
+- [Documentation index](../README.md)
+- [Architecture](../ARCHITECTURE.md)
+- [Status](../STATUS.md)
+- [Decisions](../DECISIONS.md)
+- [Verification](../VERIFICATION.md)
+- [Roadmap](../ROADMAP.md)
 
-Dated verification, CI-recovery and handover reports are historical evidence. Read their dates/SHAs; they do not certify current HEAD. The separate [vertical-slice presentation demo](vertical_slice.md) must not become a second course-authoring architecture.
+Some phase1 files remain useful detailed notes for currently implemented systems. Others describe superseded checkpoints, verification incidents or prototype paths.
 
-Nathan supplied a Windows Godot 4.7.2 live probe PASS at `940f3da`, following a graphically verified stable checkpoint. New editor work has static syntax checks and expanded tests; its engine/device execution is pending.
+Do not treat a date-stamped phase1 status statement as proof for current HEAD. Where a phase1 file conflicts with current source/tests or the top-level current documents, the current sources win.
 
-## Godot 4.7 lessons learned in CI (apply always)
-- `const X = SomeClassName` aliasing a class_name script is a parse error: use `preload("res://path.gd")`.
-- No `OS.get_power_percent_left` in Godot 4. Battery is manual.
-- `PackedInt32Array` is signed: mask with `& 0xFFFFFFFF` when you need unsigned.
-- Tests `extends GdUnitTestSuite`, files `test_*.gd`, folder `game/tests/<module>/`, must pass headless with no display and no user:// leftovers.
-- Grep for `class_name` before naming a class (prefix `MH`). Typed GDScript, tabs, no float math in `game/core/`.
-- Parse errors anywhere break the whole test run, so keep code conservative and re-read every file once for syntax.
+## Current detailed references
 
+- [Live construction](live_construction.md) — canonical saved-course path and checkpoint boundaries.
+- [Terrain designer](terrain_designer.md) — current terrain/hole authoring model.
+- [Editor experience](editor_experience.md) — current interaction and visual direction.
+- [Staff](staff.md), [economy](economy.md), [tournaments](tournaments.md) — subsystem implementation notes; check current code/tests before relying on historical status lines.
+
+Historical handovers and verification reports should be treated as evidence for their dated commits only.
