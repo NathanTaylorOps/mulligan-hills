@@ -23,8 +23,18 @@ static func problems(h: MHCraftHole) -> Array:
 	var out: Array = []
 	if h.tees.is_empty():
 		out.append("no_tee")
-	if h.count_surface(MHCraftHole.Surface.GREEN) == 0:
+	var green_count: int = h.count_surface(MHCraftHole.Surface.GREEN)
+	if green_count == 0:
 		out.append("no_green")
+	else:
+		# The authoritative rating engine requires a 5..30 yard green radius.
+		# The previous four-tile starter green converted to radius 2 yards,
+		# passed craft validation, then ALWAYS failed finalization as RC006.
+		var radius: int = green_radius_yd(h)
+		if radius < 5:
+			out.append("green_too_small")
+		elif radius > 30:
+			out.append("green_too_large")
 	if h.pins.is_empty():
 		out.append("no_pin")
 	else:
@@ -32,6 +42,17 @@ static func problems(h: MHCraftHole) -> Array:
 			var v: Vector2i = p as Vector2i
 			if h.get_surface(v.x, v.y) != MHCraftHole.Surface.GREEN:
 				out.append("pin_not_on_green")
+				break
+	if not h.tees.is_empty() and not h.pins.is_empty():
+		# Mirror MHRHole's RC003 length boundary so the player gets a useful
+		# build hint rather than an opaque invalid_rating after simulation.
+		for round_no: int in range(h.pins.size()):
+			var length: int = length_yd(h, 0, round_no)
+			if length < 60:
+				out.append("hole_too_short")
+				break
+			if length > 1000:
+				out.append("hole_too_long")
 				break
 	for t: Variant in h.tees:
 		var tv: Vector2i = t as Vector2i
@@ -50,6 +71,13 @@ static func problems(h: MHCraftHole) -> Array:
 	return out
 
 
+static func green_radius_yd(h: MHCraftHole) -> int:
+	# The rating schema models one green as a circle. Convert painted area to
+	# an equivalent radius and reject incompatible designs before Build.
+	var area_yd2: int = h.count_surface(MHCraftHole.Surface.GREEN) * MHCraftHole.TILE_YD * MHCraftHole.TILE_YD
+	return maxi(1, _isqrt(area_yd2 * 7 / 22))
+
+
 ## The hole definition for the tee box `tee_index` and the pin used in `round_no`. Returns {} when problems() is not empty.
 static func to_hole_def(h: MHCraftHole, slot_id: int, tee_index: int, round_no: int) -> Dictionary:
 	if not problems(h).is_empty():
@@ -58,8 +86,7 @@ static func to_hole_def(h: MHCraftHole, slot_id: int, tee_index: int, round_no: 
 	var pin_tile: Vector2i = h.pins[h.pin_for_round(round_no)] as Vector2i
 	var tee_pt: Vector2i = h.tile_centre_yd(tee_tile.x, tee_tile.y)
 	var pin_pt: Vector2i = h.tile_centre_yd(pin_tile.x, pin_tile.y)
-	var area_yd2: int = h.count_surface(MHCraftHole.Surface.GREEN) * MHCraftHole.TILE_YD * MHCraftHole.TILE_YD
-	var radius: int = maxi(1, _isqrt(area_yd2 * 7 / 22)) # pi as 22 / 7, whole yards
+	var radius: int = green_radius_yd(h)
 	var out: Dictionary = _features_only(h)
 	out["slot_id"] = slot_id
 	out["tee"] = [tee_pt.x, tee_pt.y]
