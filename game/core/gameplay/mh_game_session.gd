@@ -158,10 +158,18 @@ func record_customer_visit(customer_id: int, holes_played: int, wait_minutes: in
 	var report: Dictionary = staff_report()
 	var experience: Dictionary = MHGolferExperience.evaluate(economy.rating, economy.fee, economy.suggest_fee(),
 		economy.tiers, holes_played, wait_minutes)
-	var penalty_pm: int = int(report.get("satisfaction_penalty_permille", 0))
+	var penalty_pm: int = clampi(int(report.get("satisfaction_penalty_permille", 0)), 0, 1000)
+	var condition: int = clampi(100 - penalty_pm / 10, 0, 100)
+	experience["condition"] = condition
+	experience["condition_penalty_permille"] = penalty_pm
 	if penalty_pm > 0:
 		experience["score"] = clampi(int(experience["score"]) * (1000 - penalty_pm) / 1000, 0, 100)
-		experience["reaction"] = MHGolferExperience.reaction(int(experience["score"]), str(experience["best"]), "course condition")
+		var worst_key: String = str(experience.get("worst", "course"))
+		var worst_value: int = int(experience.get(worst_key, 100))
+		if condition < worst_value:
+			experience["worst"] = "condition"
+		experience["reaction"] = MHGolferExperience.reaction(int(experience["score"]), str(experience["best"]),
+			"course condition" if str(experience["worst"]) == "condition" else str(experience["worst"]))
 	var before: Dictionary = {}
 	if customer_id >= 0 and customer_id < MHGolferCustomers.COUNT:
 		before = (customers.rows[customer_id] as Dictionary).duplicate(true)
