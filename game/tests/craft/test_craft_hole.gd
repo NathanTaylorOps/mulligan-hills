@@ -131,6 +131,30 @@ func test_cancel_rolls_back_and_no_edit_while_undo_blocked() -> void:
 	assert_int(h.undo_count()).is_equal(0)
 
 
+func test_craft_draft_serialization_preserves_exact_state() -> void:
+	var h: MHCraftHole = MHCraftHole.new(24, 40)
+	h.paint_tile(4, 5, MHCraftHole.Surface.OUT_OF_BOUNDS)
+	h.paint_tile(8, 12, MHCraftHole.Surface.WATER)
+	h.set_height_mm_tile(8, 12, 650)
+	h.add_tee(11, 0)
+	h.add_pin(11, 30)
+	h.add_pin(12, 31)
+	h.add_tree_yd(-5, 20)
+	h.rocks = 3
+	h.flowers = 9
+	var restored: MHCraftHole = MHCraftHole.from_dict(h.to_dict())
+	assert_object(restored).is_not_null()
+	assert_int(restored.get_surface(4, 5)).is_equal(MHCraftHole.Surface.OUT_OF_BOUNDS)
+	assert_int(restored.get_surface(8, 12)).is_equal(MHCraftHole.Surface.WATER)
+	assert_int(restored.get_height_mm(8, 12)).is_equal(650)
+	assert_array(restored.tees).contains_exactly([Vector2i(11, 0)])
+	assert_array(restored.pins).contains_exactly([Vector2i(11, 30), Vector2i(12, 31)])
+	assert_array(restored.trees).contains_exactly([Vector2i(-5, 20)])
+	assert_int(restored.rocks).is_equal(3)
+	assert_int(restored.flowers).is_equal(9)
+	assert_int(restored.undo_count()).is_equal(0)
+
+
 func test_one_tee_and_four_pins_rotate_by_round() -> void:
 	var h: MHCraftHole = MHCraftHole.new(24, 40)
 	assert_int(h.add_tee(11, 0)).is_equal(0)
