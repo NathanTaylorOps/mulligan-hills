@@ -25,6 +25,7 @@ var _craft_level_height: int = 0
 var _craft_tool_buttons: Dictionary = {}
 var _craft_tools: HFlowContainer
 var _design_tools: HFlowContainer
+var _practice_tools: HFlowContainer
 var _craft_preview_dirty: bool = false
 ## Header only (body hidden). Layout is recomputed by the scene on `layout_changed`.
 var collapsed: bool = false
@@ -92,14 +93,16 @@ func setup(scene: MHLiveConstruction) -> void:
 	# visible made them look functional while they could not change the craft
 	# course. Canonical craft is now the only authoring path.
 	_button(_design_tools, "Finalize hole", _finalize)
-	var shots: HFlowContainer = MHUIKit.flow(6)
-	content.add_child(shots)
-	_button(shots, "Aim at cup", _aim_cup)
-	_button(shots, "Back to golfer", _back_to_golfer)
-	_button(shots, "Course overview", _overview)
-	_button(shots, "Play shot", _shoot)
-	_button(shots, "New practice round", _restart)
-	_button(shots, "Close", close_preview)
+	_practice_tools = MHUIKit.flow(6)
+	content.add_child(_practice_tools)
+	_button(_practice_tools, "Aim at cup", _aim_cup)
+	_button(_practice_tools, "Back to golfer", _back_to_golfer)
+	_button(_practice_tools, "Course overview", _overview)
+	_button(_practice_tools, "Play shot", _shoot)
+	_button(_practice_tools, "New practice round", _restart)
+	var common_tools: HFlowContainer = MHUIKit.flow(6)
+	content.add_child(common_tools)
+	_button(common_tools, "Close", close_preview)
 	_world = Node3D.new()
 	live.add_child(_world)
 	_world.hide()
@@ -116,6 +119,8 @@ func _sync_mode_controls() -> void:
 		_craft_tools.visible = _preview_draft
 	if _design_tools != null:
 		_design_tools.visible = _preview_draft
+	if _practice_tools != null:
+		_practice_tools.visible = not _preview_draft
 
 
 func _process(_delta: float) -> void:
@@ -236,16 +241,18 @@ func craft_at_tile(c: int, r: int) -> bool:
 		if h.pins.size() >= MHCraftHole.MAX_PINS:
 			h.pins.clear()
 		h.add_pin(c, r)
-	elif craft_mode == &"raise" or craft_mode == &"lower":
-		h.begin_stroke()
-		h.raise_disc(c, r, 1, 1 if craft_mode == &"raise" else -1)
-		h.commit_stroke()
 	else:
-		h.begin_stroke()
-		h.paint_disc(c, r, 1, craft_surface)
+		if h.is_stroke_open():
+			h.cancel_stroke()
+		if not h.begin_stroke():
+			return false
+		if craft_mode == &"level":
+			_craft_level_height = h.get_height(c, r)
+		_apply_craft_stroke_tile(Vector2i(c, r))
 		h.commit_stroke()
 	_refresh_canonical_craft()
 	return true
+
 
 func _refresh_canonical_craft() -> void:
 	var problems: Array = MHCraftConvert.problems(live.craft_hole)
