@@ -1,12 +1,12 @@
 # Phase 1: procedural art, nature + golfers + props (`game/art/nature`, `golfers`, `props`, `shared`)
 
-Status: written 4 Oct 2026. NOT YET RUN. Nobody could start Godot here, so none of this GDScript has been parsed or executed by the engine. The pose keyframes and the `MHArtRng` goldens were computed with Python mirrors (they ran); everything else is unverified until CI. Expect small parse or typing fixes on the first red run (see docs/phase1/README.md lessons).
+Status: historical implementation note from 4 Oct 2026. Procedural nature/golfer/prop source and tests exist; current-head engine, graphical and device evidence belongs in `docs/VERIFICATION.md`. Historical Python mirrors covered selected pose/RNG checks but were not runtime acceptance.
 
 Art is fully procedural from code (DEC-062): no imported assets, no textures, no downloads. Everything is flat shaded with vertex colours from `MHPalette`, one surface per mesh (MultiMesh friendly), one shared material (`MHArtMaterials.vertex_color()`).
 
 ## 1. What was built
 
-Shared (`game/art/shared/`, written by a cut-off agent, reviewed here; API unchanged, additive only)
+Shared (`game/art/shared/`, from an earlier implementation increment; API unchanged in this note)
 - `MHMeshBuilder`: triangle, quad, box, tube, frustum, blob (jittered ellipsoid), disc, two-sided helpers, deterministic geometry hash.
 - `MHPalette`, `MHArtMaterials`, `MHArtRng` (integer RNG, same family as `MHForestRng`), `MHSkySetup`.
 
@@ -44,7 +44,7 @@ Metres, origin on the ground, +Y up. Golfers and fronted props (bench, cart, sig
 
 What actually ran (Python mirrors): `MHArtRng` maths and goldens; pose solving, grip gap, ankle height, club head position, interpolation check (worst grip gap between keys 0.077 m, lowest ankle never under 0.018 m, club head never under 0.018 m); triangle counts were checked by hand against the code.
 
-## 4. Review of the cut-off agent's files (what I changed)
+## 4. Historical review notes
 
 - Palm fronds, bent blades (reeds, cattails) coloured left to right instead of base to tip: `quad_two_sided` colours the a/d edge with `ca` and the b/c edge with `cb`, and callers passed the corners in the wrong order. Fixed in the callers (corner order start-left, end-left, end-right, start-right) and documented on `quad_two_sided`. No behaviour change in the builder, so other users (buildings) are unaffected.
 - `hash_arrays` loops are now typed (`for p: Vector3 in v`).
@@ -80,7 +80,7 @@ Engine APIs and syntax used from memory of the Godot 4 docs:
 - The walk cycle does not move the golfer; the caller translates the figure root.
 - Floats: `cos`/`sin` can differ in the last bit across CPUs; hashes quantise to 1 mm and 1/255 so they should survive, but cross-platform equality of golden hashes is unverified (art is visual only, never feeds the sim hash).
 
-## 7. For Nathan
+## 7. Manual review notes
 
 Questions:
 1. Is two-hand grip by pose data (no IK) acceptable for v1, given golfers are small on a phone screen?
@@ -89,4 +89,4 @@ Questions:
 4. Should the old capsule golfers and `MHTreeMeshes` be replaced now by `MHGolferFigure` / `MHNatureMeshes` (touches `game/render/`, which is another workstream)?
 5. Yellow and white accents vanish on sand. Change the palette (shared with buildings) or outline-darken accents?
 
-To apply (Nathan, if you want the gallery in the launcher): add the line in section 1 to `MHLauncher.SCENES` in `game/ui/mh_launcher.gd`.
+To apply (if the gallery is needed in the launcher): add the line in section 1 to `MHLauncher.SCENES` in `game/ui/mh_launcher.gd`.
