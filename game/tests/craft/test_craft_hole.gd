@@ -31,6 +31,19 @@ func test_paint_and_disc_and_bounds() -> void:
 	assert_int(h.get_surface(99, 99)).is_equal(MHCraftHole.Surface.OUT_OF_BOUNDS)
 
 
+func test_exact_millimetre_height_survives_undo_redo() -> void:
+	var h: MHCraftHole = MHCraftHole.new(24, 40)
+	assert_bool(h.begin_stroke()).is_true()
+	h.set_height_mm_tile(7, 9, 650)
+	assert_bool(h.commit_stroke()).is_true()
+	assert_int(h.get_height_mm(7, 9)).is_equal(650)
+	assert_int(h.get_height(7, 9)).is_equal(1)
+	assert_bool(h.undo()).is_true()
+	assert_int(h.get_height_mm(7, 9)).is_equal(0)
+	assert_bool(h.redo()).is_true()
+	assert_int(h.get_height_mm(7, 9)).is_equal(650)
+
+
 func test_heights_are_clamped_to_the_range() -> void:
 	var h: MHCraftHole = MHCraftHole.new(24, 40)
 	h.set_height_tile(3, 3, 99)
