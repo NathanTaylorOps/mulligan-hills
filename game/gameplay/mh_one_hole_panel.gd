@@ -1308,15 +1308,16 @@ func _craft_material(surface_id: int) -> StandardMaterial3D:
 			material.metallic_specular = 0.12
 		MHCraftHole.Surface.BUNKER, MHCraftHole.Surface.WASTE:
 			material.roughness = 1.0
+			material.metallic_specular = 0.04
 		MHCraftHole.Surface.PATH, MHCraftHole.Surface.DIRT:
 			material.roughness = 0.88
 		MHCraftHole.Surface.WATER:
-			material.roughness = 0.16
-			material.metallic = 0.10
-			material.metallic_specular = 0.45
+			material.roughness = 0.12 if bool(_visual_settings.get("water_detail", true)) else 0.24
+			material.metallic = 0.08
+			material.metallic_specular = 0.52 if bool(_visual_settings.get("water_detail", true)) else 0.22
 			material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
 			var water: Color = material.albedo_color
-			water.a = 0.84
+			water.a = 0.86
 			material.albedo_color = water
 			material.cull_mode = BaseMaterial3D.CULL_DISABLED
 	return material
