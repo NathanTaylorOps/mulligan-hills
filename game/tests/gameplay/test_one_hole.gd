@@ -574,3 +574,34 @@ func test_legacy_craft_course_migrates_to_distinct_default_origins() -> void:
 	assert_object(restored).is_not_null()
 	assert_bool(restored.origin(0) != restored.origin(1)).is_true()
 	assert_bool(restored.origin(1) != restored.origin(2)).is_true()
+
+func test_three_default_holes_encode_on_owned_land_without_overlap() -> void:
+	var session: MHGameSession = MHGameSession.create()
+	var scene: MHLiveConstruction = auto_free(MHLiveConstruction.new())
+	scene.session = session
+	var course_doc: Dictionary = scene._new_document()["course"] as Dictionary
+	var craft: MHCraftCourse = MHCraftCourse.new()
+	craft.ensure_holes(3)
+	var defs: Array = craft.valid_hole_defs()
+	var origins: Array = []
+	for i: int in range(3):
+		var origin: Vector2i = craft.origin(i)
+		origins.append([origin.x, origin.y])
+	var encoded: MHSaveResult = MHCourseLayout.encode(defs, course_doc, origins)
+	assert_bool(encoded.is_ok()).override_failure_message(encoded.message).is_true()
+	if encoded.is_ok():
+		assert_array(MHCourseLayout.origins(encoded.value as Dictionary)).is_equal(origins)
+
+func test_course_codec_rejects_overlapping_hole_geometry() -> void:
+	var session: MHGameSession = MHGameSession.create()
+	var scene: MHLiveConstruction = auto_free(MHLiveConstruction.new())
+	scene.session = session
+	var course_doc: Dictionary = scene._new_document()["course"] as Dictionary
+	var craft: MHCraftCourse = MHCraftCourse.new()
+	craft.ensure_holes(2)
+	var defs: Array = craft.valid_hole_defs()
+	var origin: Vector2i = craft.origin(0)
+	var encoded: MHSaveResult = MHCourseLayout.encode(defs, course_doc,
+		[[origin.x, origin.y], [origin.x, origin.y]])
+	assert_bool(encoded.is_ok()).is_false()
+	assert_str(encoded.message).is_equal("hole geometry overlaps another hole")
