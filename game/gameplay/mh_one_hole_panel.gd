@@ -29,7 +29,6 @@ var _surface_icons: Dictionary = {}
 var _craft_tools: HFlowContainer
 var _terrain_tools: HFlowContainer
 var _marker_tools: HFlowContainer
-var _design_tools: HFlowContainer
 var _practice_tools: HFlowContainer
 var _finalize_button: MHTapButton
 var _validation_hint: Label
@@ -110,13 +109,6 @@ func setup(scene: MHLiveConstruction) -> void:
 	content.add_child(history_row)
 	_button(history_row, "Undo", _craft_undo)
 	_button(history_row, "Redo", _craft_redo)
-	_design_tools = MHUIKit.flow(6)
-	content.add_child(_design_tools)
-	# The old rectangular Length/Narrow/Side-water controls modified a parallel
-	# prototype representation, not the authoritative MHCraftHole. Keeping them
-	# visible made them look functional while they could not change the craft
-	# course. Canonical craft is now the only authoring path.
-	_button(_design_tools, "Finalize hole", _finalize)
 	_practice_tools = MHUIKit.flow(6)
 	content.add_child(_practice_tools)
 	_button(_practice_tools, "Aim at cup", _aim_cup)
@@ -145,8 +137,6 @@ func _sync_mode_controls() -> void:
 		_terrain_tools.visible = _preview_draft and _craft_category == &"terrain"
 	if _marker_tools != null:
 		_marker_tools.visible = _preview_draft and _craft_category == &"markers"
-	if _design_tools != null:
-		_design_tools.visible = _preview_draft
 	if _practice_tools != null:
 		_practice_tools.visible = not _preview_draft
 	if _finalize_button != null:
