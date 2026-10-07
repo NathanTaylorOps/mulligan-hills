@@ -5,7 +5,9 @@ extends RefCounted
 
 const VERSION: int = 2
 const LEGACY_VERSION: int = 1
-const DEFAULT_ORIGINS_DM: Array = [[120, 120], [700, 120], [120, 1000]]
+# Centre lines sit inside the initially-owned central golf block. The rectangular craft grid is
+# an editing coordinate system; only authored golf geometry consumes/overlaps built land.
+const DEFAULT_ORIGINS_DM: Array = [[600, 560], [960, 560], [1320, 560]]
 const NIGHT_SLICE_HOLES: int = 3
 const MAX_HOLES: int = 18
 
