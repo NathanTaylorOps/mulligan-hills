@@ -69,9 +69,8 @@ func add_booked_golfers(count: int, customer_ids: Array = []) -> int:
 			if cursor + j < customer_ids.size():
 				ids.append(int(customer_ids[cursor + j]))
 		cursor += size
-		if queue.size() >= MAX_QUEUE:
-			dropped_groups += 1
-			continue
+		# Booked groups are authoritative business traffic: never discard them because a visual queue is busy.
+		# MHSliceGolfers has its own rendering caps, so retaining this tiny dictionary queue is cheap.
 		queue.append({"serial": next_serial, "size": size, "customer_ids": ids})
 		next_serial += 1
 	return whole
