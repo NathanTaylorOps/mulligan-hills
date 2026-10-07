@@ -1506,20 +1506,50 @@
         "craft_draft": {
           "type": "object",
           "additionalProperties": false,
-          "required": ["v", "cols", "rows", "surface", "height_mm", "tees", "pins", "trees", "rocks", "flowers"],
+          "required": [
+            "v",
+            "cols",
+            "rows",
+            "surface",
+            "height_mm",
+            "tees",
+            "pins",
+            "trees",
+            "rocks",
+            "flowers"
+          ],
           "properties": {
-            "v": {"const": 1},
-            "cols": {"type": "integer", "minimum": 2, "maximum": 600, "multipleOf": 2},
-            "rows": {"type": "integer", "minimum": 2, "maximum": 600},
+            "v": {
+              "const": 1
+            },
+            "cols": {
+              "type": "integer",
+              "minimum": 2,
+              "maximum": 600,
+              "multipleOf": 2
+            },
+            "rows": {
+              "type": "integer",
+              "minimum": 2,
+              "maximum": 600
+            },
             "surface": {
               "type": "array",
               "maxItems": 360000,
-              "items": {"type": "integer", "minimum": 0, "maximum": 12}
+              "items": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 12
+              }
             },
             "height_mm": {
               "type": "array",
               "maxItems": 360000,
-              "items": {"type": "integer", "minimum": -4000, "maximum": 16000}
+              "items": {
+                "type": "integer",
+                "minimum": -4000,
+                "maximum": 16000
+              }
             },
             "tees": {
               "type": "array",
@@ -1528,7 +1558,11 @@
                 "type": "array",
                 "minItems": 2,
                 "maxItems": 2,
-                "items": {"type": "integer", "minimum": 0, "maximum": 599}
+                "items": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 599
+                }
               }
             },
             "pins": {
@@ -1538,7 +1572,11 @@
                 "type": "array",
                 "minItems": 2,
                 "maxItems": 2,
-                "items": {"type": "integer", "minimum": 0, "maximum": 599}
+                "items": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 599
+                }
               }
             },
             "trees": {
@@ -1548,11 +1586,23 @@
                 "type": "array",
                 "minItems": 2,
                 "maxItems": 2,
-                "items": {"type": "integer", "minimum": -1200, "maximum": 1200}
+                "items": {
+                  "type": "integer",
+                  "minimum": -1200,
+                  "maximum": 1200
+                }
               }
             },
-            "rocks": {"type": "integer", "minimum": 0, "maximum": 1500},
-            "flowers": {"type": "integer", "minimum": 0, "maximum": 1500}
+            "rocks": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 1500
+            },
+            "flowers": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 1500
+            }
           }
         },
         "practice": {
@@ -1627,6 +1677,68 @@
             },
             "picked_up": {
               "type": "boolean"
+            }
+          }
+        },
+        "customers": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "v",
+            "rows"
+          ],
+          "properties": {
+            "v": {
+              "const": 1
+            },
+            "rows": {
+              "type": "array",
+              "minItems": 128,
+              "maxItems": 128,
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "id",
+                  "visits",
+                  "satisfaction",
+                  "regular",
+                  "member_eligible",
+                  "member",
+                  "good_member_visits"
+                ],
+                "properties": {
+                  "id": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 127
+                  },
+                  "visits": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 1000000
+                  },
+                  "satisfaction": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 100
+                  },
+                  "regular": {
+                    "type": "boolean"
+                  },
+                  "member_eligible": {
+                    "type": "boolean"
+                  },
+                  "member": {
+                    "type": "boolean"
+                  },
+                  "good_member_visits": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 1000000
+                  }
+                }
+              }
             }
           }
         }
