@@ -65,6 +65,8 @@ jobs:
           path: |
             ci-out/tests/
             ci-out/import*.log
+            ci-out/gdscript-check*.txt
+            ci-out/gdscript-check*.log
             ci-out/godot-checksums.txt
           if-no-files-found: warn
 
