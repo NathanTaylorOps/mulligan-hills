@@ -507,3 +507,15 @@ func test_craft_water_material_is_transparent_and_low_roughness() -> void:
 	assert_int(material.transparency).is_equal(BaseMaterial3D.TRANSPARENCY_ALPHA)
 	assert_bool(material.albedo_color.a < 1.0).is_true()
 	assert_bool(material.roughness < 0.5).is_true()
+
+
+func test_visual_quality_tiers_preserve_gameplay() -> void:
+	var low: Dictionary = MHVisualQuality.settings(MHVisualQuality.Tier.LOW)
+	var medium: Dictionary = MHVisualQuality.settings(MHVisualQuality.Tier.MEDIUM)
+	var high: Dictionary = MHVisualQuality.settings(MHVisualQuality.Tier.HIGH)
+	assert_bool(bool(low["mowing"])).is_true()
+	assert_int(int(low["tree_layers"])).is_less(int(medium["tree_layers"]))
+	assert_int(int(medium["tree_layers"])).is_less_equal(int(high["tree_layers"]))
+	assert_bool(bool(low["shadows"])).is_false()
+	assert_bool(bool(medium["shadows"])).is_true()
+	assert_str(MHVisualQuality.name_for(MHVisualQuality.Tier.HIGH)).is_equal("High")
