@@ -1,5 +1,7 @@
 # Workstream A: CI and project scaffolding
 
+> **Historical Phase 0 record.** This file documents the original CI proof stage. Current CI state and evidence rules are in `docs/STATUS.md` and `docs/VERIFICATION.md`; current toolchain pins live in `tools/ci/versions.env`.
+
 Purpose: once the repo is pushed to GitHub, Actions imports the project, runs the gdUnit4 tests,
 exports Android/Windows/iOS builds, runs a software-rendered bench and checks cross-platform
 determinism, then reports through job summaries and downloadable artifacts.
