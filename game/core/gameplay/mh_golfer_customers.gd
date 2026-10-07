@@ -24,9 +24,11 @@ func record_visit(id: int, score: int) -> Dictionary:
 	var sat: int = score if visits == 1 else (previous * 2 + clampi(score, 0, 100)) / 3
 	r["visits"] = visits
 	r["satisfaction"] = sat
+	var became_regular: bool = false
 	if not bool(r["regular"]) and visits >= REGULAR_VISITS and sat >= REGULAR_MIN_SAT:
 		r["regular"] = true
-	if bool(r["regular"]) and not bool(r["member"]):
+		became_regular = true
+	if bool(r["regular"]) and not bool(r["member"]) and not became_regular:
 		if score >= MEMBER_MIN_SAT:
 			r["good_member_visits"] = int(r["good_member_visits"]) + 1
 		else:
