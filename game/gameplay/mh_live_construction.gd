@@ -310,6 +310,16 @@ func _process(_delta: float) -> void:
 func _notification(what: int) -> void:
 	if not _active:
 		return
+	if what == NOTIFICATION_WM_GO_BACK_REQUEST:
+		router.cancel_world_input()
+		if shell != null and shell.modal_id() != "":
+			shell.close_modal()
+			return
+		if shell != null and shell.stack_depth() > 2:
+			shell.pop_screen()
+			return
+		_back()
+		return
 	if what == NOTIFICATION_APPLICATION_PAUSED or what == NOTIFICATION_APPLICATION_FOCUS_OUT:
 		router.cancel_world_input()
 		save_now()
