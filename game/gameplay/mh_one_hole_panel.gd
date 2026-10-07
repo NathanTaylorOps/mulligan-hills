@@ -1029,13 +1029,21 @@ func _finalize() -> void:
 	live.router.cancel_world_input()
 	if live.aim_input != null:
 		live.aim_input.cancel_all()
-	var encoded: MHSaveResult = MHCourseLayout.encode([h], live.document["course"] as Dictionary, [ORIGIN])
+	var all_holes: Array = live.canonical_craft_course()
+	if all_holes.size() != live.craft_hole_count():
+		_set_validation_message("NOT READY: every hole must have a valid tee, green and pin before opening the course.")
+		return
+	var origins: Array = []
+	for i: int in range(all_holes.size()):
+		# Temporary three-hole authoring origins are separated in the existing world coordinate space.
+		origins.append([ORIGIN[0], ORIGIN[1]])
+	var encoded: MHSaveResult = MHCourseLayout.encode(all_holes, live.document["course"] as Dictionary, origins)
 	if not encoded.is_ok():
 		var explanation: String = _placement_problem_text(encoded.message)
 		_info.text = "Cannot build: " + explanation
 		_set_validation_message("TO BUILD: " + explanation)
 		return
-	var result: Dictionary = live.session.submit_course([h])
+	var result: Dictionary = live.session.submit_course(all_holes)
 	if not bool(result["ok"]):
 		var explanation: String = str(result["reason"])
 		var rating_reasons: Array = result.get("rating_reasons", []) as Array
@@ -1057,7 +1065,7 @@ func _finalize() -> void:
 	live._request_save()
 	_draw()
 	_describe()
-	_set_validation_message("HOLE BUILT. Practice is ready to play.")
+	_set_validation_message("%d-HOLE COURSE BUILT. Practice is ready to play." % all_holes.size())
 
 
 func _restart() -> void:
