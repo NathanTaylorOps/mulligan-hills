@@ -2,8 +2,9 @@ class_name MHCraftHole
 extends RefCounted
 ## One hole as the player paints it (the "craft" terrain designer, DEC-084, docs/phase1/terrain_designer.md).
 ## A grid of square tiles in the hole's local frame: x across (0 is the centre line), y toward the green (0 is the
-## tee end). One tile is TILE_YD whole yards. Every tile has a surface and a height in whole metres, from
-## HEIGHT_MIN_M to HEIGHT_MAX_M (valleys and high ground, DEC-088). One tee box (DEC-090), up to four pin positions
+## tee end). One tile is TILE_YD whole yards. Every tile has a surface and an exact integer-millimetre height;
+## craft-native sculpt tools step in whole metres while imported shared-world shaping may be sub-metre. Heights stay
+## within HEIGHT_MIN_M..HEIGHT_MAX_M (valleys and high ground, DEC-088). One tee box (DEC-090), up to four pin positions
 ## (the pin used rotates each round), trees as yard points, rock and flower counts.
 ## Pure data and integer maths: no nodes, no randomness. Strokes are undoable (one undo per finger stroke).
 ## NOT YET RUN in Godot.
@@ -39,9 +40,9 @@ var trees: Array = []
 var rocks: int = 0
 var flowers: int = 0
 
-var _stroke: Dictionary = {} # tile index -> [old surface, old height]
+var _stroke: Dictionary = {} # tile index -> [old surface, old rounded metres, old exact mm]
 var _stroke_open: bool = false
-var _undo: Array = [] # each: {index: [old_s, old_h, new_s, new_h]}
+var _undo: Array = [] # each: {index: [old_s, old_m, old_mm, new_s, new_m, new_mm]}
 var _redo: Array = []
 var _last_history_indices: PackedInt32Array = PackedInt32Array()
 
