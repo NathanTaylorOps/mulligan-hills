@@ -318,7 +318,9 @@ func advance(delta_us: int, wall_unix: int) -> void:
 		var booked: int = int(tick.get("golfers", 0))
 		if booked > 0:
 			var absolute_hour: int = economy.day * MHEconomy.HOURS_PER_DAY + handled_hour
-			golfers_booked.emit(booked, customer_ids_for_booking(booked, absolute_hour), clock.total_minutes())
+			# Use the accounting hour boundary, not the frame-end clock: one large advance may process several hours.
+			var booked_minute: int = economy.day * MHEconomy.HOURS_PER_DAY * 60 + handled_hour * 60
+			golfers_booked.emit(booked, customer_ids_for_booking(booked, absolute_hour), booked_minute)
 		var wage: int = staff.pay_hour(handled_hour)
 		if wage > 0:
 			economy.incur_loss(wage)
