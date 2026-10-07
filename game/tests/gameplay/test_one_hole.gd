@@ -605,3 +605,24 @@ func test_course_codec_rejects_overlapping_hole_geometry() -> void:
 		[[origin.x, origin.y], [origin.x, origin.y]])
 	assert_bool(encoded.is_ok()).is_false()
 	assert_str(encoded.message).is_equal("hole geometry overlaps another hole")
+
+func test_legacy_terrain_expansion_preserves_existing_samples_exactly() -> void:
+	var scene: MHLiveConstruction = auto_free(MHLiveConstruction.new())
+	var old_grid: MHHeightGrid = MHHeightGrid.new(128, 128, 1000)
+	var old_splat: MHSplatMap = MHSplatMap.new(old_grid.samples_x, old_grid.samples_y)
+	old_grid.set_h(17, 23, 1450)
+	var texel: int = 23 * old_splat.samples_x + 17
+	for layer: int in range(MHSplatMap.LAYER_COUNT):
+		old_splat.bytes[texel * MHSplatMap.LAYER_COUNT + layer] = 0
+	old_splat.bytes[texel * MHSplatMap.LAYER_COUNT + MHSplatMap.Layer.WATER] = 255
+	var expanded: Dictionary = scene._expand_legacy_terrain(old_grid, old_splat)
+	var grid: MHHeightGrid = expanded["grid"] as MHHeightGrid
+	var splat: MHSplatMap = expanded["splat"] as MHSplatMap
+	assert_int(grid.cells_x).is_equal(MHLiveConstruction.CELLS)
+	assert_int(grid.cells_y).is_equal(MHLiveConstruction.CELLS)
+	assert_int(grid.get_h(17, 23)).is_equal(1450)
+	assert_int(splat.get_weight(17, 23, MHSplatMap.Layer.WATER)).is_equal(255)
+	assert_int(splat.get_weight(17, 23, MHSplatMap.Layer.ROUGH)).is_equal(0)
+	# Newly-added land is clean rough, not a stretched copy of an old edge.
+	assert_int(grid.get_h(180, 180)).is_equal(0)
+	assert_int(splat.get_weight(180, 180, MHSplatMap.Layer.ROUGH)).is_equal(255)
