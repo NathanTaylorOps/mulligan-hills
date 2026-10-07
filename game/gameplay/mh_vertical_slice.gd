@@ -209,8 +209,8 @@ func _poll_arrivals() -> void:
 		_spawn_group(g as Dictionary)
 
 
-func _on_golfers_booked(count: int, customer_ids: Array) -> void:
-	schedule.add_booked_golfers(count, customer_ids)
+func _on_golfers_booked(count: int, customer_ids: Array, booked_minute: int) -> void:
+	schedule.add_booked_golfers(count, customer_ids, booked_minute)
 
 func _spawn_group(g: Dictionary) -> void:
 	if hole_points.is_empty():
