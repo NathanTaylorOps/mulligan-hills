@@ -87,7 +87,10 @@ func _build() -> void:
 	root.add_child(_surface_row)
 	for sname: Variant in MHEditorTools.surface_names():
 		var sn: String = str(sname)
-		var sb: MHTapButton = MHUIKit.button(ctx, MHStrings.t(MHEditorTools.surface_label_key(sn)), &"ChipButton", 96.0)
+		var sb: MHTapButton = MHUIKit.button(ctx, MHStrings.t(MHEditorTools.surface_label_key(sn)), &"ChipButton", 132.0)
+		sb.icon = MHWorldSurfaceIcon.make(MHEditorTools.surface_layer(sn))
+		sb.icon_alignment = HORIZONTAL_ALIGNMENT_LEFT
+		sb.custom_minimum_size = Vector2(132.0, 74.0)
 		sb.pressed.connect(_on_surface.bind(sn))
 		_surface_row.add_child(sb)
 		_surface_buttons[sn] = sb
