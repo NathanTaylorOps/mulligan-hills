@@ -111,8 +111,8 @@ func _ready() -> void:
 	shell.show_root(MHScreenIds.HUD)
 	_dock = Control.new()
 	_dock.set_anchors_preset(Control.PRESET_FULL_RECT)
-	_dock.position = Vector2.ZERO
-	_dock.size = get_viewport().get_visible_rect().size
+	# Full-rect anchors own the dock size. Explicit size writes race Godot's
+	# anchor layout and were producing the runtime warnings seen on desktop.
 	_dock.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_dock.theme = shell.theme # The dock is a sibling of the shell, so it does not inherit the shell's theme.
 	layer.add_child(_dock)
@@ -213,10 +213,6 @@ func _relayout() -> void:
 	if _dock == null or shell == null or one_hole == null:
 		return
 	var viewport_size: Vector2 = get_viewport().get_visible_rect().size
-	if _dock.size != viewport_size:
-		_dock.position = Vector2.ZERO
-		_dock.size = viewport_size
-		_layout_key = []
 	if _dock.theme != shell.theme:
 		_dock.theme = shell.theme # Text-size changes build a new theme.
 	var on: bool = shell.overlay_active() and shell.current_screen_id() == MHScreenIds.HUD
@@ -259,16 +255,20 @@ func _place(c: Control, r: Rect2) -> void:
 		c.size = r.size
 
 func _screen_changed(id: String) -> void:
-	# Exact one-hole authoring/practice is its own interaction mode. If the player
-	# navigates to the ordinary terrain editor (or any other screen), close that
-	# preview first so the generic editor never appears active while its world input
-	# is intentionally suppressed and its terrain is hidden.
+	# Exact one-hole authoring/practice is its own interaction mode. Leaving HUD
+	# closes it before normal terrain editing takes ownership.
 	if one_hole != null and one_hole.visible and id != MHScreenIds.HUD:
 		one_hole.close_preview()
 	if router == null:
 		return
-	router.accept_world_input = id == MHScreenIds.EDITOR and shell.modal_id() == "" and (one_hole == null or not one_hole.visible)
-	if not router.accept_world_input:
+	var editing: bool = id == MHScreenIds.EDITOR and shell.modal_id() == "" and (one_hole == null or not one_hole.visible)
+	router.accept_world_input = editing
+	if editing:
+		# A freshly constructed editor screen visually defaults to Raise/Brush 8.
+		# Apply the same defaults to the authoritative terrain editor immediately
+		# instead of relying on a later tool-button click.
+		editor.set_brush(MHBrush.Mode.RAISE, MHEditorTools.RADIUS_DEFAULT, 300)
+	else:
 		router.cancel_world_input()
 	for region: Variant in shell.region_rects().keys():
 		router.register_ui_region(StringName(region), _region_rect.bind(StringName(region)))
