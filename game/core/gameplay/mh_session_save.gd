@@ -168,6 +168,8 @@ static func restore(source: Dictionary, ledger: MHTokenLedger) -> MHSaveResult:
 			return _bad("staff roster checkpoint invalid")
 		if s.staff.legacy_counts() != (club["staff"] as Dictionary):
 			return _bad("staff roster and legacy counts disagree")
+		if not s.staff.checkpoint_not_from_future(s.economy.day):
+			return _bad("staff checkpoint is from the future")
 	else:
 		# Backward compatibility: old live checkpoints only supported an all-zero legacy aggregate.
 		for v: Variant in (club["staff"] as Dictionary).values():
