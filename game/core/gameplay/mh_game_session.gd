@@ -249,6 +249,9 @@ func advance(delta_us: int, wall_unix: int) -> void:
 			continue
 		var handled_hour: int = economy.hour
 		var tick: Dictionary = economy.tick_hour()
+		var booked: int = int(tick.get("golfers", 0))
+		if booked > 0:
+			golfers_booked.emit(booked)
 		var wage: int = staff.pay_hour(handled_hour)
 		if wage > 0:
 			economy.incur_loss(wage)
