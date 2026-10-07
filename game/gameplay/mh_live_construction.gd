@@ -136,13 +136,17 @@ func _ready() -> void:
 	one_hole = MHOneHolePanel.new()
 	_panel_frame.add_child(one_hole)
 	one_hole.setup(self)
-	craft_hole = _default_craft_hole()
+	var restored_craft: MHCraftHole = null
+	if session.hole_definitions().is_empty() and typeof(document.get("runtime", null)) == TYPE_DICTIONARY:
+		var rt: Dictionary = document["runtime"] as Dictionary
+		if rt.has("craft_draft"):
+			restored_craft = MHCraftHole.from_dict(rt["craft_draft"])
+	craft_hole = restored_craft if restored_craft != null else _default_craft_hole()
 	# The old prototype had two unrelated terrain models: the normal editor edited
-	# the persisted world, while Build/play edited a private craft grid. Migrate the
-	# current unfinalized slice into one shared world immediately. Non-default world
-	# edits (water/path/fairway/etc.) and height shaping win over the starter draft;
-	# the starter fairway/green fill untouched rough.
-	if session.hole_definitions().is_empty():
+	# the persisted world, while Build/play edited a private craft grid. Reader-4
+	# saves now carry the exact draft. Legacy unfinalized saves are migrated once by
+	# importing non-default world paint and height into the starter craft grid.
+	if session.hole_definitions().is_empty() and restored_craft == null:
 		MHCraftTerrainBridge.overlay_nondefault_from_world(craft_hole, editor, Vector2i(480, 340))
 		# A brand-new slice gets the starter fairway/green stamped into the world.
 		# Existing saves keep their authored 1 m terrain exactly; the overlay above
@@ -353,7 +357,10 @@ func save_now() -> bool:
 	if not _active or editor.is_stroke_open():
 		return false
 	_pending_save = false # Failed writes require an explicit retry; never retry every frame.
-	var captured: MHSaveResult = MHSessionSave.capture(session, document)
+	var craft_checkpoint: Dictionary = {}
+	if session.hole_definitions().is_empty() and craft_hole != null:
+		craft_checkpoint = craft_hole.to_dict()
+	var captured: MHSaveResult = MHSessionSave.capture(session, document, craft_checkpoint)
 	if not captured.is_ok():
 		_status.text = "Save failed: " + captured.message
 		return false
