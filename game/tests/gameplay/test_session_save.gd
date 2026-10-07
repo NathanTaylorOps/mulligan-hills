@@ -75,6 +75,30 @@ func test_runtime_schema_rejects_bad_types_ranges_and_old_reader() -> void:
 		MHSaveGame.seal(doc)
 		assert_bool(MHSessionSave.restore(doc, MHTokenLedger.new()).is_ok()).is_false()
 
+func test_restore_rejects_future_dated_staff_checkpoint() -> void:
+	var s: MHGameSession = MHGameSession.create()
+	var doc: Dictionary = _checkpoint(s)
+	var roster: Dictionary = (doc["club"] as Dictionary)["staff_roster"] as Dictionary
+	roster["last_day"] = s.economy.day + 1
+	MHSaveGame.seal(doc)
+	var restored: MHSaveResult = MHSessionSave.restore(doc, s.ledger)
+	assert_bool(restored.is_ok()).is_false()
+	assert_str(restored.message).is_equal("staff checkpoint is from the future")
+
+	doc = _checkpoint(s)
+	roster = (doc["club"] as Dictionary)["staff_roster"] as Dictionary
+	var view: Dictionary = s.staff_view()
+	var hired: Dictionary = s.staff.hire("groundskeeper", s.economy.day, view, 100000000)
+	assert_bool(bool(hired["ok"])).is_true()
+	doc = _checkpoint(s)
+	roster = (doc["club"] as Dictionary)["staff_roster"] as Dictionary
+	((roster["employees"] as Array)[0] as Dictionary)["hired_day"] = s.economy.day + 1
+	MHSaveGame.seal(doc)
+	restored = MHSessionSave.restore(doc, s.ledger)
+	assert_bool(restored.is_ok()).is_false()
+	assert_str(restored.message).is_equal("staff checkpoint is from the future")
+
+
 func test_runtime_craft_course_requires_reader_five_and_valid_shape() -> void:
 	var doc: Dictionary = _checkpoint(MHGameSession.create())
 	doc["runtime"]["craft_course"] = MHCraftCourse.new().to_dict()
