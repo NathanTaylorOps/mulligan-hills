@@ -122,7 +122,7 @@ func _ready() -> void:
 	save_button.pressed.connect(_request_save)
 	var back: MHTapButton = MHUIKit.button(shell.ctx, "Save & launcher", &"ChipButton", 160)
 	back.pressed.connect(_back)
-	var play: MHTapButton = MHUIKit.button(shell.ctx, "Build / play one hole", &"ChipButton", 180)
+	var play: MHTapButton = MHUIKit.button(shell.ctx, "Design / play 3 holes", &"ChipButton", 180)
 	for b: MHTapButton in [save_button, back, play]:
 		_actions.add_child(b)
 		_action_buttons.append(b)
@@ -176,7 +176,7 @@ func _ready() -> void:
 		else: shell.trigger_region(id))
 	# The status label sits in a container with a real width (an autowrap Label directly under a CanvasLayer has
 	# zero width and wraps one character per line) and is limited to MHLiveLayout.STATUS_LINES lines.
-	_status = MHUIKit.label("Live construction: world terrain and Build / play one hole now share the same ground.", &"SmallLabel")
+	_status = MHUIKit.label("Live construction: design, build and practice a 3-hole course on shared terrain.", &"SmallLabel")
 	_status.max_lines_visible = MHLiveLayout.STATUS_LINES
 	_status.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 	_status_zone.add_child(_status)
