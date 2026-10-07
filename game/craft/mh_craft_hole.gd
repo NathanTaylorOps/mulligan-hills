@@ -496,7 +496,12 @@ static func from_dict(raw: Variant) -> MHCraftHole:
 		return null
 	out.rocks = int(d["rocks"])
 	out.flowers = int(d["flowers"])
-	out.mowing = MHMowingDesign.from_dict(d.get("mowing", {})).to_dict()
+	if d.has("mowing"):
+		if not MHMowingDesign.is_save_dict_valid(d["mowing"]):
+			return null
+		out.mowing = MHMowingDesign.from_dict(d["mowing"]).to_dict()
+	else:
+		out.mowing = MHMowingDesign.new().to_dict()
 	if out.rocks < 0 or out.rocks > 1500 or out.flowers < 0 or out.flowers > 1500:
 		return null
 	out.clear_history()
