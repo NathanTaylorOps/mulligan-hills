@@ -1,7 +1,8 @@
-# Stabilization Audit Register
+# Engineering stabilization register
 
-Baseline review: 105-item external engineering review supplied 2026-10-07.
-Current branch: `fix/canonical-relief-save`.
+Current checkpoint: 7 October 2026.
+
+This register tracks the high-priority findings adopted during the stabilization pass. It is an implementation working record; docs/STATUS.md and docs/VERIFICATION.md are the current presentation surfaces.
 
 Status meanings: **FIXED** verified in source and corrected; **CONFIRMED** real but not yet resolved; **PARTIAL** some required work exists; **DEFER** valid but not a current vertical-spine blocker; **VERIFY** not yet proven against current HEAD.
 
@@ -30,7 +31,8 @@ Status meanings: **FIXED** verified in source and corrected; **CONFIRMED** real 
 | 64 one→many assumption audit | ACTIVE | Hole-1 source assumptions found and corrected in practice panel; repo-wide multi-hole tests still required. |
 | 65 no regression guard for Hole 1 | FIXED/PARTIAL | Added 3-hole active-context, distinct-hole finalization, and cold-reopen regressions. Runtime execution remains blocked by runner allocation. |
 | 66 slot_id vs index | PARTIAL | Active score/practice restore resolves slot where available; formal identity contract still needed. |
-| 67 practice slot/index drift | FIXED | Active index re-resolves from practice slot and now has an explicit 3-hole regression test. |\n| Visual group staggered completion | FIXED | Replaced same-frame completion counting with persistent per-group remaining-member state; added 0.1 s cadence and concurrent-group regressions. |
+| 67 practice slot/index drift | FIXED | Active index re-resolves from practice slot and now has an explicit 3-hole regression test. |
+| Visual group staggered completion | FIXED | Replaced same-frame completion counting with persistent per-group remaining-member state; added 0.1 s cadence and concurrent-group regressions. |
 | 68 fixed origin | CONFIRMED | Still uses one `ORIGIN`. |
 | 69 shared terrain window | CONFIRMED | Real multi-hole world placement remains the first post-stabilization feature. |
 | 90 integration coverage lag | CONFIRMED | Stabilization sprint is addressing it. |
