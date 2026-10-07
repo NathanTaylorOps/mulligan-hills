@@ -88,6 +88,37 @@ static func is_save_dict_valid(raw: Variant) -> bool:
 	)
 
 
+static func is_legacy_save_dict_valid(raw: Variant) -> bool:
+	if typeof(raw) != TYPE_DICTIONARY:
+		return false
+	var d: Dictionary = raw as Dictionary
+	var keys: Array = ["v", "fairway_pattern", "green_pattern", "fairway_width_yd",
+		"green_width_yd", "direction_deg", "intensity"]
+	if d.size() != keys.size():
+		return false
+	for key: String in keys:
+		if not d.has(key):
+			return false
+	for key: String in ["v", "fairway_pattern", "green_pattern", "fairway_width_yd",
+		"green_width_yd", "direction_deg"]:
+		if not MHRValidate.is_int_value(d[key]):
+			return false
+	var intensity_value: Variant = d["intensity"]
+	if typeof(intensity_value) not in [TYPE_INT, TYPE_FLOAT]:
+		return false
+	var legacy_intensity: float = float(intensity_value)
+	if legacy_intensity != legacy_intensity or legacy_intensity < 0.02 or legacy_intensity > 0.14:
+		return false
+	return (
+		int(d["v"]) == 1
+		and int(d["fairway_pattern"]) >= 0 and int(d["fairway_pattern"]) < Pattern.size()
+		and int(d["green_pattern"]) >= 0 and int(d["green_pattern"]) < Pattern.size()
+		and int(d["fairway_width_yd"]) >= MIN_WIDTH_YD and int(d["fairway_width_yd"]) <= MAX_WIDTH_YD
+		and int(d["green_width_yd"]) >= MIN_WIDTH_YD and int(d["green_width_yd"]) <= MAX_WIDTH_YD
+		and int(d["direction_deg"]) >= 0 and int(d["direction_deg"]) < 180
+	)
+
+
 static func from_dict(raw: Variant) -> MHMowingDesign:
 	var out: MHMowingDesign = MHMowingDesign.new()
 	if typeof(raw) != TYPE_DICTIONARY:
