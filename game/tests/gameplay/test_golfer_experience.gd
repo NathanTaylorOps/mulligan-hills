@@ -59,3 +59,17 @@ func test_incomplete_course_can_explain_dissatisfaction() -> void:
 	var tiers := PackedInt32Array([5,5,5,5,5,5,5,5,5,5])
 	var result: Dictionary = MHGolferExperience.evaluate(100, 1000, 5000, tiers, 1, 0)
 	assert_str(str(result["worst"])).is_equal("completeness")
+
+func test_restore_rejects_mismatched_customer_id_and_wrong_field_types() -> void:
+	var c: MHGolferCustomers = MHGolferCustomers.new()
+	var raw: Dictionary = c.to_dict()
+	((raw["rows"] as Array)[5] as Dictionary)["id"] = 90
+	assert_object(MHGolferCustomers.from_dict(raw)).is_null()
+
+	raw = c.to_dict()
+	((raw["rows"] as Array)[5] as Dictionary)["visits"] = 1.0
+	assert_object(MHGolferCustomers.from_dict(raw)).is_null()
+
+	raw = c.to_dict()
+	((raw["rows"] as Array)[5] as Dictionary)["regular"] = 1
+	assert_object(MHGolferCustomers.from_dict(raw)).is_null()
