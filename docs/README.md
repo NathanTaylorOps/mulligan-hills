@@ -13,6 +13,7 @@ This directory separates current product truth from historical implementation no
 | [Verification](VERIFICATION.md) | Evidence model and current verification state |
 | [Quality gates](QUALITY_GATES.md) | Conditions required before broad feature development and release |
 | [Open decisions](OPEN_DECISIONS.md) | Deliberately unresolved choices only |
+| [Technical debt](TECH_DEBT.md) | Known structural work and why it matters |
 | [Development](DEVELOPMENT.md) | Working practices and local/CI validation |
 | [Definition of Done](DEFINITION_OF_DONE.md) | Completion criteria for code, UX, persistence and releases |
 | [Visual direction](VISUAL_DIRECTION.md) | Current visual-quality and mobile-performance direction |
@@ -23,6 +24,7 @@ This directory separates current product truth from historical implementation no
 - docs/spec/interfaces/ — interface/design contracts.
 - docs/spec/rating/ — rating and simulation specifications and reference material.
 - docs/spec/ — detailed gameplay/system specifications.
+- docs/verification/ — current device, performance and determinism runbooks.
 
 ## Historical material
 
