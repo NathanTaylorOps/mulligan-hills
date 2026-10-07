@@ -183,3 +183,8 @@ Nathan answered “must ship” to the concrete PROP-11–14 launch proposal. Th
 ## O. Shared course terrain (2026-10-06)
 
 - DEC-092 The course uses one shared persisted world terrain. A hole's MHCraftHole is a deterministic semantic/rating grid placed over that same ground, not a second private terrain world. Normal terrain-editor height/surface changes inside a hole footprint synchronize into its craft grid; exact-hole craft edits write back to the shared terrain; landscaping outside the current hole footprint remains visible in Build/play. The exact unfinalized craft draft is saved separately when needed to preserve semantics the 11-layer world splat cannot encode losslessly (tee/pin positions, deep rough/out-of-bounds identity and exact craft metadata). This closes terrain_designer.md open question 3 in favour of a shared map and replaces the development-only split where the normal editor and Build/play could show different ground.
+
+
+## P. Visual building and terrain feedback (2026-10-06)
+
+- DEC-093 The regular course view uses course art/materials, **not** a full-screen or always-visible line-grid overlay. Grid lines are transient editing feedback during Raise, Lower, Smooth or Level in exact-hole terrain mode; selecting Surfaces or Tee & Pin removes them immediately. Visual material previews and three short category menus (Surfaces / Terrain / Tee & Pin) replace the long mixed text palette. Build hole remains visible at the top with an actionable validation summary and explicit optional marker repair. The normal Edit surface picker also uses pictorial material cards. Final art is supplied by authored textures/assets and should never require a permanent overlaid construction grid.
