@@ -11,10 +11,10 @@ const LEGACY_VERSION: int = 1
 const DEFAULT_ORIGINS_DM: Array = [
 	# Six holes fit the four initially-owned golf parcels (5, 6, 9 and 10).
 	[600, 560], [960, 560], [1320, 560], [710, 560], [1070, 560], [1080, 560],
-	# Expansion holes occupy the remaining golf-only corridors.
-	[70, 50], [240, 50], [250, 50],
-	[1510, 560], [1680, 560], [1690, 560],
-	[550, 1250], [720, 1250], [730, 1250], [900, 1250], [1070, 1250], [1080, 1250],
+	# The guided expansion opens the south centre first; six more holes fit there.
+	[600, 1250], [960, 1250], [1320, 1250], [710, 1250], [1070, 1250], [1080, 1250],
+	# One north-centre lane, then the completed west and east golf corridors.
+	[820, 0], [120, 0], [130, 0], [300, 0], [1560, 480], [1570, 480],
 ]
 const NIGHT_SLICE_HOLES: int = 3
 const MAX_HOLES: int = 18
