@@ -51,11 +51,9 @@ func setup(p_view: MHGameStateView, p_settings: MHUISettings = null) -> void:
 		settings = p_settings
 	ctx.settings = settings
 	set_anchors_preset(Control.PRESET_FULL_RECT)
-	# MHUIShell sits directly under a CanvasLayer. Keep an explicit viewport-sized
-	# rect as well as full anchors so every nested Container receives a real area
-	# immediately, including on desktop windows and before the first resize signal.
-	position = Vector2.ZERO
-	size = get_viewport_rect().size
+	# Full-rect anchors are the authority here. Explicit size assignments on a
+	# non-equal-anchor Control are overwritten by Godot after _ready() and were
+	# producing layout races/warnings on desktop.
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_backdrop = MHUIKit.color_rect(MHTheme.BG)
 	_backdrop.set_anchors_preset(Control.PRESET_FULL_RECT)
@@ -473,8 +471,6 @@ func _rebuild_all() -> void:
 
 
 func _on_resized() -> void:
-	position = Vector2.ZERO
-	size = get_viewport_rect().size
 	_recompute()
 
 
