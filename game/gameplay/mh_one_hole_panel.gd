@@ -311,7 +311,8 @@ func _describe() -> void:
 	var price: int = 0 if not live.session.hole_definitions().is_empty() else live.session.economy.hole_cost_cents()
 	_info.text = "Draft: %d yd, fairway %d yd wide. Finalize $%d; redesign free." % [length_yd, half_width_yd * 2, price / 100]
 	if live != null and live.craft_hole != null:
-		_info.text += " | Craft tool: " + str(craft_mode)
+		var tool_name: String = _surface_name(craft_surface) if craft_mode == &"surface" else str(craft_mode).capitalize()
+		_info.text += " | Craft tool: " + tool_name
 	var r: MHPracticeRound = live.session.practice
 	if r != null:
 		_info.text += " | %d strokes | %s" % [r.strokes, "Picked up" if r.picked_up else ("Holed" if r.finished else "Playing")]
@@ -483,6 +484,24 @@ func _draw_craft_tree(point: Vector2i) -> void:
 	var trunk_pos: Vector3 = _position_on_ground(point.x * 100, point.y * 100, 1.0)
 	_box(trunk_pos, Vector3(0.35, 2.0, 0.35), Color(0.34, 0.23, 0.12))
 	_marker_at(_position_on_ground(point.x * 100, point.y * 100, 2.4), Color(0.16, 0.38, 0.14), 1.25)
+
+func _surface_name(surface_id: int) -> String:
+	match surface_id:
+		MHCraftHole.Surface.ROUGH: return "Rough"
+		MHCraftHole.Surface.FAIRWAY: return "Fairway"
+		MHCraftHole.Surface.FIRST_CUT: return "First cut"
+		MHCraftHole.Surface.DEEP_ROUGH: return "Deep rough"
+		MHCraftHole.Surface.GREEN: return "Green"
+		MHCraftHole.Surface.FRINGE: return "Fringe"
+		MHCraftHole.Surface.TEE: return "Tee grass"
+		MHCraftHole.Surface.BUNKER: return "Bunker"
+		MHCraftHole.Surface.WASTE: return "Waste"
+		MHCraftHole.Surface.WATER: return "Water"
+		MHCraftHole.Surface.OUT_OF_BOUNDS: return "Out of bounds"
+		MHCraftHole.Surface.PATH: return "Path"
+		MHCraftHole.Surface.DIRT: return "Dirt"
+		_: return "Surface"
+
 
 func _surface_color(surface_id: int) -> Color:
 	match surface_id:
