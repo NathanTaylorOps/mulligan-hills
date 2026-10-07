@@ -138,12 +138,14 @@ func _write_rect(cx: int, cy: int, tx0: int, ty0: int, tx1: int, ty1: int) -> vo
 			hb[o + 1] = u & 255
 			var so: int = (ty * tex_n + tx) * 4
 			var sso: int = si * MHSplatMap.LAYER_COUNT
+			# PackedByteArray is copy-on-write; avoid fetching/writing the same buffer four times per texel.
 			for p in range(MHSplatMap.TEXTURE_COUNT):
-				var sb: PackedByteArray = _sbuf[c * 3 + p]
+				var bi: int = c * MHSplatMap.TEXTURE_COUNT + p
+				var sb: PackedByteArray = _sbuf[bi]
 				for ch in range(4):
 					var layer: int = p * 4 + ch
 					sb[so + ch] = _splat.bytes[sso + layer] if layer < MHSplatMap.LAYER_COUNT else 0
-				_sbuf[c * 3 + p] = sb
+				_sbuf[bi] = sb
 	# hb and sb are the same objects stored in the arrays (typed arrays hold references),
 	# but write back explicitly so correctness does not depend on that.
 	_hbuf[c] = hb
@@ -154,6 +156,11 @@ func _write_rect(cx: int, cy: int, tx0: int, ty0: int, tx1: int, ty1: int) -> vo
 func flush(tracker: MHDirtyTracker) -> void:
 	var t0: int = Time.get_ticks_usec()
 	var entries: PackedInt32Array = tracker.take()
+	if entries.is_empty():
+		last_flush_chunks = 0
+		last_flush_texels = 0
+		last_flush_usec = Time.get_ticks_usec() - t0
+		return
 	var texels: int = 0
 	var count: int = entries.size() / 5
 	for k in range(count):
