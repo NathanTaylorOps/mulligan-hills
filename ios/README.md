@@ -1,39 +1,31 @@
-# ios/ : iPhone platform notes (DESIGN ONLY, nothing built or run)
+# iOS platform integration
 
-Phase 0 target is Android. iPhone follows. Everything below is a plan to keep the interfaces honest.
+Status: **design/provisional integration only.** Android remains the first mobile validation target.
 
-## Purchases (StoreKit)
-- Option 1 (chosen for design): Godot's official iOS plugin `InAppStore` (godot-sdk-integrations/godot-ios-plugins,
-  `plugins/inappstore`). README (fetched 2026-09-29): singleton `InAppStore`; methods `request_product_info`,
-  `purchase`, `restore_purchases`, `set_auto_finish_transaction`, `finish_transaction`, `get_pending_event_count`,
-  `pop_pending_event`; polled event dictionaries. It does NOT say StoreKit 1 or 2, nor which Godot 4.x versions. UNVERIFIED.
-  https://github.com/godot-sdk-integrations/godot-ios-plugins/blob/master/plugins/inappstore/README.md
-- Option 2 (candidates, unvetted): atlasapplications/godot-store-kit (https://github.com/atlasapplications/godot-store-kit),
-  hrk4649/godot_ios_plugin_iap. Evaluate only if Option 1 fails on device.
-- Adapter: `game/platform/mh_entitlement_service_ios.gd` (event polling written, server call TODO).
-- Server: new Edge Function `verify-apple` calling the App Store Server API (`GET /inApps/v1/transactions/{transactionId}`,
-  JWT signed with an App Store Connect API key) or verifying the JWS transaction locally with Apple's root certs; it returns the same `mh1`
-  token with `pkg` = bundle id. Do NOT rely on the deprecated `verifyReceipt`. Endpoint names are from memory: UNVERIFIED.
-- Restore Purchases button is mandatory for Apple review: `MHEntitlementService.restore()` exists for that.
-- Product: non-consumable, product id `mh_full_unlock`, price tier equivalent to USD 4.99.
+This directory records the intended iOS platform boundary so common gameplay systems do not acquire Android-only assumptions.
 
-## Sign in / leaderboards
-- Game Center for leaderboards. No first-party Godot 4 plugin confirmed. Candidate: sjc/godot-game-services (unvetted).
-  Phase 0 decision: interface stub only (`mh_leaderboard_service_ios.gd`).
-- Sign in with Apple is required by Apple if the app offers other third-party social sign-in for an account. If the account is
-  email-only via Supabase, it is not required (verify current App Review Guideline 4.8: UNVERIFIED). Account deletion in-app is required.
+## Intended responsibilities
 
-## Integrity
-- No Play Integrity equivalent shipped in Phase 0. iOS options: App Attest / DeviceCheck (needs a native plugin, not surveyed).
-  Purchase trust on iOS comes from Apple's signed transactions instead.
+- App Store purchase and restore adapter;
+- account/sign-in compatibility where required;
+- entitlement verification through the common server contract;
+- local notifications where used;
+- TestFlight build/export path.
 
-## Local notifications
-- `MHNotificationServiceNative` targets the Notification Scheduler plugin (has an iOS variant per its README).
-  Needs the user permission prompt; no entitlements beyond default local notifications.
+## Current rule
 
-## TestFlight (steps, needs an Apple Developer Program account, USD 99/yr: verify price, UNVERIFIED)
-1. Enrol at https://developer.apple.com/programs/ (individual is fine).
-2. App Store Connect > Apps > + > New App; bundle id must match the Godot export preset.
-3. Create the in-app purchase (non-consumable, id `mh_full_unlock`) and a Sandbox tester (Users and Access > Sandbox).
-4. Godot iOS export produces an Xcode project (needs macOS with Xcode; CI uses a macOS runner). Archive and upload with Xcode or `xcrun altool`/Transporter.
-5. TestFlight > Internal testing group > add testers. Sandbox purchases work in TestFlight builds.
+Do not promote remembered API names, store-policy assumptions or plugin signatures into production code without verifying them against the exact Godot/iOS plugin and current Apple documentation.
+
+The common gameplay layer should depend on platform-service interfaces, not StoreKit-specific objects.
+
+## Before implementation is accepted
+
+1. Pin the exact iOS plugin/toolchain versions.
+2. Verify purchase/restore APIs and transaction lifecycle.
+3. Implement the server-side Apple entitlement verification path.
+4. Build from a clean CI/macOS environment.
+5. Upload a signed archive to TestFlight.
+6. Exercise purchase, restore, offline entitlement and account deletion behavior.
+7. Reconcile App Store privacy/age-rating/export-compliance answers with the shipping build.
+
+Current platform evidence belongs in **docs/VERIFICATION.md**.
