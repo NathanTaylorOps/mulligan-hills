@@ -64,8 +64,11 @@ static func capture(session: MHGameSession, source: Dictionary, craft_draft: Dic
 			return _bad("craft draft checkpoint invalid")
 		doc["runtime"]["craft_draft"] = craft_draft.duplicate(true)
 	if not craft_course.is_empty():
-		if MHCraftCourse.from_dict(craft_course) == null:
+		var parsed_craft: MHCraftCourse = MHCraftCourse.from_dict(craft_course)
+		if parsed_craft == null:
 			return _bad("craft course checkpoint invalid")
+		if not _craft_course_matches_session(parsed_craft, session):
+			return _bad("craft course and canonical course disagree")
 		doc["runtime"]["craft_course"] = craft_course.duplicate(true)
 	MHSaveGame.seal(doc)
 	var normalized: MHSaveResult = MHSaveGame.normalize(doc)
@@ -181,6 +184,12 @@ static func restore(source: Dictionary, ledger: MHTokenLedger) -> MHSaveResult:
 		s.customers = restored_customers
 		if s.customers.member_count() > s.economy.members():
 			return _bad("named members exceed accounting membership capacity")
+	if rt.has("craft_course"):
+		var restored_craft: MHCraftCourse = MHCraftCourse.from_dict(rt["craft_course"])
+		if restored_craft == null:
+			return _bad("craft course checkpoint invalid")
+		if not _craft_course_matches_session(restored_craft, s):
+			return _bad("craft course and canonical course disagree")
 	if rt.has("practice"):
 		if not MHRValidate.is_int_value(rt["practice"].get("slot_id", null)):
 			return _bad("practice hole identity invalid")
@@ -194,6 +203,22 @@ static func restore(source: Dictionary, ledger: MHTokenLedger) -> MHSaveResult:
 			return _bad("practice round and saved geometry disagree")
 	s.unix_now = int(doc["saved_at_unix"])
 	return MHSaveResult.success(s)
+
+
+static func _craft_course_matches_session(craft: MHCraftCourse, session: MHGameSession) -> bool:
+	if craft == null or session == null:
+		return false
+	# Before finalization the craft checkpoint is intentionally ahead of the empty canonical course.
+	if session.hole_definitions().is_empty():
+		return true
+	var defs: Array = craft.valid_hole_defs()
+	if defs != session.hole_definitions():
+		return false
+	var origins: Array = []
+	for i: int in range(craft.count()):
+		var origin: Vector2i = craft.origin(i)
+		origins.append([origin.x, origin.y])
+	return origins == session.hole_origins_dm()
 
 
 static func _bad(message: String) -> MHSaveResult:
