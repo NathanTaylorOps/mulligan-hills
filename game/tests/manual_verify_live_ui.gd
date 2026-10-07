@@ -15,9 +15,12 @@ func _fail(reason: String) -> void:
 
 
 func _verify() -> void:
+	# A fresh isolated slot for every run; an earlier successful probe must not
+	# leave a finalized hole that makes this run a false failure.
+	var probe_id: String = str(Time.get_ticks_usec())
 	var live: MHLiveConstruction = MHLiveConstruction.new()
-	live.store = MHSaveStore.new("user://manual_verify_live_ui/saves")
-	live.ledger_dir = "user://manual_verify_live_ui/ledgers"
+	live.store = MHSaveStore.new("user://manual_verify_live_ui/" + probe_id + "/saves")
+	live.ledger_dir = "user://manual_verify_live_ui/" + probe_id + "/ledgers"
 	root.add_child(live)
 	await process_frame
 	await process_frame
@@ -102,5 +105,25 @@ func _verify() -> void:
 	if live.editor.splat.get_weight(sample_x, sample_y, MHSplatMap.Layer.PATH) != 255:
 		_fail("Craft path did not reach shared terrain")
 		return
-	print("LIVE_UI_PROBE PASS: HUD/layout, normal editor, shared terrain, Build/play panel and craft edits")
+	if live.one_hole._is_sculpt_mode():
+		_fail("Design grid would show while painting a surface")
+		return
+	live.one_hole._select_category(&"terrain")
+	if not live.one_hole._is_sculpt_mode():
+		_fail("Sculpt grid is missing in terrain mode")
+		return
+	live.one_hole._select_category(&"surfaces")
+	live.one_hole._repair_hole_markers()
+	var problems: Array = MHCraftConvert.problems(live.craft_hole)
+	if not problems.is_empty():
+		_fail("Marker repair did not make the hole playable: " + str(problems))
+		return
+	live.one_hole._finalize()
+	if live.session.hole_definitions().is_empty():
+		_fail("Build hole did not finalize: " + live.one_hole._info.text + " | " + live.one_hole._validation_hint.text)
+		return
+	if live.session.practice == null:
+		_fail("Finalization did not create a practice round")
+		return
+	print("LIVE_UI_PROBE PASS: HUD/layout, editors, sculpt-only grid, marker repair, hole finalization and practice")
 	quit(0)
