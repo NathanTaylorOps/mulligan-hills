@@ -152,3 +152,24 @@ func test_editor_dock_uses_safe_width_and_leaves_world_space() -> void:
 			assert_float(dock.end.y).is_equal_approx(free.end.y, 0.01)
 			assert_float(dock.position.y - free.position.y).is_greater_equal(free.size.y * MHLiveLayout.WORLD_MIN_FRACTION - 0.01)
 	assert_bool(MHLiveLayout.editor_dock_rect(Rect2(), 260.0).has_area()).is_false()
+
+
+func test_touch_bridge_splits_nested_scroll_axes() -> void:
+	var bridge: MHTouchBridge = auto_free(MHTouchBridge.new())
+	add_child(bridge)
+	var outer: MHScrollBox = auto_free(MHScrollBox.new())
+	outer.position = Vector2.ZERO
+	outer.size = Vector2(300, 200)
+	outer.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	outer.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_AUTO
+	add_child(outer)
+	var inner: MHScrollBox = MHScrollBox.new()
+	inner.position = Vector2.ZERO
+	inner.size = Vector2(300, 100)
+	inner.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_AUTO
+	inner.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	outer.add_child(inner)
+	await get_tree().process_frame
+	var targets: Dictionary = bridge._scroll_targets_at(Vector2(20, 20))
+	assert_object(targets["horizontal"]).is_same(inner)
+	assert_object(targets["vertical"]).is_same(outer)
