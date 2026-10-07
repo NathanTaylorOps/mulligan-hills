@@ -64,8 +64,8 @@ static func to_hole_def(h: MHCraftHole, slot_id: int, tee_index: int, round_no: 
 	out["slot_id"] = slot_id
 	out["tee"] = [tee_pt.x, tee_pt.y]
 	out["green"] = [pin_pt.x, pin_pt.y, radius]
-	out["tee_z_mm"] = h.get_height(tee_tile.x, tee_tile.y) * 1000
-	out["green_z_mm"] = h.get_height(pin_tile.x, pin_tile.y) * 1000
+	out["tee_z_mm"] = h.get_height_mm(tee_tile.x, tee_tile.y)
+	out["green_z_mm"] = h.get_height_mm(pin_tile.x, pin_tile.y)
 	var relief: Dictionary = relief_for(h)
 	if not relief.is_empty():
 		out["relief"] = relief
@@ -79,7 +79,7 @@ static func relief_for(h: MHCraftHole) -> Dictionary:
 	var any: bool = false
 	for r in range(h.rows):
 		for c in range(h.cols):
-			var z: int = h.get_height(c, r) * 1000
+			var z: int = h.get_height_mm(c, r)
 			if z != 0:
 				any = true
 			zs.append(z)
