@@ -189,6 +189,20 @@ func test_live_scene_routes_pause_paint_history_purchase_and_reload() -> void:
 	scene._active = false
 
 
+func test_save_refuses_half_finished_craft_stroke() -> void:
+	var scene: MHLiveConstruction = auto_free(MHLiveConstruction.new())
+	scene.store = MHSaveStore.new(DIR)
+	scene.ledger_dir = LEDGERS
+	add_child(scene)
+	assert_bool(scene._active).is_true()
+	assert_bool(scene.craft_hole.begin_stroke()).is_true()
+	scene.craft_hole.paint_tile(8, 12, MHCraftHole.Surface.WATER)
+	assert_bool(scene.save_now()).is_false()
+	scene.craft_hole.cancel_stroke()
+	assert_bool(scene.save_now()).is_true()
+	scene._active = false
+
+
 func test_unfinalized_craft_draft_survives_cold_reopen_exactly() -> void:
 	var scene: MHLiveConstruction = MHLiveConstruction.new()
 	scene.store = MHSaveStore.new(DIR)
