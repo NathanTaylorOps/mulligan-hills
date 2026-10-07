@@ -52,6 +52,7 @@ static func capture(session: MHGameSession, source: Dictionary, craft_draft: Dic
 	doc["progress"] = progress
 	doc["runtime"] = {"v": 1, "clock": session.clock.to_dict(), "economy": session.economy.to_dict(),
 		"save_secret": session.save_secret, "recent_scores": session.recent_scores.duplicate(),
+		"customers": session.customers.to_dict(),
 		"ledger_hash": MHSaveGame.canonical_json(session.ledger.to_dict()).sha256_text(),
 		"terrain_bytes_hash": str((source.get("runtime", {}) as Dictionary).get("terrain_bytes_hash", "0".repeat(64)))}
 	if session.practice != null:
@@ -156,6 +157,11 @@ static func restore(source: Dictionary, ledger: MHTokenLedger) -> MHSaveResult:
 	s.save_secret = int(rt["save_secret"])
 	s.rating_epoch = int(doc["sim"]["rating_epoch"])
 	s.recent_scores = (rt["recent_scores"] as Array).duplicate()
+	if rt.has("customers"):
+		var restored_customers: MHGolferCustomers = MHGolferCustomers.from_dict(rt["customers"])
+		if restored_customers == null:
+			return _bad("customer checkpoint invalid")
+		s.customers = restored_customers
 	if rt.has("practice"):
 		if not MHRValidate.is_int_value(rt["practice"].get("slot_id", null)):
 			return _bad("practice hole identity invalid")
