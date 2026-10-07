@@ -163,7 +163,7 @@ func _ready() -> void:
 	_relayout()
 
 func _pick(pos: Vector2) -> Vector2i:
-	return MHPicking.pick(editor.grid, controller.camera.project_ray_origin(pos), controller.camera.project_ray_normal(pos), 1500.0)
+	return MHCellSentinel.pick_terrain(editor.grid, controller.camera.project_ray_origin(pos), controller.camera.project_ray_normal(pos), 1500.0)
 
 ## Rect getter for router UI regions that is empty while the button is hidden (dock hidden, panel closed).
 func _button_rect(b: Control) -> Rect2:
