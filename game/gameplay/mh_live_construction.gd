@@ -492,12 +492,16 @@ func _fail(message: String) -> void:
 
 func _new_document() -> Dictionary:
 	var parcels: Array = []
-	for p: Variant in session.defs.land_config()["parcels"]:
+	var land_cfg: Dictionary = session.defs.land_config()
+	var land_grid: Dictionary = land_cfg["grid"] as Dictionary
+	var parcel_w_dm: int = CELLS * 10 / int(land_grid["cols"])
+	var parcel_h_dm: int = CELLS * 10 / int(land_grid["rows"])
+	for p: Variant in land_cfg["parcels"]:
 		var row: Dictionary = p
-		var x: int = int(row["col"]) * 320
-		var y: int = int(row["row"]) * 320
-		parcels.append({"parcel_id": int(row["id"]), "x0": x, "y0": y, "x1": x + 319,
-			"y1": y + 319, "owned": session.land.is_owned(int(row["id"]))})
+		var x: int = int(row["col"]) * parcel_w_dm
+		var y: int = int(row["row"]) * parcel_h_dm
+		parcels.append({"parcel_id": int(row["id"]), "x0": x, "y0": y, "x1": x + parcel_w_dm - 1,
+			"y1": y + parcel_h_dm - 1, "owned": session.land.is_owned(int(row["id"]))})
 	return {"schema": "mh.save", "save_version": 1, "min_reader_version": 2,
 		"written_by": {"app_version": "0.1.0", "sim_version": "MHSIM-1.0.0",
 			"rating_version": MHRatingEngine.RATING_VERSION, "platform": "test"},
