@@ -1,5 +1,5 @@
 > **DRAFT FOR LAWYER REVIEW. NOT LEGAL ADVICE. DO NOT PUBLISH AS IS.**
-> Drafted by an AI assistant on 2026-10-04 from the product decisions in `docs/DECISIONS.md`. Not reviewed by a lawyer. It does not claim to be enforceable, complete, or compliant with Australian Consumer Law, the laws of any other place, or Google Play or Apple rules. Items in [SQUARE BRACKETS] are placeholders or questions for the lawyer. Australian Consumer Law guarantees cannot be excluded, and consumer law elsewhere may also override parts of this draft: the lawyer must shape the disclaimers and liability limits accordingly.
+> Working draft based on the documented product decisions as of 2026-10-04. It has not been reviewed by qualified legal counsel and is not publication-ready. Items in [SQUARE BRACKETS] are placeholders or review questions. The final terms must be reconciled with the release-candidate product, publisher entity, target regions, applicable consumer law and current store requirements.
 
 # Mulligan Hills Terms of Use
 
