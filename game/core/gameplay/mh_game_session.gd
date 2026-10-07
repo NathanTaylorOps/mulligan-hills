@@ -22,6 +22,7 @@ var save_secret: int = 0
 var rating_epoch: int = 0
 var unix_now: int = 0
 var recent_scores: Array = []
+var customers: MHGolferCustomers = MHGolferCustomers.new()
 var practice: MHPracticeRound = null
 var _holes: Array = []
 var _ratings: Array = []
@@ -133,6 +134,22 @@ func staff_view() -> Dictionary:
 
 func staff_report() -> Dictionary:
 	return staff.report(staff_view())
+
+func record_customer_visit(customer_id: int, holes_played: int, wait_minutes: int) -> Dictionary:
+	var report: Dictionary = staff_report()
+	var experience: Dictionary = MHGolferExperience.evaluate(economy.rating, economy.fee, economy.suggest_fee(),
+		economy.tiers, holes_played, wait_minutes)
+	var penalty_pm: int = int(report.get("satisfaction_penalty_permille", 0))
+	if penalty_pm > 0:
+		experience["score"] = clampi(int(experience["score"]) * (1000 - penalty_pm) / 1000, 0, 100)
+		experience["reaction"] = MHGolferExperience.reaction(int(experience["score"]), str(experience["best"]), "course condition")
+	var before: Dictionary = {}
+	if customer_id >= 0 and customer_id < MHGolferCustomers.COUNT:
+		before = (customers.rows[customer_id] as Dictionary).duplicate(true)
+	var after: Dictionary = customers.record_visit(customer_id, int(experience["score"]))
+	if after.is_empty():
+		return {}
+	return {"experience": experience, "before": before, "after": after}
 
 
 func _club_view() -> Dictionary:
