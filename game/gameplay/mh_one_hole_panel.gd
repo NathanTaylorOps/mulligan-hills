@@ -22,6 +22,7 @@ var craft_mode: StringName = &"surface"
 var _craft_stroke_open: bool = false
 var _craft_last_tile: Vector2i = Vector2i(-1, -1)
 var _craft_level_height: int = 0
+var _craft_tool_buttons: Dictionary = {}
 ## Header only (body hidden). Layout is recomputed by the scene on `layout_changed`.
 var collapsed: bool = false
 signal layout_changed()
@@ -73,12 +74,12 @@ func setup(scene: MHLiveConstruction) -> void:
 	_surface_button(craft_tools, "Out of bounds", MHCraftHole.Surface.OUT_OF_BOUNDS)
 	_surface_button(craft_tools, "Path", MHCraftHole.Surface.PATH)
 	_surface_button(craft_tools, "Dirt", MHCraftHole.Surface.DIRT)
-	_button(craft_tools, "Raise", func() -> void: craft_mode = &"raise"; _describe())
-	_button(craft_tools, "Lower", func() -> void: craft_mode = &"lower"; _describe())
-	_button(craft_tools, "Smooth", func() -> void: craft_mode = &"smooth"; _describe())
-	_button(craft_tools, "Level", func() -> void: craft_mode = &"level"; _describe())
-	_button(craft_tools, "Place tee", func() -> void: craft_mode = &"tee"; _describe())
-	_button(craft_tools, "Place pin", func() -> void: craft_mode = &"pin"; _describe())
+	_mode_button(craft_tools, "Raise", &"raise")
+	_mode_button(craft_tools, "Lower", &"lower")
+	_mode_button(craft_tools, "Smooth", &"smooth")
+	_mode_button(craft_tools, "Level", &"level")
+	_mode_button(craft_tools, "Place tee", &"tee")
+	_mode_button(craft_tools, "Place pin", &"pin")
 	_button(craft_tools, "Undo craft", _craft_undo)
 	_button(craft_tools, "Redo craft", _craft_redo)
 	var design: HFlowContainer = MHUIKit.flow(6)
@@ -139,17 +140,49 @@ func open() -> void:
 	_draw()
 	_describe()
 
-func _button(parent: Control, title: String, action: Callable) -> void:
+func _button(parent: Control, title: String, action: Callable) -> MHTapButton:
 	var b: MHTapButton = MHUIKit.button(live.shell.ctx, title, &"ChipButton", 110)
 	parent.add_child(b)
 	b.pressed.connect(action)
+	return b
 
 
 func _surface_button(parent: Control, title: String, surface_id: int) -> void:
-	_button(parent, title, func() -> void:
-		craft_surface = surface_id
-		craft_mode = &"surface"
-		_describe())
+	var key: StringName = StringName("surface_" + str(surface_id))
+	var b: MHTapButton = _button(parent, title, _select_surface.bind(surface_id))
+	_craft_tool_buttons[key] = b
+	_refresh_tool_button_styles()
+
+
+func _mode_button(parent: Control, title: String, mode: StringName) -> void:
+	var b: MHTapButton = _button(parent, title, _select_mode.bind(mode))
+	_craft_tool_buttons[mode] = b
+	_refresh_tool_button_styles()
+
+
+func _select_surface(surface_id: int) -> void:
+	craft_surface = surface_id
+	craft_mode = &"surface"
+	_refresh_tool_button_styles()
+	_describe()
+
+
+func _select_mode(mode: StringName) -> void:
+	craft_mode = mode
+	_refresh_tool_button_styles()
+	_describe()
+
+
+func _active_tool_key() -> StringName:
+	return StringName("surface_" + str(craft_surface)) if craft_mode == &"surface" else craft_mode
+
+
+func _refresh_tool_button_styles() -> void:
+	var active: StringName = _active_tool_key()
+	for key: Variant in _craft_tool_buttons.keys():
+		var b: MHTapButton = _craft_tool_buttons[key] as MHTapButton
+		if b != null:
+			b.theme_type_variation = &"SelectedButton" if StringName(key) == active else &"ChipButton"
 
 func set_canonical_draft(layout: Dictionary) -> bool:
 	var validation: Dictionary = MHRatingEngine.validate_input({"schema": 1, "engine": MHRatingEngine.RATING_VERSION, "hole": layout})
