@@ -64,9 +64,19 @@ static func from_dict(raw: Variant) -> MHCraftCourse:
 	if typeof(raw) != TYPE_DICTIONARY:
 		return null
 	var d: Dictionary = raw as Dictionary
-	var version: int = int(d.get("v", -1))
+	if not MHRValidate.is_int_value(d.get("v", null)) or not MHRValidate.is_int_value(d.get("active", null)):
+		return null
+	var version: int = int(d["v"])
 	if version not in [LEGACY_VERSION, VERSION] or typeof(d.get("holes", null)) != TYPE_ARRAY:
 		return null
+	var allowed: Array = ["v", "active", "holes"]
+	if version == VERSION:
+		allowed.append("origins_dm")
+	if d.size() != allowed.size():
+		return null
+	for key: Variant in d.keys():
+		if not allowed.has(str(key)):
+			return null
 	var rows: Array = d["holes"] as Array
 	if rows.is_empty() or rows.size() > MAX_HOLES:
 		return null
@@ -96,7 +106,10 @@ static func from_dict(raw: Variant) -> MHCraftCourse:
 	else:
 		for i: int in range(out.holes.size()):
 			out.origins_dm.append(default_origin(i))
-	out.active_index = clampi(int(d.get("active", 0)), 0, out.holes.size() - 1)
+	var active: int = int(d["active"])
+	if active < 0 or active >= out.holes.size():
+		return null
+	out.active_index = active
 	return out
 
 static func from_legacy_hole(hole: MHCraftHole) -> MHCraftCourse:
