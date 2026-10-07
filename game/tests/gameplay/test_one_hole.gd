@@ -259,6 +259,43 @@ func test_reopening_build_play_does_not_replace_finalized_layout_with_default_cr
 	scene._active = false
 
 
+func test_normal_editor_and_build_play_share_water_path_and_height() -> void:
+	var scene: MHLiveConstruction = auto_free(MHLiveConstruction.new())
+	scene.store = MHSaveStore.new("user://test_shared_craft_world")
+	scene.ledger_dir = "user://test_shared_craft_world_ledgers"
+	add_child(scene)
+	assert_bool(scene._active).is_true()
+	var tile: Vector2i = Vector2i(8, 12)
+	var centre: Vector2i = scene.craft_hole.tile_centre_yd(tile.x, tile.y)
+	var sx: int = MHRMath.rdiv(MHCourseLayout.world_mm(480, centre.x * 100), scene.editor.grid.cell_size_mm)
+	var sy: int = MHRMath.rdiv(MHCourseLayout.world_mm(340, centre.y * 100), scene.editor.grid.cell_size_mm)
+
+	# Edit through the normal world terrain path.
+	scene.editor.set_paint_brush(MHSplatMap.Layer.WATER, 1, 1000)
+	scene.editor.begin_stroke()
+	scene.editor.apply_brush_at(sx, sy)
+	scene.editor.end_stroke()
+	scene.editor.set_brush(MHBrush.Mode.RAISE, 1, 700)
+	scene.editor.begin_stroke()
+	scene.editor.apply_brush_at(sx, sy)
+	scene.editor.end_stroke()
+	assert_int(scene.craft_hole.get_surface(tile.x, tile.y)).is_equal(MHCraftHole.Surface.WATER)
+	assert_int(scene.craft_hole.get_height_mm(tile.x, tile.y)).is_equal(700)
+
+	# Reopening Build/play must show the same authoritative craft state.
+	scene._open_craft_hole()
+	assert_int(scene.craft_hole.get_surface(tile.x, tile.y)).is_equal(MHCraftHole.Surface.WATER)
+	assert_int(scene.one_hole._ground_height(centre.x * 100, centre.y * 100) * 1000.0).is_equal(700)
+
+	# Edit back through Build/play; the persisted world splat changes too.
+	scene.one_hole.craft_mode = &"surface"
+	scene.one_hole.craft_surface = MHCraftHole.Surface.PATH
+	assert_bool(scene.one_hole.craft_at_tile(tile.x, tile.y)).is_true()
+	assert_int(scene.editor.splat.get_weight(sx, sy, MHSplatMap.Layer.PATH)).is_equal(255)
+	assert_int(scene.editor.splat.get_weight(sx, sy, MHSplatMap.Layer.WATER)).is_equal(0)
+	scene._active = false
+
+
 func test_live_craft_controls_mutate_authoritative_hole_and_undo_redo() -> void:
 	var scene: MHLiveConstruction = auto_free(MHLiveConstruction.new())
 	scene.store = MHSaveStore.new("user://test_craft_controls")
