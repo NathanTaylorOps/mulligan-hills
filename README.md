@@ -54,7 +54,7 @@ The current course-authoring path follows one authoritative chain:
 
 The wider runtime keeps deterministic domain logic separate from Godot presentation and platform/service integrations.
 
-For the current decision baseline, see [docs/DECISIONS.md](docs/DECISIONS.md).
+For the current architecture, status and decision baseline, start with [docs/README.md](docs/README.md).
 
 ## Quick start
 
@@ -119,11 +119,14 @@ Near-term engineering work is focused on making the existing foundation reliable
 
 ## Key documentation
 
+- [Documentation index](docs/README.md)
+- [Architecture](docs/ARCHITECTURE.md)
+- [Current status](docs/STATUS.md)
 - [Current product & architecture decisions](docs/DECISIONS.md)
+- [Roadmap](docs/ROADMAP.md)
+- [Verification](docs/VERIFICATION.md)
+- [Quality gates](docs/QUALITY_GATES.md)
 - [Development guide](docs/DEVELOPMENT.md)
-- [Live-course architecture](docs/phase1/live_construction.md)
-- [Terrain design and contracts](docs/phase1/terrain_designer.md)
-- [Editor experience direction](docs/phase1/editor_experience.md)
 - [Supabase/backend status](supabase/README.md)
 
 The repository is under active development. Planned behavior, implemented behavior and verified behavior are intentionally documented as separate states.
