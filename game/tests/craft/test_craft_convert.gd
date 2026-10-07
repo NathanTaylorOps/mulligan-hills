@@ -5,7 +5,7 @@ extends GdUnitTestSuite
 func _hole() -> MHCraftHole:
 	var h: MHCraftHole = MHCraftHole.new(24, 40)
 	h.paint_rect(10, 0, 13, 29, MHCraftHole.Surface.FAIRWAY)
-	h.paint_rect(11, 30, 12, 31, MHCraftHole.Surface.GREEN)
+	h.paint_rect(9, 30, 14, 35, MHCraftHole.Surface.GREEN)
 	h.add_tee(11, 0)
 	h.add_pin(11, 30)
 	return h
@@ -41,7 +41,7 @@ func test_tee_green_and_heights() -> void:
 	var g: Array = def["green"] as Array
 	assert_int(int(g[0])).is_equal(-1)
 	assert_int(int(g[1])).is_equal(61)
-	assert_int(int(g[2])).is_equal(2) # 4 tiles x 4 square yards = 16, radius floor(sqrt(16 x 7 / 22)) = 2
+	assert_int(int(g[2])).is_equal(6) # 36 tiles x 4 sq yd = 144 sq yd -> radius floor(sqrt(144 x 7/22)) = 6
 	assert_int(int(def["tee_z_mm"])).is_equal(2000)
 	assert_int(int(def["green_z_mm"])).is_equal(3000)
 
@@ -124,6 +124,24 @@ func test_problems_stop_a_hole_that_cannot_be_rated() -> void:
 	h2.paint_tile(11, 0, MHCraftHole.Surface.WATER)
 	assert_bool(MHCraftConvert.problems(h2).has("tee_in_hazard")).is_true()
 	assert_array(MHCraftConvert.problems(_hole())).is_empty()
+
+
+func test_craft_green_and_length_requirements_match_rating_engine() -> void:
+	var h: MHCraftHole = _hole()
+	assert_int(MHCraftConvert.green_radius_yd(h)).is_equal(6)
+	assert_bool(MHRHole.from_def(MHCraftConvert.to_hole_def(h, 0, 0, 0)).valid).is_true()
+	# Legacy four-cell putting greens passed craft validation even though the
+	# rating engine rejected radius=2 (RC006), blocking every Build click.
+	h.paint_rect(9, 30, 14, 35, MHCraftHole.Surface.ROUGH)
+	h.paint_rect(11, 30, 12, 31, MHCraftHole.Surface.GREEN)
+	assert_int(MHCraftConvert.green_radius_yd(h)).is_equal(2)
+	assert_bool(MHCraftConvert.problems(h).has("green_too_small")).is_true()
+	assert_bool(MHCraftConvert.to_hole_def(h, 0, 0, 0).is_empty()).is_true()
+	# Moving the tee too near the pin must produce a build hint, not RC003.
+	h.paint_rect(9, 30, 14, 35, MHCraftHole.Surface.GREEN)
+	h.tees.clear()
+	h.add_tee(11, 20)
+	assert_bool(MHCraftConvert.problems(h).has("hole_too_short")).is_true()
 
 
 func test_each_round_uses_the_next_pin() -> void:
