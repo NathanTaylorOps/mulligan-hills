@@ -34,6 +34,9 @@ jobs:
         with:
           lfs: true
 
+      - name: Check Supabase consolidated setup
+        run: python3 tools/ci/check_supabase_setup.py
+
       - name: Check personal golfer Python reference
         run: |
           python3 tools/reference/personal_golf/selftest.py
