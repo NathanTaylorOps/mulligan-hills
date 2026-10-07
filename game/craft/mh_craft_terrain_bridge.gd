@@ -99,12 +99,7 @@ static func _world_sample_to_tile(hole: MHCraftHole, grid: MHHeightGrid, origin_
 	var local_y_mm: int = gy * grid.cell_size_mm - origin_dm.y * 100
 	var x_cy: int = MHRMath.fdiv(local_x_mm * 1000, 9144)
 	var y_cy: int = MHRMath.fdiv(local_y_mm * 1000, 9144)
-	var tile_span_cy: int = MHCraftHole.TILE_YD * 100
-	var c: int = MHRMath.fdiv(x_cy, tile_span_cy) + hole.cols / 2
-	var r: int = MHRMath.fdiv(y_cy, tile_span_cy)
-	if not hole.in_bounds(c, r):
-		return Vector2i(-1, -1)
-	return Vector2i(c, r)
+	return hole.tile_at_cy(x_cy, y_cy)
 
 
 static func _footprint_samples(hole: MHCraftHole, grid: MHHeightGrid, origin_dm: Vector2i) -> Rect2i:
