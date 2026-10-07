@@ -1392,12 +1392,13 @@ func _draw_environment_dressing(hole: MHCraftHole) -> void:
 			elif seed_value % 3 == 0:
 				kind = "flower_patch"
 			var centre: Vector2i = hole.tile_centre_yd(c, r)
-			var mesh: ArrayMesh = MHNatureMeshes.build(kind, lod, abs(seed_value) % MHNatureMeshes.VARIANTS)
+			var variant: int = absi(seed_value) % MHNatureMeshes.VARIANTS
+			var mesh: ArrayMesh = MHNatureMeshes.build(kind, lod, variant)
 			var instance: MeshInstance3D = MeshInstance3D.new()
 			instance.mesh = mesh
 			instance.material_override = nature_mat
 			instance.position = _position_on_ground(centre.x * 100, centre.y * 100, 0.02)
-			instance.rotation.y = float(abs(seed_value) % 628) / 100.0
+			instance.rotation.y = float(absi(seed_value) % 628) / 100.0
 			instance.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_ON if bool(_visual_settings.get("shadows", true)) else GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 			_world.add_child(instance)
 	# Water margins get sparse reeds. They are intentionally sampled rather than
