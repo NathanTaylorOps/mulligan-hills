@@ -75,6 +75,21 @@ func test_runtime_schema_rejects_bad_types_ranges_and_old_reader() -> void:
 		MHSaveGame.seal(doc)
 		assert_bool(MHSessionSave.restore(doc, MHTokenLedger.new()).is_ok()).is_false()
 
+func test_runtime_craft_course_requires_reader_five_and_valid_shape() -> void:
+	var doc: Dictionary = _checkpoint(MHGameSession.create())
+	doc["runtime"]["craft_course"] = MHCraftCourse.new().to_dict()
+	doc["min_reader_version"] = 4
+	MHSaveGame.seal(doc)
+	var errors: Array = MHSaveGame.validate(doc)
+	assert_bool(errors.has("craft course requires reader 5")).is_true()
+
+	doc["min_reader_version"] = MHSaveGame.READER_VERSION
+	doc["runtime"]["craft_course"]["origins_dm"] = [[-1, 560]]
+	MHSaveGame.seal(doc)
+	errors = MHSaveGame.validate(doc)
+	assert_bool(errors.has("craft course invalid")).is_true()
+
+
 func test_legacy_slot_stays_readable_but_is_not_silently_reinitialized() -> void:
 	var doc: Dictionary = Fixture.make_doc()
 	MHSaveGame.seal(doc)
