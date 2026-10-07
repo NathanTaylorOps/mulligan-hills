@@ -20,6 +20,7 @@ var _done: MHTapButton
 var _pause: MHTapButton
 var _minus: MHTapButton
 var _plus: MHTapButton
+var _grid_button: MHTapButton
 var _slot: Control
 
 
@@ -71,10 +72,12 @@ func _build() -> void:
 	_minus.pressed.connect(_on_radius.bind(-2))
 	_plus = MHUIKit.button(ctx, MHStrings.t("ui.common.plus"), &"ChipButton")
 	_plus.pressed.connect(_on_radius.bind(2))
+	_grid_button = MHUIKit.button(ctx, "Grid ON", &"ChipButton", 104.0)
+	_grid_button.pressed.connect(send.bind(&"toggle_grid", {}))
 	var rad_chip: PanelContainer = MHUIKit.panel(&"HudChip")
 	_radius_label = MHUIKit.label("", &"HudLabel", false)
 	rad_chip.add_child(_radius_label)
-	var items: Array = [_done, _pause, _undo, _redo, _minus, rad_chip, _plus]
+	var items: Array = [_done, _pause, _undo, _redo, _minus, rad_chip, _plus, _grid_button]
 	if ctx.left_handed():
 		items.reverse()
 	for it: Variant in items:
@@ -117,6 +120,8 @@ func refresh() -> void:
 	if _undo == null:
 		return
 	_radius_label.text = MHStrings.t("editor.radius", {"cells": _radius})
+	_grid_button.text = "Grid ON" if ctx.settings.grid_visible else "Grid OFF"
+	_grid_button.theme_type_variation = &"SelectedButton" if ctx.settings.grid_visible else &"ChipButton"
 	_pause.text = MHStrings.t("hud.resume" if view.is_paused() else "hud.pause")
 	_undo.disabled = not view.can_undo()
 	_redo.disabled = not view.can_redo()
@@ -164,4 +169,5 @@ func region_buttons() -> Dictionary:
 	out[&"editor_redo"] = _redo
 	out[&"editor_minus"] = _minus
 	out[&"editor_plus"] = _plus
+	out[&"editor_grid"] = _grid_button
 	return out
