@@ -138,7 +138,7 @@ func test_bad_world_version_slot_and_panel_origin_reject() -> void:
 	h["features"] = [{"t": "fairway", "circle": [0, 30, 10]}]
 	encoded = MHCourseLayout.encode([h], source, [[480, 340]])
 	assert_bool(encoded.is_ok()).is_true()
-	assert_bool(MHOneHolePanel.supported(encoded.value)).is_true()
+	assert_bool(MHOneHolePanel.supported(encoded.value)).is_false()
 
 	var craft: MHCraftHole = MHCraftHole.new(24, 40)
 	craft.paint_rect(10, 0, 13, 29, MHCraftHole.Surface.FAIRWAY)
