@@ -282,6 +282,31 @@ func test_live_scene_finalization_can_save_and_reload_practice() -> void:
 	scene._active = false
 
 
+func test_restore_rejects_stale_finalized_craft_course_checkpoint() -> void:
+	var scene: MHLiveConstruction = auto_free(MHLiveConstruction.new())
+	scene.store = MHSaveStore.new(DIR)
+	scene.ledger_dir = LEDGERS
+	add_child(scene)
+	assert_bool(scene._active).is_true()
+	scene._open_craft_hole()
+	scene.one_hole._finalize()
+	assert_bool(scene.save_now()).is_true()
+	var loaded: MHSaveResult = scene.store.load_slot(0)
+	assert_bool(loaded.is_ok()).is_true()
+	var saved: Dictionary = ((loaded.value as MHLoadedSave).data as Dictionary).duplicate(true)
+	# Keep the craft block structurally valid but make it disagree with the already-rated canonical hole.
+	saved["runtime"]["craft_course"]["holes"][0]["flowers"] = int(saved["runtime"]["craft_course"]["holes"][0]["flowers"]) + 1
+	# Decoration alone does not alter rating geometry, so change an authoritative height too.
+	saved["runtime"]["craft_course"]["holes"][0]["height_mm"][0] = int(saved["runtime"]["craft_course"]["holes"][0]["height_mm"][0]) + 250
+	MHSaveGame.seal(saved)
+	var ledger: MHSaveResult = MHSessionSave.load_ledger(saved, LEDGERS)
+	assert_bool(ledger.is_ok()).is_true()
+	var restored: MHSaveResult = MHSessionSave.restore(saved, ledger.value as MHTokenLedger)
+	assert_bool(restored.is_ok()).is_false()
+	assert_str(restored.message).is_equal("craft course and canonical course disagree")
+	scene._active = false
+
+
 func test_elevated_live_scene_cold_reopen_accepts_saved_relief() -> void:
 	var scene: MHLiveConstruction = MHLiveConstruction.new()
 	scene.store = MHSaveStore.new(DIR)
