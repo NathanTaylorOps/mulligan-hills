@@ -650,6 +650,11 @@ static func _validate_runtime(d: Dictionary, errs: Array) -> void:
 			errs.append("craft draft requires reader 4")
 		elif MHCraftHole.from_dict(rt["craft_draft"]) == null:
 			errs.append("craft draft invalid")
+	if rt.has("craft_course"):
+		if typeof(d.get("min_reader_version", null)) != TYPE_INT or int(d["min_reader_version"]) < 5:
+			errs.append("craft course requires reader 5")
+		elif MHCraftCourse.from_dict(rt["craft_course"]) == null:
+			errs.append("craft course invalid")
 	var cl: Dictionary = _dict_at(rt, "clock", "$.runtime", errs)
 	_only_keys(cl, ["v", "real_us_per_day", "total_minutes", "acc", "speed", "paused", "credit"], "$.runtime.clock", errs)
 	_int_in(cl, "v", 1, 1, "$.runtime.clock", errs)
