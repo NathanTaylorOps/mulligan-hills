@@ -1,0 +1,40 @@
+extends GdUnitTestSuite
+
+func test_experience_rewards_quality_value_and_pace() -> void:
+	var tiers := PackedInt32Array([2,2,2,1,1,1,1,1,1,1])
+	var good: Dictionary = MHGolferExperience.evaluate(85, 3000, 3500, tiers, 9, 5)
+	var bad: Dictionary = MHGolferExperience.evaluate(40, 6000, 3000, tiers, 3, 40)
+	assert_int(int(good["score"])).is_greater(int(bad["score"]))
+	assert_str(str(good["reaction"])).is_not_empty()
+
+func test_customer_becomes_regular_then_membership_eligible() -> void:
+	var c: MHGolferCustomers = MHGolferCustomers.new()
+	var id: int = 12
+	for i: int in range(3):
+		c.record_visit(id, 90)
+	assert_bool(bool((c.rows[id] as Dictionary)["regular"])).is_true()
+	assert_bool(bool((c.rows[id] as Dictionary)["member_eligible"])).is_false()
+	c.record_visit(id, 90)
+	assert_bool(bool((c.rows[id] as Dictionary)["member_eligible"])).is_true()
+
+func test_bad_post_regular_visit_resets_membership_streak() -> void:
+	var c: MHGolferCustomers = MHGolferCustomers.new()
+	for i: int in range(3):
+		c.record_visit(4, 90)
+	c.record_visit(4, 90)
+	c.record_visit(4, 50)
+	assert_int(int((c.rows[4] as Dictionary)["good_member_visits"])).is_equal(0)
+	assert_bool(bool((c.rows[4] as Dictionary)["member_eligible"])).is_false()
+
+func test_customer_ledger_round_trips() -> void:
+	var c: MHGolferCustomers = MHGolferCustomers.new()
+	c.record_visit(7, 88)
+	var restored: MHGolferCustomers = MHGolferCustomers.from_dict(c.to_dict())
+	assert_object(restored).is_not_null()
+	assert_int(int((restored.rows[7] as Dictionary)["visits"])).is_equal(1)
+	assert_int(int((restored.rows[7] as Dictionary)["satisfaction"])).is_equal(88)
+
+func test_invalid_customer_id_is_rejected() -> void:
+	var c: MHGolferCustomers = MHGolferCustomers.new()
+	assert_bool(c.record_visit(-1, 80).is_empty()).is_true()
+	assert_bool(c.record_visit(MHGolferCustomers.COUNT, 80).is_empty()).is_true()
