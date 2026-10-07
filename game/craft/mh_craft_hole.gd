@@ -42,7 +42,7 @@ var _redo: Array = []
 
 func _init(p_cols: int = 24, p_rows: int = 40) -> void:
 	cols = maxi(2, p_cols + (p_cols % 2)) # even, so column cols/2 starts at x = 0
-	rows = maxi(1, p_rows)
+	rows = maxi(2, p_rows)
 	surface.resize(cols * rows)
 	height_m.resize(cols * rows)
 	surface.fill(Surface.ROUGH)
