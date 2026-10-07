@@ -1,6 +1,6 @@
 # Golfer simulation spec (MHSIM-1.0.0)
 
-Owner: workstream H1. Status: specification, checked against a Python reference model (`tools/reference/rating_sanity.py`). No GDScript for this spec has been written or run. Companion: `rating-engine.md` (axes, scores, seeds, advisor codes). Normative tables: `params.json` (same folder). If prose and `params.json` disagree on a table value, `params.json` wins. If prose and the reference model disagree on a formula, this is a spec bug: report it.
+Status: versioned simulation specification with Python reference coverage and current runtime implementation under `game/core/`. Runtime source/tests are authoritative for implemented behavior; this document remains the deterministic arithmetic/behavior contract and should be reconciled when either side changes. Companion: `rating-engine.md`; normative tables: `params.json`. If prose and `params.json` disagree on a table value, `params.json` wins. If prose and the reference model disagree on a formula, treat it as specification debt and resolve it explicitly.
 
 Contents: 1 Rules of arithmetic, 2 Units, 3 Random numbers, 4 Golfer roster, 5 Clubs and shot execution, 6 Lies, hazards, trees, drops, 7 Putting, 8 Decision rule (planner), 9 Risk and skill, 10 Wind and rain, 11 Pace inputs, 12 Order of evaluation, 13 Result record and hash, 14 Performance budget, 15 Test vectors.
 
