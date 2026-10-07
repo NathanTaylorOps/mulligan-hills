@@ -404,3 +404,33 @@ func test_three_hole_active_context_follows_practice_slot_not_hole_zero() -> voi
 		assert_int(int(scene.one_hole._active_play_layout()["slot_id"])).is_equal(i)
 		assert_int(scene.one_hole._active_hole_number()).is_equal(i + 1)
 	scene._active = false
+
+func test_three_hole_craft_course_survives_cold_reopen_exactly() -> void:
+	var scene: MHLiveConstruction = MHLiveConstruction.new()
+	scene.store = MHSaveStore.new(DIR)
+	scene.ledger_dir = LEDGERS
+	add_child(scene)
+	assert_bool(scene._active).is_true()
+	for i: int in range(3):
+		assert_bool(scene.select_craft_hole(i)).is_true()
+		scene.craft_hole.set_height_mm_tile(8 + i, 12 + i, 250 * (i + 1))
+		scene.craft_hole.flowers = 3 + i
+	assert_bool(scene.select_craft_hole(2)).is_true()
+	var expected: Dictionary = scene.craft_course.to_dict()
+	assert_bool(scene.save_now()).is_true()
+	scene._active = false
+	scene.queue_free()
+	await get_tree().process_frame
+
+	var reopened: MHLiveConstruction = auto_free(MHLiveConstruction.new())
+	reopened.store = MHSaveStore.new(DIR)
+	reopened.ledger_dir = LEDGERS
+	add_child(reopened)
+	assert_bool(reopened._active).is_true()
+	assert_dict(reopened.craft_course.to_dict()).is_equal(expected)
+	assert_int(reopened.craft_course.active_index).is_equal(2)
+	for i: int in range(3):
+		assert_bool(reopened.select_craft_hole(i)).is_true()
+		assert_int(reopened.craft_hole.get_height_mm(8 + i, 12 + i)).is_equal(250 * (i + 1))
+		assert_int(reopened.craft_hole.flowers).is_equal(3 + i)
+	reopened._active = false
