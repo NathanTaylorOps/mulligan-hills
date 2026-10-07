@@ -1,7 +1,6 @@
 # Phase 1: Staff (`game/core/staff/`)
 
-Status: built and verified in Python. The GDScript and the gdUnit4 tests have NOT YET RUN: Godot could not run where this was written. Spec and numbers: `docs/spec/staff.md`, `docs/spec/data/staff.json`.
-Owner paths: `game/core/staff/`, `game/tests/staff/`, `tools/reference/staff/`, `docs/spec/staff.md`, `docs/spec/data/staff*.json`, `game/data/staff.json`, this file. One small additive edit outside: `game/core/save/mh_save_game.gd`.
+Status: runtime implementation and deterministic reference coverage exist. Current-head execution evidence is tracked in `docs/VERIFICATION.md`; balance remains provisional. Spec and parameters: `docs/spec/staff.md`, `docs/spec/data/staff.json`.
 
 ## README block
 
@@ -27,7 +26,7 @@ Owner paths: `game/core/staff/`, `game/tests/staff/`, `tools/reference/staff/`, 
 | `python3 tools/reference/staff/staff_sim.py` | report in `staff_sim_report.txt`, 20 runs per cell |
 | Godot / gdUnit4 | NOT YET RUN |
 
-## NOT YET RUN: what to check first when Godot is available
+## Runtime validation priorities
 
 1. Parse errors: run the whole test suite once. All GDScript was read through by eye only.
 2. Things written from memory of Godot 4.7 that could differ: `Array.remove_at`, `Array.sort()` on ints, `mini`/`maxi`/`clampi`, `1 << 30` as a large sentinel, `Variant` loops with typed `for x: Variant in`, `JSON.parse_string` returning floats for ints (the loader converts with `int()` and checks `is_equal_approx`-free integer equality), `FileAccess.get_file_as_string`.
@@ -43,7 +42,7 @@ Owner paths: `game/core/staff/`, `game/tests/staff/`, `tools/reference/staff/`, 
 - Strings are drafts in `game/core/staff/staff_strings_en.json`; they are not merged into `game/data/strings/en.json`.
 - Full delegation (hire every role) lowers the share finishing in the 100 to 150 day window from 83.7% to 79.9%.
 
-## For Nathan
+## Manual validation
 
 1. Wire-up: who owns the session and UI changes (roster screen, hire buttons, assignment screen)? Nothing player-facing exists yet.
 2. Is a veteran grade at 60 days right, and should full delegation be a bit cheaper (about 15% lower wages)?
