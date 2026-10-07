@@ -87,12 +87,20 @@ static func from_dict(raw: Variant) -> MHGolferCustomers:
 		if typeof(src[i]) != TYPE_DICTIONARY:
 			return null
 		var r: Dictionary = src[i] as Dictionary
-		var visits: int = int(r.get("visits", -1))
-		var sat: int = int(r.get("satisfaction", -1))
-		var good: int = int(r.get("good_member_visits", -1))
-		var regular: bool = bool(r.get("regular", false))
-		var eligible: bool = bool(r.get("member_eligible", false))
-		var member: bool = bool(r.get("member", false))
+		for key: String in ["id", "visits", "satisfaction", "good_member_visits"]:
+			if typeof(r.get(key, null)) != TYPE_INT:
+				return null
+		for key: String in ["regular", "member_eligible", "member"]:
+			if typeof(r.get(key, null)) != TYPE_BOOL:
+				return null
+		if int(r["id"]) != i:
+			return null
+		var visits: int = int(r["visits"])
+		var sat: int = int(r["satisfaction"])
+		var good: int = int(r["good_member_visits"])
+		var regular: bool = bool(r["regular"])
+		var eligible: bool = bool(r["member_eligible"])
+		var member: bool = bool(r["member"])
 		if visits < 0 or sat < 0 or sat > 100 or good < 0:
 			return null
 		if regular and visits < REGULAR_VISITS:
