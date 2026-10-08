@@ -1,54 +1,69 @@
-# Mulligan Hills: Engineering Contract (Phase 0)
+# Engineering standards and delivery contract
 
-Read this fully before writing anything. Every agent works under it.
+Mulligan Hills is a mobile-first golf-course design, club-management and golf RPG project built with Godot and typed GDScript. This document defines the engineering standards used to develop, verify and integrate the project. It applies to gameplay, simulation, user interfaces, platform services, assets and supporting tools.
 
-## Project
-Mulligan Hills is a golf course design tycoon for phones (Android first, iPhone later, tablets), stylized 3D, day only, built in Godot 4.x with GDScript. The master plan is the Docs artifact "Mulligan Hills: Master Plan" (project id 5991cb68-b96d-45aa-a0ac-f25408624480). Phase 0 exists to prove the risky technical parts before anything else is built. Gate 0 has 10 proof items (listed in `docs/phase0/GATE0.md`).
+The project is in active pre-release development. An implemented component is not necessarily integrated, device-tested or release-ready. Claims about completion must reflect the available evidence.
 
-## Environment facts (important)
-- Nobody can run Godot 4 in this sandbox: downloads are blocked. Code is validated by CI on GitHub Actions later. Therefore: write small, conservative, typed GDScript; prefer APIs stable across Godot 4.3 to 4.7; mark anything you are unsure about in a `## Unverified` section of your status doc; never claim code was run when it was not. Say "NOT YET RUN" plainly.
-- Python 3.11 is available here. Use it for reference implementations and golden test vectors. Network to package registries may be blocked; do not depend on installing anything.
-- The manager (Nathan) is not a programmer. Any instruction meant for him must be exact, numbered, copy-paste, with no assumed knowledge.
-- Target devices: a budget Android phone (low end), an iPhone, an Android tablet. CI runs on GitHub Actions (Ubuntu and macOS runners).
+## Scope and technical baseline
 
-## Repo layout and ownership
-Each agent writes ONLY inside its own paths. Do not edit another agent's files. Do not run git; the lead commits.
+- **Project root:** `game/`; entry point and configuration are defined in `game/project.godot`.
+- **Engine and toolchain:** Use the versions pinned in `tools/ci/versions.env` and documented in `docs/GODOT_VERSION.md`.
+- **Primary platform:** Android phones, including lower-end hardware; tablet, iOS/iPadOS and desktop support are additional targets.
+- **Simulation:** Preserve deterministic rules for gameplay-critical outcomes.
+- **Backend:** Keep account, purchase and other platform-connected functions separate from the local simulation wherever practical.
 
-| Owner workstream | Paths |
+Product scope and accepted design decisions are recorded in `docs/DECISIONS.md` and the relevant `docs/spec/` files. Earlier Phase 0 technical proofs are retained under `docs/phase0/` as historical engineering evidence, not as a substitute for current integration testing.
+
+## Architecture and code quality
+
+1. Use typed GDScript, `snake_case` for files/functions and `PascalCase` for classes. Project-specific GDScript classes use the `MH` prefix.
+2. Keep domain rules and persistent state separate from presentation and platform adapters. Avoid duplicating business rules in UI controllers.
+3. In deterministic simulation and rating paths, follow the documented fixed-point/integer conventions. Do not introduce unseeded randomness, unordered iteration, engine-physics dependencies or floating-point-sensitive results without a documented design decision and appropriate verification.
+4. Validate data crossing save, network and platform boundaries. Handle missing, malformed, older-version and partially available data explicitly.
+5. Prefer cohesive, testable modules with clear interfaces and bounded responsibilities. Changes to shared interfaces require review of affected callers and tests.
+6. Maintain compatibility with the supported input methods and performance constraints. Desktop-only behaviour is not sufficient evidence for a mobile-first feature.
+7. Protect secrets, credentials, personal data and third-party assets. Follow `SECURITY.md` and `docs/LICENSE_LEDGER.md`.
+
+## Ownership and change control
+
+Changes should have a defined scope, affected paths and acceptance criteria. Coordinate edits to shared modules, interfaces and configuration before parallel work begins. Temporary workstream assignments are not permanent repository architecture.
+
+The relevant documentation is authoritative for its own purpose:
+
+| Reference | Purpose |
 | --- | --- |
-| A ci | `.github/workflows/`, `tools/ci/`, `docs/phase0/ci.md`, `docs/GODOT_VERSION.md`, `game/project.godot`, `game/export_presets.cfg.template`, `.gitignore`, `.gitattributes` |
-| B determinism | `game/core/` , `game/tests/core/`, `tools/reference/determinism/`, `docs/phase0/determinism.md` |
-| C terrain | `game/terrain/`, `game/tests/terrain/`, `tools/reference/terrain/`, `docs/phase0/terrain.md` |
-| D forest | `game/render/`, `game/bench/`, `game/tests/render/`, `docs/phase0/forest.md` |
-| E gestures | `game/input/`, `game/tests/input/`, `docs/phase0/gestures.md` |
-| F platform | `game/platform/`, `android/`, `ios/`, `docs/phase0/platform.md` |
-| G animation | `game/characters/`, `tools/animation/`, `docs/phase0/animation.md`, `docs/LICENSE_LEDGER.md` |
-| H spec | `docs/spec/`, `docs/DEFINITION_OF_DONE.md`, `docs/DECISIONS.md`, `docs/phase0/GATE0.md` |
-| I device | `docs/phase0/device_runbook.md`, `docs/phase0/soak_protocol.md` |
+| `docs/DECISIONS.md` | Recorded product and technical decisions, including supersession |
+| `docs/spec/` | Behaviour, data contracts and feature specifications |
+| `docs/DEFINITION_OF_DONE.md` | Verification and completion requirements |
+| `docs/GODOT_VERSION.md` | Engine and tooling baseline |
+| `docs/phase0/` | Historical proof work, measurements and unresolved assumptions |
+| `CONTRIBUTING.md` | Contribution, review and pull-request process |
+| `SECURITY.md` | Vulnerability handling and sensitive integrations |
 
-Shared decisions: the game project root is `game/`. GDScript classes use the prefix `MH` (for example `MHFixed`, `MHRng`). Tests use gdUnit4 under `game/tests/<module>/` (files `test_*.gd`). If gdUnit4 is needed, workstream A vendors or downloads it in CI; other agents just write tests against `gdUnit4` `GdUnitTestSuite`.
+When implementation and documentation disagree, investigate the discrepancy. Do not silently treat an older proposal as a current requirement or rewrite an accepted decision without recording the change.
 
-## Code rules
-- Typed GDScript everywhere (`var x: int`, return types). snake_case files and functions, PascalCase class names.
-- Simulation and rating code (`game/core/`) uses integers and fixed-point only: no float arithmetic, no `randf`, no engine physics, no trig functions, no unordered Dictionary iteration in anything that affects results. Terrain heights are integers (int16 millimetres or similar as workstream C defines and documents).
-- Every module has a short README block at the top of its status doc: purpose, public API, how tests run, what Gate 0 criteria it addresses.
-- No invented facts about Godot APIs, plugins, prices or policies. If unsure, say unverified and give the doc URL to check.
-- Copy-paste ready instructions for the manager go in the status docs under `## For Nathan`.
+## Verification and evidence
 
-## Status doc format (`docs/phase0/<name>.md`)
-1. What was built (files list)
-2. How it is tested (and what has NOT been run)
-3. Gate 0 criteria covered and what evidence CI must produce
-4. Unverified assumptions
-5. Risks and follow-ups
-6. For Nathan (only if he must do something)
+- Add or update subsystem tests for new behaviour and regression tests for defects.
+- Run relevant Godot import, gdUnit4, reference-model, determinism, platform-build and data-validation checks as applicable.
+- Verify user-facing features through the integrated game flow; use target-device evidence when interaction, rendering or performance is material.
+- Report tests that were **not run**, checks that failed and assumptions that remain unverified. A successful local test does not imply successful cross-platform or device verification.
+- Do not weaken checks, alter expected results or bypass branch protections merely to obtain a passing build.
+- Record reproducible commands, relevant CI links, known limitations and any save-compatibility or performance impact in the change review.
 
-## Definition of done for Phase 0 work
-Files exist, typed, self-consistent, tests written, status doc complete, honest about what is unrun. Nothing else.
+A feature is complete only when the applicable criteria in `docs/DEFINITION_OF_DONE.md` are met. Code presence, an isolated prototype or a passing unit test alone does not establish release readiness.
 
-## Lead decisions after the first Phase 0 round (29 Sep 2026)
-- Terrain API: the implemented API in `game/terrain/` (MHHeightGrid, MHTerrainEditor with begin_stroke, apply_brush_at, end_stroke, cancel_stroke, undo, redo) is authoritative. `docs/spec/interfaces/terrain.md` describes a facade to be reconciled to it.
-- New module paths for later phases: `game/core/rating/`, `game/core/economy/`, `game/core/buildings/`, `game/core/save/`, `game/ui/`.
-- Tests may also live beside a module (`game/platform/tests/`, `game/characters/tests/`); CI runs `res://` recursively for `test_*.gd`.
-- Touch: `emulate_mouse_from_touch` is false in `project.godot`; desktop dev builds use the mouse mapping in `game/input/`.
-- Score gates, land classes and Gate 0 performance budgets in the specs are placeholders until Phase 0 measurements exist.
+## Performance and platform considerations
+
+Treat low-end mobile hardware as a design constraint. Assess frame time, memory, asset size, input latency and scaling with course complexity when introducing rendering or simulation work. Keep touch targets, camera controls, text legibility and recovery paths usable on phone screens. Document device-specific limitations rather than presenting desktop behaviour as proof of mobile readiness.
+
+## Historical Phase 0 decisions
+
+The following integration details remain relevant to existing code and tests; they should be verified against the implementation before changes:
+
+- The terrain editor exposes stroke lifecycle and undo/redo operations in `game/terrain/`. Reconcile any differences with `docs/spec/interfaces/terrain.md` rather than assuming the interface specification and code are identical.
+- Module tests may be located under `game/tests/` or alongside their subsystem. The test runner must discover the supported `test_*.gd` files.
+- Touch-to-mouse emulation is disabled in the project configuration; desktop input support uses the project's input mapping.
+- Earlier performance budgets and gameplay thresholds identified as provisional remain subject to measurement and explicit acceptance.
+
+This contract describes engineering practice and current constraints. It does not claim that every planned system is complete or that all validation has passed.
