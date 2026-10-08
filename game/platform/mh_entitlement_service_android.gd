@@ -56,7 +56,10 @@ func purchase(product_id: String) -> void:
 	if not _connected:
 		purchase_finished.emit(product_id, PurchaseResult.UNAVAILABLE, "store_not_connected")
 		return
-	_seam_purchase(product_id)
+	var launch: Dictionary = _seam_purchase(product_id)
+	if int(launch.get("response_code", RESPONSE_OK)) != RESPONSE_OK:
+		purchase_finished.emit(product_id, PurchaseResult.ERROR,
+			str(launch.get("debug_message", "billing_flow_launch_failed")))
 
 func restore() -> void:
 	# Google has no "restore" call: querying owned purchases IS the restore.
@@ -74,6 +77,13 @@ func get_display_price(product_id: String) -> String:
 func _handle_owned_purchase(p: Dictionary) -> void:
 	var token: String = _seam_purchase_token(p)
 	if token == "" or _busy_tokens.has(token):
+		return
+	if _cached_entitlement_is_fresh():
+		if not _seam_is_acknowledged(p):
+			_seam_acknowledge(token)
+		if _pending_restore:
+			_pending_restore = false
+			restore_finished.emit(true, "restored")
 		return
 	_busy_tokens[token] = true
 	var integrity_token: String = ""
@@ -95,6 +105,15 @@ func _handle_owned_purchase(p: Dictionary) -> void:
 	else:
 		# Network failure keeps the purchase in Play; next launch re-queries and retries.
 		purchase_finished.emit(MHPlatformConfig.PRODUCT_UNLOCK, PurchaseResult.VERIFY_FAILED, str(res["error"]))
+
+## A valid cached entitlement is deliberately not re-verified on every Play ownership query. The signed token
+## remains valid offline; its ref field is the server's soft refresh time.
+func _cached_entitlement_is_fresh(now_unix: int = -1) -> bool:
+	if not is_unlocked() or _token == "":
+		return false
+	var now: int = now_unix if now_unix >= 0 else int(Time.get_unix_time_from_system())
+	return not MHEntitlementToken.needs_refresh(_payload, now)
+
 
 # ---- signal handlers (plugin -> our signals) -------------------------------------------------
 
@@ -188,9 +207,9 @@ func _seam_inapp_type() -> Variant:
 			return (consts["ProductType"] as Dictionary)["INAPP"]
 	return 0
 
-func _seam_purchase(product_id: String) -> void:
-	# Signature changed in plugin 3.2.0 (purchase options/offers). UNVERIFIED: assumed purchase(product_id).
-	_client.call("purchase", product_id)
+func _seam_purchase(product_id: String) -> Dictionary:
+	var result: Variant = _client.call("purchase", product_id)
+	return result as Dictionary if typeof(result) == TYPE_DICTIONARY else {}
 
 func _seam_acknowledge(purchase_token: String) -> void:
 	_client.call("acknowledge_purchase", purchase_token)
@@ -205,4 +224,14 @@ func _seam_product_ids(p: Dictionary) -> Array:
 	return p.get("product_ids", []) as Array
 
 func _seam_price_from_details(d: Dictionary) -> String:
+	var offers_v: Variant = d.get("one_time_purchase_offer_details_list", null)
+	if typeof(offers_v) == TYPE_ARRAY:
+		for offer_v: Variant in offers_v as Array:
+			if typeof(offer_v) != TYPE_DICTIONARY:
+				continue
+			var offer: Dictionary = offer_v as Dictionary
+			var formatted: String = str(offer.get("formatted_price", ""))
+			if formatted != "":
+				return formatted
+	# Compatibility fallback for older plugin result shapes.
 	return str(d.get("formatted_price", d.get("price", "")))

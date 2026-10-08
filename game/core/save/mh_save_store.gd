@@ -150,6 +150,10 @@ func _commit(slot: int, work: Dictionary, blob: PackedByteArray) -> MHSaveResult
 	var eerr: int = MHSaveFile.ensure_dir(dir)
 	if eerr != OK:
 		return MHSaveResult.failure(MHSaveResult.Code.IO_ERROR, "cannot create save directory (%d)" % eerr)
+	# A prior interrupted two-file save may have left the last committed JSON paired only with blob .bak.
+	# Heal that recoverable pair before rotating another blob generation, or a second failed save can overwrite
+	# the only matching backup and leave the slot unloadable.
+	_heal_existing_pair(slot)
 	if blob.size() > 0:
 		var bpath: String = blob_path(slot)
 		if MHSaveFile.read_all(bpath) != blob:
@@ -173,6 +177,18 @@ func _commit(slot: int, work: Dictionary, blob: PackedByteArray) -> MHSaveResult
 	var summary: MHSaveSummary = MHSaveSummary.from_doc(work)
 	saved.emit(slot, summary.revision)
 	return MHSaveResult.success(summary)
+
+
+func _heal_existing_pair(slot: int) -> void:
+	var has_json: bool = false
+	for suffix in _SUFFIXES:
+		if MHSaveFile.exists(json_path(slot) + String(suffix)):
+			has_json = true
+			break
+	if not has_json:
+		return
+	# Best effort only. If the existing slot is genuinely corrupt, the new validated save is still allowed to replace it.
+	_load_core(slot, true, true)
 
 
 func _has_terrain(doc: Dictionary) -> bool:

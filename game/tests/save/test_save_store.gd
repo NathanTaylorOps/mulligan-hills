@@ -195,6 +195,29 @@ func test_blob_problems_are_reported_never_partially_loaded() -> void:
 	assert_int(s.load_slot(1, false).code).is_equal(MHSaveResult.Code.BLOB_MISSING)
 
 
+func test_two_failed_pair_writes_do_not_destroy_last_committed_save() -> void:
+	var s: MHSaveStore = _store()
+	var blob_a: PackedByteArray = Fixture.make_blob(11)
+	var blob_b: PackedByteArray = Fixture.make_blob(12)
+	var blob_c: PackedByteArray = Fixture.make_blob(13)
+	assert_bool(s.save_slot(1, Fixture.make_doc(), blob_a).is_ok()).is_true()
+
+	MHSaveStore.fault_point = MHSaveStore.FaultPoint.AFTER_BLOB_WRITTEN
+	var first: Dictionary = Fixture.make_doc()
+	(first["club"] as Dictionary)["cash"] = 20000
+	assert_bool(s.save_slot(1, first, blob_b).is_ok()).is_false()
+
+	var second: Dictionary = Fixture.make_doc()
+	(second["club"] as Dictionary)["cash"] = 30000
+	assert_bool(s.save_slot(1, second, blob_c).is_ok()).is_false()
+	MHSaveStore.fault_point = MHSaveStore.FaultPoint.NONE
+
+	var loaded: MHSaveResult = s.load_slot(1)
+	assert_bool(loaded.is_ok()).is_true()
+	assert_int(int(((loaded.value as MHLoadedSave).data["club"] as Dictionary)["cash"])).is_equal(18250)
+	assert_int(_revision_of(loaded)).is_equal(1)
+
+
 func test_write_killed_mid_temp_write_leaves_old_save_loadable() -> void:
 	var s: MHSaveStore = _store()
 	_save(s, 1, 11)
