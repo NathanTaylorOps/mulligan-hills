@@ -12,7 +12,7 @@ Read, in order:
 4. the relevant document under `docs/spec/`
 5. the tests for the subsystem you intend to change
 
-A newer locked decision supersedes an older proposal. Do not silently revive rejected or superseded designs.
+A later accepted decision may supersede an older proposal or decision; confirm its status and scope in the decision register. Do not silently revive rejected or superseded designs.
 
 ## Development environment
 
@@ -36,7 +36,7 @@ Gameplay changes should include or update tests.
 
 The project uses gdUnit4, with tests primarily under `game/tests/`. CI also runs independent Python reference checks and cross-platform determinism verification.
 
-Before merging, the relevant project import, unit tests and deterministic checks should pass. Do not weaken a test merely to make a change green; fix the behaviour or document an intentional decision change.
+Before merging, applicable project import, unit and determinism checks should pass. Report failed or unrun checks explicitly; do not describe a change as verified without supporting evidence. Do not weaken a test merely to make a change green; fix the behaviour or document an intentional decision change.
 
 ## Product and scope changes
 
@@ -89,6 +89,3 @@ Do not commit material copied from reference games.
 
 Never commit signing credentials, private keys, service-role keys, access tokens or production secrets. If a secret is committed, rotate it immediately; deleting the latest copy is not sufficient.
 
-## AI-assisted development
-
-AI-assisted code is welcome as a development tool, but generated work receives the same review standard as handwritten work. The contributor remains responsible for correctness, licensing, security, test coverage and consistency with project decisions.

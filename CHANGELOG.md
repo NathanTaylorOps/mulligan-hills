@@ -1,14 +1,14 @@
 # Changelog
 
-All notable release-level changes to Mulligan Hills will be documented here.
+This changelog records significant Mulligan Hills development milestones and, when available, distributable releases.
 
 This project is currently in active pre-release development. During this stage, individual implementation history remains available in Git, while this file records meaningful milestones rather than every internal commit.
 
-The format is based on Keep a Changelog principles. Version numbers will begin when the project establishes its first distributable development release.
+The format follows Keep a Changelog principles. Versioned entries will be added when a distributable release is established.
 
 ## [Unreleased]
 
-### Added
+### Development foundations
 
 - Godot-based mobile-first game project and launcher.
 - Deterministic simulation foundations and cross-platform hash verification.
@@ -21,9 +21,10 @@ The format is based on Keep a Changelog principles. Version numbers will begin w
 - Android platform integration work and iOS integration scaffolding.
 - Supabase backend, migrations, tests and Edge Functions.
 - Automated unit-test, determinism, platform-build and screenshot workflows.
-- Repository engineering contract, decision log and gameplay specifications.
+- Engineering standards, evidence-based delivery criteria, decision register and gameplay specifications.
+- Public README navigation, project approach and explicit pre-release status.
 
-### In development
+### Integration and release work
 
 - Integrated course-building experience.
 - Club-management gameplay and progression.
@@ -35,6 +36,6 @@ The format is based on Keep a Changelog principles. Version numbers will begin w
 - Device performance validation and balancing.
 - Release/platform integration.
 
-### Notes
+### Status and evidence
 
-The project has not reached a public release. Features listed as in development are not promises of current playability and may change before v1.
+The project has not reached a public release. Entries under development foundations describe repository work, not a claim that each system is integrated, device-tested or ready to ship. Integration priorities are forward-looking and may change before v1. For current automated check results, consult [GitHub Actions](https://github.com/NathanTaylorOps/mulligan-hills/actions).
