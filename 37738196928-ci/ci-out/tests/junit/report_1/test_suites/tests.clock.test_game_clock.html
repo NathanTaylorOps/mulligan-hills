@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+	<meta charset="UTF-8">
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+	<meta http-equiv="x-ua-compatible" content="IE=edge" />
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>GdUnit4 Testsuite</title>
+	<link rel="stylesheet" href="../css/styles.css">
+	<link href="../css/breadcrumb.css" rel="stylesheet" type="text/css" />
+
+	<script src="https://code.jquery.com/jquery-3.6.4.js"></script>
+	<script>
+		$(document).ready(function () {
+			var report_view = $('#report_area').find('.report-column')
+
+			$('#report-table tr').click(function () {
+				var report = $(this).find('.report-column').html();
+				report_view.html(report)
+				$('.selected').removeClass('selected');
+				$(this).addClass('selected');
+			});
+		});
+	</script>
+</head>
+
+<body>
+	<header>
+		<div class="logo">
+			<img src="../css/logo.png" alt="GdUnit4 Logo">
+			<span>GdUnit4</span>
+		</div>
+		<div class="report-container">
+			<h1>Testsuite Report</h1>
+			<div>
+				<span class="label">res://tests/clock/test_game_clock.gd</span>
+			</div>
+			<div class="summary">
+				<div class="summary-item">
+					<span class="label">Tests</span>
+					<span class="value">22</span>
+				</div>
+				<div class="summary-item">
+					<span class="label">Skipped</span>
+					<span class="value">0</span>
+				</div>
+				<div class="summary-item">
+					<span class="label">Flaky</span>
+					<span class="value">0</span>
+				</div>
+				<div class="summary-item">
+					<span class="label">Failures</span>
+					<span class="value">0</span>
+				</div>
+				<div class="summary-item">
+					<span class="label">Orphans</span>
+					<span class="value">0</span>
+				</div>
+				<div class="summary-item">
+					<span class="label">Duration</span>
+					<span class="value">407ms</span>
+				</div>
+				<div class="success-rate">
+					<div class="check-icon status-passed">✓</div>
+					<div class="rate-text">
+						<span class="label">Success Rate</span>
+						<span class="value">100%</span>
+					</div>
+				</div>
+			</div>
+		</div>
+		<div class="breadcrumb">
+			<a href="../index.html"><span>All</span></a>
+			<a href="../path/tests.clock.html"><span>tests/clock</span></a>
+			<a class="active" href="#"><span>test_game_clock</span></a>
+		</div>
+	</header>
+
+	<main>
+		<div class="tab-report-grid">
+			<div class="grid-item tab">
+				<table id="report-table">
+					<thead>
+						<tr>
+							<th>Testcase</th>
+							<th>Result</th>
+							<th>Skipped</th>
+							<th>Orphans</th>
+							<th>Duration</th>
+							<th class="report-column">Report</th>
+						</tr>
+					</thead>
+					<tbody>
+						
+								<tr class="testcase-group">
+									<td>test_one_game_day_is_twenty_five_real_minutes</td>
+									<td><span class="status status-passed">PASSED</span></td>
+									<td>0</td>
+									<td>0</td>
+									<td>8ms</td>
+									<td class="report-column">
+										<pre>
+
+										</pre>
+									</td>
+								</tr>
+
+
+								<tr class="testcase-group">
+									<td>test_exact_accumulator_values</td>
+									<td><span class="status status-passed">PASSED</span></td>
+									<td>0</td>
+									<td>0</td>
+									<td>6ms</td>
+									<td class="report-column">
+										<pre>
+
+										</pre>
+									</td>
+								</tr>
+
+
+								<tr class="testcase-group">
+									<td>test_slicing_does_not_change_the_result</td>
+									<td><span class="status status-passed">PASSED</span></td>
+									<td>0</td>
+									<td>0</td>
+									<td>12ms</td>
+									<td class="report-column">
+										<pre>
+
+										</pre>
+									</td>
+								</tr>
+
+
+								<tr class="testcase-group">
+									<td>test_sixty_fps_for_one_real_hour</td>
+									<td><span class="status status-passed">PASSED</span></td>
+									<td>0</td>
+									<td>0</td>
+									<td>162ms</td>
+									<td class="report-column">
+										<pre>
+
+										</pre>
+									</td>
+								</tr>
+
+
+								<tr class="testcase-group">
+									<td>test_hour_events_after_a_partial_day</td>
+									<td><span class="status status-passed">PASSED</span></td>
+									<td>0</td>
+									<td>0</td>
+									<td>7ms</td>
+									<td class="report-column">
+										<pre>
+
+										</pre>
+									</td>
+								</tr>
+
+
+								<tr class="testcase-group">
+									<td>test_pause_freezes_everything</td>
+									<td><span class="status status-passed">PASSED</span></td>
+									<td>0</td>
+									<td>0</td>
+									<td>7ms</td>
+									<td class="report-column">
+										<pre>
+
+										</pre>
+									</td>
+								</tr>
+
+
+								<tr class="testcase-group">
+									<td>test_request_speed_rules</td>
+									<td><span class="status status-passed">PASSED</span></td>
+									<td>0</td>
+									<td>0</td>
+									<td>7ms</td>
+									<td class="report-column">
+										<pre>
+
+										</pre>
+									</td>
+								</tr>
+
+
+								<tr class="testcase-group">
+									<td>test_speed_two_is_free_and_never_drops</td>
+									<td><span class="status status-passed">PASSED</span></td>
+									<td>0</td>
+									<td>0</td>
+									<td>7ms</td>
+									<td class="report-column">
+										<pre>
+
+										</pre>
+									</td>
+								</tr>
+
+
+								<tr class="testcase-group">
+									<td>test_speed_eight_with_earned_then_paid_tokens</td>
+									<td><span class="status status-passed">PASSED</span></td>
+									<td>0</td>
+									<td>0</td>
+									<td>7ms</td>
+									<td class="report-column">
+										<pre>
+
+										</pre>
+									</td>
+								</tr>
+
+
+								<tr class="testcase-group">
+									<td>test_speed_without_ledger_drops_to_one</td>
+									<td><span class="status status-passed">PASSED</span></td>
+									<td>0</td>
+									<td>0</td>
+									<td>7ms</td>
+									<td class="report-column">
+										<pre>
+
+										</pre>
+									</td>
+								</tr>
+
+
+								<tr class="testcase-group">
+									<td>test_catch_up_is_capped_and_free</td>
+									<td><span class="status status-passed">PASSED</span></td>
+									<td>0</td>
+									<td>0</td>
+									<td>6ms</td>
+									<td class="report-column">
+										<pre>
+
+										</pre>
+									</td>
+								</tr>
+
+
+								<tr class="testcase-group">
+									<td>test_offline_progress_is_bounded</td>
+									<td><span class="status status-passed">PASSED</span></td>
+									<td>0</td>
+									<td>0</td>
+									<td>6ms</td>
+									<td class="report-column">
+										<pre>
+
+										</pre>
+									</td>
+								</tr>
+
+
+								<tr class="testcase-group">
+									<td>test_set_time_and_getters</td>
+									<td><span class="status status-passed">PASSED</span></td>
+									<td>0</td>
+									<td>0</td>
+									<td>6ms</td>
+									<td class="report-column">
+										<pre>
+
+										</pre>
+									</td>
+								</tr>
+
+
+								<tr class="testcase-group">
+									<td>test_save_round_trip_through_json</td>
+									<td><span class="status status-passed">PASSED</span></td>
+									<td>0</td>
+									<td>0</td>
+									<td>6ms</td>
+									<td class="report-column">
+										<pre>
+
+										</pre>
+									</td>
+								</tr>
+
+
+								<tr class="testcase-group">
+									<td>test_from_dict_rejects_bad_data</td>
+									<td><span class="status status-passed">PASSED</span></td>
+									<td>0</td>
+									<td>0</td>
+									<td>6ms</td>
+									<td class="report-column">
+										<pre>
+
+										</pre>
+									</td>
+								</tr>
+
+
+								<tr class="testcase-group">
+									<td>test_legacy_clock_preserves_fractional_game_minute</td>
+									<td><span class="status status-passed">PASSED</span></td>
+									<td>0</td>
+									<td>0</td>
+									<td>6ms</td>
+									<td class="report-column">
+										<pre>
+
+										</pre>
+									</td>
+								</tr>
+
+
+								<tr class="testcase-group">
+									<td>test_speed_eight_mixed_earned_and_paid_golden</td>
+									<td><span class="status status-passed">PASSED</span></td>
+									<td>0</td>
+									<td>0</td>
+									<td>7ms</td>
+									<td class="report-column">
+										<pre>
+
+										</pre>
+									</td>
+								</tr>
+
+
+								<tr class="testcase-group">
+									<td>test_speed_two_with_sixty_fps_frames_golden</td>
+									<td><span class="status status-passed">PASSED</span></td>
+									<td>0</td>
+									<td>0</td>
+									<td>15ms</td>
+									<td class="report-column">
+										<pre>
+
+										</pre>
+									</td>
+								</tr>
+
+
+								<tr class="testcase-group">
+									<td>test_speed_eight_is_independent_of_frame_slicing</td>
+									<td><span class="status status-passed">PASSED</span></td>
+									<td>0</td>
+									<td>0</td>
+									<td>7ms</td>
+									<td class="report-column">
+										<pre>
+
+										</pre>
+									</td>
+								</tr>
+
+
+								<tr class="testcase-group">
+									<td>test_one_x_never_touches_the_ledger</td>
+									<td><span class="status status-passed">PASSED</span></td>
+									<td>0</td>
+									<td>0</td>
+									<td>7ms</td>
+									<td class="report-column">
+										<pre>
+
+										</pre>
+									</td>
+								</tr>
+
+
+								<tr class="testcase-group">
+									<td>test_paused_clock_does_not_drain_tokens</td>
+									<td><span class="status status-passed">PASSED</span></td>
+									<td>0</td>
+									<td>0</td>
+									<td>7ms</td>
+									<td class="report-column">
+										<pre>
+
+										</pre>
+									</td>
+								</tr>
+
+
+								<tr class="testcase-group">
+									<td>test_hour_boundary_events_never_skip_when_fast</td>
+									<td><span class="status status-passed">PASSED</span></td>
+									<td>0</td>
+									<td>0</td>
+									<td>7ms</td>
+									<td class="report-column">
+										<pre>
+
+										</pre>
+									</td>
+								</tr>
+
+					</tbody>
+				</table>
+			</div>
+			<div id="report_area" class="grid-item tab">
+				<h4>Failure Report</h4>
+				<div class="report-column"></div>
+			</div>
+		</div>
+	</main>
+
+	<footer>
+		<p>Generated by <a href="https://github.com/MikeSchulze/gdUnit4">GdUnit4</a> at 2026-10-08 06:36:28</p>
+		<div class="status-legend">
+			<span class="status-legend-item">
+				<span class="status-box status-skipped"></span> Skipped
+			</span>
+			<span class="status-legend-item">
+				<span class="status-box status-passed"></span> Passed
+			</span>
+			<span class="status-legend-item">
+				<span class="status-box status-flaky"></span> Flaky
+			</span>
+			<span class="status-legend-item">
+				<span class="status-box status-warning"></span> Warning
+			</span>
+			<span class="status-legend-item">
+				<span class="status-box status-failed"></span> Failed
+			</span>
+			<span class="status-legend-item">
+				<span class="status-box status-error"></span> Error
+			</span>
+		</div>
+	</footer>
+</body>
+
+<script>
+	function groupTableRows() {
+		const table = document.getElementById('report-table');
+		const rows = table.querySelectorAll('tbody tr');
+
+		let previousTestCase = '';
+		let groupStartIndex = 0;
+		let groupColorToggle = true; // Toggle between two colors
+
+		rows.forEach((row, index) => {
+			const testCaseName = row.cells[0].textContent.trim();
+
+			if (testCaseName !== previousTestCase) {
+				// Close the previous group
+				if (index > 0 && groupStartIndex !== index - 1) {
+					// Apply background color to the group
+					const groupClass = groupColorToggle ? 'group-bg-1' : 'group-bg-2';
+					for (let i = groupStartIndex; i <= index - 1; i++) {
+						rows[i].classList.add(groupClass);
+					}
+
+					// Toggle background color for the next group
+					groupColorToggle = !groupColorToggle;
+				}
+
+				// Start a new group
+				groupStartIndex = index;
+			}
+
+			previousTestCase = testCaseName;
+		});
+
+		// Handle the last group
+		if (groupStartIndex !== rows.length - 1) {
+			// Apply background color to the last group
+			const groupClass = groupColorToggle ? 'group-bg-1' : 'group-bg-2';
+			for (let i = groupStartIndex; i < rows.length; i++) {
+				rows[i].classList.add(groupClass);
+			}
+		}
+	}
+
+	// Call the function to group table rows after the DOM loads
+	document.addEventListener('DOMContentLoaded', groupTableRows);
+</script>
+
+</html>
