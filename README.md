@@ -4,7 +4,7 @@
 
 ### Build Your Golf Legacy
 
-**Golf-course design · Club management · Deterministic simulation · Golf RPG**
+**Golf-course design · Club management · Operational simulation · Golf RPG**
 
 ![Status](https://img.shields.io/badge/status-pre--release-orange)
 ![Godot](https://img.shields.io/badge/Godot-4.7.2-478CBF?logo=godot-engine&logoColor=white)
@@ -13,9 +13,19 @@
 
 </div>
 
-**Mulligan Hills** is a stylised 3D golf-course design, management, simulation and light-RPG game being built in **Godot 4**. The project combines hands-on course creation with club operations, golfer simulation, progression, staff and equipment management, events, and the ability to play the course you build.
+**Mulligan Hills** is an independently developed, mobile-first golf-course design and management game built using **Godot 4**. It combines creative course construction, operational management, deterministic simulation and character-driven gameplay.
 
-The primary design target is **mobile**, with Android first and iPhone/iPad support planned, while the project is also intended to support a full desktop experience.
+Players develop a golf course into a successful club, making decisions about facilities, staffing, equipment, maintenance, finances, customer satisfaction and long-term growth while designing and playing their own courses.
+
+The project brings together several interconnected systems:
+
+- **Course design and infrastructure:** Terrain modification, land development, construction, facilities, landscaping and course maintenance.
+- **Business and operational management:** Revenue, operating costs, staffing, equipment, maintenance capacity, service quality and progression.
+- **Customer and stakeholder simulation:** Persistent golfers, satisfaction, membership, relationships, demand and events.
+- **Technical systems and product development:** Deterministic simulation, data validation, mobile-first interaction, platform integration and automated testing.
+- **Gameplay and progression:** Course construction, golf simulation, club development, tournaments and personal golfer progression.
+
+The primary design target is **mobile**, with Android first and iPhone/iPad support planned, alongside a full desktop experience.
 
 ## At a Glance
 
@@ -29,7 +39,25 @@ The primary design target is **mobile**, with Android first and iPhone/iPad supp
 | **Core philosophy** | Creative course building + understandable simulation + character-driven club stories |
 | **Campaign direction** | Long-form progression into open-ended play |
 
-> **Development status:** Pre-release / active development. The repository contains working gameplay and simulation systems, tests, platform infrastructure, prototypes and specifications. It is **not yet a finished or publicly released game**.
+## Project Approach
+
+Mulligan Hills is being developed as an integrated simulation product rather than a collection of independent gameplay features.
+
+The development approach emphasises clear system boundaries, documented decisions, reproducible simulation behaviour, measurable performance requirements and structured verification.
+
+Particular attention is given to the relationship between operational decisions and their consequences. Staffing, equipment availability, maintenance quality, facility capability and financial constraints are designed to influence how the club performs, while remaining accessible and enjoyable for players.
+
+The technical architecture separates simulation rules from presentation and platform services, supporting consistent behaviour, testing and future development across mobile and desktop environments.
+
+## Development Status
+
+**Active pre-release development.**
+
+The repository contains implemented simulation components, gameplay systems, technical prototypes, automated tests and platform integration work at different stages of maturity.
+
+The game is not yet a finished or publicly released product. Some capabilities remain under development, and successful subsystem tests do not necessarily establish complete gameplay integration or device-level readiness.
+
+The immediate development priorities are integrated gameplay, reliable saving and recovery, mobile usability, visual quality, performance validation and release preparation.
 
 ---
 
