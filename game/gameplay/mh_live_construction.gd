@@ -1,7 +1,7 @@
 class_name MHLiveConstruction
 extends Node3D
-## First live connection: real terrain, clock, economy, menus and exact checkpoint. No finalized golf holes yet.
-## Isolated development slot/ledger never overwrite ordinary saves or token balances.
+## First Real Round integration scene: terrain, club simulation, finalized/rated hole, player practice and checkpoint.
+## The development slot/ledger is isolated from ordinary saves and token balances while this path is hardened.
 const SAVE_DIR: String = "user://phase1_live/saves"
 const LEDGER_DIR: String = "user://phase1_live/ledgers"
 const CELLS: int = 128 # Integration surface, not a measured final course/map budget.
@@ -19,6 +19,7 @@ var controller: MHCameraController
 var store: MHSaveStore = MHSaveStore.new(SAVE_DIR)
 var document: Dictionary = {}
 var aim_input: MHPracticeAimInput
+var building_input: MHBuildingPlacementInput
 var one_hole: MHOneHolePanel
 var _status: Label
 ## Responsive layout (MHLiveLayout zones inside the area the HUD leaves free). See docs/phase1/live_construction.md.
@@ -31,12 +32,26 @@ var _layout_key: Array = []
 var _pending_save: bool = false
 var _active: bool = false
 var _last_usec: int = 0
+var _resumed_checkpoint: bool = false
+var _placement_id: String = ""
+var _placement_tier: int = 1
+var _placement_rotation: int = 0
+var _placement_ghost: MeshInstance3D
+var _placement_status: Label
+var _placement_last: Dictionary = {}
+var _placement_controls: HFlowContainer
+var _ghost_valid_mat: StandardMaterial3D
+var _ghost_invalid_mat: StandardMaterial3D
+var _placed_buildings_root: Node3D
+var _placed_building_nodes: Dictionary = {}
+var _building_mat: StandardMaterial3D
 
 func _ready() -> void:
 	MHOrientation.apply_game() # No-op off mobile; one switch, see MHOrientation.
 	var ledger: MHTokenLedger = MHTokenLedger.new()
 	var loaded: MHSaveResult = store.load_slot(0)
 	if loaded.is_ok():
+		_resumed_checkpoint = true
 		var saved: MHLoadedSave = loaded.value as MHLoadedSave
 		var ledger_result: MHSaveResult = MHSessionSave.load_ledger(saved.data, ledger_dir)
 		if not ledger_result.is_ok():
@@ -69,6 +84,10 @@ func _ready() -> void:
 	chunks = MHTerrainChunks.new()
 	add_child(chunks)
 	chunks.setup(editor.grid, editor.splat, 32)
+	_placed_buildings_root = Node3D.new()
+	_placed_buildings_root.name = "PlacedBuildings"
+	add_child(_placed_buildings_root)
+	_building_mat = MHArtMaterials.vertex_color()
 	var sun: DirectionalLight3D = DirectionalLight3D.new()
 	sun.rotation_degrees = Vector3(-50, 30, 0)
 	add_child(sun)
@@ -101,7 +120,7 @@ func _ready() -> void:
 	var settings: MHUISettings = MHUISettings.new()
 	settings.load_from()
 	shell.setup(view, settings)
-	router.world_input_allowed = func() -> bool: return shell.current_screen_id() == MHScreenIds.EDITOR and shell.modal_id() == "" and (one_hole == null or not one_hole.visible)
+	router.world_input_allowed = func() -> bool: return _placement_id == "" and shell.current_screen_id() == MHScreenIds.EDITOR and shell.modal_id() == "" and (one_hole == null or not one_hole.visible)
 	shell.intent.connect(_on_intent)
 	shell.screen_changed.connect(_screen_changed)
 	shell.show_root(MHScreenIds.HUD)
@@ -116,7 +135,8 @@ func _ready() -> void:
 	save_button.pressed.connect(_request_save)
 	var back: MHTapButton = MHUIKit.button(shell.ctx, "Save & launcher", &"ChipButton", 160)
 	back.pressed.connect(_back)
-	var play: MHTapButton = MHUIKit.button(shell.ctx, "Build / play one hole", &"ChipButton", 180)
+	var play_label: String = "Continue first round" if _resumed_checkpoint and not session.hole_definitions().is_empty() else "Build / play first hole"
+	var play: MHTapButton = MHUIKit.button(shell.ctx, play_label, &"ChipButton", 180)
 	for b: MHTapButton in [save_button, back, play]:
 		_actions.add_child(b)
 		_action_buttons.append(b)
@@ -135,6 +155,26 @@ func _ready() -> void:
 	get_viewport().size_changed.connect(_relayout)
 	shell.screen_changed.connect(func(_id: String) -> void: _relayout())
 	play.pressed.connect(one_hole.open)
+	var build: MHTapButton = MHUIKit.button(shell.ctx, "Place building", &"ChipButton", 150)
+	_actions.add_child(build)
+	_action_buttons.append(build)
+	build.pressed.connect(_begin_first_owned_building)
+	_placement_controls = MHUIKit.flow(6)
+	_status_zone.add_child(_placement_controls)
+	var rotate_b: MHTapButton = MHUIKit.button(shell.ctx, "Rotate", &"ChipButton", 105)
+	var confirm_b: MHTapButton = MHUIKit.button(shell.ctx, "Confirm", &"ChipButton", 105)
+	var cancel_b: MHTapButton = MHUIKit.button(shell.ctx, "Cancel", &"ChipButton", 105)
+	_placement_controls.add_child(rotate_b); _placement_controls.add_child(confirm_b); _placement_controls.add_child(cancel_b)
+	rotate_b.pressed.connect(rotate_building_preview)
+	confirm_b.pressed.connect(confirm_building_preview)
+	cancel_b.pressed.connect(cancel_building_preview)
+	_placement_controls.hide()
+	_ghost_valid_mat = StandardMaterial3D.new()
+	_ghost_valid_mat.albedo_color = Color(0.2, 1.0, 0.3, 0.45)
+	_ghost_valid_mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	_ghost_invalid_mat = StandardMaterial3D.new()
+	_ghost_invalid_mat.albedo_color = Color(1.0, 0.2, 0.2, 0.45)
+	_ghost_invalid_mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
 	router.register_ui_region(&"live_practice", _button_rect.bind(play))
 	router.register_ui_region(&"live_save", _button_rect.bind(save_button))
 	router.register_ui_region(&"live_back", _button_rect.bind(back))
@@ -145,7 +185,9 @@ func _ready() -> void:
 		else: shell.trigger_region(id))
 	# The status label sits in a container with a real width (an autowrap Label directly under a CanvasLayer has
 	# zero width and wraps one character per line) and is limited to MHLiveLayout.STATUS_LINES lines.
-	_status = MHUIKit.label("Live construction: ground edits are separate from the exact Build / play one hole layout.", &"SmallLabel")
+	_placement_status = MHUIKit.label("", &"SmallLabel")
+	_status_zone.add_child(_placement_status)
+	_status = MHUIKit.label(_first_round_status(), &"SmallLabel")
 	_status.max_lines_visible = MHLiveLayout.STATUS_LINES
 	_status.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 	_status_zone.add_child(_status)
@@ -157,13 +199,169 @@ func _ready() -> void:
 	aim_input = MHPracticeAimInput.new()
 	aim_input.panel = one_hole
 	add_child(aim_input) # Last sibling sees input before the UI bridge; UI contacts remain unconsumed.
+	building_input = MHBuildingPlacementInput.new()
+	building_input.live = self
+	add_child(building_input)
 	_active = true
 	_last_usec = Time.get_ticks_usec()
+	_sync_placed_buildings()
 	_request_save()
 	_relayout()
 
+func _first_round_status() -> String:
+	if _resumed_checkpoint:
+		if session.practice != null:
+			return "Checkpoint restored: continue your saved round, or redesign the hole."
+		if not session.hole_definitions().is_empty():
+			return "Checkpoint restored: your rated hole is ready to play."
+		return "Checkpoint restored: continue building your first hole."
+	return "First Real Round: build a hole, finalize its rating, play it, then save and return."
+
 func _pick(pos: Vector2) -> Vector2i:
 	return MHPicking.pick(editor.grid, controller.camera.project_ray_origin(pos), controller.camera.project_ray_normal(pos), 1500.0)
+
+
+func _begin_first_owned_building() -> void:
+	for idv: Variant in session.economy.params.building_ids:
+		var id: String = str(idv)
+		var tier: int = session.economy.tier_of(session.economy.params.building_index(id))
+		if tier > 0:
+			_begin_building_placement(id, tier)
+			return
+	_status.text = "Buy a building tier first, then place it."
+
+
+func _begin_building_placement(building_id: String, tier: int) -> void:
+	_placement_id = building_id
+	_placement_tier = tier
+	_placement_rotation = 0
+	if _placement_ghost == null:
+		_placement_ghost = MeshInstance3D.new()
+		add_child(_placement_ghost)
+	_update_ghost_mesh()
+	_status.text = "Placing %s: move over terrain, rotate, then confirm." % building_id.replace("_", " ")
+	_placement_controls.show()
+
+
+func _update_ghost_mesh() -> void:
+	if _placement_ghost == null or _placement_id == "":
+		return
+	var size: Vector2i = MHBuildingPlacement.footprint_m(_placement_id, _placement_tier)
+	if _placement_rotation % 2 == 1:
+		size = Vector2i(size.y, size.x)
+	var box: BoxMesh = BoxMesh.new()
+	box.size = Vector3(float(size.x), 2.0, float(size.y))
+	_placement_ghost.mesh = box
+	_placement_ghost.rotation.y = float(_placement_rotation) * PI * 0.5
+
+
+func _placement_preview(world_m: Vector2) -> void:
+	if _placement_id == "":
+		return
+	_placement_last = validate_building_placement(_placement_id, _placement_tier, world_m, _placement_rotation)
+	if _placement_ghost != null:
+		var ground: float = float(int(_placement_last.get("ground_mm", 0))) / 1000.0
+		_placement_ghost.position = Vector3(world_m.x, ground + 1.0, world_m.y)
+		_placement_ghost.material_override = _ghost_valid_mat if bool(_placement_last.get("ok", false)) else _ghost_invalid_mat
+	_placement_status.text = "VALID — click/tap to build" if bool(_placement_last.get("ok", false)) else "INVALID — " + _placement_reason(str(_placement_last.get("reason", "")))
+
+
+func _placement_reason(reason: String) -> String:
+	var labels: Dictionary = {"world_edge": "outside world", "unowned_land": "footprint crosses unowned land",
+		"building_overlap": "too close to another building", "hazard": "natural/man-made hazard under footprint",
+		"terrain_relief": "site is too uneven", "terrain_slope": "site is too steep", "golf_feature": "overlaps playable golf area",
+		"unsupported": "unsupported site", "obstacle": "tree, rock or placed object blocks footprint"}
+	return str(labels.get(reason, reason))
+
+
+func rotate_building_preview() -> void:
+	if _placement_id == "":
+		return
+	_placement_rotation = posmod(_placement_rotation + 1, 4)
+	_update_ghost_mesh()
+
+
+func cancel_building_preview() -> void:
+	_placement_id = ""
+	_placement_last = {}
+	if _placement_ghost != null:
+		_placement_ghost.queue_free()
+		_placement_ghost = null
+	if _placement_controls != null:
+		_placement_controls.hide()
+	_placement_status.text = ""
+	_status.text = _first_round_status()
+
+
+func confirm_building_preview() -> Dictionary:
+	if _placement_id == "" or not bool(_placement_last.get("ok", false)):
+		return {"ok": false, "reason": str(_placement_last.get("reason", "invalid"))}
+	if not session.set_building_placement(_placement_id, _placement_last):
+		return {"ok": false, "reason": "building"}
+	var result: Dictionary = _placement_last.duplicate(true)
+	_placement_id = ""
+	_placement_last = {}
+	if _placement_ghost != null:
+		_placement_ghost.queue_free()
+		_placement_ghost = null
+	_placement_status.text = ""
+	_placement_controls.hide()
+	_sync_placed_buildings()
+	_request_save()
+	return result
+
+
+func validate_building_placement(building_id: String, tier: int, world_m: Vector2, rotation_quarters: int = 0) -> Dictionary:
+	var existing: Array = []
+	for v: Variant in session.building_placements.values():
+		existing.append((v as Dictionary).duplicate(true))
+	return MHBuildingPlacement.validate(editor.grid, editor.splat, session.land, building_id, tier,
+		Vector2i(roundi(world_m.x * 1000.0), roundi(world_m.y * 1000.0)), existing, rotation_quarters, session.hole_definitions(), _placement_obstacles(), document.get("course", {}) as Dictionary)
+
+
+func place_building(building_id: String, tier: int, world_m: Vector2) -> Dictionary:
+	var result: Dictionary = validate_building_placement(building_id, tier, world_m)
+	if not bool(result.get("ok", false)):
+		return result
+	if not session.set_building_placement(building_id, result):
+		return {"ok": false, "reason": "building"}
+	_sync_placed_buildings()
+	_request_save()
+	return result
+
+func _sync_placed_buildings() -> void:
+	if _placed_buildings_root == null or session == null:
+		return
+	var keep: Dictionary = {}
+	for idv: Variant in session.building_placements.keys():
+		var id: String = str(idv)
+		var placement: Dictionary = session.building_placements[id] as Dictionary
+		var tier: int = session.economy.tier_of(session.economy.params.building_index(id))
+		if tier <= 0:
+			continue
+		var node: MeshInstance3D
+		if _placed_building_nodes.has(id) and is_instance_valid(_placed_building_nodes[id]):
+			node = _placed_building_nodes[id] as MeshInstance3D
+		else:
+			node = MHArtMaterials.make_instance(null, _building_mat, false)
+			_placed_buildings_root.add_child(node)
+			_placed_building_nodes[id] = node
+		node.mesh = MHBuildingMeshes.build(id, tier, "a")
+		var center: Array = placement.get("center_mm", []) as Array
+		if center.size() != 2:
+			continue
+		var ground: float = float(int(placement.get("ground_mm", 0))) / 1000.0
+		node.position = Vector3(float(int(center[0])) / 1000.0, ground, float(int(center[1])) / 1000.0)
+		node.rotation.y = float(int(placement.get("rotation_quarters", 0))) * PI * 0.5
+		keep[id] = true
+	for idv: Variant in _placed_building_nodes.keys():
+		var id: String = str(idv)
+		if not keep.has(id):
+			var old: Node = _placed_building_nodes[id] as Node
+			if old != null and is_instance_valid(old):
+				old.queue_free()
+			_placed_building_nodes.erase(id)
+
 
 ## Rect getter for router UI regions that is empty while the button is hidden (dock hidden, panel closed).
 func _button_rect(b: Control) -> Rect2:
@@ -301,7 +499,7 @@ func _process(_delta: float) -> void:
 	session.advance(elapsed, int(Time.get_unix_time_from_system()))
 	chunks.flush(editor.dirty)
 	_relayout()
-	router.accept_world_input = shell.current_screen_id() == MHScreenIds.EDITOR and shell.modal_id() == "" and (one_hole == null or not one_hole.visible)
+	router.accept_world_input = _placement_id == "" and shell.current_screen_id() == MHScreenIds.EDITOR and shell.modal_id() == "" and (one_hole == null or not one_hole.visible)
 	if not router.accept_world_input:
 		router.cancel_world_input()
 	if _pending_save and not editor.is_stroke_open():
@@ -372,3 +570,18 @@ func _new_document() -> Dictionary:
 		"sim": {"rating_epoch": 0, "rng_seed": "0000000000000000", "rng_inc": "0000000000000001", "golfer_serial": 0},
 		"ratings": {"rating_version": MHRatingEngine.RATING_VERSION, "computed_day": 0, "course_score": 0, "holes": []},
 		"progress": {"tutorial_step": 0, "achievements": [], "tournaments": {"hosted_levels": [], "cooldown_until_day": 0}}}
+
+
+func _placement_obstacles() -> Array:
+	var out: Array = []
+	# Render forest placement is deterministic integer-mm data; treat trunks/canopies as natural obstacles.
+	var forest_nodes: Array[Node] = find_children("*", "MHForest", true, false)
+	for n: Node in forest_nodes:
+		var forest: MHForest = n as MHForest
+		if forest.placement.is_empty():
+			forest.build()
+		for i: int in range(forest.placed_tree_count()):
+			var o: int = i * MHTreePlacement.STRIDE
+			var wp: Vector3 = MHForest.world_pos_of(forest.placement[o], forest.placement[o + 1])
+			out.append({"kind": "tree", "x_mm": roundi(wp.x * 1000.0), "y_mm": roundi(wp.z * 1000.0), "radius_mm": 2200})
+	return out

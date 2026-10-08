@@ -12,8 +12,8 @@ const LAUNCHER_PATH: String = "res://ui/mh_launcher.tscn"
 
 ## [label, path]. Order is display order. Missing scenes are hidden.
 const SCENES: Array = [
-	["Vertical slice (buildings, golfers, HUD)", "res://gameplay/mh_vertical_slice.tscn"],
-	["Live construction (ground, club, saves)", "res://gameplay/mh_live_construction.tscn"],
+	["First Real Round (build, rate, play, save)", "res://gameplay/mh_live_construction.tscn"],
+	["Club simulation showcase (buildings, golfers, HUD)", "res://gameplay/mh_vertical_slice.tscn"],
 	["Bench (forest + terrain)", "res://bench/bench_scene.tscn"],
 	["Gesture sandbox", "res://input/mh_gesture_sandbox.tscn"],
 	["Terrain demo", "res://terrain/demo/terrain_demo.tscn"],
@@ -57,8 +57,13 @@ func _ready() -> void:
 	scroll.add_child(box)
 
 	var title: Label = Label.new()
-	title.text = "Mulligan Hills: Phase 0"
+	title.text = "Mulligan Hills"
 	title.add_theme_font_size_override("font_size", 40)
+	var subtitle: Label = Label.new()
+	subtitle.text = "Build a hole. Rate it. Play it. Save it. Come back and continue."
+	subtitle.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	subtitle.add_theme_font_size_override("font_size", 22)
+	box.add_child(subtitle)
 	box.add_child(title)
 	var info: Label = Label.new()
 	info.text = MHBuildInfo.label_text()
