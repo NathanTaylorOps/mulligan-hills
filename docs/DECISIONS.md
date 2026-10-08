@@ -1,10 +1,12 @@
-# Mulligan Hills decision log
+# Mulligan Hills decision register
 
-Owner: workstream H. Source of truth for product decisions is the Docs artifact "Mulligan Hills: Master Plan" (project id 5991cb68-b96d-45aa-a0ac-f25408624480, read at rev 34). This log records each locked decision with its reason and what it replaced, so agents that start with no memory do not rebuild dropped ideas.
+This register records product and technical decisions, their rationale, and any superseding changes. It preserves historical decisions made during the initial planning and Phase 0 reviews, including proposals that were subsequently revised. Entries are decision history, not evidence that a feature has been implemented or verified.
 
-Date column: the Master Plan does not record per-decision dates. All entries were locked on or before 2026-09-29 (the plan's date and the scope-freeze date); "R1" = review round 1 fixes (reviewers read rev 14), "R2" = review round 2 fixes (reviewers read rev 27). Where a date is not known better, 2026-09-29 is the recording date.
+**Decision authority:** The recorded project plan and subsequent accepted decisions provide the historical basis for this register. Current implementation must also be checked against the relevant specifications, code and verification evidence. If these sources disagree, investigate and document the discrepancy rather than silently rewriting a historical decision.
 
-Rules: a decision changes only by a new entry that names the one it supersedes. Never edit an old entry except to add "Superseded by DEC-xxx". If the Master Plan and this log disagree, the Master Plan wins and this log is corrected by workstream H.
+**Recording convention:** The original plan did not provide a date for every individual decision. Entries dated 2026-09-29 represent decisions recorded on or before that date, not necessarily decisions made that day. Review rounds R1 and R2 refer to the initial planning reviews. Proposed decisions are identified separately from accepted decisions.
+
+**Change control:** Preserve existing decision IDs and rationale. Record a new decision when a material choice changes, identify what it supersedes, and update the relevant specifications. Historical references to earlier tools, development arrangements or schedules describe the context at the time; they are not current operating instructions.
 
 ## A. Core locked decisions
 
