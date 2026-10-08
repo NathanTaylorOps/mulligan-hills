@@ -61,6 +61,19 @@ The immediate development priorities are integrated gameplay, reliable saving an
 
 ---
 
+## Navigate This Repository
+
+- **[Gameplay direction](#gameplay-direction)** — planned course design, club operations, golfers and progression.
+- **[Art and UX](#art--ux-direction)** — presentation and interaction priorities.
+- **[Technology](#technology)** — architecture and platform choices.
+- **[Getting started](#getting-started)** — open the Godot project locally.
+- **[Verification and CI](#verification-and-ci)** — tests, automation and evidence.
+- **[Project documentation](#project-documentation)** — specifications, engineering standards and decisions.
+
+For current build and test results, see [GitHub Actions](https://github.com/NathanTaylorOps/mulligan-hills/actions). A documented feature or workflow is not necessarily integrated or passing.
+
+---
+
 ## The Game
 
 Mulligan Hills starts with a simple idea:
@@ -104,40 +117,9 @@ Simulation-critical systems are designed for deterministic behaviour. Core simul
 
 ---
 
-## Current Project Highlights
+## Gameplay Direction
 
-The repository already contains substantial foundations across the game stack, including:
-
-- Godot 4.7 project structure and launcher
-- deterministic simulation utilities and cross-platform hash testing
-- shot simulation and golf-model reference implementations
-- terrain editing, elevation and relief-grid systems
-- hole construction and live construction prototypes
-- course-rating and elevation-aware golf logic
-- golfer and character systems
-- economy, land, buildings and progression systems
-- staff and equipment systems
-- events, challenges and tournament foundations
-- save/data schemas and validation
-- touch gesture, camera and input routing systems
-- isometric camera work
-- procedural/stylised rendering systems
-- trees, vegetation, turf, paths and water foundations
-- mobile-oriented UI and layout systems
-- Android platform integration work
-- iOS platform design/integration scaffolding
-- Supabase backend, migrations, tests and Edge Functions
-- automated CI, unit testing and determinism checks
-- Android debug, Windows development and iOS/TestFlight workflows
-- automated screenshot infrastructure
-
-Implementation maturity varies by system. Some areas are production-oriented foundations, some are playable prototypes, and some remain under active integration.
-
----
-
-## Target Gameplay
-
-The current v1 direction includes the following major gameplay areas.
+The following describes intended gameplay, not a checklist of completed or fully integrated features.
 
 ### Course creation
 
@@ -298,13 +280,13 @@ The configured main scene is:
 res://ui/mh_launcher.tscn
 ```
 
-Run the project from the editor with **F6/F5 as appropriate**, with **F5** running the configured project entry point.
+Run the configured project entry point with **F5**. Use **F6** to run the currently open scene.
 
 > The repository is under active development. A clean checkout may require the same dependency/setup steps used by CI before every test or platform-export path is available locally.
 
 ---
 
-## Testing
+## Verification and CI
 
 Mulligan Hills uses **gdUnit4** for GDScript tests.
 
@@ -331,26 +313,7 @@ The CI scripts are under:
 tools/ci/
 ```
 
-The repository also has a dedicated determinism workflow that runs simulation tests on multiple operating systems and compares generated hashes.
-
-This is important because gameplay-critical simulation is intended to produce reproducible results rather than silently diverging by platform.
-
----
-
-## Continuous Integration
-
-GitHub Actions currently includes workflows for:
-
-- import and unit tests
-- cross-platform determinism verification
-- Android debug builds
-- Windows development builds
-- iOS/TestFlight work
-- automated screenshots
-
-Workflow definitions live in `.github/workflows/`.
-
-CI is the authoritative place to verify a change that touches engine compatibility, tests or cross-platform behaviour.
+The repository also defines workflows for cross-platform determinism checks, Android debug builds, Windows development builds, iOS/TestFlight preparation and automated screenshots. The presence of a workflow does not establish that its latest run passed or that the corresponding platform is release-ready. Check [GitHub Actions](https://github.com/NathanTaylorOps/mulligan-hills/actions) for current results.
 
 ---
 
@@ -367,38 +330,7 @@ The `supabase/` directory contains the backend foundation for online/platform-co
 
 The game architecture is designed so core course design and simulation logic remain separate from platform-service adapters wherever practical.
 
-See `supabase/README.md` for backend-specific setup information.
-
----
-
-## Android
-
-Android is the first mobile target.
-
-The repository contains Android-specific plugin/integration work, including Play Integrity-related source and build notes. Platform setup is intentionally separated from the main game code.
-
-See:
-
-```text
-android/README.md
-docs/phase0/platform.md
-```
-
-for current platform notes.
-
----
-
-## iOS / iPadOS
-
-iOS support is planned after the Android-first path. The repository already contains interface and platform-design work so Android-specific decisions do not become hard-coded into the game architecture.
-
-See:
-
-```text
-ios/README.md
-```
-
-for current status and integration notes.
+See `supabase/README.md` for backend-specific setup information. Android integration notes are in `android/README.md` and `docs/phase0/platform.md`; iOS planning and integration notes are in `ios/README.md`.
 
 ---
 
@@ -423,43 +355,6 @@ Where code, an older document and the current decision log disagree, contributor
 
 ---
 
-## Engineering Conventions
-
-Key conventions currently used by the project include:
-
-- typed GDScript
-- `snake_case` files and functions
-- `PascalCase` class names
-- project-specific GDScript classes prefixed with `MH`
-- deterministic rules for simulation-critical code
-- explicit save/data validation
-- tests grouped by subsystem
-- platform integrations behind adapters/interfaces
-- performance decisions measured against mobile constraints
-- documented product decisions rather than undocumented scope changes
-
-Simulation-critical code should not introduce nondeterministic random calls, floating-point-dependent result logic or unordered iteration without first checking the project's determinism requirements.
-
----
-
-## Development Status
-
-Mulligan Hills is moving quickly and the codebase changes frequently.
-
-At this stage, expect:
-
-- unfinished or placeholder presentation
-- systems at different levels of completeness
-- active balancing and integration work
-- specifications that may be ahead of playable UI
-- temporary debug/prototype scenes
-- platform features that require external credentials or device testing
-- changes to structure as systems are consolidated
-
-The repository should be treated as an **active game-development codebase**, not a release package.
-
----
-
 ## Roadmap Direction
 
 The broad direction toward v1 is:
@@ -472,7 +367,7 @@ Current priorities should be taken from the repository's latest decision/specifi
 
 ## Contributing
 
-This repository is currently a privately managed development project. See [CONTRIBUTING.md](CONTRIBUTING.md) for the full development and contribution workflow, [CHANGELOG.md](CHANGELOG.md) for release-level project changes, and [SECURITY.md](SECURITY.md) for security reporting.
+This public repository is independently maintained. See [CONTRIBUTING.md](CONTRIBUTING.md) for the full development and contribution workflow, [CHANGELOG.md](CHANGELOG.md) for release-level project changes, and [SECURITY.md](SECURITY.md) for security reporting.
 
 Before making a substantial change:
 
