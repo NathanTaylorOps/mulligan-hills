@@ -334,8 +334,12 @@ func _resolve_tournament() -> void:
 		economy.earn(delta)
 	else:
 		economy.incur_loss(-delta)
-	economy.reputation = clampi(economy.reputation + int(outcome["reputation_delta"]) * 10, 0, 1000)
+	_apply_tournament_reputation(int(outcome["reputation_delta"]))
 	_award_achievements(result.get("refresh", {}) as Dictionary)
+
+
+func _apply_tournament_reputation(delta: int) -> void:
+	economy.reputation = clampi(economy.reputation + delta, 0, 1000)
 
 
 static func _result(ok: bool, reason: String = "") -> Dictionary:

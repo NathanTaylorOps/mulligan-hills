@@ -25,3 +25,20 @@ if grep -E "SCRIPT ERROR|Parse Error|Failed to load script|Could not parse globa
   die "GDScript/import errors found (see import.log)"
 fi
 [ "$rc" -eq 0 ] || log "WARNING: non-zero exit but no script errors detected; continuing"
+
+# --import does not guarantee that every GDScript file is parsed. One extra Godot process loads every first-party
+# script resource, which catches untouched parse/type-load failures without starting hundreds of engine processes.
+check_errors="$OUT_DIR/gdscript-check-errors.txt"
+check_log="$OUT_DIR/gdscript-check.log"
+set +e
+"$GODOT_BIN" --headless --path "$GAME_DIR" --script res://tests/ci/check_project_scripts.gd > "$check_log" 2>&1
+script_rc=$?
+set -e
+if [ "$script_rc" -ne 0 ] || grep -Eq "SCRIPT_CHECK FAIL:|SCRIPT ERROR|Parse Error|Failed to load script|Could not parse global class" "$check_log"; then
+  cp "$check_log" "$check_errors"
+  {
+    echo "### GDScript parse/load errors"
+    head -n 80 "$check_errors"
+  } | summary
+  die "GDScript check failed (see gdscript-check-errors.txt)"
+fi

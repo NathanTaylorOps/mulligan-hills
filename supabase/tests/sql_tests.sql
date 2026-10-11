@@ -224,9 +224,11 @@ begin
   perform t.ok((r ->> 'count')::int = 1, 'first verification counts 1');
   r := public.purchase_verification_record(h, 'mh_full_unlock', 'GPA.1', false, 30);
   perform t.ok((r ->> 'count')::int = 2, 'second verification counts 2');
-  update public.purchase_verifications set last_seen = now() - interval '40 days' where token_hash = h;
+  update public.purchase_verifications
+     set window_started_at = now() - interval '40 days', last_seen = now()
+   where token_hash = h;
   r := public.purchase_verification_record(h, 'mh_full_unlock', 'GPA.1', false, 30);
-  perform t.ok((r ->> 'count')::int = 1, 'the counter restarts after the 30 day window');
+  perform t.ok((r ->> 'count')::int = 1, 'the counter restarts after the fixed 30 day window even when recently seen');
   set local role authenticated;
   perform t.ok(t.denied('select * from public.purchase_verifications'), 'players cannot read purchase hashes');
   reset role;

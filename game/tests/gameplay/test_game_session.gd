@@ -128,6 +128,17 @@ func test_official_course_submission_charges_once_and_keeps_slot() -> void:
 	assert_int(s.economy.cash).is_equal(cash - price)
 
 
+func test_tournament_reputation_delta_is_not_multiplied() -> void:
+	var s: MHGameSession = MHGameSession.create()
+	s.economy.reputation = 500
+	s._apply_tournament_reputation(-25)
+	assert_int(s.economy.reputation).is_equal(475)
+	s._apply_tournament_reputation(50)
+	assert_int(s.economy.reputation).is_equal(525)
+	s._apply_tournament_reputation(1000)
+	assert_int(s.economy.reputation).is_equal(1000)
+
+
 func test_recognized_rejected_intent_does_not_fall_through() -> void:
 	var s: MHGameSession = MHGameSession.create()
 	s.economy.bankrupt = true

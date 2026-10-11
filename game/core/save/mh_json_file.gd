@@ -18,6 +18,13 @@ static func write_dict(path: String, d: Dictionary) -> int:
 	return MHSaveFile.write_atomic(path, bytes, validator)
 
 
+## Reads exactly one file with no fallback. value = Dictionary (ints only).
+static func read_dict_exact(path: String) -> MHSaveResult:
+	if not MHSaveFile.exists(path):
+		return MHSaveResult.failure(MHSaveResult.Code.NOT_FOUND, "no file")
+	return _parse(MHSaveFile.read_all(path))
+
+
 ## value = Dictionary (ints only). NOT_FOUND when neither file exists.
 static func read_dict(path: String) -> MHSaveResult:
 	var any: bool = false
@@ -27,7 +34,7 @@ static func read_dict(path: String) -> MHSaveResult:
 		if not MHSaveFile.exists(p):
 			continue
 		any = true
-		var r: MHSaveResult = _parse(MHSaveFile.read_all(p))
+		var r: MHSaveResult = read_dict_exact(p)
 		if r.is_ok():
 			return r
 		if first == null:

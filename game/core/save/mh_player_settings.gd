@@ -50,16 +50,23 @@ func save() -> int:
 	return MHJsonFile.write_dict(path, to_dict())
 
 
-## Loads from disk. A missing or damaged file leaves the defaults (consent false, not asked). Returns the result of
-## the read (NOT_FOUND on first launch is normal).
+## Loads from disk. The primary file is authoritative for analytics consent. If recovery has to use .bak,
+## non-sensitive settings may be recovered but consent is forced off: stale backup data must never re-enable analytics.
+## NOT_FOUND on first launch is normal.
 func load_from_disk() -> MHSaveResult:
 	analytics_consent = false
 	consent_asked = false
 	install_id = ""
-	var r: MHSaveResult = MHJsonFile.read_dict(path)
-	if r.is_ok():
-		from_dict(r.value as Dictionary)
-	return r
+	var primary: MHSaveResult = MHJsonFile.read_dict_exact(path)
+	if primary.is_ok():
+		from_dict(primary.value as Dictionary)
+		return primary
+	var backup: MHSaveResult = MHJsonFile.read_dict_exact(path + ".bak")
+	if backup.is_ok():
+		from_dict(backup.value as Dictionary)
+		analytics_consent = false
+		return backup
+	return primary if primary.code != MHSaveResult.Code.NOT_FOUND else backup
 
 
 ## True when the consent screen still has to be shown.
