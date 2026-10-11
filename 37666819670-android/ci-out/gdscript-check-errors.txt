@@ -1,0 +1,903 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+SCRIPT ERROR: Parse Error: Could not find type "BaseTest" in the current scope.
+          at: GDScript::reload (res://android/build/src/instrumented/assets/main.gd:25)
+          GDScript backtrace (most recent call first):
+              [0] _initialize (res://tests/ci/check_project_scripts.gd:19)
+SCRIPT ERROR: Parse Error: Identifier "JavaClassWrapperTests" not declared in the current scope.
+          at: GDScript::reload (res://android/build/src/instrumented/assets/main.gd:28)
+          GDScript backtrace (most recent call first):
+              [0] _initialize (res://tests/ci/check_project_scripts.gd:19)
+SCRIPT ERROR: Parse Error: Identifier "FileAccessTests" not declared in the current scope.
+          at: GDScript::reload (res://android/build/src/instrumented/assets/main.gd:30)
+          GDScript backtrace (most recent call first):
+              [0] _initialize (res://tests/ci/check_project_scripts.gd:19)
+SCRIPT ERROR: Parse Error: Identifier "AndroidPluginSignalTests" not declared in the current scope.
+          at: GDScript::reload (res://android/build/src/instrumented/assets/main.gd:32)
+          GDScript backtrace (most recent call first):
+              [0] _initialize (res://tests/ci/check_project_scripts.gd:19)
+ERROR: Failed to load script "res://android/build/src/instrumented/assets/main.gd" with error "Parse error".
+   at: load (modules/gdscript/gdscript_resource_format.cpp:46)
+   GDScript backtrace (most recent call first):
+       [0] _initialize (res://tests/ci/check_project_scripts.gd:19)
+SCRIPT ERROR: Parse Error: Could not find base class "BaseTest".
+          at: GDScript::reload (res://android/build/src/instrumented/assets/test/android_plugin/signal_tests.gd:2)
+          GDScript backtrace (most recent call first):
+              [0] _initialize (res://tests/ci/check_project_scripts.gd:19)
+ERROR: Failed to load script "res://android/build/src/instrumented/assets/test/android_plugin/signal_tests.gd" with error "Parse error".
+   at: load (modules/gdscript/gdscript_resource_format.cpp:46)
+   GDScript backtrace (most recent call first):
+       [0] _initialize (res://tests/ci/check_project_scripts.gd:19)
+SCRIPT ERROR: Parse Error: Could not find base class "BaseTest".
+          at: GDScript::reload (res://android/build/src/instrumented/assets/test/file_access/file_access_tests.gd:2)
+          GDScript backtrace (most recent call first):
+              [0] _initialize (res://tests/ci/check_project_scripts.gd:19)
+ERROR: Failed to load script "res://android/build/src/instrumented/assets/test/file_access/file_access_tests.gd" with error "Parse error".
+   at: load (modules/gdscript/gdscript_resource_format.cpp:46)
+   GDScript backtrace (most recent call first):
+       [0] _initialize (res://tests/ci/check_project_scripts.gd:19)
+SCRIPT ERROR: Parse Error: Could not find base class "BaseTest".
+          at: GDScript::reload (res://android/build/src/instrumented/assets/test/javaclasswrapper/java_class_wrapper_tests.gd:2)
+          GDScript backtrace (most recent call first):
+              [0] _initialize (res://tests/ci/check_project_scripts.gd:19)
+ERROR: Failed to load script "res://android/build/src/instrumented/assets/test/javaclasswrapper/java_class_wrapper_tests.gd" with error "Parse error".
+   at: load (modules/gdscript/gdscript_resource_format.cpp:46)
+   GDScript backtrace (most recent call first):
+       [0] _initialize (res://tests/ci/check_project_scripts.gd:19)
+SCRIPT ERROR: Parse Error: Could not find base class "GdUnitTestSuite".
+          at: GDScript::reload (res://characters/tests/test_animation_build.gd:1)
+          GDScript backtrace (most recent call first):
+              [0] _initialize (res://tests/ci/check_project_scripts.gd:19)
+ERROR: Failed to load script "res://characters/tests/test_animation_build.gd" with error "Parse error".
+   at: load (modules/gdscript/gdscript_resource_format.cpp:46)
+   GDScript backtrace (most recent call first):
+       [0] _initialize (res://tests/ci/check_project_scripts.gd:19)
+SCRIPT ERROR: Parse Error: Could not find base class "GdUnitTestSuite".
+          at: GDScript::reload (res://platform/tests/test_entitlement_token.gd:1)
+          GDScript backtrace (most recent call first):
+              [0] _initialize (res://tests/ci/check_project_scripts.gd:19)
+ERROR: Failed to load script "res://platform/tests/test_entitlement_token.gd" with error "Parse error".
+   at: load (modules/gdscript/gdscript_resource_format.cpp:46)
+   GDScript backtrace (most recent call first):
+       [0] _initialize (res://tests/ci/check_project_scripts.gd:19)
+SCRIPT ERROR: Parse Error: Could not find base class "GdUnitTestSuite".
+          at: GDScript::reload (res://platform/tests/test_platform_mocks.gd:1)
+          GDScript backtrace (most recent call first):
+              [0] _initialize (res://tests/ci/check_project_scripts.gd:19)
+ERROR: Failed to load script "res://platform/tests/test_platform_mocks.gd" with error "Parse error".
+   at: load (modules/gdscript/gdscript_resource_format.cpp:46)
+   GDScript backtrace (most recent call first):
+       [0] _initialize (res://tests/ci/check_project_scripts.gd:19)
+SCRIPT ERROR: Parse Error: Could not find base class "GdUnitTestSuite".
+          at: GDScript::reload (res://tests/art/test_art_rng.gd:1)
+          GDScript backtrace (most recent call first):
+              [0] _initialize (res://tests/ci/check_project_scripts.gd:19)
+ERROR: Failed to load script "res://tests/art/test_art_rng.gd" with error "Parse error".
+   at: load (modules/gdscript/gdscript_resource_format.cpp:46)
+   GDScript backtrace (most recent call first):
+       [0] _initialize (res://tests/ci/check_project_scripts.gd:19)
+SCRIPT ERROR: Parse Error: Could not find base class "GdUnitTestSuite".
+          at: GDScript::reload (res://tests/art/test_building_gallery.gd:1)
+          GDScript backtrace (most recent call first):
+              [0] _initialize (res://tests/ci/check_project_scripts.gd:19)
+ERROR: Failed to load script "res://tests/art/test_building_gallery.gd" with error "Parse error".
+   at: load (modules/gdscript/gdscript_resource_format.cpp:46)
+   GDScript backtrace (most recent call first):
+       [0] _initialize (res://tests/ci/check_project_scripts.gd:19)
+SCRIPT ERROR: Parse Error: Could not find base class "GdUnitTestSuite".
+          at: GDScript::reload (res://tests/art/test_building_meshes.gd:1)
+          GDScript backtrace (most recent call first):
+              [0] _initialize (res://tests/ci/check_project_scripts.gd:19)
+ERROR: Failed to load script "res://tests/art/test_building_meshes.gd" with error "Parse error".
+   at: load (modules/gdscript/gdscript_resource_format.cpp:46)
+   GDScript backtrace (most recent call first):
+       [0] _initialize (res://tests/ci/check_project_scripts.gd:19)
+SCRIPT ERROR: Parse Error: Could not find base class "GdUnitTestSuite".
+          at: GDScript::reload (res://tests/art/test_building_theme.gd:1)
+          GDScript backtrace (most recent call first):
+              [0] _initialize (res://tests/ci/check_project_scripts.gd:19)
+ERROR: Failed to load script "res://tests/art/test_building_theme.gd" with error "Parse error".
+   at: load (modules/gdscript/gdscript_resource_format.cpp:46)
+   GDScript backtrace (most recent call first):
+       [0] _initialize (res://tests/ci/check_project_scripts.gd:19)
+SCRIPT ERROR: Parse Error: Could not find base class "GdUnitTestSuite".
+          at: GDScript::reload (res://tests/art/test_gallery_smoke.gd:1)
+          GDScript backtrace (most recent call first):
+              [0] _initialize (res://tests/ci/check_project_scripts.gd:19)
+ERROR: Failed to load script "res://tests/art/test_gallery_smoke.gd" with error "Parse error".
+   at: load (modules/gdscript/gdscript_resource_format.cpp:46)
+   GDScript backtrace (most recent call first):
+       [0] _initialize (res://tests/ci/check_project_scripts.gd:19)
+SCRIPT ERROR: Parse Error: Could not find base class "GdUnitTestSuite".
+          at: GDScript::reload (res://tests/art/test_golfer_figure.gd:1)
+          GDScript backtrace (most recent call first):
+              [0] _initialize (res://tests/ci/check_project_scripts.gd:19)
+ERROR: Failed to load script "res://tests/art/test_golfer_figure.gd" with error "Parse error".
+   at: load (modules/gdscript/gdscript_resource_format.cpp:46)
+   GDScript backtrace (most recent call first):
+       [0] _initialize (res://tests/ci/check_project_scripts.gd:19)
+SCRIPT ERROR: Parse Error: Could not find base class "GdUnitTestSuite".
+          at: GDScript::reload (res://tests/art/test_golfer_meshes.gd:1)
+          GDScript backtrace (most recent call first):
+              [0] _initialize (res://tests/ci/check_project_scripts.gd:19)
+ERROR: Failed to load script "res://tests/art/test_golfer_meshes.gd" with error "Parse error".
+   at: load (modules/gdscript/gdscript_resource_format.cpp:46)
+   GDScript backtrace (most recent call first):
+       [0] _initialize (res://tests/ci/check_project_scripts.gd:19)
+SCRIPT ERROR: Parse Error: Could not find base class "GdUnitTestSuite".
+          at: GDScript::reload (res://tests/art/test_golfer_poses.gd:1)
+          GDScript backtrace (most recent call first):
+              [0] _initialize (res://tests/ci/check_project_scripts.gd:19)
+ERROR: Failed to load script "res://tests/art/test_golfer_poses.gd" with error "Parse error".
+   at: load (modules/gdscript/gdscript_resource_format.cpp:46)
+   GDScript backtrace (most recent call first):
+       [0] _initialize (res://tests/ci/check_project_scripts.gd:19)
+SCRIPT ERROR: Parse Error: Could not find base class "GdUnitTestSuite".
+          at: GDScript::reload (res://tests/art/test_mesh_builder.gd:1)
+          GDScript backtrace (most recent call first):
+              [0] _initialize (res://tests/ci/check_project_scripts.gd:19)
+ERROR: Failed to load script "res://tests/art/test_mesh_builder.gd" with error "Parse error".
+   at: load (modules/gdscript/gdscript_resource_format.cpp:46)
+   GDScript backtrace (most recent call first):
+       [0] _initialize (res://tests/ci/check_project_scripts.gd:19)
+SCRIPT ERROR: Parse Error: Could not find base class "GdUnitTestSuite".
+          at: GDScript::reload (res://tests/art/test_nature_meshes.gd:1)
+          GDScript backtrace (most recent call first):
+              [0] _initialize (res://tests/ci/check_project_scripts.gd:19)
+ERROR: Failed to load script "res://tests/art/test_nature_meshes.gd" with error "Parse error".
+   at: load (modules/gdscript/gdscript_resource_format.cpp:46)
+   GDScript backtrace (most recent call first):
+       [0] _initialize (res://tests/ci/check_project_scripts.gd:19)
+SCRIPT ERROR: Parse Error: Could not find base class "GdUnitTestSuite".
+          at: GDScript::reload (res://tests/art/test_palette.gd:1)
+          GDScript backtrace (most recent call first):
+              [0] _initialize (res://tests/ci/check_project_scripts.gd:19)
+ERROR: Failed to load script "res://tests/art/test_palette.gd" with error "Parse error".
+   at: load (modules/gdscript/gdscript_resource_format.cpp:46)
+   GDScript backtrace (most recent call first):
+       [0] _initialize (res://tests/ci/check_project_scripts.gd:19)
+SCRIPT ERROR: Parse Error: Could not find base class "GdUnitTestSuite".
+          at: GDScript::reload (res://tests/art/test_prop_meshes.gd:1)
+          GDScript backtrace (most recent call first):
+              [0] _initialize (res://tests/ci/check_project_scripts.gd:19)
+ERROR: Failed to load script "res://tests/art/test_prop_meshes.gd" with error "Parse error".
+   at: load (modules/gdscript/gdscript_resource_format.cpp:46)
+   GDScript backtrace (most recent call first):
+       [0] _initialize (res://tests/ci/check_project_scripts.gd:19)
+SCRIPT ERROR: Parse Error: Could not find base class "GdUnitTestSuite".
+          at: GDScript::reload (res://tests/buildings/test_building_defs.gd:1)
+          GDScript backtrace (most recent call first):
+              [0] _initialize (res://tests/ci/check_project_scripts.gd:19)
+ERROR: Failed to load script "res://tests/buildings/test_building_defs.gd" with error "Parse error".
+   at: load (modules/gdscript/gdscript_resource_format.cpp:46)
+   GDScript backtrace (most recent call first):
+       [0] _initialize (res://tests/ci/check_project_scripts.gd:19)
+SCRIPT ERROR: Parse Error: Could not find base class "GdUnitTestSuite".
+          at: GDScript::reload (res://tests/buildings/test_unlock_rules.gd:1)
+          GDScript backtrace (most recent call first):
+              [0] _initialize (res://tests/ci/check_project_scripts.gd:19)
+ERROR: Failed to load script "res://tests/buildings/test_unlock_rules.gd" with error "Parse error".
+   at: load (modules/gdscript/gdscript_resource_format.cpp:46)
+   GDScript backtrace (most recent call first):
+       [0] _initialize (res://tests/ci/check_project_scripts.gd:19)
+SCRIPT ERROR: Parse Error: Could not find base class "GdUnitTestSuite".
+          at: GDScript::reload (res://tests/challenges/test_daily_challenge.gd:1)
+          GDScript backtrace (most recent call first):
+              [0] _initialize (res://tests/ci/check_project_scripts.gd:19)
+ERROR: Failed to load script "res://tests/challenges/test_daily_challenge.gd" with error "Parse error".
+   at: load (modules/gdscript/gdscript_resource_format.cpp:46)
+   GDScript backtrace (most recent call first):
+       [0] _initialize (res://tests/ci/check_project_scripts.gd:19)
+SCRIPT ERROR: Parse Error: Could not find base class "GdUnitTestSuite".
+          at: GDScript::reload (res://tests/challenges/test_daily_state.gd:1)
+          GDScript backtrace (most recent call first):
+              [0] _initialize (res://tests/ci/check_project_scripts.gd:19)
+ERROR: Failed to load script "res://tests/challenges/test_daily_state.gd" with error "Parse error".
+   at: load (modules/gdscript/gdscript_resource_format.cpp:46)
+   GDScript backtrace (most recent call first):
+       [0] _initialize (res://tests/ci/check_project_scripts.gd:19)
+SCRIPT ERROR: Parse Error: Could not find base class "GdUnitTestSuite".
+          at: GDScript::reload (res://tests/clock/test_game_clock.gd:1)
+          GDScript backtrace (most recent call first):
+              [0] _initialize (res://tests/ci/check_project_scripts.gd:19)
+ERROR: Failed to load script "res://tests/clock/test_game_clock.gd" with error "Parse error".
+   at: load (modules/gdscript/gdscript_resource_format.cpp:46)
+   GDScript backtrace (most recent call first):
+       [0] _initialize (res://tests/ci/check_project_scripts.gd:19)
+SCRIPT ERROR: Parse Error: Could not find base class "GdUnitTestSuite".
+          at: GDScript::reload (res://tests/core/test_fixed.gd:1)
+          GDScript backtrace (most recent call first):
+              [0] _initialize (res://tests/ci/check_project_scripts.gd:19)
+ERROR: Failed to load script "res://tests/core/test_fixed.gd" with error "Parse error".
+   at: load (modules/gdscript/gdscript_resource_format.cpp:46)
+   GDScript backtrace (most recent call first):
+       [0] _initialize (res://tests/ci/check_project_scripts.gd:19)
+SCRIPT ERROR: Parse Error: Could not find base class "GdUnitTestSuite".
+          at: GDScript::reload (res://tests/core/test_hash.gd:1)
+          GDScript backtrace (most recent call first):
+              [0] _initialize (res://tests/ci/check_project_scripts.gd:19)
+ERROR: Failed to load script "res://tests/core/test_hash.gd" with error "Parse error".
+   at: load (modules/gdscript/gdscript_resource_format.cpp:46)
+   GDScript backtrace (most recent call first):
+       [0] _initialize (res://tests/ci/check_project_scripts.gd:19)
+SCRIPT ERROR: Parse Error: Could not find base class "GdUnitTestSuite".
+          at: GDScript::reload (res://tests/core/test_hash_report.gd:1)
+          GDScript backtrace (most recent call first):
+              [0] _initialize (res://tests/ci/check_project_scripts.gd:19)
+ERROR: Failed to load script "res://tests/core/test_hash_report.gd" with error "Parse error".
+   at: load (modules/gdscript/gdscript_resource_format.cpp:46)
+   GDScript backtrace (most recent call first):
+       [0] _initialize (res://tests/ci/check_project_scripts.gd:19)
+SCRIPT ERROR: Parse Error: Could not find base class "GdUnitTestSuite".
+          at: GDScript::reload (res://tests/core/test_rng.gd:1)
+          GDScript backtrace (most recent call first):
+              [0] _initialize (res://tests/ci/check_project_scripts.gd:19)
+ERROR: Failed to load script "res://tests/core/test_rng.gd" with error "Parse error".
+   at: load (modules/gdscript/gdscript_resource_format.cpp:46)
+   GDScript backtrace (most recent call first):
+       [0] _initialize (res://tests/ci/check_project_scripts.gd:19)
+SCRIPT ERROR: Parse Error: Could not find base class "GdUnitTestSuite".
+          at: GDScript::reload (res://tests/core/test_shotsim.gd:1)
+          GDScript backtrace (most recent call first):
+              [0] _initialize (res://tests/ci/check_project_scripts.gd:19)
+ERROR: Failed to load script "res://tests/core/test_shotsim.gd" with error "Parse error".
+   at: load (modules/gdscript/gdscript_resource_format.cpp:46)
+   GDScript backtrace (most recent call first):
+       [0] _initialize (res://tests/ci/check_project_scripts.gd:19)
+SCRIPT ERROR: Parse Error: Could not find base class "GdUnitTestSuite".
+          at: GDScript::reload (res://tests/core/test_trig.gd:1)
+          GDScript backtrace (most recent call first):
+              [0] _initialize (res://tests/ci/check_project_scripts.gd:19)
+ERROR: Failed to load script "res://tests/core/test_trig.gd" with error "Parse error".
+   at: load (modules/gdscript/gdscript_resource_format.cpp:46)
+   GDScript backtrace (most recent call first):
+       [0] _initialize (res://tests/ci/check_project_scripts.gd:19)
+SCRIPT ERROR: Parse Error: Could not find base class "GdUnitTestSuite".
+          at: GDScript::reload (res://tests/craft/test_craft_convert.gd:1)
+          GDScript backtrace (most recent call first):
+              [0] _initialize (res://tests/ci/check_project_scripts.gd:19)
+ERROR: Failed to load script "res://tests/craft/test_craft_convert.gd" with error "Parse error".
+   at: load (modules/gdscript/gdscript_resource_format.cpp:46)
+   GDScript backtrace (most recent call first):
+       [0] _initialize (res://tests/ci/check_project_scripts.gd:19)
+SCRIPT ERROR: Parse Error: Could not find base class "GdUnitTestSuite".
+          at: GDScript::reload (res://tests/craft/test_craft_hole.gd:1)
+          GDScript backtrace (most recent call first):
+              [0] _initialize (res://tests/ci/check_project_scripts.gd:19)
+ERROR: Failed to load script "res://tests/craft/test_craft_hole.gd" with error "Parse error".
+   at: load (modules/gdscript/gdscript_resource_format.cpp:46)
+   GDScript backtrace (most recent call first):
+       [0] _initialize (res://tests/ci/check_project_scripts.gd:19)
+SCRIPT ERROR: Parse Error: Could not find base class "GdUnitTestSuite".
+          at: GDScript::reload (res://tests/data/test_content_catalogue.gd:1)
+          GDScript backtrace (most recent call first):
+              [0] _initialize (res://tests/ci/check_project_scripts.gd:19)
+ERROR: Failed to load script "res://tests/data/test_content_catalogue.gd" with error "Parse error".
+   at: load (modules/gdscript/gdscript_resource_format.cpp:46)
+   GDScript backtrace (most recent call first):
+       [0] _initialize (res://tests/ci/check_project_scripts.gd:19)
+SCRIPT ERROR: Parse Error: Could not find base class "GdUnitTestSuite".
+          at: GDScript::reload (res://tests/economy/test_economy_model.gd:1)
+          GDScript backtrace (most recent call first):
+              [0] _initialize (res://tests/ci/check_project_scripts.gd:19)
+ERROR: Failed to load script "res://tests/economy/test_economy_model.gd" with error "Parse error".
+   at: load (modules/gdscript/gdscript_resource_format.cpp:46)
+   GDScript backtrace (most recent call first):
+       [0] _initialize (res://tests/ci/check_project_scripts.gd:19)
+SCRIPT ERROR: Parse Error: Could not find base class "GdUnitTestSuite".
+          at: GDScript::reload (res://tests/economy/test_economy_state.gd:1)
+          GDScript backtrace (most recent call first):
+              [0] _initialize (res://tests/ci/check_project_scripts.gd:19)
+ERROR: Failed to load script "res://tests/economy/test_economy_state.gd" with error "Parse error".
+   at: load (modules/gdscript/gdscript_resource_format.cpp:46)
+   GDScript backtrace (most recent call first):
+       [0] _initialize (res://tests/ci/check_project_scripts.gd:19)
+SCRIPT ERROR: Parse Error: Could not find base class "GdUnitTestSuite".
+          at: GDScript::reload (res://tests/events/test_event_deck.gd:1)
+          GDScript backtrace (most recent call first):
+              [0] _initialize (res://tests/ci/check_project_scripts.gd:19)
+ERROR: Failed to load script "res://tests/events/test_event_deck.gd" with error "Parse error".
+   at: load (modules/gdscript/gdscript_resource_format.cpp:46)
+   GDScript backtrace (most recent call first):
+       [0] _initialize (res://tests/ci/check_project_scripts.gd:19)
+SCRIPT ERROR: Parse Error: Could not find base class "GdUnitTestSuite".
+          at: GDScript::reload (res://tests/gameplay/test_aiming.gd:1)
+          GDScript backtrace (most recent call first):
+              [0] _initialize (res://tests/ci/check_project_scripts.gd:19)
+ERROR: Failed to load script "res://tests/gameplay/test_aiming.gd" with error "Parse error".
+   at: load (modules/gdscript/gdscript_resource_format.cpp:46)
+   GDScript backtrace (most recent call first):
+       [0] _initialize (res://tests/ci/check_project_scripts.gd:19)
+SCRIPT ERROR: Parse Error: Could not find base class "GdUnitTestSuite".
+          at: GDScript::reload (res://tests/gameplay/test_game_session.gd:1)
+          GDScript backtrace (most recent call first):
+              [0] _initialize (res://tests/ci/check_project_scripts.gd:19)
+ERROR: Failed to load script "res://tests/gameplay/test_game_session.gd" with error "Parse error".
+   at: load (modules/gdscript/gdscript_resource_format.cpp:46)
+   GDScript backtrace (most recent call first):
+       [0] _initialize (res://tests/ci/check_project_scripts.gd:19)
+SCRIPT ERROR: Parse Error: Could not find base class "GdUnitTestSuite".
+          at: GDScript::reload (res://tests/gameplay/test_one_hole.gd:1)
+          GDScript backtrace (most recent call first):
+              [0] _initialize (res://tests/ci/check_project_scripts.gd:19)
+ERROR: Failed to load script "res://tests/gameplay/test_one_hole.gd" with error "Parse error".
+   at: load (modules/gdscript/gdscript_resource_format.cpp:46)
+   GDScript backtrace (most recent call first):
+       [0] _initialize (res://tests/ci/check_project_scripts.gd:19)
+SCRIPT ERROR: Parse Error: Could not find base class "GdUnitTestSuite".
+          at: GDScript::reload (res://tests/gameplay/test_personal_shot.gd:1)
+          GDScript backtrace (most recent call first):
+              [0] _initialize (res://tests/ci/check_project_scripts.gd:19)
+ERROR: Failed to load script "res://tests/gameplay/test_personal_shot.gd" with error "Parse error".
+   at: load (modules/gdscript/gdscript_resource_format.cpp:46)
+   GDScript backtrace (most recent call first):
+       [0] _initialize (res://tests/ci/check_project_scripts.gd:19)
+SCRIPT ERROR: Parse Error: Could not find base class "GdUnitTestSuite".
+          at: GDScript::reload (res://tests/gameplay/test_session_save.gd:1)
+          GDScript backtrace (most recent call first):
+              [0] _initialize (res://tests/ci/check_project_scripts.gd:19)
+ERROR: Failed to load script "res://tests/gameplay/test_session_save.gd" with error "Parse error".
+   at: load (modules/gdscript/gdscript_resource_format.cpp:46)
+   GDScript backtrace (most recent call first):
+       [0] _initialize (res://tests/ci/check_project_scripts.gd:19)
+SCRIPT ERROR: Parse Error: Could not find base class "GdUnitTestSuite".
+          at: GDScript::reload (res://tests/gameplay/test_slice_bar.gd:1)
+          GDScript backtrace (most recent call first):
+              [0] _initialize (res://tests/ci/check_project_scripts.gd:19)
+ERROR: Failed to load script "res://tests/gameplay/test_slice_bar.gd" with error "Parse error".
+   at: load (modules/gdscript/gdscript_resource_format.cpp:46)
+   GDScript backtrace (most recent call first):
+       [0] _initialize (res://tests/ci/check_project_scripts.gd:19)
+SCRIPT ERROR: Parse Error: Could not find base class "GdUnitTestSuite".
+          at: GDScript::reload (res://tests/gameplay/test_slice_layout.gd:1)
+          GDScript backtrace (most recent call first):
+              [0] _initialize (res://tests/ci/check_project_scripts.gd:19)
+ERROR: Failed to load script "res://tests/gameplay/test_slice_layout.gd" with error "Parse error".
+   at: load (modules/gdscript/gdscript_resource_format.cpp:46)
+   GDScript backtrace (most recent call first):
+       [0] _initialize (res://tests/ci/check_project_scripts.gd:19)
+SCRIPT ERROR: Parse Error: Could not find base class "GdUnitTestSuite".
+          at: GDScript::reload (res://tests/gameplay/test_slice_nature.gd:1)
+          GDScript backtrace (most recent call first):
+              [0] _initialize (res://tests/ci/check_project_scripts.gd:19)
+ERROR: Failed to load script "res://tests/gameplay/test_slice_nature.gd" with error "Parse error".
+   at: load (modules/gdscript/gdscript_resource_format.cpp:46)
+   GDScript backtrace (most recent call first):
+       [0] _initialize (res://tests/ci/check_project_scripts.gd:19)
+SCRIPT ERROR: Parse Error: Could not find base class "GdUnitTestSuite".
+          at: GDScript::reload (res://tests/gameplay/test_slice_round.gd:1)
+          GDScript backtrace (most recent call first):
+              [0] _initialize (res://tests/ci/check_project_scripts.gd:19)
+ERROR: Failed to load script "res://tests/gameplay/test_slice_round.gd" with error "Parse error".
+   at: load (modules/gdscript/gdscript_resource_format.cpp:46)
+   GDScript backtrace (most recent call first):
+       [0] _initialize (res://tests/ci/check_project_scripts.gd:19)
+SCRIPT ERROR: Parse Error: Could not find base class "GdUnitTestSuite".
+          at: GDScript::reload (res://tests/gameplay/test_slice_schedule.gd:1)
+          GDScript backtrace (most recent call first):
+              [0] _initialize (res://tests/ci/check_project_scripts.gd:19)
+ERROR: Failed to load script "res://tests/gameplay/test_slice_schedule.gd" with error "Parse error".
+   at: load (modules/gdscript/gdscript_resource_format.cpp:46)
+   GDScript backtrace (most recent call first):
+       [0] _initialize (res://tests/ci/check_project_scripts.gd:19)
+SCRIPT ERROR: Parse Error: Could not find base class "GdUnitTestSuite".
+          at: GDScript::reload (res://tests/gameplay/test_slice_text.gd:1)
+          GDScript backtrace (most recent call first):
+              [0] _initialize (res://tests/ci/check_project_scripts.gd:19)
+ERROR: Failed to load script "res://tests/gameplay/test_slice_text.gd" with error "Parse error".
+   at: load (modules/gdscript/gdscript_resource_format.cpp:46)
+   GDScript backtrace (most recent call first):
+       [0] _initialize (res://tests/ci/check_project_scripts.gd:19)
+SCRIPT ERROR: Parse Error: Could not find base class "GdUnitTestSuite".
+          at: GDScript::reload (res://tests/gameplay/test_slice_visibility.gd:1)
+          GDScript backtrace (most recent call first):
+              [0] _initialize (res://tests/ci/check_project_scripts.gd:19)
+ERROR: Failed to load script "res://tests/gameplay/test_slice_visibility.gd" with error "Parse error".
+   at: load (modules/gdscript/gdscript_resource_format.cpp:46)
+   GDScript backtrace (most recent call first):
+       [0] _initialize (res://tests/ci/check_project_scripts.gd:19)
+SCRIPT ERROR: Parse Error: Could not find base class "GdUnitTestSuite".
+          at: GDScript::reload (res://tests/gameplay/test_vertical_slice_scene.gd:1)
+          GDScript backtrace (most recent call first):
+              [0] _initialize (res://tests/ci/check_project_scripts.gd:19)
+ERROR: Failed to load script "res://tests/gameplay/test_vertical_slice_scene.gd" with error "Parse error".
+   at: load (modules/gdscript/gdscript_resource_format.cpp:46)
+   GDScript backtrace (most recent call first):
+       [0] _initialize (res://tests/ci/check_project_scripts.gd:19)
+SCRIPT ERROR: Parse Error: Could not find base class "GdUnitTestSuite".
+          at: GDScript::reload (res://tests/gate0/test_gate0_helpers.gd:1)
+          GDScript backtrace (most recent call first):
+              [0] _initialize (res://tests/ci/check_project_scripts.gd:19)
+ERROR: Failed to load script "res://tests/gate0/test_gate0_helpers.gd" with error "Parse error".
+   at: load (modules/gdscript/gdscript_resource_format.cpp:46)
+   GDScript backtrace (most recent call first):
+       [0] _initialize (res://tests/ci/check_project_scripts.gd:19)
+SCRIPT ERROR: Parse Error: Could not find base class "GdUnitTestSuite".
+          at: GDScript::reload (res://tests/gate0/test_gate0_kill.gd:1)
+          GDScript backtrace (most recent call first):
+              [0] _initialize (res://tests/ci/check_project_scripts.gd:19)
+ERROR: Failed to load script "res://tests/gate0/test_gate0_kill.gd" with error "Parse error".
+   at: load (modules/gdscript/gdscript_resource_format.cpp:46)
+   GDScript backtrace (most recent call first):
+       [0] _initialize (res://tests/ci/check_project_scripts.gd:19)
+SCRIPT ERROR: Parse Error: Could not find base class "GdUnitTestSuite".
+          at: GDScript::reload (res://tests/gate0/test_gate0_sim.gd:1)
+          GDScript backtrace (most recent call first):
+              [0] _initialize (res://tests/ci/check_project_scripts.gd:19)
+ERROR: Failed to load script "res://tests/gate0/test_gate0_sim.gd" with error "Parse error".
+   at: load (modules/gdscript/gdscript_resource_format.cpp:46)
+   GDScript backtrace (most recent call first):
+       [0] _initialize (res://tests/ci/check_project_scripts.gd:19)
+SCRIPT ERROR: Parse Error: Could not find base class "GdUnitTestSuite".
+          at: GDScript::reload (res://tests/gate0/test_gate0_terrain_check.gd:1)
+          GDScript backtrace (most recent call first):
+              [0] _initialize (res://tests/ci/check_project_scripts.gd:19)
+ERROR: Failed to load script "res://tests/gate0/test_gate0_terrain_check.gd" with error "Parse error".
+   at: load (modules/gdscript/gdscript_resource_format.cpp:46)
+   GDScript backtrace (most recent call first):
+       [0] _initialize (res://tests/ci/check_project_scripts.gd:19)
+SCRIPT ERROR: Parse Error: Could not find base class "GdUnitTestSuite".
+          at: GDScript::reload (res://tests/input/test_cell_sentinel.gd:1)
+          GDScript backtrace (most recent call first):
+              [0] _initialize (res://tests/ci/check_project_scripts.gd:19)
+ERROR: Failed to load script "res://tests/input/test_cell_sentinel.gd" with error "Parse error".
+   at: load (modules/gdscript/gdscript_resource_format.cpp:46)
+   GDScript backtrace (most recent call first):
+       [0] _initialize (res://tests/ci/check_project_scripts.gd:19)
+SCRIPT ERROR: Parse Error: Could not find base class "GdUnitTestSuite".
+          at: GDScript::reload (res://tests/input/test_gesture_math.gd:1)
+          GDScript backtrace (most recent call first):
+              [0] _initialize (res://tests/ci/check_project_scripts.gd:19)
+ERROR: Failed to load script "res://tests/input/test_gesture_math.gd" with error "Parse error".
+   at: load (modules/gdscript/gdscript_resource_format.cpp:46)
+   GDScript backtrace (most recent call first):
+       [0] _initialize (res://tests/ci/check_project_scripts.gd:19)
+SCRIPT ERROR: Parse Error: Could not find base class "GdUnitTestSuite".
+          at: GDScript::reload (res://tests/input/test_gesture_state_machine.gd:1)
+          GDScript backtrace (most recent call first):
+              [0] _initialize (res://tests/ci/check_project_scripts.gd:19)
+ERROR: Failed to load script "res://tests/input/test_gesture_state_machine.gd" with error "Parse error".
+   at: load (modules/gdscript/gdscript_resource_format.cpp:46)
+   GDScript backtrace (most recent call first):
+       [0] _initialize (res://tests/ci/check_project_scripts.gd:19)
+SCRIPT ERROR: Parse Error: Could not find base class "GdUnitTestSuite".
+          at: GDScript::reload (res://tests/input/test_iso_rig.gd:1)
+          GDScript backtrace (most recent call first):
+              [0] _initialize (res://tests/ci/check_project_scripts.gd:19)
+ERROR: Failed to load script "res://tests/input/test_iso_rig.gd" with error "Parse error".
+   at: load (modules/gdscript/gdscript_resource_format.cpp:46)
+   GDScript backtrace (most recent call first):
+       [0] _initialize (res://tests/ci/check_project_scripts.gd:19)
+SCRIPT ERROR: Parse Error: Could not find base class "GdUnitTestSuite".
+          at: GDScript::reload (res://tests/land/test_land_model.gd:1)
+          GDScript backtrace (most recent call first):
+              [0] _initialize (res://tests/ci/check_project_scripts.gd:19)
+ERROR: Failed to load script "res://tests/land/test_land_model.gd" with error "Parse error".
+   at: load (modules/gdscript/gdscript_resource_format.cpp:46)
+   GDScript backtrace (most recent call first):
+       [0] _initialize (res://tests/ci/check_project_scripts.gd:19)
+SCRIPT ERROR: Parse Error: Could not find base class "GdUnitTestSuite".
+          at: GDScript::reload (res://tests/progression/test_achievements.gd:1)
+          GDScript backtrace (most recent call first):
+              [0] _initialize (res://tests/ci/check_project_scripts.gd:19)
+ERROR: Failed to load script "res://tests/progression/test_achievements.gd" with error "Parse error".
+   at: load (modules/gdscript/gdscript_resource_format.cpp:46)
+   GDScript backtrace (most recent call first):
+       [0] _initialize (res://tests/ci/check_project_scripts.gd:19)
+SCRIPT ERROR: Parse Error: Could not find base class "GdUnitTestSuite".
+          at: GDScript::reload (res://tests/progression/test_progression.gd:1)
+          GDScript backtrace (most recent call first):
+              [0] _initialize (res://tests/ci/check_project_scripts.gd:19)
+ERROR: Failed to load script "res://tests/progression/test_progression.gd" with error "Parse error".
+   at: load (modules/gdscript/gdscript_resource_format.cpp:46)
+   GDScript backtrace (most recent call first):
+       [0] _initialize (res://tests/ci/check_project_scripts.gd:19)
+SCRIPT ERROR: Parse Error: Could not find base class "GdUnitTestSuite".
+          at: GDScript::reload (res://tests/progression/test_streak.gd:1)
+          GDScript backtrace (most recent call first):
+              [0] _initialize (res://tests/ci/check_project_scripts.gd:19)
+ERROR: Failed to load script "res://tests/progression/test_streak.gd" with error "Parse error".
+   at: load (modules/gdscript/gdscript_resource_format.cpp:46)
+   GDScript backtrace (most recent call first):
+       [0] _initialize (res://tests/ci/check_project_scripts.gd:19)
+SCRIPT ERROR: Parse Error: Could not find base class "GdUnitTestSuite".
+          at: GDScript::reload (res://tests/rating/test_rating_course.gd:1)
+          GDScript backtrace (most recent call first):
+              [0] _initialize (res://tests/ci/check_project_scripts.gd:19)
+ERROR: Failed to load script "res://tests/rating/test_rating_course.gd" with error "Parse error".
+   at: load (modules/gdscript/gdscript_resource_format.cpp:46)
+   GDScript backtrace (most recent call first):
+       [0] _initialize (res://tests/ci/check_project_scripts.gd:19)
+SCRIPT ERROR: Parse Error: Could not find base class "GdUnitTestSuite".
+          at: GDScript::reload (res://tests/rating/test_rating_math.gd:1)
+          GDScript backtrace (most recent call first):
+              [0] _initialize (res://tests/ci/check_project_scripts.gd:19)
+ERROR: Failed to load script "res://tests/rating/test_rating_math.gd" with error "Parse error".
+   at: load (modules/gdscript/gdscript_resource_format.cpp:46)
+   GDScript backtrace (most recent call first):
+       [0] _initialize (res://tests/ci/check_project_scripts.gd:19)
+SCRIPT ERROR: Parse Error: Could not find base class "GdUnitTestSuite".
+          at: GDScript::reload (res://tests/rating/test_rating_relief.gd:1)
+          GDScript backtrace (most recent call first):
+              [0] _initialize (res://tests/ci/check_project_scripts.gd:19)
+ERROR: Failed to load script "res://tests/rating/test_rating_relief.gd" with error "Parse error".
+   at: load (modules/gdscript/gdscript_resource_format.cpp:46)
+   GDScript backtrace (most recent call first):
+       [0] _initialize (res://tests/ci/check_project_scripts.gd:19)
+SCRIPT ERROR: Parse Error: Could not find base class "GdUnitTestSuite".
+          at: GDScript::reload (res://tests/rating/test_rating_sim.gd:1)
+          GDScript backtrace (most recent call first):
+              [0] _initialize (res://tests/ci/check_project_scripts.gd:19)
+ERROR: Failed to load script "res://tests/rating/test_rating_sim.gd" with error "Parse error".
+   at: load (modules/gdscript/gdscript_resource_format.cpp:46)
+   GDScript backtrace (most recent call first):
+       [0] _initialize (res://tests/ci/check_project_scripts.gd:19)
+SCRIPT ERROR: Parse Error: Could not find base class "GdUnitTestSuite".
+          at: GDScript::reload (res://tests/rating/test_rating_validate.gd:1)
+          GDScript backtrace (most recent call first):
+              [0] _initialize (res://tests/ci/check_project_scripts.gd:19)
+ERROR: Failed to load script "res://tests/rating/test_rating_validate.gd" with error "Parse error".
+   at: load (modules/gdscript/gdscript_resource_format.cpp:46)
+   GDScript backtrace (most recent call first):
+       [0] _initialize (res://tests/ci/check_project_scripts.gd:19)
+SCRIPT ERROR: Parse Error: Could not find base class "GdUnitTestSuite".
+          at: GDScript::reload (res://tests/render/test_adaptive_scale.gd:1)
+          GDScript backtrace (most recent call first):
+              [0] _initialize (res://tests/ci/check_project_scripts.gd:19)
+ERROR: Failed to load script "res://tests/render/test_adaptive_scale.gd" with error "Parse error".
+   at: load (modules/gdscript/gdscript_resource_format.cpp:46)
+   GDScript backtrace (most recent call first):
+       [0] _initialize (res://tests/ci/check_project_scripts.gd:19)
+SCRIPT ERROR: Parse Error: Could not find base class "GdUnitTestSuite".
+          at: GDScript::reload (res://tests/render/test_bench_helpers.gd:1)
+          GDScript backtrace (most recent call first):
+              [0] _initialize (res://tests/ci/check_project_scripts.gd:19)
+ERROR: Failed to load script "res://tests/render/test_bench_helpers.gd" with error "Parse error".
+   at: load (modules/gdscript/gdscript_resource_format.cpp:46)
+   GDScript backtrace (most recent call first):
+       [0] _initialize (res://tests/ci/check_project_scripts.gd:19)
+SCRIPT ERROR: Parse Error: Could not find base class "GdUnitTestSuite".
+          at: GDScript::reload (res://tests/render/test_frame_governor.gd:1)
+          GDScript backtrace (most recent call first):
+              [0] _initialize (res://tests/ci/check_project_scripts.gd:19)
+ERROR: Failed to load script "res://tests/render/test_frame_governor.gd" with error "Parse error".
+   at: load (modules/gdscript/gdscript_resource_format.cpp:46)
+   GDScript backtrace (most recent call first):
+       [0] _initialize (res://tests/ci/check_project_scripts.gd:19)
+SCRIPT ERROR: Parse Error: Could not find base class "GdUnitTestSuite".
+          at: GDScript::reload (res://tests/render/test_quality_tiers.gd:1)
+          GDScript backtrace (most recent call first):
+              [0] _initialize (res://tests/ci/check_project_scripts.gd:19)
+ERROR: Failed to load script "res://tests/render/test_quality_tiers.gd" with error "Parse error".
+   at: load (modules/gdscript/gdscript_resource_format.cpp:46)
+   GDScript backtrace (most recent call first):
+       [0] _initialize (res://tests/ci/check_project_scripts.gd:19)
+SCRIPT ERROR: Parse Error: Could not find base class "GdUnitTestSuite".
+          at: GDScript::reload (res://tests/render/test_tree_placement.gd:1)
+          GDScript backtrace (most recent call first):
+              [0] _initialize (res://tests/ci/check_project_scripts.gd:19)
+ERROR: Failed to load script "res://tests/render/test_tree_placement.gd" with error "Parse error".
+   at: load (modules/gdscript/gdscript_resource_format.cpp:46)
+   GDScript backtrace (most recent call first):
+       [0] _initialize (res://tests/ci/check_project_scripts.gd:19)
+SCRIPT ERROR: Parse Error: Could not find base class "GdUnitTestSuite".
+          at: GDScript::reload (res://tests/save/test_cloud_conflict.gd:1)
+          GDScript backtrace (most recent call first):
+              [0] _initialize (res://tests/ci/check_project_scripts.gd:19)
+ERROR: Failed to load script "res://tests/save/test_cloud_conflict.gd" with error "Parse error".
+   at: load (modules/gdscript/gdscript_resource_format.cpp:46)
+   GDScript backtrace (most recent call first):
+       [0] _initialize (res://tests/ci/check_project_scripts.gd:19)
+SCRIPT ERROR: Parse Error: Could not find base class "GdUnitTestSuite".
+          at: GDScript::reload (res://tests/save/test_player_settings.gd:1)
+          GDScript backtrace (most recent call first):
+              [0] _initialize (res://tests/ci/check_project_scripts.gd:19)
+ERROR: Failed to load script "res://tests/save/test_player_settings.gd" with error "Parse error".
+   at: load (modules/gdscript/gdscript_resource_format.cpp:46)
+   GDScript backtrace (most recent call first):
+       [0] _initialize (res://tests/ci/check_project_scripts.gd:19)
+SCRIPT ERROR: Parse Error: Could not find base class "GdUnitTestSuite".
+          at: GDScript::reload (res://tests/save/test_save_game.gd:1)
+          GDScript backtrace (most recent call first):
+              [0] _initialize (res://tests/ci/check_project_scripts.gd:19)
+ERROR: Failed to load script "res://tests/save/test_save_game.gd" with error "Parse error".
+   at: load (modules/gdscript/gdscript_resource_format.cpp:46)
+   GDScript backtrace (most recent call first):
+       [0] _initialize (res://tests/ci/check_project_scripts.gd:19)
+SCRIPT ERROR: Parse Error: Could not find base class "GdUnitTestSuite".
+          at: GDScript::reload (res://tests/save/test_save_migrator.gd:1)
+          GDScript backtrace (most recent call first):
+              [0] _initialize (res://tests/ci/check_project_scripts.gd:19)
+ERROR: Failed to load script "res://tests/save/test_save_migrator.gd" with error "Parse error".
+   at: load (modules/gdscript/gdscript_resource_format.cpp:46)
+   GDScript backtrace (most recent call first):
+       [0] _initialize (res://tests/ci/check_project_scripts.gd:19)
+SCRIPT ERROR: Parse Error: Could not find base class "GdUnitTestSuite".
+          at: GDScript::reload (res://tests/save/test_save_progress.gd:1)
+          GDScript backtrace (most recent call first):
+              [0] _initialize (res://tests/ci/check_project_scripts.gd:19)
+ERROR: Failed to load script "res://tests/save/test_save_progress.gd" with error "Parse error".
+   at: load (modules/gdscript/gdscript_resource_format.cpp:46)
+   GDScript backtrace (most recent call first):
+       [0] _initialize (res://tests/ci/check_project_scripts.gd:19)
+SCRIPT ERROR: Parse Error: Could not find base class "GdUnitTestSuite".
+          at: GDScript::reload (res://tests/save/test_save_store.gd:1)
+          GDScript backtrace (most recent call first):
+              [0] _initialize (res://tests/ci/check_project_scripts.gd:19)
+ERROR: Failed to load script "res://tests/save/test_save_store.gd" with error "Parse error".
+   at: load (modules/gdscript/gdscript_resource_format.cpp:46)
+   GDScript backtrace (most recent call first):
+       [0] _initialize (res://tests/ci/check_project_scripts.gd:19)
+SCRIPT ERROR: Parse Error: Could not find base class "GdUnitTestSuite".
+          at: GDScript::reload (res://tests/staff/test_staff_defs.gd:1)
+          GDScript backtrace (most recent call first):
+              [0] _initialize (res://tests/ci/check_project_scripts.gd:19)
+ERROR: Failed to load script "res://tests/staff/test_staff_defs.gd" with error "Parse error".
+   at: load (modules/gdscript/gdscript_resource_format.cpp:46)
+   GDScript backtrace (most recent call first):
+       [0] _initialize (res://tests/ci/check_project_scripts.gd:19)
+SCRIPT ERROR: Parse Error: Could not find base class "GdUnitTestSuite".
+          at: GDScript::reload (res://tests/staff/test_staff_effects.gd:1)
+          GDScript backtrace (most recent call first):
+              [0] _initialize (res://tests/ci/check_project_scripts.gd:19)
+ERROR: Failed to load script "res://tests/staff/test_staff_effects.gd" with error "Parse error".
+   at: load (modules/gdscript/gdscript_resource_format.cpp:46)
+   GDScript backtrace (most recent call first):
+       [0] _initialize (res://tests/ci/check_project_scripts.gd:19)
+SCRIPT ERROR: Parse Error: Could not find base class "GdUnitTestSuite".
+          at: GDScript::reload (res://tests/staff/test_staff_golden.gd:1)
+          GDScript backtrace (most recent call first):
+              [0] _initialize (res://tests/ci/check_project_scripts.gd:19)
+ERROR: Failed to load script "res://tests/staff/test_staff_golden.gd" with error "Parse error".
+   at: load (modules/gdscript/gdscript_resource_format.cpp:46)
+   GDScript backtrace (most recent call first):
+       [0] _initialize (res://tests/ci/check_project_scripts.gd:19)
+SCRIPT ERROR: Parse Error: Could not find base class "GdUnitTestSuite".
+          at: GDScript::reload (res://tests/staff/test_staff_grounds.gd:1)
+          GDScript backtrace (most recent call first):
+              [0] _initialize (res://tests/ci/check_project_scripts.gd:19)
+ERROR: Failed to load script "res://tests/staff/test_staff_grounds.gd" with error "Parse error".
+   at: load (modules/gdscript/gdscript_resource_format.cpp:46)
+   GDScript backtrace (most recent call first):
+       [0] _initialize (res://tests/ci/check_project_scripts.gd:19)
+SCRIPT ERROR: Parse Error: Could not find base class "GdUnitTestSuite".
+          at: GDScript::reload (res://tests/staff/test_staff_roster.gd:1)
+          GDScript backtrace (most recent call first):
+              [0] _initialize (res://tests/ci/check_project_scripts.gd:19)
+ERROR: Failed to load script "res://tests/staff/test_staff_roster.gd" with error "Parse error".
+   at: load (modules/gdscript/gdscript_resource_format.cpp:46)
+   GDScript backtrace (most recent call first):
+       [0] _initialize (res://tests/ci/check_project_scripts.gd:19)
+SCRIPT ERROR: Parse Error: Could not find base class "GdUnitTestSuite".
+          at: GDScript::reload (res://tests/staff/test_staff_save.gd:1)
+          GDScript backtrace (most recent call first):
+              [0] _initialize (res://tests/ci/check_project_scripts.gd:19)
+ERROR: Failed to load script "res://tests/staff/test_staff_save.gd" with error "Parse error".
+   at: load (modules/gdscript/gdscript_resource_format.cpp:46)
+   GDScript backtrace (most recent call first):
+       [0] _initialize (res://tests/ci/check_project_scripts.gd:19)
+SCRIPT ERROR: Parse Error: Could not find base class "GdUnitTestSuite".
+          at: GDScript::reload (res://tests/terrain/test_brush.gd:1)
+          GDScript backtrace (most recent call first):
+              [0] _initialize (res://tests/ci/check_project_scripts.gd:19)
+ERROR: Failed to load script "res://tests/terrain/test_brush.gd" with error "Parse error".
+   at: load (modules/gdscript/gdscript_resource_format.cpp:46)
+   GDScript backtrace (most recent call first):
+       [0] _initialize (res://tests/ci/check_project_scripts.gd:19)
+SCRIPT ERROR: Parse Error: Could not find base class "GdUnitTestSuite".
+          at: GDScript::reload (res://tests/terrain/test_dirty.gd:1)
+          GDScript backtrace (most recent call first):
+              [0] _initialize (res://tests/ci/check_project_scripts.gd:19)
+ERROR: Failed to load script "res://tests/terrain/test_dirty.gd" with error "Parse error".
+   at: load (modules/gdscript/gdscript_resource_format.cpp:46)
+   GDScript backtrace (most recent call first):
+       [0] _initialize (res://tests/ci/check_project_scripts.gd:19)
+SCRIPT ERROR: Parse Error: Could not find base class "GdUnitTestSuite".
+          at: GDScript::reload (res://tests/terrain/test_paint_undo.gd:1)
+          GDScript backtrace (most recent call first):
+              [0] _initialize (res://tests/ci/check_project_scripts.gd:19)
+ERROR: Failed to load script "res://tests/terrain/test_paint_undo.gd" with error "Parse error".
+   at: load (modules/gdscript/gdscript_resource_format.cpp:46)
+   GDScript backtrace (most recent call first):
+       [0] _initialize (res://tests/ci/check_project_scripts.gd:19)
+SCRIPT ERROR: Parse Error: Could not find base class "GdUnitTestSuite".
+          at: GDScript::reload (res://tests/terrain/test_picking.gd:1)
+          GDScript backtrace (most recent call first):
+              [0] _initialize (res://tests/ci/check_project_scripts.gd:19)
+ERROR: Failed to load script "res://tests/terrain/test_picking.gd" with error "Parse error".
+   at: load (modules/gdscript/gdscript_resource_format.cpp:46)
+   GDScript backtrace (most recent call first):
+       [0] _initialize (res://tests/ci/check_project_scripts.gd:19)
+SCRIPT ERROR: Parse Error: Could not find base class "GdUnitTestSuite".
+          at: GDScript::reload (res://tests/terrain/test_save.gd:1)
+          GDScript backtrace (most recent call first):
+              [0] _initialize (res://tests/ci/check_project_scripts.gd:19)
+ERROR: Failed to load script "res://tests/terrain/test_save.gd" with error "Parse error".
+   at: load (modules/gdscript/gdscript_resource_format.cpp:46)
+   GDScript backtrace (most recent call first):
+       [0] _initialize (res://tests/ci/check_project_scripts.gd:19)
+SCRIPT ERROR: Parse Error: Could not find base class "GdUnitTestSuite".
+          at: GDScript::reload (res://tests/terrain/test_save_golden.gd:1)
+          GDScript backtrace (most recent call first):
+              [0] _initialize (res://tests/ci/check_project_scripts.gd:19)
+ERROR: Failed to load script "res://tests/terrain/test_save_golden.gd" with error "Parse error".
+   at: load (modules/gdscript/gdscript_resource_format.cpp:46)
+   GDScript backtrace (most recent call first):
+       [0] _initialize (res://tests/ci/check_project_scripts.gd:19)
+SCRIPT ERROR: Parse Error: Could not find base class "GdUnitTestSuite".
+          at: GDScript::reload (res://tests/terrain/test_save_robust.gd:1)
+          GDScript backtrace (most recent call first):
+              [0] _initialize (res://tests/ci/check_project_scripts.gd:19)
+ERROR: Failed to load script "res://tests/terrain/test_save_robust.gd" with error "Parse error".
+   at: load (modules/gdscript/gdscript_resource_format.cpp:46)
+   GDScript backtrace (most recent call first):
+       [0] _initialize (res://tests/ci/check_project_scripts.gd:19)
+SCRIPT ERROR: Parse Error: Could not find base class "GdUnitTestSuite".
+          at: GDScript::reload (res://tests/terrain/test_stroke_undo.gd:1)
+          GDScript backtrace (most recent call first):
+              [0] _initialize (res://tests/ci/check_project_scripts.gd:19)
+ERROR: Failed to load script "res://tests/terrain/test_stroke_undo.gd" with error "Parse error".
+   at: load (modules/gdscript/gdscript_resource_format.cpp:46)
+   GDScript backtrace (most recent call first):
+       [0] _initialize (res://tests/ci/check_project_scripts.gd:19)
+SCRIPT ERROR: Parse Error: Could not find base class "GdUnitTestSuite".
+          at: GDScript::reload (res://tests/tokens/test_token_ledger.gd:1)
+          GDScript backtrace (most recent call first):
+              [0] _initialize (res://tests/ci/check_project_scripts.gd:19)
+ERROR: Failed to load script "res://tests/tokens/test_token_ledger.gd" with error "Parse error".
+   at: load (modules/gdscript/gdscript_resource_format.cpp:46)
+   GDScript backtrace (most recent call first):
+       [0] _initialize (res://tests/ci/check_project_scripts.gd:19)
+SCRIPT ERROR: Parse Error: Could not find base class "GdUnitTestSuite".
+          at: GDScript::reload (res://tests/tournaments/test_tournament_defs.gd:1)
+          GDScript backtrace (most recent call first):
+              [0] _initialize (res://tests/ci/check_project_scripts.gd:19)
+ERROR: Failed to load script "res://tests/tournaments/test_tournament_defs.gd" with error "Parse error".
+   at: load (modules/gdscript/gdscript_resource_format.cpp:46)
+   GDScript backtrace (most recent call first):
+       [0] _initialize (res://tests/ci/check_project_scripts.gd:19)
+SCRIPT ERROR: Parse Error: Could not find base class "GdUnitTestSuite".
+          at: GDScript::reload (res://tests/tournaments/test_tournament_rules.gd:1)
+          GDScript backtrace (most recent call first):
+              [0] _initialize (res://tests/ci/check_project_scripts.gd:19)
+ERROR: Failed to load script "res://tests/tournaments/test_tournament_rules.gd" with error "Parse error".
+   at: load (modules/gdscript/gdscript_resource_format.cpp:46)
+   GDScript backtrace (most recent call first):
+       [0] _initialize (res://tests/ci/check_project_scripts.gd:19)
+SCRIPT ERROR: Parse Error: Could not find base class "GdUnitTestSuite".
+          at: GDScript::reload (res://tests/tournaments/test_tournament_sim.gd:1)
+          GDScript backtrace (most recent call first):
+              [0] _initialize (res://tests/ci/check_project_scripts.gd:19)
+ERROR: Failed to load script "res://tests/tournaments/test_tournament_sim.gd" with error "Parse error".
+   at: load (modules/gdscript/gdscript_resource_format.cpp:46)
+   GDScript backtrace (most recent call first):
+       [0] _initialize (res://tests/ci/check_project_scripts.gd:19)
+SCRIPT ERROR: Parse Error: Could not find base class "GdUnitTestSuite".
+          at: GDScript::reload (res://tests/tournaments/test_tournament_state.gd:1)
+          GDScript backtrace (most recent call first):
+              [0] _initialize (res://tests/ci/check_project_scripts.gd:19)
+ERROR: Failed to load script "res://tests/tournaments/test_tournament_state.gd" with error "Parse error".
+   at: load (modules/gdscript/gdscript_resource_format.cpp:46)
+   GDScript backtrace (most recent call first):
+       [0] _initialize (res://tests/ci/check_project_scripts.gd:19)
+SCRIPT ERROR: Parse Error: Could not find base class "GdUnitTestSuite".
+          at: GDScript::reload (res://tests/ui/test_build_menu_model.gd:1)
+          GDScript backtrace (most recent call first):
+              [0] _initialize (res://tests/ci/check_project_scripts.gd:19)
+ERROR: Failed to load script "res://tests/ui/test_build_menu_model.gd" with error "Parse error".
+   at: load (modules/gdscript/gdscript_resource_format.cpp:46)
+   GDScript backtrace (most recent call first):
+       [0] _initialize (res://tests/ci/check_project_scripts.gd:19)
+SCRIPT ERROR: Parse Error: Could not find base class "GdUnitTestSuite".
+          at: GDScript::reload (res://tests/ui/test_editor_tools_advisor.gd:1)
+          GDScript backtrace (most recent call first):
+              [0] _initialize (res://tests/ci/check_project_scripts.gd:19)
+ERROR: Failed to load script "res://tests/ui/test_editor_tools_advisor.gd" with error "Parse error".
+   at: load (modules/gdscript/gdscript_resource_format.cpp:46)
+   GDScript backtrace (most recent call first):
+       [0] _initialize (res://tests/ci/check_project_scripts.gd:19)
+SCRIPT ERROR: Parse Error: Could not find base class "GdUnitTestSuite".
+          at: GDScript::reload (res://tests/ui/test_format.gd:1)
+          GDScript backtrace (most recent call first):
+              [0] _initialize (res://tests/ci/check_project_scripts.gd:19)
+ERROR: Failed to load script "res://tests/ui/test_format.gd" with error "Parse error".
+   at: load (modules/gdscript/gdscript_resource_format.cpp:46)
+   GDScript backtrace (most recent call first):
+       [0] _initialize (res://tests/ci/check_project_scripts.gd:19)
+SCRIPT ERROR: Parse Error: Could not find base class "GdUnitTestSuite".
+          at: GDScript::reload (res://tests/ui/test_game_state_view.gd:1)
+          GDScript backtrace (most recent call first):
+              [0] _initialize (res://tests/ci/check_project_scripts.gd:19)
+ERROR: Failed to load script "res://tests/ui/test_game_state_view.gd" with error "Parse error".
+   at: load (modules/gdscript/gdscript_resource_format.cpp:46)
+   GDScript backtrace (most recent call first):
+       [0] _initialize (res://tests/ci/check_project_scripts.gd:19)
+SCRIPT ERROR: Parse Error: Could not find base class "GdUnitTestSuite".
+          at: GDScript::reload (res://tests/ui/test_launcher_and_build_info.gd:1)
+          GDScript backtrace (most recent call first):
+              [0] _initialize (res://tests/ci/check_project_scripts.gd:19)
+ERROR: Failed to load script "res://tests/ui/test_launcher_and_build_info.gd" with error "Parse error".
+   at: load (modules/gdscript/gdscript_resource_format.cpp:46)
+   GDScript backtrace (most recent call first):
+       [0] _initialize (res://tests/ci/check_project_scripts.gd:19)
+SCRIPT ERROR: Parse Error: Could not find base class "GdUnitTestSuite".
+          at: GDScript::reload (res://tests/ui/test_layout_and_context.gd:1)
+          GDScript backtrace (most recent call first):
+              [0] _initialize (res://tests/ci/check_project_scripts.gd:19)
+ERROR: Failed to load script "res://tests/ui/test_layout_and_context.gd" with error "Parse error".
+   at: load (modules/gdscript/gdscript_resource_format.cpp:46)
+   GDScript backtrace (most recent call first):
+       [0] _initialize (res://tests/ci/check_project_scripts.gd:19)
+SCRIPT ERROR: Parse Error: Could not find base class "GdUnitTestSuite".
+          at: GDScript::reload (res://tests/ui/test_live_layout.gd:1)
+          GDScript backtrace (most recent call first):
+              [0] _initialize (res://tests/ci/check_project_scripts.gd:19)
+ERROR: Failed to load script "res://tests/ui/test_live_layout.gd" with error "Parse error".
+   at: load (modules/gdscript/gdscript_resource_format.cpp:46)
+   GDScript backtrace (most recent call first):
+       [0] _initialize (res://tests/ci/check_project_scripts.gd:19)
+SCRIPT ERROR: Parse Error: Could not find base class "GdUnitTestSuite".
+          at: GDScript::reload (res://tests/ui/test_no_literal_text.gd:1)
+          GDScript backtrace (most recent call first):
+              [0] _initialize (res://tests/ci/check_project_scripts.gd:19)
+ERROR: Failed to load script "res://tests/ui/test_no_literal_text.gd" with error "Parse error".
+   at: load (modules/gdscript/gdscript_resource_format.cpp:46)
+   GDScript backtrace (most recent call first):
+       [0] _initialize (res://tests/ci/check_project_scripts.gd:19)
+SCRIPT ERROR: Parse Error: Could not find base class "GdUnitTestSuite".
+          at: GDScript::reload (res://tests/ui/test_progress_bridge.gd:1)
+          GDScript backtrace (most recent call first):
+              [0] _initialize (res://tests/ci/check_project_scripts.gd:19)
+ERROR: Failed to load script "res://tests/ui/test_progress_bridge.gd" with error "Parse error".
+   at: load (modules/gdscript/gdscript_resource_format.cpp:46)
+   GDScript backtrace (most recent call first):
+       [0] _initialize (res://tests/ci/check_project_scripts.gd:19)
+SCRIPT ERROR: Parse Error: Could not find base class "GdUnitTestSuite".
+          at: GDScript::reload (res://tests/ui/test_safe_area.gd:1)
+          GDScript backtrace (most recent call first):
+              [0] _initialize (res://tests/ci/check_project_scripts.gd:19)
+ERROR: Failed to load script "res://tests/ui/test_safe_area.gd" with error "Parse error".
+   at: load (modules/gdscript/gdscript_resource_format.cpp:46)
+   GDScript backtrace (most recent call first):
+       [0] _initialize (res://tests/ci/check_project_scripts.gd:19)
+SCRIPT ERROR: Parse Error: Could not find base class "GdUnitTestSuite".
+          at: GDScript::reload (res://tests/ui/test_screens_smoke.gd:1)
+          GDScript backtrace (most recent call first):
+              [0] _initialize (res://tests/ci/check_project_scripts.gd:19)
+ERROR: Failed to load script "res://tests/ui/test_screens_smoke.gd" with error "Parse error".
+   at: load (modules/gdscript/gdscript_resource_format.cpp:46)
+   GDScript backtrace (most recent call first):
+       [0] _initialize (res://tests/ci/check_project_scripts.gd:19)
+SCRIPT ERROR: Parse Error: Could not find base class "GdUnitTestSuite".
+          at: GDScript::reload (res://tests/ui/test_speed_recovery_score.gd:1)
+          GDScript backtrace (most recent call first):
+              [0] _initialize (res://tests/ci/check_project_scripts.gd:19)
+ERROR: Failed to load script "res://tests/ui/test_speed_recovery_score.gd" with error "Parse error".
+   at: load (modules/gdscript/gdscript_resource_format.cpp:46)
+   GDScript backtrace (most recent call first):
+       [0] _initialize (res://tests/ci/check_project_scripts.gd:19)
+SCRIPT ERROR: Parse Error: Could not find base class "GdUnitTestSuite".
+          at: GDScript::reload (res://tests/ui/test_stack_flow_settings.gd:1)
+          GDScript backtrace (most recent call first):
+              [0] _initialize (res://tests/ci/check_project_scripts.gd:19)
+ERROR: Failed to load script "res://tests/ui/test_stack_flow_settings.gd" with error "Parse error".
+   at: load (modules/gdscript/gdscript_resource_format.cpp:46)
+   GDScript backtrace (most recent call first):
+       [0] _initialize (res://tests/ci/check_project_scripts.gd:19)
+SCRIPT ERROR: Parse Error: Could not find base class "GdUnitTestSuite".
+          at: GDScript::reload (res://tests/ui/test_strings.gd:1)
+          GDScript backtrace (most recent call first):
+              [0] _initialize (res://tests/ci/check_project_scripts.gd:19)
+ERROR: Failed to load script "res://tests/ui/test_strings.gd" with error "Parse error".
+   at: load (modules/gdscript/gdscript_resource_format.cpp:46)
+   GDScript backtrace (most recent call first):
+       [0] _initialize (res://tests/ci/check_project_scripts.gd:19)
+SCRIPT ERROR: Parse Error: Could not find base class "GdUnitTestSuite".
+          at: GDScript::reload (res://tests/ui/test_theme_scaling.gd:1)
+          GDScript backtrace (most recent call first):
+              [0] _initialize (res://tests/ci/check_project_scripts.gd:19)
+ERROR: Failed to load script "res://tests/ui/test_theme_scaling.gd" with error "Parse error".
+   at: load (modules/gdscript/gdscript_resource_format.cpp:46)
+   GDScript backtrace (most recent call first):
+       [0] _initialize (res://tests/ci/check_project_scripts.gd:19)
+SCRIPT_CHECK PASS: 356 first-party GDScript files loaded
