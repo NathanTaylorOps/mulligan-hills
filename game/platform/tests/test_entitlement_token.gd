@@ -51,11 +51,15 @@ func test_android_fresh_cache_reverification_policy() -> void:
 	var service: MHEntitlementServiceAndroid = MHEntitlementServiceAndroid.new()
 	service._unlocked = true
 	service._token = "cached"
-	service._payload = {"ref": 100}
-	assert_bool(service._cached_entitlement_is_fresh(99)).is_true()
-	assert_bool(service._cached_entitlement_is_fresh(100)).is_false()
+	service._payload = {"ref": 100, "pth": "play-token-a".sha256_text().substr(0, 16)}
+	assert_bool(service._cached_entitlement_is_fresh("play-token-a", 99)).is_true()
+	assert_bool(service._cached_entitlement_is_fresh("play-token-a", 100)).is_false()
+	assert_bool(service._cached_entitlement_is_fresh("other-play-token", 99)).is_false()
+	assert_bool(service._cached_entitlement_is_fresh("", 99)).is_false()
+	service._payload.erase("pth")
+	assert_bool(service._cached_entitlement_is_fresh("play-token-a", 99)).is_false()
 	service._unlocked = false
-	assert_bool(service._cached_entitlement_is_fresh(99)).is_false()
+	assert_bool(service._cached_entitlement_is_fresh("play-token-a", 99)).is_false()
 
 
 func test_android_price_uses_current_play_billing_offer_shape() -> void:
