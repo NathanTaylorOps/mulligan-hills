@@ -1,6 +1,7 @@
 extends SceneTree
 ## CI-only project script loader. One headless Godot process loads every first-party .gd resource so scripts that
 ## ordinary --import never touches still have to compile. Third-party addons are tested through their consumers.
+## Generated Android Gradle projects contain external Godot plugin tests; they are not game source.
 
 const SELF_PATH: String = "res://tests/ci/check_project_scripts.gd"
 
@@ -42,7 +43,7 @@ func _collect(dir_path: String) -> void:
 			continue
 		var path: String = dir_path.path_join(name)
 		if dir.current_is_dir():
-			if name == ".godot" or (dir_path == "res://" and name == "addons"):
+			if name == ".godot" or (dir_path == "res://" and name == "addons") or path == "res://android/build":
 				continue
 			_collect(path)
 		elif name.ends_with(".gd"):
