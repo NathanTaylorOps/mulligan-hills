@@ -79,6 +79,11 @@ jobs:
           MH_VERSION_CODE="${{ github.run_number }}" tools/ci/render_export_presets.sh
           tools/ci/install_android_template.sh
 
+      # The import script loads all first-party GDScript, including gdUnit4 suites.
+      # Install the pinned addon before compiling test scripts (as in ci.yml).
+      - name: Install gdUnit4 for complete script validation
+        run: tools/ci/install_gdunit4.sh
+
       - name: Import project
         run: tools/ci/import_project.sh
 
