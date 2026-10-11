@@ -323,7 +323,7 @@ func advance(delta_us: int, wall_unix: int) -> void:
 	for i: int in range(0, events.size(), MHGameClock.EVENT_STRIDE):
 		if events[i] != MHGameClock.EV_HOUR:
 			continue
-		var hour_index: int = maxi(0, clock.hour - 1)
+		var hour_index: int = events[i + 1] * MHGameClock.HOURS_PER_DAY + events[i + 2] - 1
 		var wage: int = staff_system.pay_hour(hour_index)
 		if wage > 0:
 			economy.incur_loss(wage)
