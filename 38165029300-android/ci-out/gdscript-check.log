@@ -1,0 +1,47 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+SCRIPT ERROR: Parse Error: Could not find type "BaseTest" in the current scope.
+          at: GDScript::reload (res://android/build/src/instrumented/assets/main.gd:25)
+          GDScript backtrace (most recent call first):
+              [0] _initialize (res://tests/ci/check_project_scripts.gd:19)
+SCRIPT ERROR: Parse Error: Identifier "JavaClassWrapperTests" not declared in the current scope.
+          at: GDScript::reload (res://android/build/src/instrumented/assets/main.gd:28)
+          GDScript backtrace (most recent call first):
+              [0] _initialize (res://tests/ci/check_project_scripts.gd:19)
+SCRIPT ERROR: Parse Error: Identifier "FileAccessTests" not declared in the current scope.
+          at: GDScript::reload (res://android/build/src/instrumented/assets/main.gd:30)
+          GDScript backtrace (most recent call first):
+              [0] _initialize (res://tests/ci/check_project_scripts.gd:19)
+SCRIPT ERROR: Parse Error: Identifier "AndroidPluginSignalTests" not declared in the current scope.
+          at: GDScript::reload (res://android/build/src/instrumented/assets/main.gd:32)
+          GDScript backtrace (most recent call first):
+              [0] _initialize (res://tests/ci/check_project_scripts.gd:19)
+ERROR: Failed to load script "res://android/build/src/instrumented/assets/main.gd" with error "Parse error".
+   at: load (modules/gdscript/gdscript_resource_format.cpp:46)
+   GDScript backtrace (most recent call first):
+       [0] _initialize (res://tests/ci/check_project_scripts.gd:19)
+SCRIPT ERROR: Parse Error: Could not find base class "BaseTest".
+          at: GDScript::reload (res://android/build/src/instrumented/assets/test/android_plugin/signal_tests.gd:2)
+          GDScript backtrace (most recent call first):
+              [0] _initialize (res://tests/ci/check_project_scripts.gd:19)
+ERROR: Failed to load script "res://android/build/src/instrumented/assets/test/android_plugin/signal_tests.gd" with error "Parse error".
+   at: load (modules/gdscript/gdscript_resource_format.cpp:46)
+   GDScript backtrace (most recent call first):
+       [0] _initialize (res://tests/ci/check_project_scripts.gd:19)
+SCRIPT ERROR: Parse Error: Could not find base class "BaseTest".
+          at: GDScript::reload (res://android/build/src/instrumented/assets/test/file_access/file_access_tests.gd:2)
+          GDScript backtrace (most recent call first):
+              [0] _initialize (res://tests/ci/check_project_scripts.gd:19)
+ERROR: Failed to load script "res://android/build/src/instrumented/assets/test/file_access/file_access_tests.gd" with error "Parse error".
+   at: load (modules/gdscript/gdscript_resource_format.cpp:46)
+   GDScript backtrace (most recent call first):
+       [0] _initialize (res://tests/ci/check_project_scripts.gd:19)
+SCRIPT ERROR: Parse Error: Could not find base class "BaseTest".
+          at: GDScript::reload (res://android/build/src/instrumented/assets/test/javaclasswrapper/java_class_wrapper_tests.gd:2)
+          GDScript backtrace (most recent call first):
+              [0] _initialize (res://tests/ci/check_project_scripts.gd:19)
+ERROR: Failed to load script "res://android/build/src/instrumented/assets/test/javaclasswrapper/java_class_wrapper_tests.gd" with error "Parse error".
+   at: load (modules/gdscript/gdscript_resource_format.cpp:46)
+   GDScript backtrace (most recent call first):
+       [0] _initialize (res://tests/ci/check_project_scripts.gd:19)
+SCRIPT_CHECK PASS: 356 first-party GDScript files loaded
