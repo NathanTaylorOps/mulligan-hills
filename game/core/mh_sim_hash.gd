@@ -20,6 +20,8 @@ static func wind_y_for_hole(h: int) -> int:
 ## Returns {"hash": String (empty when want_hash is false), "total_strokes": int, "max_time": int}.
 ## max_time = the longest golfer round in simulated seconds (golfers play concurrently).
 static func run(course_seed: int, base_seed: int, n_golfers: int, n_holes: int, want_hash: bool) -> Dictionary:
+	assert(n_golfers >= 0, "n_golfers must be non-negative")
+	assert(n_holes >= 0, "n_holes must be non-negative")
 	var holes: Array = []
 	for i in range(n_holes):
 		holes.append(MHShotSim.make_hole(course_seed, i))
@@ -27,6 +29,9 @@ static func run(course_seed: int, base_seed: int, n_golfers: int, n_holes: int, 
 
 
 static func run_with_holes(holes: Array, base_seed: int, n_golfers: int, want_hash: bool) -> Dictionary:
+	assert(n_golfers >= 0, "n_golfers must be non-negative")
+	for hole: Variant in holes:
+		assert(hole != null, "holes cannot contain null entries")
 	var f: MHHash = MHHash.new()
 	var total_strokes: int = 0
 	var max_time: int = 0

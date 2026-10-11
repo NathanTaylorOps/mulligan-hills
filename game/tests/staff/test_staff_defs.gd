@@ -18,7 +18,7 @@ func test_shipped_data_loads() -> void:
 
 func test_roles_cover_every_building() -> void:
 	var d: MHStaffDefs = MHStaffFixture.defs()
-	assert_int(d.role_ids().size()).is_equal(11)
+	assert_int(d.role_ids().size()).is_equal(13)
 	var seen: Dictionary = {}
 	for rid: Variant in d.role_ids():
 		seen[d.role_building(str(rid))] = true
@@ -95,7 +95,7 @@ func test_max_head_count_fits_the_roster_limit() -> void:
 	var total: int = 0
 	for rid: Variant in d.role_ids():
 		total += d.cap(str(rid), 5)
-	assert_int(total).is_equal(30)
+	assert_int(total).is_equal(33)
 	assert_int(total).is_less_equal(d.param("max_employees"))
 
 
@@ -136,7 +136,7 @@ func test_accessors_return_copies() -> void:
 	assert_int(d.role_int("groundskeeper", "daily_wage_cents")).is_equal(2200)
 	var ids: Array = d.role_ids()
 	ids.clear()
-	assert_int(d.role_ids().size()).is_equal(11)
+	assert_int(d.role_ids().size()).is_equal(13)
 
 
 func test_game_copy_equals_docs_copy() -> void:

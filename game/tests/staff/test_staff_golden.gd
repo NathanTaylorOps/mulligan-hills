@@ -96,8 +96,14 @@ func _replay(sc: Dictionary) -> Array:
 				_note(errs, tag + " aggregates " + str(_agg(st, view)) + " want " + str(row["a"]))
 	if not _same_ints(_agg(st, view), sc["final_agg"] as Array):
 		_note(errs, str(sc["name"]) + " final aggregates")
-	var got_block: String = JSON.stringify(st.to_save_block(), "", true)
-	var want_block: String = JSON.stringify(sc["final_block"], "", true)
+	var got_save: Dictionary = st.to_save_block()
+	var want_save: Dictionary = (sc["final_block"] as Dictionary).duplicate(true)
+	# The Python reference goldens predate the optional equipment extension. Compare the
+	# legacy state they actually specify while equipment has its own deterministic tests.
+	if not want_save.has("equipment"):
+		got_save.erase("equipment")
+	var got_block: String = JSON.stringify(got_save, "", true)
+	var want_block: String = JSON.stringify(want_save, "", true)
 	if got_block != want_block:
 		_note(errs, str(sc["name"]) + " final save block differs")
 	return errs

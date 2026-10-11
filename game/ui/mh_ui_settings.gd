@@ -43,42 +43,66 @@ func is_metric() -> bool:
 
 
 func set_units(raw: String) -> void:
-	units = normalize_units(raw)
+	var next = normalize_units(raw)
+	if units == next:
+		return
+	units = next
 	changed.emit("units")
 
 
 func set_analytics_opt_in(v: bool) -> void:
-	analytics_opt_in = v
+	var next = v
+	if analytics_opt_in == next:
+		return
+	analytics_opt_in = next
 	changed.emit("analytics_opt_in")
 
 
 func set_consent_shown(v: bool) -> void:
-	consent_shown = v
+	var next = v
+	if consent_shown == next:
+		return
+	consent_shown = next
 	changed.emit("consent_shown")
 
 
 func set_text_scale(pct: int) -> void:
-	text_scale_pct = MHTheme.clamp_text_scale(pct)
+	var next = MHTheme.clamp_text_scale(pct)
+	if text_scale_pct == next:
+		return
+	text_scale_pct = next
 	changed.emit("text_scale_pct")
 
 
 func set_left_handed(v: bool) -> void:
-	left_handed = v
+	var next = v
+	if left_handed == next:
+		return
+	left_handed = next
 	changed.emit("left_handed")
 
 
 func set_colorblind(v: int) -> void:
-	colorblind = normalize_colorblind(v)
+	var next = normalize_colorblind(v)
+	if colorblind == next:
+		return
+	colorblind = next
 	changed.emit("colorblind")
 
 
 func set_tutorial_done(v: bool) -> void:
-	tutorial_done = v
+	var next = v
+	if tutorial_done == next:
+		return
+	tutorial_done = next
 	changed.emit("tutorial_done")
 
 
 func set_frame_cap(raw: String) -> void:
-	frame_cap = MHFrameGovernor.normalize_setting(raw)
+	var next = MHFrameGovernor.normalize_setting(raw)
+	if frame_cap == next:
+		return
+	frame_cap = next
 	changed.emit("frame_cap")
 
 

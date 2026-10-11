@@ -17,6 +17,8 @@ uniform sampler2D splat_tex1 : filter_linear, repeat_disable;
 uniform sampler2D splat_tex2 : filter_linear, repeat_disable;
 uniform float cell_size_m = 1.0;
 uniform float tex_size = 35.0;
+uniform float condition_health = 1.0;
+uniform float condition_pest = 0.0;
 uniform vec4 col_rough : source_color = vec4(0.22, 0.42, 0.16, 1.0);
 uniform vec4 col_fairway : source_color = vec4(0.36, 0.62, 0.25, 1.0);
 uniform vec4 col_first_cut : source_color = vec4(0.30, 0.55, 0.21, 1.0);
@@ -58,6 +60,12 @@ void fragment() {
 	vec3 col = a.r * col_rough.rgb + a.g * col_fairway.rgb + a.b * col_first_cut.rgb + a.a * col_green.rgb
 		+ b.r * col_fringe.rgb + b.g * col_tee.rgb + b.b * col_bunker_sand.rgb + b.a * col_water.rgb
 		+ c.r * col_path.rgb + c.g * col_waste.rgb + c.b * col_dirt.rgb;
-	ALBEDO = col / total;
+	vec3 base = col / total;
+	// Keep authored surface identity intact; maintenance only nudges living turf toward dry/yellow and pest-stressed tones.
+	float poor = clamp(1.0 - condition_health, 0.0, 1.0);
+	float stress = clamp(max(poor, condition_pest * 0.7), 0.0, 1.0);
+	vec3 stressed = mix(base, vec3(base.r * 1.08 + 0.08, base.g * 0.72 + 0.08, base.b * 0.58), stress * 0.55);
+	float turf = clamp(a.r + a.g + a.b + a.a + b.r + b.g, 0.0, 1.0);
+	ALBEDO = mix(base, stressed, turf);
 	ROUGHNESS = 1.0;
 }

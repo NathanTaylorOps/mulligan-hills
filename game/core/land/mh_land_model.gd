@@ -50,6 +50,28 @@ func parcel_count() -> int:
 	return _kinds.size()
 
 
+func grid_cols() -> int:
+	return _cols
+
+
+func grid_rows() -> int:
+	return _rows
+
+
+func parcel_id_at_world_mm(x_mm: int, y_mm: int, world_width_mm: int, world_height_mm: int) -> int:
+	if x_mm < 0 or y_mm < 0 or x_mm >= world_width_mm or y_mm >= world_height_mm or _cols <= 0 or _rows <= 0:
+		return -1
+	var col: int = mini(_cols - 1, x_mm * _cols / world_width_mm)
+	var row: int = mini(_rows - 1, y_mm * _rows / world_height_mm)
+	var id: int = row * _cols + col
+	return id if id >= 0 and id < parcel_count() else -1
+
+
+func owns_world_mm(x_mm: int, y_mm: int, world_width_mm: int, world_height_mm: int) -> bool:
+	var id: int = parcel_id_at_world_mm(x_mm, y_mm, world_width_mm, world_height_mm)
+	return id >= 0 and is_owned(id)
+
+
 func reset_to_start() -> void:
 	var land: Dictionary = _defs.land_config()
 	var plist: Array = land["parcels"]

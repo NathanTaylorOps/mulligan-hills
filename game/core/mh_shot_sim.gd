@@ -64,6 +64,7 @@ static func _stamp(hole: MHHole, cx0: int, cy0: int, r: int, mode: int) -> void:
 
 @warning_ignore("integer_division")
 static func make_hole(course_seed: int, idx: int) -> MHHole:
+	assert(idx >= 0, "hole index must be non-negative")
 	var rng: MHRng = MHRng.new(course_seed, 1000 + idx)
 	var hole: MHHole = MHHole.new()
 	hole.par = PARS[idx % 9]
@@ -144,6 +145,9 @@ static func _push(trace: PackedInt64Array, kind: int, x: int, y: int, lie: int, 
 ## trace is 5 ints per event: kind, x, y, lie, strokes (empty when want_trace is false).
 @warning_ignore("integer_division")
 static func simulate_hole(hole: MHHole, skill: int, wind_x: int, wind_y: int, rng: MHRng, want_trace: bool) -> Dictionary:
+	assert(hole != null, "hole is required")
+	assert(rng != null, "rng is required")
+	assert(skill >= 0 and skill <= 100, "skill must be in [0,100]")
 	var px: int = hole.tee_x
 	var py: int = hole.tee_y
 	var lie: int = MHHole.LIE_TEE

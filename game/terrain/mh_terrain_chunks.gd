@@ -84,6 +84,26 @@ func setup(grid: MHHeightGrid, splat: MHSplatMap, p_chunk_size: int = 32) -> voi
 			_instances.append(mi)
 
 
+func set_condition_overlay(condition: Array, pest: Array, cols: int = 4, rows: int = 4) -> void:
+	# Presentation only. Never rewrite splat/height data for simulated maintenance condition.
+	if condition.size() < cols * rows or pest.size() < cols * rows or _instances.is_empty():
+		return
+	for cy: int in range(chunks_y):
+		for cx: int in range(chunks_x):
+			var cidx: int = cy * chunks_x + cx
+			var center_x: int = mini(_grid.cells_x - 1, cx * chunk_size + mini(chunk_size / 2, maxi(0, _grid.cells_x - cx * chunk_size - 1)))
+			var center_y: int = mini(_grid.cells_y - 1, cy * chunk_size + mini(chunk_size / 2, maxi(0, _grid.cells_y - cy * chunk_size - 1)))
+			var parcel: int = MHStaffGrounds.parcel_of_cell(center_x, center_y, _grid.cells_x, _grid.cells_y, cols, rows)
+			if parcel < 0:
+				continue
+			var cond: float = clampf(float(int(condition[parcel])) / 1000.0, 0.0, 1.0)
+			var pest_level: float = clampf(float(int(pest[parcel])) / 1000.0, 0.0, 1.0)
+			var mat: ShaderMaterial = _instances[cidx].material_override as ShaderMaterial
+			if mat != null:
+				mat.set_shader_parameter("condition_health", cond)
+				mat.set_shader_parameter("condition_pest", pest_level)
+
+
 func chunk_count() -> int:
 	return chunks_x * chunks_y
 

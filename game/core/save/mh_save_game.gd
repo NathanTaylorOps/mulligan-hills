@@ -398,6 +398,13 @@ static func _validate_staff_roster(club: Dictionary, errs: Array) -> void:
 		if arr.size() != 16:
 			errs.append("$.club.staff_roster." + key + " must have 16 entries")
 	_dict_at(sr, "stats", "$.club.staff_roster", errs)
+	if sr.has("equipment"):
+		var eq: Dictionary = _dict_at(sr, "equipment", "$.club.staff_roster", errs, false)
+		_int_in(eq, "v", 1, 1, "$.club.staff_roster.equipment", errs)
+		_int_in(eq, "next_serial", 1, 1000000000, "$.club.staff_roster.equipment", errs)
+		_int_in(eq, "operating_cost_cents", 0, MAX_INT, "$.club.staff_roster.equipment", errs, false)
+		_int_in(eq, "repair_cost_cents", 0, MAX_INT, "$.club.staff_roster.equipment", errs, false)
+		_array_at(eq, "units", 64, "$.club.staff_roster.equipment", errs)
 
 
 static func _validate_buildings(d: Dictionary, errs: Array) -> void:
@@ -626,13 +633,28 @@ static func _validate_runtime(d: Dictionary, errs: Array) -> void:
 	if typeof(d.get("min_reader_version", null)) != TYPE_INT or int(d["min_reader_version"]) < 2:
 		errs.append("runtime requires reader version 2")
 	var rt: Dictionary = _dict_at(d, "runtime", "$", errs)
-	_only_keys(rt, ["v", "clock", "economy", "save_secret", "recent_scores", "ledger_hash", "terrain_bytes_hash", "practice"], "$.runtime", errs)
+	_only_keys(rt, ["v", "clock", "economy", "save_secret", "recent_scores", "ledger_hash", "terrain_bytes_hash", "practice",
+		"golfer_roster", "customer_serial", "customer_feedback_sum", "customer_feedback_count", "management_difficulty", "pending_customers", "building_placements"], "$.runtime", errs)
 	if not _matches("^[0-9a-f]{64}$", rt.get("terrain_bytes_hash", null)):
 		errs.append("runtime terrain hash invalid")
 	if not _matches("^[0-9a-f]{64}$", rt.get("ledger_hash", null)):
 		errs.append("runtime ledger hash invalid")
 	_int_in(rt, "v", 1, 1, "$.runtime", errs)
 	_int_in(rt, "save_secret", 0, 4294967295, "$.runtime", errs)
+	_int_in(rt, "customer_serial", 0, MAX_INT, "$.runtime", errs, false)
+	_int_in(rt, "customer_feedback_sum", 0, MAX_INT, "$.runtime", errs, false)
+	_int_in(rt, "customer_feedback_count", 0, MAX_INT, "$.runtime", errs, false)
+	if rt.has("management_difficulty") and not ["relaxed", "standard", "tycoon"].has(str(rt["management_difficulty"])):
+		errs.append("runtime management_difficulty invalid")
+	if rt.has("golfer_roster") and typeof(rt["golfer_roster"]) != TYPE_DICTIONARY:
+		errs.append("runtime golfer_roster invalid")
+	if rt.has("building_placements") and typeof(rt["building_placements"]) != TYPE_DICTIONARY:
+		errs.append("runtime building_placements invalid")
+	if rt.has("pending_customers"):
+		var pending: Array = _array_at(rt, "pending_customers", 10000, "$.runtime", errs, false)
+		for row_v: Variant in pending:
+			if typeof(row_v) != TYPE_DICTIONARY:
+				errs.append("runtime pending customer invalid")
 	var scores: Array = _array_at(rt, "recent_scores", 14, "$.runtime", errs)
 	for score: Variant in scores:
 		if typeof(score) != TYPE_INT or int(score) < 0 or int(score) > 100:

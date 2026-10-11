@@ -53,6 +53,7 @@ func test_finalized_checkpoint_reloads_without_charge_or_award() -> void:
 		return
 	assert_int(int(saved.value["min_reader_version"])).is_equal(3)
 	var restored: MHSaveResult = MHSessionSave.restore(saved.value, s.ledger)
+	assert_str(restored.message).is_empty()
 	assert_bool(restored.is_ok()).is_true()
 	if not restored.is_ok():
 		return

@@ -37,7 +37,7 @@ func can_pop() -> bool:
 
 ## False (and no change) for an empty id, the same id already on top, or a full stack.
 func push(id: String) -> bool:
-	if id == "" or id == top() or _ids.size() >= MAX_DEPTH:
+	if id == "" or _ids.has(id) or _ids.size() >= MAX_DEPTH:
 		return false
 	_ids.append(id)
 	return true

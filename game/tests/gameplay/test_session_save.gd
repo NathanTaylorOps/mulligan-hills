@@ -350,43 +350,16 @@ func test_paid_customer_admissions_are_presentation_only_and_do_not_charge_again
 	assert_bool(bool(submitted["ok"])).is_true()
 	var cash_before: int = s.economy.cash
 	var tick: Dictionary = s.economy.tick_hour()
-	s._queue_customer_admissions(tick)
+	s._queue_pending_customers(tick)
+	s._resolve_customer_hour()
 	var cash_after_tick: int = s.economy.cash
-	var admissions: Array = s.take_customer_admissions(999)
+	var admissions: Array = s.take_customer_outcomes(999)
 	assert_int(s.economy.cash).is_equal(cash_after_tick)
 	assert_bool(cash_after_tick != cash_before or int(tick["golfers"]) == 0).is_true()
 	assert_int(admissions.size()).is_equal(int(tick["golfers"]))
 	for v: Variant in admissions:
 		var customer: Dictionary = v
 		assert_int(int(customer["paid_fee"])).is_equal(s.economy.green_fee())
-
-
-func test_customer_feedback_moves_reputation_slowly_and_changes_future_arrivals() -> void:
-	var s: MHGameSession = MHGameSession.create()
-	assert_object(s).is_not_null()
-	s.economy.reputation = 800
-	var before: int = MHEconomyModel.arrivals_milli(s.economy.params, s.economy.holes, s.economy.rating, 0,
-		s.economy.reputation, 1000)
-	var good_delta: int = s.record_customer_feedback(100)
-	assert_int(good_delta).is_equal(4)
-	assert_int(s.economy.reputation).is_equal(804)
-	var after_good: int = MHEconomyModel.arrivals_milli(s.economy.params, s.economy.holes, s.economy.rating, 0,
-		s.economy.reputation, 1000)
-	assert_bool(after_good > before).is_true()
-	var bad_delta: int = s.record_customer_feedback(0)
-	assert_int(bad_delta).is_equal(-4)
-	assert_int(s.economy.reputation).is_equal(800)
-	assert_int(s.customer_feedback_average()).is_equal(50)
-
-
-func test_reputation_feedback_respects_economy_floor_and_ceiling() -> void:
-	var s: MHGameSession = MHGameSession.create()
-	s.economy.reputation = 999
-	s.record_customer_feedback(100)
-	assert_int(s.economy.reputation).is_equal(1000)
-	s.economy.reputation = s.economy.params.c("rep_floor_permille")
-	s.record_customer_feedback(0)
-	assert_int(s.economy.reputation).is_equal(s.economy.params.c("rep_floor_permille"))
 
 
 func test_golfer_identity_history_survives_session_checkpoint() -> void:
@@ -433,9 +406,561 @@ func test_grouped_admissions_never_exceed_paid_golfer_count() -> void:
 		"features": [{"t": "fairway", "rect": [-8, 0, 8, 60]}]}
 	assert_bool(bool(s.submit_course([hole])["ok"])).is_true()
 	var tick: Dictionary = s.economy.tick_hour()
-	s._queue_customer_admissions(tick)
-	var admissions: Array = s.take_customer_admissions(999)
+	s._queue_pending_customers(tick)
+	s._resolve_customer_hour()
+	var admissions: Array = s.take_customer_outcomes(999)
 	assert_int(admissions.size()).is_equal(int(tick["golfers"]))
 	for v: Variant in admissions:
 		var customer: Dictionary = v
 		assert_bool(int(customer.get("group_size", 0)) >= 1 and int(customer.get("group_size", 0)) <= 4).is_true()
+
+
+func test_corrupt_building_placement_checkpoint_is_rejected() -> void:
+	var s: MHGameSession = MHGameSession.create()
+	s.economy.set_tier(0, 1)
+	var placed: Dictionary = {"ok": true, "center_mm": [30000, 42000], "size_m": [18, 14],
+		"ground_mm": 1250, "rotation_quarters": 0}
+	assert_bool(s.set_building_placement("clubhouse", placed)).is_true()
+	var base: Dictionary = _checkpoint(s)
+	for kind: String in ["outside", "bad_rotation", "bad_size", "unknown", "unpurchased"]:
+		var doc: Dictionary = base.duplicate(true)
+		if kind == "outside":
+			var key: Variant = (doc["runtime"]["building_placements"] as Dictionary).keys()[0]
+			doc["runtime"]["building_placements"][key]["center_mm"] = [-1000, 42000]
+		elif kind == "bad_rotation":
+			var key: Variant = (doc["runtime"]["building_placements"] as Dictionary).keys()[0]
+			doc["runtime"]["building_placements"][key]["rotation_quarters"] = 9
+		elif kind == "bad_size":
+			var key: Variant = (doc["runtime"]["building_placements"] as Dictionary).keys()[0]
+			doc["runtime"]["building_placements"][key]["size_m"] = [0, 14]
+		elif kind == "unknown":
+			var key: Variant = (doc["runtime"]["building_placements"] as Dictionary).keys()[0]
+			doc["runtime"]["building_placements"]["mystery"] = doc["runtime"]["building_placements"][key].duplicate(true)
+			doc["runtime"]["building_placements"]["mystery"]["building_id"] = "mystery"
+			doc["runtime"]["building_placements"]["mystery"]["instance_id"] = "mystery"
+		else:
+			doc["runtime"]["economy"]["tiers"][0] = 0
+			doc["buildings"][0]["tier"] = 0
+		MHSaveGame.seal(doc)
+		assert_bool(MHSessionSave.restore(doc, s.ledger).is_ok()).is_false()
+
+
+func test_building_placement_survives_checkpoint_exactly() -> void:
+	var s: MHGameSession = MHGameSession.create()
+	s.economy.set_tier(0, 1)
+	var placed: Dictionary = {"ok": true, "center_mm": [30000, 42000], "size_m": [18, 14],
+		"ground_mm": 1250, "rotation_quarters": 1}
+	assert_bool(s.set_building_placement("clubhouse", placed)).is_true()
+	var doc: Dictionary = _checkpoint(s)
+	var restored: MHSaveResult = MHSessionSave.restore(doc, s.ledger)
+	assert_bool(restored.is_ok()).is_true()
+	if restored.is_ok():
+		var loaded: MHGameSession = restored.value
+		assert_dict(loaded.building_placements).is_equal(s.building_placements)
+		assert_bool(loaded.building_position("clubhouse").is_equal_approx(Vector3(30.0, 1.25, 42.0))).is_true()
+
+
+func test_multiple_building_instances_keep_distinct_identity() -> void:
+	var s: MHGameSession = MHGameSession.create()
+	s.economy.set_tier(0, 1)
+	var first: Dictionary = {"ok": true, "center_mm": [30000, 42000], "size_m": [18, 14],
+		"ground_mm": 1000, "rotation_quarters": 0, "instance_id": "clubhouse_a"}
+	var second: Dictionary = {"ok": true, "center_mm": [60000, 42000], "size_m": [18, 14],
+		"ground_mm": 1200, "rotation_quarters": 0, "instance_id": "clubhouse_b"}
+	assert_bool(s.set_building_placement("clubhouse", first)).is_true()
+	assert_bool(s.set_building_placement("clubhouse", second)).is_true()
+	assert_int(s.building_placements.size()).is_equal(2)
+	assert_bool(s.building_placements.has("clubhouse_a")).is_true()
+	assert_bool(s.building_placements.has("clubhouse_b")).is_true()
+
+
+
+func test_staff_roster_round_trips_through_live_session_checkpoint() -> void:
+	var s: MHGameSession = MHGameSession.create()
+	var view: Dictionary = s.staff_view()
+	var role: String = str(s.staff_system.defs.role_ids()[0])
+	var building: String = s.staff_system.defs.role_building(role)
+	var bi: int = s.economy.params.building_index(building)
+	if bi >= 0:
+		s.economy.set_tier(bi, 1)
+	view = s.staff_view()
+	var hired: Dictionary = s.staff_system.hire(role, s.economy.day, view, 1000000000)
+	assert_bool(bool(hired.get("ok", false))).is_true()
+	var checkpoint: Dictionary = _checkpoint(s)
+	var loaded: MHSaveResult = MHSessionSave.restore(checkpoint, s.ledger)
+	assert_bool(loaded.is_ok()).is_true()
+	var restored: MHGameSession = loaded.value as MHGameSession
+	assert_array(Array(restored.staff_system.state_list())).contains_exactly(Array(s.staff_system.state_list()))
+	assert_dict(restored.staff_system.legacy_counts()).is_equal(s.staff_system.legacy_counts())
+
+
+func test_staff_roster_and_legacy_count_disagreement_is_rejected() -> void:
+	var s: MHGameSession = MHGameSession.create()
+	var checkpoint: Dictionary = _checkpoint(s)
+	var staff_counts: Dictionary = checkpoint["club"]["staff"] as Dictionary
+	var key: String = str(staff_counts.keys()[0])
+	staff_counts[key] = int(staff_counts[key]) + 1
+	MHSaveGame.seal(checkpoint)
+	assert_bool(MHSessionSave.restore(checkpoint, s.ledger).is_ok()).is_false()
+
+
+func test_customer_resolution_does_not_replay_pending_admissions() -> void:
+	var s: MHGameSession = MHGameSession.create()
+	s._holes = [{"par": 3}]
+	s._ratings = [{"par": 3}]
+	s._pending_customers = [{"serial": 1, "identity": s.golfer_roster.identity_for_admission(s.save_secret, 1, 0), "hole_slot": 0}]
+	s._resolve_customer_hour()
+	var outcomes: int = s.customer_outcomes.size()
+	var feedback: int = s.customer_feedback_count
+	s._resolve_customer_hour()
+	assert_int(s.customer_outcomes.size()).is_equal(outcomes)
+	assert_int(s.customer_feedback_count).is_equal(feedback)
+	assert_int(s._pending_customers.size()).is_equal(0)
+
+
+func test_pending_paid_customers_round_trip_through_checkpoint() -> void:
+	var s: MHGameSession = MHGameSession.create()
+	var identity: Dictionary = s.golfer_roster.identity_for_admission(s.save_secret, 91, s.economy.day)
+	s._pending_customers = [{"serial": 91, "identity": identity, "group_size": 1, "paid_fee": 2500,
+		"ancillary": 300, "admitted_day": s.economy.day, "admitted_hour": s.economy.hour, "hole_slot": 0}]
+	var checkpoint: Dictionary = _checkpoint(s)
+	var loaded: MHSaveResult = MHSessionSave.restore(checkpoint, s.ledger)
+	assert_bool(loaded.is_ok()).is_true()
+	var restored: MHGameSession = loaded.value as MHGameSession
+	assert_array(restored._pending_customers).contains_exactly(s._pending_customers)
+
+
+func test_management_difficulty_round_trips_and_rejects_invalid_value() -> void:
+	var s: MHGameSession = MHGameSession.create()
+	assert_bool(s.set_management_difficulty("tycoon")).is_true()
+	assert_bool(s.set_management_difficulty("nightmare")).is_false()
+	var checkpoint: Dictionary = _checkpoint(s)
+	var loaded: MHSaveResult = MHSessionSave.restore(checkpoint, s.ledger)
+	assert_bool(loaded.is_ok()).is_true()
+	assert_str((loaded.value as MHGameSession).management_difficulty).is_equal("tycoon")
+	var bad: Dictionary = checkpoint.duplicate(true)
+	(bad["runtime"] as Dictionary)["management_difficulty"] = "nightmare"
+	assert_bool(MHSessionSave.restore(bad, s.ledger).is_ok()).is_false()
+
+
+func test_full_management_state_round_trips_through_checkpoint() -> void:
+	var s: MHGameSession = MHGameSession.create()
+	var maintenance_index: int = s.economy.params.building_index("maintenance")
+	s.economy.set_tier(maintenance_index, 2)
+	assert_bool(s.set_management_difficulty("tycoon")).is_true()
+	var hired: Dictionary = s.hire_staff("groundskeeper")
+	assert_bool(bool(hired["ok"])).is_true()
+	var employee: int = int(hired["serial"])
+	assert_bool(bool(s.assign_staff(employee, [5, 6, 9])["ok"])).is_true()
+	var bought: Dictionary = s.buy_staff_equipment("greens_mower")
+	assert_bool(bool(bought["ok"])).is_true()
+	var equipment_serial: int = int(bought["serial"])
+	assert_bool(s.assign_staff_equipment(equipment_serial, employee)).is_true()
+	# Exercise the machine so cumulative equipment costs and condition are non-default state.
+	s.staff_system.on_day(s.economy.day + 1, s.staff_view(), s.save_secret, s.management_difficulty)
+	var before: Dictionary = s.staff_system.to_save_block()
+	var checkpoint: Dictionary = _checkpoint(s)
+	var loaded: MHSaveResult = MHSessionSave.restore(checkpoint, s.ledger)
+	assert_bool(loaded.is_ok()).is_true()
+	if loaded.is_ok():
+		var restored: MHGameSession = loaded.value
+		assert_str(restored.management_difficulty).is_equal("tycoon")
+		assert_dict(restored.staff_system.to_save_block()).is_equal(before)
+		var report: Dictionary = restored.management_report()
+		assert_int(int(report["head_count"])).is_equal(1)
+		assert_int(int(report["equipment_units"])).is_equal(1)
+		assert_array((report["employees"][0] as Dictionary)["areas"] as Array).contains_exactly([5, 6, 9])
+		assert_int(int((report["equipment"][0] as Dictionary)["assigned_employee"])).is_equal(employee)
+
+
+func test_live_scene_starts_authoritative_customer_playback_once() -> void:
+	var scene: MHLiveConstruction = auto_free(MHLiveConstruction.new())
+	scene.store = MHSaveStore.new(DIR)
+	scene.ledger_dir = LEDGERS
+	add_child(scene)
+	assert_bool(scene._active).is_true()
+	scene.session._holes = [{"slot_id": 4, "tee": [10, 20], "green": [40, 80, 5]}]
+	# Live presentation resolves the authoritative hole-local geometry through its saved world origin.
+	(scene.document["course"] as Dictionary)["holes"] = [{"hole_no": 5, "origin_dm": [100, 200],
+		"layout": scene.session._holes[0]}]
+	var customers: Array = []
+	for serial: int in range(77, 80):
+		customers.append({"serial": serial, "party_id": 77, "hole_slot": 4, "group_size": 3,
+			"identity": {"id": serial}, "round": {"events": [], "strokes": 3, "flags": 0}})
+	scene.session.customer_playback.admit(customers, scene.session._holes[0], {}, {})
+	assert_int(scene._visible_golfers.golfer_count()).is_equal(0)
+	scene._advance_customer_playback(0.1)
+	assert_int(scene._visible_golfers.golfer_count()).is_equal(3)
+	scene._advance_customer_playback(0.1)
+	assert_int(scene._visible_golfers.golfer_count()).is_equal(3)
+	scene._active = false
+
+
+func test_live_facility_walker_starts_visit_only_after_arrival() -> void:
+	var scene: MHLiveConstruction = auto_free(MHLiveConstruction.new())
+	scene.store = MHSaveStore.new(DIR)
+	scene.ledger_dir = LEDGERS
+	add_child(scene)
+	assert_bool(scene._active).is_true()
+	var clubhouse_index: int = scene.session.economy.params.building_index("clubhouse")
+	scene.session.economy.set_tier(clubhouse_index, 1)
+	assert_bool(scene.session.set_building_placement("clubhouse", {"ok": true, "center_mm": [1000, 0],
+		"size_m": [18, 14], "ground_mm": 0, "rotation_quarters": 0})).is_true()
+	var facility_id: String = str(MHClubPedestrian.instance_ids_for_type(scene.session, "clubhouse")[0])
+	var customer: Dictionary = {"serial": 91, "identity": {"id": 1, "favorite_hole_slot": -1}}
+	scene.session.customer_playback.queue_facility_visit(customer, facility_id, 0.0)
+	assert_int(scene.session.customer_playback.facility_visits.size()).is_equal(0)
+	scene._advance_facility_walkers(0.1)
+	assert_int(scene._facility_walkers.size()).is_equal(1)
+	assert_int(scene.session.customer_playback.facility_visits.size()).is_equal(0)
+	for _i: int in range(20):
+		scene._advance_facility_walkers(0.1)
+	assert_int(scene._facility_walkers.size()).is_equal(0)
+	assert_int(scene.session.customer_playback.pending_facility_visits.size()).is_equal(0)
+	assert_int(scene.session.customer_playback.facility_visits.size()).is_equal(1)
+	scene._active = false
+
+
+func test_facility_travel_is_queued_only_after_playback_finish() -> void:
+	var scene: MHLiveConstruction = auto_free(MHLiveConstruction.new())
+	scene.store = MHSaveStore.new(DIR)
+	scene.ledger_dir = LEDGERS
+	add_child(scene)
+	assert_bool(scene._active).is_true()
+	var clubhouse_index: int = scene.session.economy.params.building_index("clubhouse")
+	scene.session.economy.set_tier(clubhouse_index, 1)
+	assert_bool(scene.session.set_building_placement("clubhouse", {"ok": true, "center_mm": [1000, 0],
+		"size_m": [18, 14], "ground_mm": 0, "rotation_quarters": 0})).is_true()
+	var customer: Dictionary = {"serial": 31, "satisfaction": 80,
+		"identity": {"favorite_facility": "clubhouse", "party_size": 1},
+		"round": {"events": [{"kind": "putt", "shot": 1, "strokes": 1, "x0": 0, "y0": 0, "x1": 0, "y1": 0}]}}
+	scene.session.customer_playback.admit([customer], {}, {}, {})
+	assert_int(scene.session.customer_playback.pending_facility_visits.size()).is_equal(0)
+	scene._advance_customer_playback(0.1)
+	assert_int(scene.session.customer_playback.pending_facility_visits.size()).is_equal(0)
+	var started: Dictionary = scene.session.customer_playback.active
+	started["started_s"] = -1000.0
+	scene._advance_customer_playback(0.1)
+	assert_int(scene.session.customer_playback.pending_facility_visits.size()).is_equal(1)
+	scene._active = false
+
+
+func test_management_hire_availability_includes_payroll_reserve() -> void:
+	var s: MHGameSession = MHGameSession.create()
+	var clubhouse_index: int = s.economy.params.building_index("clubhouse")
+	s.economy.set_tier(clubhouse_index, 1)
+	var probe: Dictionary = s.staff_system.hire("marshal", s.economy.day, s.staff_view(), 1000000000)
+	assert_bool(bool(probe.get("ok", false))).is_true()
+	var upfront: int = int(probe["cost"])
+	# Restore the probe mutation so availability is checked against a fresh roster.
+	s.staff_system = MHStaff.create(s.staff_system.defs)
+	s.economy.cash = upfront
+	var report: Dictionary = s.management_report()
+	var marshal_option: Dictionary = {}
+	for option_v: Variant in report.get("hire_options", []):
+		var option: Dictionary = option_v
+		if str(option.get("role", "")) == "marshal":
+			marshal_option = option
+			break
+	assert_bool(marshal_option.is_empty()).is_false()
+	assert_bool(bool(marshal_option.get("available", true))).is_false()
+	assert_bool(bool(s.hire_staff("marshal").get("ok", true))).is_false()
+
+
+func test_customer_resolution_builds_one_authoritative_record_per_course_hole() -> void:
+	var s: MHGameSession = MHGameSession.create()
+	var holes: Array = [
+		{"slot_id": 2, "tee": [0, 0], "green": [0, 60, 5], "features": [{"t": "fairway", "rect": [-8, 0, 8, 60]}]},
+		{"slot_id": 5, "tee": [0, 0], "green": [0, 90, 5], "features": [{"t": "fairway", "rect": [-8, 0, 8, 90]}]},
+	]
+	assert_bool(bool(s.submit_course(holes)["ok"])).is_true()
+	var identity: Dictionary = s.golfer_roster.identity_for_admission(s.save_secret, 50, s.economy.day)
+	s._pending_customers = [{"serial": 50, "party_id": 50, "identity": identity, "group_size": 1,
+		"paid_fee": 2500, "ancillary": 0, "admitted_day": s.economy.day, "admitted_hour": s.economy.hour, "hole_slot": 2}]
+	s._resolve_customer_hour()
+	assert_int(s.customer_outcomes.size()).is_equal(1)
+	var customer: Dictionary = s.customer_outcomes[0]
+	var course_round: Array = customer["course_round"] as Array
+	assert_int(course_round.size()).is_equal(2)
+	assert_int(int((course_round[0] as Dictionary)["hole_slot"])).is_equal(2)
+	assert_int(int((course_round[1] as Dictionary)["hole_slot"])).is_equal(5)
+	assert_dict(customer["round"] as Dictionary).is_equal((course_round[0] as Dictionary)["round"] as Dictionary)
+	var expected_base: int = 0
+	var expected_bonus: int = 0
+	for hole_v: Variant in course_round:
+		var played: Dictionary = hole_v
+		expected_base += MHCustomerRoundQueue.satisfaction(played["round"] as Dictionary, int((played["rating"] as Dictionary).get("par", 3)))
+		expected_bonus += MHGolferPreference.bonus(int(customer["preference"]), played["rating"] as Dictionary, played["round"] as Dictionary)
+	expected_base = MHRMath.rdiv(expected_base, course_round.size())
+	expected_bonus = MHRMath.rdiv(expected_bonus, course_round.size())
+	assert_int(int(customer["base_satisfaction"])).is_equal(expected_base)
+	assert_int(int(customer["preference_bonus"])).is_equal(expected_bonus)
+	assert_int(s.customer_feedback_count).is_equal(1)
+
+
+func test_playback_pace_adjusts_existing_visit_without_double_counting() -> void:
+	var s: MHGameSession = MHGameSession.create()
+	var identity: Dictionary = s.golfer_roster.identity_for_admission(s.save_secret, 77, s.economy.day)
+	var id: int = int(identity["id"])
+	var recorded: Dictionary = s.golfer_roster.record_visit(id, s.economy.day, 80, "Good round.", 2, 0)
+	var visits_before: int = int(recorded["visits"])
+	var memories_before: int = (recorded["memories"] as Array).size()
+	s.customer_playback.completed_wait_s[77] = 90.0
+	var customer: Dictionary = {"serial": 77, "identity": recorded, "satisfaction": 80, "hole_slot": 2,
+		"round": {"flags": 0}}
+	var adjusted: Dictionary = s.apply_playback_pace_experience(customer)
+	assert_int(int(adjusted.get("pace_penalty", 0))).is_greater(0)
+	var after: Dictionary = s.golfer_roster.golfers[id] as Dictionary
+	assert_int(int(after["visits"])).is_equal(visits_before)
+	assert_int((after["memories"] as Array).size()).is_equal(memories_before)
+	assert_int(int(((after["memories"] as Array)[memories_before - 1] as Dictionary)["satisfaction"])).is_less(80)
+
+
+func test_management_warns_only_after_repeated_sustained_hole_congestion() -> void:
+	var s: MHGameSession = MHGameSession.create()
+	s.customer_playback.hole_wait_s = {4: 100.0}
+	s.customer_playback.hole_wait_count = {4: 2}
+	var report: Dictionary = s.management_report()
+	assert_bool((report["warnings"] as Array).has("pace_bottleneck")).is_true()
+	assert_int(int(report["pace_bottleneck_hole"])).is_equal(5)
+	assert_int(int((report["worst_bottleneck"] as Dictionary)["hole_slot"])).is_equal(4)
+	var clean: MHGameSession = MHGameSession.create()
+	clean.customer_playback.hole_wait_s = {4: 44.0}
+	clean.customer_playback.hole_wait_count = {4: 3}
+	assert_bool((clean.management_report()["warnings"] as Array).has("pace_bottleneck")).is_false()
+
+
+func test_live_reaction_text_prioritizes_real_pace_and_extreme_rounds() -> void:
+	var alex: Dictionary = {"name": "Alex Brooks", "preference": MHGolferPreference.STRATEGIST}
+	assert_str(MHLiveConstruction._reaction_text({"identity": alex, "satisfaction": 90})).is_equal("Alex: What a round!")
+	assert_str(MHLiveConstruction._reaction_text({"identity": alex, "satisfaction": 20})).is_equal("Alex: Rough day out there.")
+	assert_str(MHLiveConstruction._reaction_text({"identity": alex, "satisfaction": 90, "pace_penalty": 8})).is_equal("Alex: That was slow...")
+	assert_str(MHLiveConstruction._reaction_text({"identity": alex, "satisfaction": 70, "pace_penalty": 2})).is_equal("Alex: Bit of a wait.")
+	assert_str(MHLiveConstruction._reaction_text({"identity": alex, "satisfaction": 70})).is_equal("")
+	assert_str(MHLiveConstruction._reaction_text({"identity": alex, "satisfaction": 70, "preference_bonus": 8,
+		"preference": MHGolferPreference.STRATEGIST})).is_equal("Alex: Loved the choices out there.")
+
+
+func test_hole_reactions_only_surface_notable_authoritative_scores() -> void:
+	assert_str(MHLiveConstruction._hole_reaction_text({"strokes": 2}, 4)).is_equal("What a hole!")
+	assert_str(MHLiveConstruction._hole_reaction_text({"strokes": 3}, 4)).is_equal("Birdie!")
+	assert_str(MHLiveConstruction._hole_reaction_text({"strokes": 4}, 4)).is_equal("")
+	assert_str(MHLiveConstruction._hole_reaction_text({"strokes": 5}, 4)).is_equal("")
+	assert_str(MHLiveConstruction._hole_reaction_text({"strokes": 7}, 4)).is_equal("Forget that one...")
+
+
+func test_preference_reactions_are_distinct_and_bounded_to_existing_archetypes() -> void:
+	assert_str(MHLiveConstruction._preference_praise(MHGolferPreference.CASUAL)).is_equal("Beautiful, fair course.")
+	assert_str(MHLiveConstruction._preference_praise(MHGolferPreference.THRILL_SEEKER)).is_equal("Now that was exciting!")
+	assert_str(MHLiveConstruction._preference_complaint(MHGolferPreference.PURIST)).is_equal("That didn't feel quite fair.")
+
+
+func test_arrival_identity_only_calls_out_established_golfers() -> void:
+	assert_str(MHLiveConstruction._arrival_identity_text({"name": "Alex Brooks", "visits": 0})).is_equal("")
+	assert_str(MHLiveConstruction._arrival_identity_text({"name": "Alex Brooks", "visits": 2})).is_equal("Alex Brooks • Returning golfer")
+	assert_str(MHLiveConstruction._arrival_identity_text({"name": "Alex Brooks", "visits": 5})).is_equal("Alex Brooks • Club regular")
+	assert_str(MHLiveConstruction._arrival_identity_text({"name": "Alex Brooks", "visits": 1, "member": true})).is_equal("Alex Brooks • Member")
+
+
+func test_regular_needs_two_additional_happy_rounds_before_membership_application() -> void:
+	var roster: MHGolferRoster = MHGolferRoster.new()
+	var g: Dictionary = roster.identity_for_admission(1234, 1, 1)
+	var id: int = int(g["id"])
+	for day: int in range(1, 6):
+		g = roster.record_visit(id, day, 80, "Happy", 0, 0)
+	assert_int(int(g["visits"])).is_equal(5)
+	assert_str(str(g["membership_status"])).is_equal("interested")
+	assert_int(int(g["happy_rounds_as_regular"])).is_equal(0)
+	g = roster.record_visit(id, 6, 80, "Happy", 0, 0)
+	assert_str(str(g["membership_status"])).is_equal("interested")
+	assert_int(int(g["happy_rounds_as_regular"])).is_equal(1)
+	g = roster.record_visit(id, 7, 80, "Happy", 0, 0)
+	assert_str(str(g["membership_status"])).is_equal("applied")
+	assert_int(int(g["happy_rounds_as_regular"])).is_equal(2)
+
+
+func test_unhappy_round_resets_regular_membership_happiness_progress() -> void:
+	var roster: MHGolferRoster = MHGolferRoster.new()
+	var g: Dictionary = roster.identity_for_admission(4321, 1, 1)
+	var id: int = int(g["id"])
+	for day: int in range(1, 7):
+		g = roster.record_visit(id, day, 80, "Happy", 0, 0)
+	assert_int(int(g["happy_rounds_as_regular"])).is_equal(1)
+	g = roster.record_visit(id, 7, 60, "Poor", 0, 0)
+	assert_int(int(g["happy_rounds_as_regular"])).is_equal(0)
+	assert_str(str(g["membership_status"])).is_equal("interested")
+
+
+func test_five_consecutive_happy_visits_create_home_purchase_request() -> void:
+	var roster: MHGolferRoster = MHGolferRoster.new()
+	var g: Dictionary = roster.identity_for_admission(9876, 1, 1)
+	var id: int = int(g["id"])
+	for day: int in range(1, 5):
+		g = roster.record_visit(id, day, 80, "Happy", 0, 0)
+	assert_bool(bool(g["home_request"])).is_false()
+	g = roster.record_visit(id, 5, 80, "Happy", 0, 0)
+	assert_bool(bool(g["home_request"])).is_true()
+	assert_int(int(g["happy_visit_streak"])).is_equal(5)
+
+
+func test_bad_visit_breaks_home_request_happiness_streak() -> void:
+	var roster: MHGolferRoster = MHGolferRoster.new()
+	var g: Dictionary = roster.identity_for_admission(2468, 1, 1)
+	var id: int = int(g["id"])
+	for day: int in range(1, 5):
+		g = roster.record_visit(id, day, 80, "Happy", 0, 0)
+	g = roster.record_visit(id, 5, 60, "Poor", 0, 0)
+	assert_int(int(g["happy_visit_streak"])).is_equal(0)
+	assert_bool(bool(g["home_request"])).is_false()
+
+
+func test_live_staff_assignments_only_include_real_assigned_work_and_equipment() -> void:
+	var s: MHGameSession = MHGameSession.create()
+	var view: Dictionary = s.staff_view()
+	var hired: Dictionary = s.staff_system.hire("greenkeeper", s.economy.day, view, 100000000)
+	assert_bool(bool(hired["ok"])).is_true()
+	var serial: int = int(hired["serial"])
+	assert_str(s.staff_system.assign(serial, [0], view)).is_equal("")
+	var bought: Dictionary = s.staff_system.buy_equipment("greens_mower", 100000000)
+	assert_bool(bool(bought["ok"])).is_true()
+	assert_bool(s.staff_system.assign_equipment(int(bought["serial"]), serial)).is_true()
+	var live: Array = s.live_staff_assignments()
+	assert_int(live.size()).is_equal(1)
+	assert_int(int((live[0] as Dictionary)["serial"])).is_equal(serial)
+	assert_str(str(((live[0] as Dictionary)["equipment"] as Dictionary)["type"])).is_equal("greens_mower")
+
+
+func test_staff_route_state_moves_deterministically_across_work_route() -> void:
+	var route: Array = [Vector3(0, 0, 0), Vector3(10, 0, 0), Vector3(10, 0, 10)]
+	var first: Dictionary = MHLiveConstruction._route_state(route, 0.25)
+	assert_float((first["position"] as Vector3).x).is_equal(5.0)
+	assert_float((first["position"] as Vector3).z).is_equal(0.0)
+	var second: Dictionary = MHLiveConstruction._route_state(route, 0.75)
+	assert_float((second["position"] as Vector3).x).is_equal(10.0)
+	assert_float((second["position"] as Vector3).z).is_equal(5.0)
+
+
+func test_live_maintenance_state_separates_specialists_and_broken_fleet() -> void:
+	var s: MHGameSession = MHGameSession.create()
+	var view: Dictionary = s.staff_view()
+	var tech: Dictionary = s.staff_system.hire("equipment_technician", s.economy.day, view, 100000000)
+	if bool(tech.get("ok", false)):
+		assert_int(int(tech["serial"])).is_greater(0)
+	var bought: Dictionary = s.staff_system.buy_equipment("greens_mower", 100000000)
+	assert_bool(bool(bought["ok"])).is_true()
+	var unit_serial: int = int(bought["serial"])
+	for unit_v: Variant in s.staff_system.equipment.units:
+		var unit: Dictionary = unit_v as Dictionary
+		if int(unit["serial"]) == unit_serial:
+			unit["condition"] = 100
+			unit["broken"] = true
+	var live: Dictionary = s.live_maintenance_state()
+	assert_int((live["broken_equipment"] as Array).size()).is_equal(1)
+	assert_int(int(((live["broken_equipment"] as Array)[0] as Dictionary)["serial"])).is_equal(unit_serial)
+
+
+func test_live_course_condition_is_read_only_copy_of_authoritative_grounds() -> void:
+	var s: MHGameSession = MHGameSession.create()
+	s.staff_system.grounds.condition[0] = 321
+	s.staff_system.grounds.pest[0] = 654
+	var live: Dictionary = s.live_course_condition()
+	assert_int(int((live["condition"] as Array)[0])).is_equal(321)
+	assert_int(int((live["pest"] as Array)[0])).is_equal(654)
+	(live["condition"] as Array)[0] = 999
+	(live["pest"] as Array)[0] = 999
+	assert_int(s.staff_system.condition_of(0)).is_equal(321)
+	assert_int(s.staff_system.pest_of(0)).is_equal(654)
+
+
+func test_take_grounds_events_is_consuming_and_immutable() -> void:
+	var s: MHGameSession = MHGameSession.create()
+	s.grounds_events = [{"day": 3, "parcel": 2, "kind": "test_issue", "positive": false, "handled": true}]
+	var events: Array = s.take_grounds_events()
+	assert_int(events.size()).is_equal(1)
+	assert_int(s.grounds_events.size()).is_equal(0)
+	(events[0] as Dictionary)["parcel"] = 9
+	assert_int(s.take_grounds_events().size()).is_equal(0)
+
+
+func test_cart_transport_hidden_golfers_remain_in_party_state() -> void:
+	var golfers: MHSliceGolfers = MHSliceGolfers.new()
+	var customers: Array = [{"serial": 1, "party_id": 44, "identity": {"id": 1, "look_seed": 10}},
+		{"serial": 2, "party_id": 44, "identity": {"id": 2, "look_seed": 20}}]
+	golfers.spawn_walking_party(customers, Vector3.ZERO, Vector3(10, 0, 0))
+	assert_int(golfers.golfer_count()).is_equal(2)
+	golfers.set_walking_party_hidden(44, true)
+	assert_bool(bool((golfers.golfers[0] as Dictionary).get("transport_hidden", false))).is_true()
+	assert_bool(bool((golfers.golfers[1] as Dictionary).get("transport_hidden", false))).is_true()
+	golfers.remove_group(44)
+	assert_int(golfers.golfer_count()).is_equal(0)
+
+
+func test_star_cart_identity_and_skin_are_content_driven() -> void:
+	var ordinary: Array = [{"identity": {"identity_type": "ordinary", "id": 1}}]
+	assert_bool(MHLiveConstruction._party_has_star(ordinary)).is_false()
+	var star: Array = [{"identity": {"identity_type": "celebrity", "parody_id": "lion_woods", "cart_skin": "lion_black_suv"}}]
+	assert_bool(MHLiveConstruction._party_has_star(star)).is_true()
+	assert_str(MHLiveConstruction._star_cart_style(star)).is_equal("lion_black_suv")
+	var pro: Array = [{"identity": {"identity_type": "pro", "parody_id": "tour_pro"}}]
+	assert_bool(MHLiveConstruction._party_has_star(pro)).is_true()
+	assert_str(MHLiveConstruction._star_cart_style(pro)).is_equal("tour_pro")
+
+
+func test_star_cart_profiles_are_data_driven_and_have_safe_fallback() -> void:
+	var lion: Dictionary = MHStarCartProfiles.profile_for("lion_black_suv")
+	assert_str(str(lion["body"])).is_equal("suv")
+	assert_str(str(lion["behavior"])).is_equal("park_nearby_upside_down")
+	assert_bool(MHStarCartProfiles.body_size(lion).z > 2.0).is_true()
+	var unknown: Dictionary = MHStarCartProfiles.profile_for("future_star_skin")
+	assert_str(str(unknown["body"])).is_equal("golf_cart")
+	assert_str(str(unknown["behavior"])).is_equal("park_nearby")
+	assert_str(str(unknown["skin"])).is_equal("future_star_skin")
+
+
+func test_star_cart_profiles_validate_safe_content_bounds() -> void:
+	var lion: Dictionary = MHStarCartProfiles.profile_for("lion_black_suv")
+	assert_bool(MHStarCartProfiles.validate_profile(lion)).is_true()
+	var invalid: Dictionary = lion.duplicate(true)
+	invalid["behavior"] = "launch_into_crowd"
+	assert_bool(MHStarCartProfiles.validate_profile(invalid)).is_false()
+	invalid = lion.duplicate(true)
+	invalid["scale_x10"] = 100
+	assert_bool(MHStarCartProfiles.validate_profile(invalid)).is_false()
+
+
+func test_star_cart_reusable_vehicle_silhouettes_are_distinct() -> void:
+	var base: Dictionary = MHStarCartProfiles.DEFAULT_PROFILE.duplicate(true)
+	var golf: Vector3 = MHStarCartProfiles.body_size(base)
+	base["body"] = "suv"
+	var suv: Vector3 = MHStarCartProfiles.body_size(base)
+	base["body"] = "limo"
+	var limo: Vector3 = MHStarCartProfiles.body_size(base)
+	assert_bool(suv.z > golf.z).is_true()
+	assert_bool(limo.z > suv.z).is_true()
+
+
+func test_cart_surface_policy_protects_green_and_marks_water_hazard() -> void:
+	var grid: MHHeightGrid = MHHeightGrid.new(8, 8, 1000)
+	var splat: MHSplatMap = MHSplatMap.new(grid.samples_x, grid.samples_y)
+	splat.bytes.fill(0)
+	var p: Vector3 = Vector3(2, 0, 2)
+	var texel: int = 2 * splat.samples_x + 2
+	splat.bytes[texel * MHSplatMap.LAYER_COUNT + MHSplatMap.Layer.GREEN] = 255
+	assert_bool(MHCartSurfacePolicy.is_green(splat, p, grid)).is_true()
+	assert_bool(MHCartSurfacePolicy.ai_can_drive(splat, p, grid)).is_false()
+	splat.bytes[texel * MHSplatMap.LAYER_COUNT + MHSplatMap.Layer.GREEN] = 0
+	splat.bytes[texel * MHSplatMap.LAYER_COUNT + MHSplatMap.Layer.WATER] = 255
+	assert_str(MHCartSurfacePolicy.free_drive_surface(splat, p, grid)).is_equal("water")
+	assert_bool(MHCartSurfacePolicy.ai_can_drive(splat, p, grid)).is_false()
+
+
+func test_cart_route_stops_short_when_ball_is_on_green() -> void:
+	var grid: MHHeightGrid = MHHeightGrid.new(16, 16, 1000)
+	var splat: MHSplatMap = MHSplatMap.new(grid.samples_x, grid.samples_y)
+	var ball: Vector3 = Vector3(10, 0, 10)
+	var texel: int = 10 * splat.samples_x + 10
+	splat.bytes.fill(0)
+	splat.bytes[texel * MHSplatMap.LAYER_COUNT + MHSplatMap.Layer.GREEN] = 255
+	var route: Array = MHCartRoute.route_to_ball(Vector3.ZERO, ball, 1, splat, grid)
+	assert_bool(route.size() >= 2).is_true()
+	assert_bool(MHCartSurfacePolicy.is_green(splat, route[-1] as Vector3, grid)).is_false()

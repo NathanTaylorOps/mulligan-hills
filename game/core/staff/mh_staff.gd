@@ -20,6 +20,7 @@ const MAX_DAY: int = 1000000
 var defs: MHStaffDefs
 var roster: MHStaffRoster = MHStaffRoster.new()
 var grounds: MHStaffGrounds = MHStaffGrounds.new()
+var equipment: MHStaffEquipment = MHStaffEquipment.new()
 
 
 ## A fresh club with no employees. Returns null when the defs are not loaded.
@@ -42,7 +43,10 @@ func hire(role_id: String, day: int, view: Dictionary, cash_cents: int) -> Dicti
 
 
 func fire(serial: int) -> bool:
-	return roster.fire(serial)
+	if not roster.fire(serial):
+		return false
+	equipment.unassign_employee(serial)
+	return true
 
 
 func assign(serial: int, areas: Array, view: Dictionary) -> String:
@@ -83,6 +87,99 @@ func pay_hour(hour_index: int) -> int:
 	return roster.pay_hour(defs, hour_index)
 
 
+
+# ------------------------------------------------------------------ equipment
+func equipment_price(type_id: String) -> int:
+	if not MHStaffEquipment.TYPES.has(type_id):
+		return 0
+	return int((MHStaffEquipment.TYPES[type_id] as Dictionary)["price"])
+
+
+func equipment_capacity(view: Dictionary) -> int:
+	var tier: int = MHStaffView.tier_of(view, "maintenance")
+	return [0, 3, 6, 10, 16, 24][clampi(tier, 0, 5)]
+
+
+func buy_equipment(type_id: String, cash_cents: int, view: Dictionary = {}) -> Dictionary:
+	var price: int = equipment_price(type_id)
+	if price <= 0:
+		return {"ok": false, "reason": "bad_type", "serial": 0, "cost": 0}
+	if cash_cents < price:
+		return {"ok": false, "reason": "cash", "serial": 0, "cost": 0}
+	if not view.is_empty() and equipment.units.size() >= equipment_capacity(view):
+		return {"ok": false, "reason": "workshop_capacity", "serial": 0, "cost": 0}
+	var result: Dictionary = equipment.add_unit(type_id)
+	if not bool(result["ok"]):
+		return {"ok": false, "reason": "capacity", "serial": 0, "cost": 0}
+	return {"ok": true, "reason": "", "serial": int(result["serial"]), "cost": price}
+
+
+
+
+func sell_equipment(equipment_serial: int) -> Dictionary:
+	var value: int = equipment.sell_unit(equipment_serial)
+	return {"ok": value > 0, "value": value}
+
+
+func assign_equipment(equipment_serial: int, employee_serial: int) -> bool:
+	var ed: Dictionary = roster.employee(employee_serial)
+	if ed.is_empty():
+		return false
+	var kind: String = defs.role_kind(str(ed["role"]))
+	if kind != MHStaffDefs.KIND_GROUNDS and kind != MHStaffDefs.KIND_PEST:
+		return false
+	return equipment.assign_unit(equipment_serial, employee_serial, kind)
+
+
+
+func technician_work_permille() -> int:
+	# Technician support is intentionally separate from grounds output: it maintains machines.
+	# The role becomes active when present in staff definitions; until then there is no free repair labor.
+	if not defs.has_role("equipment_technician"):
+		return 0
+	return roster.role_work_sum(defs, "equipment_technician")
+
+
+func superintendent_coordination_permille() -> int:
+	if not defs.has_role("superintendent"):
+		return 1000
+	var work: int = roster.role_work_sum(defs, "superintendent")
+	return 1000 + mini(200, MHStaffMath.idiv(work, 10))
+
+
+
+func equipment_operating_cost_cents() -> int:
+	return equipment.operating_cost_for_day()
+
+
+func equipment_repair_cost_cents() -> int:
+	return equipment.repair_cost_for_day()
+
+
+
+func management_warnings(view: Dictionary) -> Array:
+	var out: Array = []
+	var worn: int = 0
+	var broken: int = 0
+	for v: Variant in equipment.units:
+		var u: Dictionary = v
+		var state: String = equipment.condition_state(int(u["serial"]))
+		if state == "broken":
+			broken += 1
+		elif state == "worn":
+			worn += 1
+	if broken > 0:
+		out.append({"kind": "equipment_broken", "severity": 2, "count": broken})
+	elif worn > 0:
+		out.append({"kind": "equipment_worn", "severity": 1, "count": worn})
+	if equipment.units.size() >= equipment_capacity(view) and equipment_capacity(view) > 0:
+		out.append({"kind": "workshop_capacity", "severity": 1, "count": equipment.units.size()})
+	if grounds.avg_cond(defs, view) < defs.param("sat_cond_floor"):
+		out.append({"kind": "course_condition", "severity": 2, "value": grounds.avg_cond(defs, view)})
+	if broken > 0 and technician_work_permille() <= 0:
+		out.append({"kind": "technician_needed", "severity": 2, "count": broken})
+	return out
+
 # ------------------------------------------------------------------ grounds
 func personal_mow(parcel: int, cells: int, cells_per_parcel: int, view: Dictionary) -> int:
 	return grounds.personal_mow(defs, parcel, cells, cells_per_parcel, view)
@@ -94,11 +191,30 @@ func personal_patrol(parcel: int, cells: int, cells_per_parcel: int, view: Dicti
 
 ## One game day: grounds update with the incident rolls, then every employee gets one day of tenure. Idempotent per day.
 ## Returns {"ran": bool, "incidents": Array of {parcel, kind, positive, handled}}.
-func on_day(day: int, view: Dictionary, secret: int) -> Dictionary:
-	var res: Dictionary = grounds.on_day(defs, roster, day, view, secret)
+func on_day(day: int, view: Dictionary, secret: int, difficulty: String = "standard") -> Dictionary:
+	if difficulty == "relaxed":
+		roster.auto_assign(defs, view)
+		equipment.auto_assign(roster.employees, func(role_id: String) -> String: return defs.role_kind(role_id))
+	var res: Dictionary = grounds.on_day(defs, roster, day, view, secret, equipment)
+	if bool(res["ran"]):
+		var pressure_pm: int = 1000
+		var service_pm: int = 1000
+		match difficulty:
+			"relaxed":
+				pressure_pm = 650
+				service_pm = 1350
+			"tycoon":
+				pressure_pm = 1350
+				service_pm = 850
+		equipment.on_day(MHStaffView.tier_of(view, "maintenance"), technician_work_permille(),
+			res.get("used_employees", []) as Array, pressure_pm, service_pm)
 	if bool(res["ran"]):
 		roster.age_one_day()
 	return res
+
+
+func damage_turf(parcel: int, amount: int, view: Dictionary) -> int:
+	return grounds.damage_condition(parcel, amount, view)
 
 
 func condition_of(parcel: int) -> int:
@@ -137,13 +253,54 @@ func service_avg(view: Dictionary) -> int:
 ## Everything a status screen needs in one Dictionary.
 func report(view: Dictionary) -> Dictionary:
 	var ov: Dictionary = overlay(view)
+	var hires: Array = []
+	for role_id_v: Variant in defs.role_ids():
+		var role_id: String = str(role_id_v)
+		var building: String = defs.role_building(role_id)
+		var tier: int = MHStaffView.tier_of(view, building)
+		var cap: int = defs.cap(role_id, tier)
+		var current: int = roster.count_role(role_id)
+		hires.append({"role": role_id, "name_key": str(defs.role(role_id).get("name_key", "")),
+			"building": building, "current": current, "cap": cap, "hire_cost_cents": defs.hire_cost(role_id),
+			"daily_wage_cents": defs.wage(role_id, 0), "available": check_hire(role_id, view, 1000000000).is_empty()})
+	var equipment_catalog: Array = []
+	for type_id_v: Variant in MHStaffEquipment.TYPES.keys():
+		var type_id: String = str(type_id_v)
+		equipment_catalog.append({"type": type_id, "price_cents": equipment_price(type_id),
+			"kind": str((MHStaffEquipment.TYPES[type_id] as Dictionary)["kind"])})
 	return {
 		"head_count": roster.count(), "gate_staff": gate_staff_count(view), "payroll_cents": daily_payroll_cents(),
 		"avg_condition": grounds.avg_cond(defs, view), "avg_pest": grounds.avg_pest(view),
 		"service": service_avg(view), "demand_permille": demand_permille(view), "pace_points": pace_points(),
-		"satisfaction_penalty_permille": condition_penalty_permille(view),
+		"satisfaction_penalty_permille": condition_penalty_permille(view), "equipment_units": equipment.units.size(), "equipment_capacity": equipment_capacity(view),
+		"equipment_operating_cost_cents": equipment_operating_cost_cents(), "equipment_repair_cost_cents": equipment_repair_cost_cents(),
+		"employees": _employee_management_rows(), "equipment": _equipment_management_rows(),
+		"owned_areas": (view.get("owned", []) as Array).duplicate(),
+		"hire_options": hires, "equipment_catalog": equipment_catalog,
+		"max_areas_per_employee": defs.param("max_areas_per_employee"),
+		"warnings": management_warnings(view),
 		"beauty_delta_pm": int(ov["beauty_delta_pm"]), "fairness_delta_pm": int(ov["fairness_delta_pm"]),
 	}
+
+
+func _equipment_management_rows() -> Array:
+	var out: Array = []
+	for value: Variant in equipment.units:
+		var unit: Dictionary = (value as Dictionary).duplicate(true)
+		unit["sale_value_cents"] = equipment.sale_value(int(unit["serial"]))
+		unit["kind"] = str((MHStaffEquipment.TYPES[str(unit["type"])] as Dictionary)["kind"])
+		out.append(unit)
+	return out
+
+
+func _employee_management_rows() -> Array:
+	var out: Array = []
+	for value: Variant in roster.employees:
+		var employee: Dictionary = (value as Dictionary).duplicate(true)
+		employee["kind"] = defs.role_kind(str(employee["role"]))
+		employee["name_key"] = str(defs.role(str(employee["role"])).get("name_key", ""))
+		out.append(employee)
+	return out
 
 
 # ------------------------------------------------------------------ save
@@ -195,6 +352,7 @@ func to_save_block() -> Dictionary:
 		"personal_work": grounds.personal_work.duplicate(),
 		"personal_pest": grounds.personal_pest.duplicate(),
 		"stats": stats(),
+		"equipment": equipment.to_save_block(),
 	}
 
 
@@ -211,6 +369,8 @@ func from_save_block(block: Dictionary) -> bool:
 	if not MHDataJson.is_int_in(b.get("next_serial", null), 1, 1000000000):
 		return false
 	if not MHDataJson.is_int_in(b.get("last_day", null), -1, MAX_DAY):
+		return false
+	if b.has("equipment") and typeof(b["equipment"]) != TYPE_DICTIONARY:
 		return false
 	var emps: Array = []
 	if typeof(b.get("employees", null)) != TYPE_ARRAY:
@@ -233,12 +393,33 @@ func from_save_block(block: Dictionary) -> bool:
 		return false
 	if typeof(b.get("stats", null)) != TYPE_DICTIONARY:
 		return false
+	var restored_equipment: MHStaffEquipment = MHStaffEquipment.new()
+	var equipment_block: Variant = b.get("equipment", null)
+	if equipment_block != null and (typeof(equipment_block) != TYPE_DICTIONARY or not restored_equipment.from_save_block(equipment_block as Dictionary)):
+		return false
+	# Equipment assignments are cross-references into the restored roster. Validate them before
+	# committing either subsystem so a corrupt save cannot create ghost operators or incompatible work.
+	var employee_kinds: Dictionary = {}
+	for employee_v: Variant in emps:
+		var employee: Dictionary = employee_v
+		employee_kinds[int(employee["serial"])] = defs.role_kind(str(employee["role"]))
+	for unit_v: Variant in restored_equipment.units:
+		var unit: Dictionary = unit_v
+		var assigned: int = int(unit.get("assigned_employee", 0))
+		if assigned == 0:
+			continue
+		if not employee_kinds.has(assigned):
+			return false
+		var equipment_def: Dictionary = MHStaffEquipment.TYPES[str(unit["type"])]
+		if str(equipment_def["kind"]) != str(employee_kinds[assigned]):
+			return false
 	var st: Dictionary = b["stats"]
 	if st.size() != STAT_KEYS.size():
 		return false
 	for k: Variant in STAT_KEYS:
 		if not MHDataJson.is_int_in(st.get(str(k), null), 0, MAX_STAT):
 			return false
+	equipment = restored_equipment
 	roster.employees = emps
 	roster.next_serial = int(b["next_serial"])
 	roster.hires = int(st["hires"])

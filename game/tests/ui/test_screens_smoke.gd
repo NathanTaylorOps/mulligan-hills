@@ -154,3 +154,27 @@ func test_achievement_filter() -> void:
 	assert_str(str((daily[0] as Dictionary)["id"])).is_equal("daily_earned")
 	assert_str(str((daily[1] as Dictionary)["id"])).is_equal("daily_locked")
 	assert_int(MHAchievementsScreen.filtered(rows, "nothing").size()).is_equal(0)
+
+
+func test_management_screen_emits_difficulty_intent() -> void:
+	var session: MHGameSession = MHGameSession.create()
+	var view: MHLiveGameStateView = MHLiveGameStateView.new(session)
+	var screen: MHManagementScreen = MHManagementScreen.new()
+	auto_free(screen)
+	screen.setup(view, _ctx(), {})
+	var hits: Array = []
+	screen.intent.connect(func(id: StringName, args: Dictionary) -> void:
+		hits.append([id, args])
+		session.handle_intent(id, args))
+	var buttons: Array = screen.find_children("*", "Button", true, false)
+	var relaxed: Button = null
+	for value: Variant in buttons:
+		var b: Button = value
+		if b.text == "Relaxed":
+			relaxed = b
+			break
+	assert_bool(relaxed != null).is_true()
+	relaxed.pressed.emit()
+	assert_int(hits.size()).is_equal(1)
+	assert_str(str((hits[0] as Array)[0])).is_equal("set_management_difficulty")
+	assert_str(session.management_difficulty).is_equal("relaxed")

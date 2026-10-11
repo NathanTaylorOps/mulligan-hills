@@ -260,3 +260,11 @@ func test_countback_and_hash_break_ties() -> void:
 	var hb: int = MHRMath.h32b(5, 1)
 	assert_bool(MHTournamentSim._better(0, 1, same, tot2, 5)).is_equal(ha < hb)
 	assert_bool(MHTournamentSim._better(1, 0, same, tot2, 5)).is_equal(hb < ha)
+
+
+func test_course_condition_penalty_reduces_tournament_satisfaction_and_prestige() -> void:
+	var cared: Dictionary = _run("local", 0, {"course_condition_penalty_pm": 0})
+	var neglected: Dictionary = _run("local", 0, {"course_condition_penalty_pm": 150})
+	assert_int(int(neglected["satisfaction_pm"])).is_equal(maxi(0, int(cared["satisfaction_pm"]) - 150))
+	assert_bool(int(neglected["event_prestige_pm"]) < int(cared["event_prestige_pm"])).is_true()
+	assert_array(neglected["totals"] as Array).contains_exactly(cared["totals"] as Array)

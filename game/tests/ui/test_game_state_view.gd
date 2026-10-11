@@ -41,6 +41,7 @@ func test_base_defaults_are_safe() -> void:
 	assert_bool(bool(v.recovery_offer()["active"])).is_false()
 	assert_int(v.tournaments().size()).is_equal(0)
 	assert_int(MHBuildMenuModel.rows(v).size()).is_equal(0)
+	assert_bool(v.management_report().is_empty()).is_true()
 
 
 func test_fake_scalar_ranges() -> void:
@@ -184,3 +185,15 @@ func test_fake_daily_play_intent() -> void:
 	var d: Dictionary = v.daily_challenge()
 	assert_int(int(d["attempts_left"])).is_equal(1)
 	assert_bool(bool(d["completed_today"])).is_true()
+
+
+func test_live_view_exposes_management_snapshot_as_a_copy() -> void:
+	var s: MHGameSession = MHGameSession.create()
+	var v: MHLiveGameStateView = MHLiveGameStateView.new(s)
+	var report: Dictionary = v.management_report()
+	for key: String in ["difficulty", "automation", "head_count", "payroll_cents", "avg_condition",
+		"service", "equipment_units", "equipment_capacity", "warnings"]:
+		assert_bool(report.has(key)).override_failure_message("management report missing " + key).is_true()
+	assert_str(str(report["difficulty"])).is_equal("standard")
+	report["difficulty"] = "tampered"
+	assert_str(str(v.management_report()["difficulty"])).is_equal("standard")
