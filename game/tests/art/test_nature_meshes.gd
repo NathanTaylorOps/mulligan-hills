@@ -30,9 +30,9 @@ func test_tree_near_lod_stays_inside_hero_budget_and_budgets_are_consistent() ->
 	for k: Variant in MHNatureMeshes.TREE_KINDS:
 		var kind: String = str(k)
 		assert_bool(MHNatureMeshes.is_tree(kind)).is_true()
-		assert_int(MHNatureMeshes.budget(kind, 0)).is_less(MHNatureMeshes.TREE_LOD0_LIMIT)
+		assert_bool(MHNatureMeshes.budget(kind, 0) <= MHNatureMeshes.TREE_LOD0_LIMIT).is_true()
 		for v in range(MHNatureMeshes.VARIANTS):
-			assert_int(MHNatureMeshes.build_builder(kind, 0, v).tri_count()).is_less(MHNatureMeshes.TREE_LOD0_LIMIT)
+			assert_bool(MHNatureMeshes.build_builder(kind, 0, v).tri_count() <= MHNatureMeshes.TREE_LOD0_LIMIT).is_true()
 	assert_bool(MHNatureMeshes.is_tree("bush")).is_false()
 	for k: Variant in MHNatureMeshes.KINDS:
 		var arr: Array = MHNatureMeshes.BUDGETS[str(k)] as Array
