@@ -65,6 +65,8 @@ func load_from_disk() -> MHSaveResult:
 	if backup.is_ok():
 		from_dict(backup.value as Dictionary)
 		analytics_consent = false
+		# Backup cannot establish the latest consent choice; ask again.
+		consent_asked = false
 		return backup
 	return primary if primary.code != MHSaveResult.Code.NOT_FOUND else backup
 

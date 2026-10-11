@@ -19,6 +19,8 @@ func after_test() -> void:
 func _reset_faults() -> void:
 	MHSaveFile.fault_point = MHSaveFile.FaultPoint.NONE
 	MHSaveFile.fault_action = MHSaveFile.FaultAction.RETURN_ERROR
+	MHTerrainSave.fault_point = MHTerrainSave.FaultPoint.NONE
+	MHTerrainSave.fault_action = MHTerrainSave.FaultAction.RETURN_ERROR
 	MHSaveStore.fault_point = MHSaveStore.FaultPoint.NONE
 	MHSaveStore.fault_action = MHSaveFile.FaultAction.RETURN_ERROR
 
@@ -216,6 +218,27 @@ func test_two_failed_pair_writes_do_not_destroy_last_committed_save() -> void:
 	assert_bool(loaded.is_ok()).is_true()
 	assert_int(int(((loaded.value as MHLoadedSave).data["club"] as Dictionary)["cash"])).is_equal(18250)
 	assert_int(_revision_of(loaded)).is_equal(1)
+
+
+func test_failed_heal_blocks_next_blob_rotation() -> void:
+	var s: MHSaveStore = _store()
+	var blob_a: PackedByteArray = Fixture.make_blob(21)
+	var blob_b: PackedByteArray = Fixture.make_blob(22)
+	var blob_c: PackedByteArray = Fixture.make_blob(23)
+	assert_bool(s.save_slot(1, Fixture.make_doc(), blob_a).is_ok()).is_true()
+	MHSaveStore.fault_point = MHSaveStore.FaultPoint.AFTER_BLOB_WRITTEN
+	assert_bool(s.save_slot(1, Fixture.make_doc(), blob_b).is_ok()).is_false()
+	MHSaveStore.fault_point = MHSaveStore.FaultPoint.NONE
+	# Healing the terrain uses MHTerrainSave, not MHSaveFile.
+	# A failed terrain repair must not consume the only matching backup.
+	MHTerrainSave.fault_point = MHTerrainSave.FaultPoint.MID_TEMP_WRITE
+	var refused: MHSaveResult = s.save_slot(1, Fixture.make_doc(), blob_c)
+	assert_bool(refused.is_ok()).is_false()
+	assert_int(refused.code).is_equal(MHSaveResult.Code.IO_ERROR)
+	MHTerrainSave.fault_point = MHTerrainSave.FaultPoint.NONE
+	var loaded: MHSaveResult = s.load_slot(1, false)
+	assert_bool(loaded.is_ok()).is_true()
+	assert_bool((loaded.value as MHLoadedSave).blob == blob_a).is_true()
 
 
 func test_write_killed_mid_temp_write_leaves_old_save_loadable() -> void:

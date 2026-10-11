@@ -57,9 +57,13 @@ func purchase(product_id: String) -> void:
 		purchase_finished.emit(product_id, PurchaseResult.UNAVAILABLE, "store_not_connected")
 		return
 	var launch: Dictionary = _seam_purchase(product_id)
-	if int(launch.get("response_code", RESPONSE_OK)) != RESPONSE_OK:
+	if not _purchase_launch_is_ok(launch):
 		purchase_finished.emit(product_id, PurchaseResult.ERROR,
 			str(launch.get("debug_message", "billing_flow_launch_failed")))
+
+## Do not silently accept a missing or malformed billing launch result.
+static func _purchase_launch_is_ok(launch: Dictionary) -> bool:
+	return typeof(launch.get("response_code", null)) == TYPE_INT and int(launch["response_code"]) == RESPONSE_OK
 
 func restore() -> void:
 	# Google has no "restore" call: querying owned purchases IS the restore.
@@ -78,7 +82,7 @@ func _handle_owned_purchase(p: Dictionary) -> void:
 	var token: String = _seam_purchase_token(p)
 	if token == "" or _busy_tokens.has(token):
 		return
-	if _cached_entitlement_is_fresh():
+	if _cached_entitlement_is_fresh(token):
 		if not _seam_is_acknowledged(p):
 			_seam_acknowledge(token)
 		if _pending_restore:
@@ -108,8 +112,13 @@ func _handle_owned_purchase(p: Dictionary) -> void:
 
 ## A valid cached entitlement is deliberately not re-verified on every Play ownership query. The signed token
 ## remains valid offline; its ref field is the server's soft refresh time.
-func _cached_entitlement_is_fresh(now_unix: int = -1) -> bool:
-	if not is_unlocked() or _token == "":
+func _cached_entitlement_is_fresh(purchase_token: String, now_unix: int = -1) -> bool:
+	if not is_unlocked() or _token == "" or purchase_token == "":
+		return false
+	# The server signs `pth` as the first 16 lowercase hex chars of sha256(purchase_token).
+	# A cached entitlement for another purchase must never short-circuit verification.
+	var expected_hash: String = purchase_token.sha256_text().substr(0, 16)
+	if str(_payload.get("pth", "")) != expected_hash:
 		return false
 	var now: int = now_unix if now_unix >= 0 else int(Time.get_unix_time_from_system())
 	return not MHEntitlementToken.needs_refresh(_payload, now)

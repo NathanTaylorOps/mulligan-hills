@@ -51,11 +51,15 @@ func test_android_fresh_cache_reverification_policy() -> void:
 	var service: MHEntitlementServiceAndroid = MHEntitlementServiceAndroid.new()
 	service._unlocked = true
 	service._token = "cached"
-	service._payload = {"ref": 100}
-	assert_bool(service._cached_entitlement_is_fresh(99)).is_true()
-	assert_bool(service._cached_entitlement_is_fresh(100)).is_false()
+	service._payload = {"ref": 100, "pth": "play-token-a".sha256_text().substr(0, 16)}
+	assert_bool(service._cached_entitlement_is_fresh("play-token-a", 99)).is_true()
+	assert_bool(service._cached_entitlement_is_fresh("play-token-a", 100)).is_false()
+	assert_bool(service._cached_entitlement_is_fresh("other-play-token", 99)).is_false()
+	assert_bool(service._cached_entitlement_is_fresh("", 99)).is_false()
+	service._payload.erase("pth")
+	assert_bool(service._cached_entitlement_is_fresh("play-token-a", 99)).is_false()
 	service._unlocked = false
-	assert_bool(service._cached_entitlement_is_fresh(99)).is_false()
+	assert_bool(service._cached_entitlement_is_fresh("play-token-a", 99)).is_false()
 
 
 func test_android_price_uses_current_play_billing_offer_shape() -> void:
@@ -69,6 +73,13 @@ func test_android_price_uses_current_play_billing_offer_shape() -> void:
 	}
 	assert_str(service._seam_price_from_details(details)).is_equal("$4.99")
 	assert_str(service._seam_price_from_details({"formatted_price": "$3.99"})).is_equal("$3.99")
+
+
+func test_android_billing_launch_rejects_missing_or_malformed_status() -> void:
+	assert_bool(MHEntitlementServiceAndroid._purchase_launch_is_ok({})).is_false()
+	assert_bool(MHEntitlementServiceAndroid._purchase_launch_is_ok({"response_code": "0"})).is_false()
+	assert_bool(MHEntitlementServiceAndroid._purchase_launch_is_ok({"response_code": 0})).is_true()
+	assert_bool(MHEntitlementServiceAndroid._purchase_launch_is_ok({"response_code": 5})).is_false()
 
 
 func test_request_hash_vector() -> void:

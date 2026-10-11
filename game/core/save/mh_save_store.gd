@@ -153,7 +153,9 @@ func _commit(slot: int, work: Dictionary, blob: PackedByteArray) -> MHSaveResult
 	# A prior interrupted two-file save may have left the last committed JSON paired only with blob .bak.
 	# Heal that recoverable pair before rotating another blob generation, or a second failed save can overwrite
 	# the only matching backup and leave the slot unloadable.
-	_heal_existing_pair(slot)
+	var recovery: MHSaveResult = _heal_existing_pair(slot)
+	if not recovery.is_ok():
+		return recovery
 	if blob.size() > 0:
 		var bpath: String = blob_path(slot)
 		if MHSaveFile.read_all(bpath) != blob:
@@ -179,16 +181,24 @@ func _commit(slot: int, work: Dictionary, blob: PackedByteArray) -> MHSaveResult
 	return MHSaveResult.success(summary)
 
 
-func _heal_existing_pair(slot: int) -> void:
+func _heal_existing_pair(slot: int) -> MHSaveResult:
 	var has_json: bool = false
 	for suffix in _SUFFIXES:
 		if MHSaveFile.exists(json_path(slot) + String(suffix)):
 			has_json = true
 			break
 	if not has_json:
-		return
-	# Best effort only. If the existing slot is genuinely corrupt, the new validated save is still allowed to replace it.
-	_load_core(slot, true, true)
+		return MHSaveResult.success(null)
+	# A genuinely corrupt slot may be replaced by a new, fully validated save.
+	# But if a recoverable pair is found, any failed healing must stop the next blob rotation.
+	var existing: MHSaveResult = _load_core(slot, true, true)
+	if not existing.is_ok():
+		return MHSaveResult.success(null)
+	var loaded: MHLoadedSave = existing.value
+	for warning: String in loaded.warnings:
+		if warning.begins_with("heal:"):
+			return MHSaveResult.failure(MHSaveResult.Code.IO_ERROR, "existing save recovery failed: " + warning)
+	return MHSaveResult.success(null)
 
 
 func _has_terrain(doc: Dictionary) -> bool:
