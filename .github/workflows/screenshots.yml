@@ -61,6 +61,11 @@ jobs:
           MH_RENDERER="$RENDERER" tools/ci/set_project_options.sh
           MH_RENDERER="$RENDERER" tools/ci/gen_build_info.sh
 
+      # The import script loads all first-party GDScript, including gdUnit4 suites.
+      # Install the pinned addon before compiling test scripts (as in ci.yml).
+      - name: Install gdUnit4 for complete script validation
+        run: tools/ci/install_gdunit4.sh
+
       - name: Import project
         run: tools/ci/import_project.sh
 
