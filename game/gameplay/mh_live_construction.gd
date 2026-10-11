@@ -725,6 +725,7 @@ func _advance_hole_transition_walkers(delta_s: float) -> void:
 		if event.is_empty():
 			# The next tee is occupied. Keep the real party waiting visibly at the tee and retry next frame.
 			continue
+		var walker: Dictionary = _hole_transition_walkers[party_id]
 		_hole_transition_walkers.erase(party_id)
 		_visible_golfers.remove_group(party_id)
 		if not bool(walker.get("star_cart", false)):
