@@ -71,6 +71,13 @@ func test_android_price_uses_current_play_billing_offer_shape() -> void:
 	assert_str(service._seam_price_from_details({"formatted_price": "$3.99"})).is_equal("$3.99")
 
 
+func test_android_billing_launch_rejects_missing_or_malformed_status() -> void:
+	assert_bool(MHEntitlementServiceAndroid._purchase_launch_is_ok({})).is_false()
+	assert_bool(MHEntitlementServiceAndroid._purchase_launch_is_ok({"response_code": "0"})).is_false()
+	assert_bool(MHEntitlementServiceAndroid._purchase_launch_is_ok({"response_code": 0})).is_true()
+	assert_bool(MHEntitlementServiceAndroid._purchase_launch_is_ok({"response_code": 5})).is_false()
+
+
 func test_request_hash_vector() -> void:
 	var h: String = MHIntegrityService.request_hash(PackedStringArray(["a", "b", "c"]))
 	assert_str(h).is_equal("a52dd81bfd5e4e66d96b9f598382f6cbf8c5c3897654e6ae9055e03620fcf38e")
