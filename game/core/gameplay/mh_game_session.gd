@@ -22,6 +22,14 @@ var rating_epoch: int = 0
 var unix_now: int = 0
 var recent_scores: Array = []
 var practice: MHPracticeRound = null
+## Transient presentation queue. Economy remains authoritative for admission and payment; this only exposes paid arrivals.
+var customer_admissions: Array = []
+var _customer_serial: int = 0
+var customer_feedback_sum: int = 0
+var customer_feedback_count: int = 0
+var customer_outcomes: Array = [] # immutable authoritative records; presentation never mutates economy/roster
+var golfer_roster: MHGolferRoster = MHGolferRoster.new()
+var building_placements: Dictionary = {} # id -> terrain-aware freeform placement record
 var _holes: Array = []
 var _ratings: Array = []
 var _course: Dictionary = {}
@@ -216,6 +224,8 @@ func advance(delta_us: int, wall_unix: int) -> void:
 		if events[i] != MHGameClock.EV_HOUR:
 			continue
 		var tick: Dictionary = economy.tick_hour()
+		_queue_customer_admissions(tick)
+		_resolve_customer_hour()
 		hourly = true
 		if bool(tick["day_rolled"]):
 			recent_scores.append(int(_course.get("course_x10", 0)) / 10)
@@ -229,6 +239,107 @@ func advance(delta_us: int, wall_unix: int) -> void:
 		autosave_requested.emit()
 	if before != clock.total_minutes() or old_tokens != ledger.earned or old_day != unix_now / 86400 or not events.is_empty():
 		changed.emit()
+
+
+func _queue_customer_admissions(tick: Dictionary) -> void:
+	var n: int = maxi(0, int(tick.get("golfers", 0)))
+	if n == 0 or _holes.is_empty():
+		return
+	var fees: int = maxi(0, int(tick.get("fees", 0)))
+	var ancillary: int = maxi(0, int(tick.get("ancillary", 0)))
+	var fee_each: int = fees / n
+	var anc_each: int = ancillary / n
+	var remaining: int = n
+	while remaining > 0:
+		var group_size: int = mini(remaining, 1 + posmod(_customer_serial + economy.day, 4))
+		var group: Array = golfer_roster.group_for_admission(save_secret, _customer_serial, economy.day, group_size)
+		for identity_v: Variant in group:
+			var identity: Dictionary = identity_v
+			customer_admissions.append({"serial": _customer_serial, "identity": identity, "group_size": group_size,
+				"paid_fee": fee_each, "ancillary": anc_each, "admitted_day": economy.day, "admitted_hour": economy.hour,
+				"hole_slot": int((_holes[0] as Dictionary)["slot_id"])})
+			_customer_serial += 1
+			remaining -= 1
+
+
+func _resolve_customer_hour() -> void:
+	if customer_admissions.is_empty() or _holes.is_empty() or _ratings.is_empty():
+		return
+	var start: int = customer_outcomes.size()
+	for admission_v: Variant in customer_admissions:
+		var customer: Dictionary = (admission_v as Dictionary).duplicate(true)
+		var identity: Dictionary = customer.get("identity", {}) as Dictionary
+		var band: int = int(identity.get("skill_band", 1))
+		var hole: Dictionary = _holes[0] as Dictionary
+		var rating: Dictionary = _ratings[0] as Dictionary
+		var round: Dictionary = MHAIRoundRecord.play(hole, {"save_secret": save_secret, "rating_epoch": rating_epoch}, band, 0)
+		if round.is_empty():
+			continue
+		var pref: int = int(identity.get("preference", MHGolferPreference.CASUAL))
+		var base: int = MHCustomerRoundQueue.satisfaction(round)
+		var bonus: int = MHGolferPreference.bonus(pref, rating, round)
+		var sat: int = clampi(base + bonus, 0, 100)
+		customer["round"] = round
+		customer["rating"] = rating.duplicate(true)
+		customer["preference"] = pref
+		customer["base_satisfaction"] = base
+		customer["preference_bonus"] = bonus
+		customer["satisfaction"] = sat
+		customer["reaction"] = MHCustomerRoundQueue.reaction(sat, int(round.get("flags", 0)))
+		customer["preference_reaction"] = MHGolferPreference.describe(pref, bonus)
+		customer["identity"] = golfer_roster.record_visit(int(identity["id"]), economy.day, sat,
+			str(customer["reaction"]), int(customer.get("hole_slot", 0)), int(round.get("flags", 0)))
+		customer_outcomes.append(customer)
+		customer_feedback_sum += sat
+		customer_feedback_count += 1
+	var count: int = customer_outcomes.size() - start
+	if count > 0:
+		var total: int = 0
+		for i: int in range(start, customer_outcomes.size()):
+			total += int((customer_outcomes[i] as Dictionary)["satisfaction"])
+		var avg: int = MHRMath.rdiv(total, count)
+		var delta: int = clampi(MHRMath.rdiv(avg - 50, 12), -4, 4)
+		economy.reputation = clampi(economy.reputation + delta, economy.params.c("rep_floor_permille"), 1000)
+
+
+func take_customer_admissions(limit: int = 4) -> Array:
+	var count: int = mini(maxi(limit, 0), customer_outcomes.size())
+	var out: Array = []
+	for _i: int in range(count):
+		out.append(customer_outcomes.pop_front())
+	return out
+
+
+## Completed visible rounds move reputation slowly. 50/100 is neutral; one customer can move at most 4 permille.
+## Existing MHEconomy arrivals/membership formulas then turn reputation into future demand.
+func record_customer_visit(customer: Dictionary) -> Dictionary:
+	var identity: Dictionary = customer.get("identity", {}) as Dictionary
+	if identity.is_empty():
+		return {}
+	var sat: int = clampi(int(customer.get("satisfaction", 50)), 0, 100)
+	var memory: String = str(customer.get("reaction", "Finished a round."))
+	var round: Dictionary = customer.get("round", {}) as Dictionary
+	var updated: Dictionary = golfer_roster.record_visit(int(identity["id"]), economy.day, sat, memory,
+		int(customer.get("hole_slot", 0)), int(round.get("flags", 0)))
+	# Legacy/UI callers may request the roster record, but authoritative hourly resolution already applies feedback.
+	return updated
+
+
+func record_customer_feedback(satisfaction: int) -> int:
+	var sat: int = clampi(satisfaction, 0, 100)
+	customer_feedback_sum += sat
+	customer_feedback_count += 1
+	var delta: int = clampi(MHRMath.rdiv(sat - 50, 12), -4, 4)
+	economy.reputation = clampi(economy.reputation + delta, economy.params.c("rep_floor_permille"), 1000)
+	_sync_progress()
+	changed.emit()
+	return delta
+
+
+func customer_feedback_average() -> int:
+	if customer_feedback_count <= 0:
+		return 0
+	return MHRMath.rdiv(customer_feedback_sum, customer_feedback_count)
 
 
 func handle_intent(id: StringName, args: Dictionary) -> Dictionary:

@@ -264,3 +264,178 @@ func test_camera_follow_and_overview_preserve_gameplay_state() -> void:
 	scene.one_hole._shoot()
 	assert_bool(scene.controller.rig.target == overview).is_true()
 	scene._active = false
+
+
+func test_first_real_round_status_distinguishes_fresh_and_restored_play() -> void:
+	var fresh: MHLiveConstruction = auto_free(MHLiveConstruction.new())
+	fresh.store = MHSaveStore.new(DIR)
+	fresh.ledger_dir = LEDGERS
+	add_child(fresh)
+	assert_bool(fresh._active).is_true()
+	assert_bool(fresh._resumed_checkpoint).is_false()
+	assert_str(fresh._first_round_status()).contains("First Real Round")
+	fresh.session.clock.pause()
+	fresh.one_hole.open()
+	fresh.one_hole._finalize()
+	fresh.one_hole._shoot()
+	assert_bool(fresh.save_now()).is_true()
+	fresh._active = false
+	remove_child(fresh)
+	fresh.queue_free()
+
+	var resumed: MHLiveConstruction = auto_free(MHLiveConstruction.new())
+	resumed.store = MHSaveStore.new(DIR)
+	resumed.ledger_dir = LEDGERS
+	add_child(resumed)
+	assert_bool(resumed._active).is_true()
+	assert_bool(resumed._resumed_checkpoint).is_true()
+	assert_object(resumed.session.practice).is_not_null()
+	assert_str(resumed._first_round_status()).contains("continue your saved round")
+	resumed._active = false
+
+
+func test_first_real_round_flat_terrain_keeps_legacy_no_relief_path() -> void:
+	var scene: MHLiveConstruction = auto_free(MHLiveConstruction.new())
+	scene.store = MHSaveStore.new(DIR)
+	scene.ledger_dir = LEDGERS
+	add_child(scene)
+	var layout: Dictionary = scene.one_hole._layout()
+	assert_bool(layout.has("relief")).is_false()
+	scene._active = false
+
+
+func test_first_real_round_terrain_relief_rates_plays_and_survives_save() -> void:
+	var scene: MHLiveConstruction = auto_free(MHLiveConstruction.new())
+	scene.store = MHSaveStore.new(DIR)
+	scene.ledger_dir = LEDGERS
+	add_child(scene)
+	scene.session.clock.pause()
+	# Raise terrain under the middle of the authored hole. The exact sampled heightmap, not a cosmetic flag,
+	# must become the rating/practice relief grid.
+	scene.editor.grid.set_h(48, 62, 6000)
+	scene.one_hole.open()
+	scene.one_hole._finalize()
+	var layouts: Array = scene.session.hole_definitions()
+	assert_int(layouts.size()).is_equal(1)
+	var layout: Dictionary = layouts[0]
+	assert_bool(layout.has("relief")).is_true()
+	var parsed: MHRHole = MHRHole.from_def(layout)
+	assert_bool(parsed.has_relief).is_true()
+	assert_bool(parsed.relief_range > 0).is_true()
+	assert_bool(parsed.elev_mm() > 0).is_true()
+	assert_object(scene.session.practice).is_not_null()
+	assert_bool(scene.session.practice.hole.has_relief).is_true()
+	assert_bool(scene.save_now()).is_true()
+	var loaded: MHSaveResult = scene.store.load_slot(0)
+	assert_bool(loaded.is_ok()).is_true()
+	var saved: MHLoadedSave = loaded.value as MHLoadedSave
+	var ledger: MHSaveResult = MHSessionSave.load_ledger(saved.data, LEDGERS)
+	var restored: MHSaveResult = MHSessionSave.restore(saved.data, ledger.value as MHTokenLedger)
+	assert_bool(restored.is_ok()).is_true()
+	if restored.is_ok():
+		var restored_session: MHGameSession = restored.value
+		var restored_layout: Dictionary = restored_session.hole_definitions()[0]
+		assert_bool(restored_layout.has("relief")).is_true()
+		assert_bool(restored_session.practice.hole.has_relief).is_true()
+		assert_str(restored_session.practice.hole.content_hash()).is_equal(scene.session.practice.hole.content_hash())
+	scene._active = false
+
+
+func test_paid_customer_admissions_are_presentation_only_and_do_not_charge_again() -> void:
+	var s: MHGameSession = MHGameSession.create()
+	assert_object(s).is_not_null()
+	var hole: Dictionary = {"slot_id": 0, "tee": [0, 0], "green": [0, 60, 5],
+		"features": [{"t": "fairway", "rect": [-8, 0, 8, 60]}]}
+	var submitted: Dictionary = s.submit_course([hole])
+	assert_bool(bool(submitted["ok"])).is_true()
+	var cash_before: int = s.economy.cash
+	var tick: Dictionary = s.economy.tick_hour()
+	s._queue_customer_admissions(tick)
+	var cash_after_tick: int = s.economy.cash
+	var admissions: Array = s.take_customer_admissions(999)
+	assert_int(s.economy.cash).is_equal(cash_after_tick)
+	assert_bool(cash_after_tick != cash_before or int(tick["golfers"]) == 0).is_true()
+	assert_int(admissions.size()).is_equal(int(tick["golfers"]))
+	for v: Variant in admissions:
+		var customer: Dictionary = v
+		assert_int(int(customer["paid_fee"])).is_equal(s.economy.green_fee())
+
+
+func test_customer_feedback_moves_reputation_slowly_and_changes_future_arrivals() -> void:
+	var s: MHGameSession = MHGameSession.create()
+	assert_object(s).is_not_null()
+	s.economy.reputation = 800
+	var before: int = MHEconomyModel.arrivals_milli(s.economy.params, s.economy.holes, s.economy.rating, 0,
+		s.economy.reputation, 1000)
+	var good_delta: int = s.record_customer_feedback(100)
+	assert_int(good_delta).is_equal(4)
+	assert_int(s.economy.reputation).is_equal(804)
+	var after_good: int = MHEconomyModel.arrivals_milli(s.economy.params, s.economy.holes, s.economy.rating, 0,
+		s.economy.reputation, 1000)
+	assert_bool(after_good > before).is_true()
+	var bad_delta: int = s.record_customer_feedback(0)
+	assert_int(bad_delta).is_equal(-4)
+	assert_int(s.economy.reputation).is_equal(800)
+	assert_int(s.customer_feedback_average()).is_equal(50)
+
+
+func test_reputation_feedback_respects_economy_floor_and_ceiling() -> void:
+	var s: MHGameSession = MHGameSession.create()
+	s.economy.reputation = 999
+	s.record_customer_feedback(100)
+	assert_int(s.economy.reputation).is_equal(1000)
+	s.economy.reputation = s.economy.params.c("rep_floor_permille")
+	s.record_customer_feedback(0)
+	assert_int(s.economy.reputation).is_equal(s.economy.params.c("rep_floor_permille"))
+
+
+func test_golfer_identity_history_survives_session_checkpoint() -> void:
+	var scene: MHLiveConstruction = auto_free(MHLiveConstruction.new())
+	scene.store = MHSaveStore.new(DIR)
+	scene.ledger_dir = LEDGERS
+	add_child(scene)
+	scene.session.clock.pause()
+	var identity: Dictionary = scene.session.golfer_roster.identity_for_admission(scene.session.save_secret, 0, 1)
+	scene.session.golfer_roster.record_visit(int(identity["id"]), 1, 90, "Favorite elevated hole")
+	scene.session._customer_serial = 5
+	scene.session.customer_feedback_sum = 90
+	scene.session.customer_feedback_count = 1
+	assert_bool(scene.save_now()).is_true()
+	var loaded: MHSaveResult = scene.store.load_slot(0)
+	assert_bool(loaded.is_ok()).is_true()
+	var saved: MHLoadedSave = loaded.value as MHLoadedSave
+	var ledger: MHSaveResult = MHSessionSave.load_ledger(saved.data, LEDGERS)
+	var restored: MHSaveResult = MHSessionSave.restore(saved.data, ledger.value as MHTokenLedger)
+	assert_bool(restored.is_ok()).is_true()
+	if restored.is_ok():
+		var s: MHGameSession = restored.value
+		assert_dict(s.golfer_roster.to_dict()).is_equal(scene.session.golfer_roster.to_dict())
+		assert_int(s._customer_serial).is_equal(5)
+		assert_int(s.customer_feedback_average()).is_equal(90)
+	scene._active = false
+
+
+func test_post_round_facility_choice_requires_owned_building() -> void:
+	var s: MHGameSession = MHGameSession.create()
+	assert_object(s).is_not_null()
+	var identity: Dictionary = {"favorite_facility": "restaurant"}
+	# Fresh economy has no purchased facility tier.
+	assert_str(s.choose_post_round_facility(identity)).is_equal("")
+	s.economy.set_tier(0, 1) # clubhouse
+	assert_str(s.choose_post_round_facility(identity)).is_equal("clubhouse")
+	s.economy.set_tier(3, 1) # restaurant
+	assert_str(s.choose_post_round_facility(identity)).is_equal("restaurant")
+
+
+func test_grouped_admissions_never_exceed_paid_golfer_count() -> void:
+	var s: MHGameSession = MHGameSession.create()
+	var hole: Dictionary = {"slot_id": 0, "tee": [0, 0], "green": [0, 60, 5],
+		"features": [{"t": "fairway", "rect": [-8, 0, 8, 60]}]}
+	assert_bool(bool(s.submit_course([hole])["ok"])).is_true()
+	var tick: Dictionary = s.economy.tick_hour()
+	s._queue_customer_admissions(tick)
+	var admissions: Array = s.take_customer_admissions(999)
+	assert_int(admissions.size()).is_equal(int(tick["golfers"]))
+	for v: Variant in admissions:
+		var customer: Dictionary = v
+		assert_bool(int(customer.get("group_size", 0)) >= 1 and int(customer.get("group_size", 0)) <= 4).is_true()

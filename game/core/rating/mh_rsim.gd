@@ -35,6 +35,10 @@ var rec_flags: PackedInt32Array = PackedInt32Array()
 var rec_time: PackedInt32Array = PackedInt32Array()
 var rec_fx: PackedInt32Array = PackedInt32Array()
 var rec_fy: PackedInt32Array = PackedInt32Array()
+## Optional presentation/debug trace. Empty during ordinary rating runs; enable_trace must be explicit.
+var enable_trace: bool = false
+var trace_gid: int = 0
+var trace_events: Array = []
 
 
 func _init(h: MHRHole, wind_x: int, wind_y: int, rain_level: int) -> void:
@@ -255,6 +259,7 @@ func plan_table(px_: int, py_: int, lie: int, skill: int) -> Array:
 
 ## Simulates every golfer. counts = golfers per band (120 official, 30 preview).
 func simulate(seed_v: int, counts: PackedInt32Array) -> void:
+	trace_events.clear()
 	var cap: int = hole.par + 4
 	n_golfers = 0
 	for b in range(6):
@@ -301,6 +306,11 @@ func simulate(seed_v: int, counts: PackedInt32Array) -> void:
 						slope = (absi(g1.x) + absi(g1.y) + absi(g2.x) + absi(g2.y)) / 2
 						drop = hole.z_at(x, y) - hole.z_at(hole.gx, hole.gy)
 					var np: int = putt_count(MHRMath.isqrt(gdx * gdx + gdy * gdy), skill, MHRMath.h32d(seed_v, nid, shot, 4) % 1000, slope, drop)
+					if enable_trace and gid == trace_gid:
+						trace_events.append({"kind": "putt", "shot": shot, "x0": x, "y0": y, "x1": hole.gx, "y1": hole.gy,
+							"lie0": lie, "lie1": MHRHole.LIE_GREEN, "strokes": np, "penalty": 0, "tree": false,
+							"z0": hole.z_at(x, y) if hole.has_relief else 0,
+							"z1": hole.z_at(hole.gx, hole.gy) if hole.has_relief else 0})
 					strokes += np
 					tsec += 25 * np
 					if strokes > cap:
@@ -337,7 +347,15 @@ func simulate(seed_v: int, counts: PackedInt32Array) -> void:
 				var zd: int = z[MHRMath.h32d(seed_v, nid, shot, 1) & 255]
 				var mroll: int = MHRMath.h32d(seed_v, nid, shot, 2) % 1000
 				var msev: int = MHRMath.h32d(seed_v, nid, shot, 3)
+				var shot_x0: int = x
+				var shot_y0: int = y
+				var shot_lie0: int = lie
 				land(x, y, lie, cand_x[idx], cand_y[idx], skill, zl, zd, mroll, msev)
+				if enable_trace and gid == trace_gid:
+					trace_events.append({"kind": "shot", "shot": shot, "x0": shot_x0, "y0": shot_y0, "x1": r_x, "y1": r_y,
+						"lie0": shot_lie0, "lie1": r_lie, "strokes": 1 + r_pen, "penalty": r_kind,
+						"tree": r_tree, "z0": hole.z_at(shot_x0, shot_y0) if hole.has_relief else 0,
+						"z1": hole.z_at(r_x, r_y) if hole.has_relief else 0})
 				strokes += 1 + r_pen
 				walk += r_walk
 				tsec += 40

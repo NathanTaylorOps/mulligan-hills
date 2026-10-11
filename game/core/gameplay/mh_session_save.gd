@@ -50,6 +50,9 @@ static func capture(session: MHGameSession, source: Dictionary) -> MHSaveResult:
 	doc["progress"] = progress
 	doc["runtime"] = {"v": 1, "clock": session.clock.to_dict(), "economy": session.economy.to_dict(),
 		"save_secret": session.save_secret, "recent_scores": session.recent_scores.duplicate(),
+		"golfer_roster": session.golfer_roster.to_dict(), "customer_serial": session._customer_serial,
+		"customer_feedback_sum": session.customer_feedback_sum, "customer_feedback_count": session.customer_feedback_count,
+		"building_placements": session.building_placements.duplicate(true),
 		"ledger_hash": MHSaveGame.canonical_json(session.ledger.to_dict()).sha256_text(),
 		"terrain_bytes_hash": str((source.get("runtime", {}) as Dictionary).get("terrain_bytes_hash", "0".repeat(64)))}
 	if session.practice != null:
@@ -138,6 +141,15 @@ static func restore(source: Dictionary, ledger: MHTokenLedger) -> MHSaveResult:
 	s.save_secret = int(rt["save_secret"])
 	s.rating_epoch = int(doc["sim"]["rating_epoch"])
 	s.recent_scores = (rt["recent_scores"] as Array).duplicate()
+	if rt.has("golfer_roster"):
+		if typeof(rt["golfer_roster"]) != TYPE_DICTIONARY or not s.golfer_roster.from_dict(rt["golfer_roster"] as Dictionary):
+			return _bad("golfer roster checkpoint invalid")
+	s._customer_serial = maxi(0, int(rt.get("customer_serial", 0)))
+	s.customer_feedback_sum = maxi(0, int(rt.get("customer_feedback_sum", 0)))
+	s.customer_feedback_count = maxi(0, int(rt.get("customer_feedback_count", 0)))
+	s.building_placements = (rt.get("building_placements", {}) as Dictionary).duplicate(true)
+	if s.customer_feedback_count == 0 and s.customer_feedback_sum != 0:
+		return _bad("customer feedback checkpoint invalid")
 	if rt.has("practice"):
 		if not MHRValidate.is_int_value(rt["practice"].get("slot_id", null)):
 			return _bad("practice hole identity invalid")

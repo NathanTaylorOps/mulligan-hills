@@ -14,6 +14,17 @@ var _world: Node3D
 var _ball: MeshInstance3D
 var _path: Node3D
 var _feedback: Label
+var _ai_record: Dictionary = {}
+var _ai_elapsed: float = 0.0
+var _ai_playing: bool = false
+var _ai_golfer: MHGolferFigure
+var _ai_ball: MeshInstance3D
+var _customers: MHCustomerRoundQueue = MHCustomerRoundQueue.new()
+var _customer_time: float = 0.0
+var _last_customer_serial: int = -1
+var _companions: Array = []
+var _walkers: Array = []
+var _building_positions: Dictionary = {}
 var _scroll: MHScrollBox
 var _toggle: MHTapButton
 ## Header only (body hidden). Layout is recomputed by the scene on `layout_changed`.
@@ -67,6 +78,7 @@ func setup(scene: MHLiveConstruction) -> void:
 	_button(shots, "Course overview", _overview)
 	_button(shots, "Play shot", _shoot)
 	_button(shots, "New practice round", _restart)
+	_button(shots, "Watch AI play", _watch_ai)
 	_button(shots, "Close", func() -> void: hide(); _world.hide(); live.chunks.show())
 	_world = Node3D.new()
 	live.add_child(_world)
@@ -78,6 +90,7 @@ func setup(scene: MHLiveConstruction) -> void:
 		half_width_yd = int(h["features"][0]["rect"][2])
 		water = (h["features"] as Array).size() > 1
 	_describe()
+	set_process(true)
 	hide()
 
 func set_collapsed(value: bool) -> void:
@@ -97,7 +110,7 @@ func open() -> void:
 	if live.aim_input != null:
 		live.aim_input.taps.clear()
 	live.shell.show_root(MHScreenIds.HUD)
-	live.chunks.hide() # Flat exact-layout view; arbitrary brush terrain is not claimed as rated geometry.
+	live.chunks.show() # Sculpted terrain is the same geometry sampled by rating and shot simulation.
 	show()
 	_world.show()
 	_follow_camera()
@@ -113,7 +126,46 @@ func _layout() -> Dictionary:
 	var features: Array = [{"t": "fairway", "rect": [-half_width_yd, 0, half_width_yd, length_yd]}]
 	if water:
 		features.append({"t": "water", "rect": [10, 20, 14, 30]})
-	return {"slot_id": 0, "tee": [0, 0], "green": [0, length_yd, 5], "features": features}
+	var out: Dictionary = {"slot_id": 0, "tee": [0, 0], "green": [0, length_yd, 5], "features": features}
+	var relief: Dictionary = _terrain_relief(out)
+	if not relief.is_empty():
+		out["relief"] = relief
+	return out
+
+
+## Samples the authoritative terrain under this exact hole into the rating engine's optional relief grid.
+## A completely flat sample returns {}, preserving the pre-elevation deterministic path byte-for-byte.
+func _terrain_relief(layout: Dictionary) -> Dictionary:
+	if live == null or live.editor == null or live.editor.grid == null:
+		return {}
+	var grid: MHHeightGrid = live.editor.grid
+	var step_yd: int = 4
+	var x0_yd: int = -16
+	var x1_yd: int = 16
+	var y0_yd: int = 0
+	var y1_yd: int = int((layout["green"] as Array)[1]) + 8
+	var cols: int = (x1_yd - x0_yd) / step_yd + 1
+	var rows: int = (y1_yd - y0_yd) / step_yd + 1
+	var zs: Array = []
+	var first_z: int = 0
+	var any_difference: bool = false
+	for r: int in range(rows):
+		for col: int in range(cols):
+			var local_x_cy: int = (x0_yd + col * step_yd) * 100
+			var local_y_cy: int = (y0_yd + r * step_yd) * 100
+			var world_x_mm: int = MHCourseLayout.world_mm(int(ORIGIN[0]), local_x_cy)
+			var world_y_mm: int = MHCourseLayout.world_mm(int(ORIGIN[1]), local_y_cy)
+			var sx: int = clampi(MHRMath.rdiv(world_x_mm, grid.cell_size_mm), 0, grid.samples_x - 1)
+			var sy: int = clampi(MHRMath.rdiv(world_y_mm, grid.cell_size_mm), 0, grid.samples_y - 1)
+			var z: int = grid.get_h(sx, sy)
+			if zs.is_empty():
+				first_z = z
+			elif z != first_z:
+				any_difference = true
+			zs.append(z)
+	if not any_difference:
+		return {}
+	return {"x0": x0_yd, "y0": y0_yd, "step": step_yd, "cols": cols, "rows": rows, "z": zs}
 
 func _draft_changed() -> void:
 	_preview_draft = true
@@ -138,6 +190,7 @@ func _finalize() -> void:
 	live.document["min_reader_version"] = 3
 	live.session.practice = null # A redesign cannot continue a round on a previous layout.
 	_restart()
+	_refresh_ai_record()
 	live._request_save()
 	_draw()
 	_describe()
@@ -190,6 +243,138 @@ func _shoot() -> void:
 	elif bool(result["tree"]):
 		_info.text += " | Tree hit"
 
+func _process(delta: float) -> void:
+	var dt: float = maxf(delta, 0.0)
+	_advance_walkers(dt)
+	_customer_time += dt
+	_admit_economy_customers()
+	var customer_event: Dictionary = _customers.advance(_customer_time)
+	if not customer_event.is_empty():
+		var customer: Dictionary = customer_event["customer"]
+		if str(customer_event["kind"]) == "started":
+			_clear_companions()
+			_spawn_group_companions(customer)
+			_last_customer_serial = int(customer["serial"])
+			_ai_record = customer["round"] as Dictionary
+			_ai_playing = false
+			_draw()
+			var identity: Dictionary = customer.get("identity", {}) as Dictionary
+			_feedback.text = "%s teed off after paying $%.2f%s | group of %d" % [str(identity.get("name", "Customer #%d" % (_last_customer_serial + 1))),
+				float(int(customer["paid_fee"])) / 100.0, " — returning golfer" if int(identity.get("visits", 0)) > 0 else "",
+				int(customer.get("group_size", 1))]
+		else:
+			var updated: Dictionary = customer.get("identity", {}) as Dictionary
+			var facility: String = live.session.choose_post_round_facility(updated)
+			var facility_visit: Dictionary = _customers.queue_facility_visit(customer, facility, _customer_time)
+			var rep_delta: int = 0 # Reputation was already resolved by the authoritative hourly simulation.
+			var identity: Dictionary = updated
+			var golfer_name: String = str(identity.get("name", "Customer #%d" % (int(customer["serial"]) + 1)))
+			_feedback.text = "%s (%s) finished: %d/100 — %s %s | loyalty %d | visit %d | reputation %+d" % [
+				golfer_name, MHGolferPreference.name_of(int(customer["preference"])), int(customer["satisfaction"]),
+				str(customer["reaction"]), str(customer["preference_reaction"]), int(updated.get("loyalty", 50)),
+				int(updated.get("visits", 1)), rep_delta]
+			_feedback.text += "\n" + MHGolferBubble.after_round(updated, customer)
+			if bool(updated.get("member", false)):
+				_feedback.text += " | MEMBER"
+			if int(updated.get("group_id", -1)) >= 0:
+				_feedback.text += " | %s group #%d" % [str(updated.get("relationship_role", "friend")), int(updated["group_id"]) + 1]
+			if not facility_visit.is_empty():
+				_feedback.text += " | walking to %s" % facility.replace("_", " ")
+				_send_finished_golfer_to_facility(updated, facility)
+	if not _customers.active.is_empty():
+		_apply_ai_visual(_customers.visual_state(_customer_time))
+		return
+	if not _ai_playing or _ai_record.is_empty() or _world == null or not _world.visible:
+		return
+	_ai_elapsed += dt
+	_apply_ai_visual(MHAIRoundTimeline.state(_ai_record.get("events", []) as Array, _ai_elapsed))
+
+
+func _admit_economy_customers() -> void:
+	if live == null or live.session == null:
+		return
+	var layouts: Array = live.session.hole_definitions()
+	if layouts.is_empty():
+		return
+	var admitted: Array = live.session.take_customer_admissions(4)
+	if admitted.is_empty():
+		return
+	var ratings: Array = live.session.hole_results()
+	var rating: Dictionary = {} if ratings.is_empty() else ratings[0] as Dictionary
+	_customers.admit(admitted, layouts[0] as Dictionary, rating,
+		{"save_secret": live.session.save_secret, "rating_epoch": live.session.rating_epoch})
+
+
+func _watch_ai() -> void:
+	if _ai_record.is_empty():
+		_refresh_ai_record()
+	if _ai_record.is_empty():
+		_info.text = "Finalize the hole before watching an AI golfer."
+		return
+	_ai_elapsed = 0.0
+	_ai_playing = true
+	_draw()
+	_apply_ai_visual(MHAIRoundTimeline.state(_ai_record["events"] as Array, 0.0))
+
+
+func _refresh_ai_record() -> void:
+	var layouts: Array = live.session.hole_definitions()
+	_ai_record = {}
+	if layouts.is_empty():
+		return
+	_ai_record = MHAIRoundRecord.play(layouts[0] as Dictionary,
+		{"save_secret": live.session.save_secret, "rating_epoch": live.session.rating_epoch})
+
+
+func _apply_ai_visual(st: Dictionary) -> void:
+	if bool(st.get("done", false)):
+		_ai_playing = false
+		if _ai_golfer != null:
+			_ai_golfer.visible = false
+		if _ai_ball != null:
+			_ai_ball.visible = false
+		_feedback.text = "AI finished in %d strokes." % int(_ai_record.get("strokes", 0))
+		return
+	if _ai_golfer == null or _ai_ball == null:
+		return
+	var u: float = float(st.get("u", 0.0))
+	var phase: String = str(st.get("phase", "address"))
+	var x0: int = int(st["x0"])
+	var y0: int = int(st["y0"])
+	var x1: int = int(st["x1"])
+	var y1: int = int(st["y1"])
+	var golfer_u: float = u if phase == "walk" else 0.0
+	var gx: int = int(round(lerpf(float(x0), float(x1), golfer_u)))
+	var gy: int = int(round(lerpf(float(y0), float(y1), golfer_u)))
+	_ai_golfer.position = _position(gx, gy, 0.0)
+	var dir: Vector2 = Vector2(float(x1 - x0), float(y1 - y0)).normalized()
+	_ai_golfer.rotation.y = MHSliceRound.facing_yaw(dir.x, dir.y, phase == "address" or phase == "swing" or phase == "putt")
+	var clip: String = MHGolferPoses.CLIP_IDLE
+	var clip_t: float = _ai_elapsed
+	if phase == "swing":
+		clip = MHGolferPoses.CLIP_SWING
+		clip_t = u * MHGolferPoses.LENGTH_SWING
+	elif phase == "walk":
+		clip = MHGolferPoses.CLIP_WALK
+		clip_t = fposmod(_ai_elapsed, MHGolferPoses.LENGTH_WALK)
+	elif phase == "putt":
+		clip = MHGolferPoses.CLIP_PUTT
+		clip_t = fposmod(_ai_elapsed, MHGolferPoses.LENGTH_PUTT)
+	_ai_golfer.set_pose(MHGolferPoses.sample(clip, clip_t))
+	_ai_golfer.visible = true
+	_ai_ball.visible = phase == "flight" or phase == "putt" or phase == "walk"
+	var ball_u: float = u if phase == "flight" or phase == "putt" else (1.0 if phase == "walk" else 0.0)
+	var bx: int = int(round(lerpf(float(x0), float(x1), ball_u)))
+	var by: int = int(round(lerpf(float(y0), float(y1), ball_u)))
+	var z0: float = float(int(st.get("z0", 0))) / 1000.0
+	var z1: float = float(int(st.get("z1", 0))) / 1000.0
+	var arc: float = 0.0 if phase == "putt" or phase == "walk" else 6.0 * 4.0 * ball_u * (1.0 - ball_u)
+	_ai_ball.position = _position(bx, by, 0.15 + lerpf(z0, z1, ball_u) + arc)
+	_feedback.text = "AI shot %d: %s%s%s" % [int(st.get("shot", 0)), phase,
+		" | WATER" if int(st.get("penalty", 0)) == 1 else (" | OUT OF BOUNDS" if int(st.get("penalty", 0)) == 2 else ""),
+		" | TREE" if bool(st.get("tree", false)) else ""]
+
+
 func _describe() -> void:
 	var price: int = 0 if not live.session.hole_definitions().is_empty() else live.session.economy.hole_cost_cents()
 	_info.text = "Draft: %d yd, fairway %d yd wide. Finalize $%d; redesign free." % [length_yd, half_width_yd * 2, price / 100]
@@ -199,13 +384,15 @@ func _describe() -> void:
 	var scores: Array = live.session.hole_results()
 	if not scores.is_empty():
 		_info.text += " | Official hole score %d/100" % int(scores[0]["score"])
+	_info.text += " | Rep %d.%d%% | Feedback %d/100 | Queue %d" % [live.session.economy.reputation / 10, live.session.economy.reputation % 10, live.session.customer_feedback_average(), _customers.waiting.size()]
+	if not _ai_record.is_empty():
+		_info.text += " | AI: %d strokes, first shot %d yd" % [int(_ai_record["strokes"]), MHRMath.isqrt(int(_ai_record["first_x"]) * int(_ai_record["first_x"]) + int(_ai_record["first_y"]) * int(_ai_record["first_y"])) / 100]
 
 func _draw() -> void:
 	_path = null
 	for child: Node in _world.get_children():
 		_world.remove_child(child)
 		child.queue_free()
-	_box(Vector3(64, -0.1, 64), Vector3(128, 0.1, 128), Color(0.27, 0.44, 0.21))
 	var layouts: Array = live.session.hole_definitions()
 	var h: Dictionary = _layout() if layouts.is_empty() or _preview_draft else layouts[0]
 	for row: Variant in h["features"]:
@@ -225,7 +412,16 @@ func _draw() -> void:
 	var r: MHPracticeRound = live.session.practice
 	_ball.position = _position(r.x if r != null and not _preview_draft else 0, r.y if r != null and not _preview_draft else 0, 0.45)
 	_aim = _marker(Color(1, 0.8, 0.1), 0.55)
+	_ai_ball = _marker(Color.WHITE, 0.18)
+	_ai_ball.visible = false
+	_ai_golfer = MHGolferFigure.new()
+	_ai_golfer.auto_advance = false
+	_world.add_child(_ai_golfer)
+	_ai_golfer.setup(MHGolferLook.from_seed(int((_customers.active.get("identity", {}) as Dictionary).get("look_seed", 4242))), 0, MHArtMaterials.vertex_color())
+	_ai_golfer.visible = false
 	_move_aim()
+	if _ai_playing and not _ai_record.is_empty():
+		_apply_ai_visual(MHAIRoundTimeline.state(_ai_record["events"] as Array, _ai_elapsed))
 
 func _move_aim() -> void:
 	if _aim != null:
@@ -233,8 +429,19 @@ func _move_aim() -> void:
 	_refresh_path()
 
 func _position(cx: int, cy: int, height: float) -> Vector3:
-	return Vector3(float(MHCourseLayout.world_mm(int(ORIGIN[0]), cx)) / 1000.0, height,
-		float(MHCourseLayout.world_mm(int(ORIGIN[1]), cy)) / 1000.0)
+	var wx_mm: int = MHCourseLayout.world_mm(int(ORIGIN[0]), cx)
+	var wy_mm: int = MHCourseLayout.world_mm(int(ORIGIN[1]), cy)
+	var ground: float = _terrain_height_m(wx_mm, wy_mm)
+	return Vector3(float(wx_mm) / 1000.0, ground + height, float(wy_mm) / 1000.0)
+
+
+func _terrain_height_m(wx_mm: int, wy_mm: int) -> float:
+	if live == null or live.editor == null or live.editor.grid == null:
+		return 0.0
+	var grid: MHHeightGrid = live.editor.grid
+	var sx: int = clampi(MHRMath.rdiv(wx_mm, grid.cell_size_mm), 0, grid.samples_x - 1)
+	var sy: int = clampi(MHRMath.rdiv(wy_mm, grid.cell_size_mm), 0, grid.samples_y - 1)
+	return float(grid.get_h(sx, sy)) / 1000.0
 
 func _marker(color: Color, radius: float) -> MeshInstance3D:
 	var sphere: SphereMesh = SphereMesh.new()
@@ -273,6 +480,8 @@ static func supported(course: Dictionary) -> bool:
 		return false
 	var h: Dictionary = row["layout"]
 	if int(h["slot_id"]) != 0 or h["tee"] != [0, 0] or h.has("tee_z_mm") or h.has("green_z_mm"):
+		return false
+	if h.has("relief") and not bool(MHRatingEngine.validate_input({"schema": 1, "engine": MHRatingEngine.RATING_VERSION, "hole": h})["ok"]):
 		return false
 	var g: Array = h["green"]
 	if int(g[0]) != 0 or int(g[1]) < 60 or int(g[1]) > 62 or int(g[2]) != 5:
@@ -400,3 +609,58 @@ func _follow_camera() -> void:
 	var point: Vector3 = _position(r.x if r != null else 0, r.y if r != null else 0, -20.0)
 	# Downward framing bias keeps the ball above the prototype's lower controls; device tuning pending.
 	live.controller.focus_target(point, 100.0)
+
+
+func _spawn_group_companions(customer: Dictionary) -> void:
+	if _world == null:
+		return
+	var count: int = clampi(int(customer.get("group_size", 1)) - 1, 0, 3)
+	var identity: Dictionary = customer.get("identity", {}) as Dictionary
+	for i: int in range(count):
+		var figure: MHGolferFigure = MHGolferFigure.new()
+		_world.add_child(figure)
+		figure.setup(MHGolferLook.from_seed(int(identity.get("look_seed", 4242)) + (i + 1) * 997), 0, MHArtMaterials.vertex_color())
+		figure.position = Vector3(float(i + 1) * 1.2, 0.0, -1.4)
+		_companions.append(figure)
+
+
+func _clear_companions() -> void:
+	for v: Variant in _companions:
+		var n: Node = v
+		if is_instance_valid(n):
+			n.queue_free()
+	_companions.clear()
+
+
+func _send_finished_golfer_to_facility(identity: Dictionary, facility: String) -> void:
+	if _ai_golfer == null or not is_instance_valid(_ai_golfer):
+		return
+	if _building_positions.is_empty():
+		_building_positions = MHClubPedestrian.building_positions(live.session)
+	if not _building_positions.has(facility):
+		return
+	var start: Vector3 = _ai_golfer.global_position
+	var dest: Vector3 = _building_positions[facility] as Vector3
+	var route_points: Array = MHClubPedestrian.route(start, dest, int(identity.get("id", 0)))
+	_walkers.append({"node": _ai_golfer, "route": route_points, "segment": 0, "facility": facility,
+		"identity": identity.duplicate(true)})
+	_ai_golfer = null
+
+
+func _advance_walkers(delta: float) -> void:
+	var keep: Array = []
+	for v: Variant in _walkers:
+		var w: Dictionary = v
+		var node: Node3D = w["node"]
+		if not is_instance_valid(node):
+			continue
+		var step: Dictionary = MHClubPedestrian.advance(w["route"] as Array, int(w["segment"]), node.global_position, delta)
+		node.global_position = step["position"] as Vector3
+		w["segment"] = int(step["segment"])
+		if bool(step["done"]):
+			node.queue_free()
+			_feedback.text = "%s arrived at %s." % [str((w["identity"] as Dictionary).get("name", "Golfer")),
+				str(w["facility"]).replace("_", " ")]
+		else:
+			keep.append(w)
+	_walkers = keep
