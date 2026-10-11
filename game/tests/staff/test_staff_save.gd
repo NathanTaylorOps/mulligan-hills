@@ -155,6 +155,7 @@ func test_save_document_validator_accepts_the_roster_block() -> void:
 	var doc: Dictionary = _doc()
 	var base: int = MHSaveGame.validate(doc).size()
 	(doc["club"] as Dictionary)["staff_roster"] = _played().to_save_block()
+	doc["min_reader_version"] = MHSaveGame.READER_VERSION
 	assert_int(MHSaveGame.validate(doc).size()).is_equal(base)
 	# the block survives the document normalizer and the canonical checksum
 	var again: MHSaveResult = MHSaveGame.normalize(JSON.parse_string(JSON.stringify(doc)))
@@ -163,6 +164,14 @@ func test_save_document_validator_accepts_the_roster_block() -> void:
 	var loaded: MHStaff = MHStaffFixture.staff()
 	assert_bool(loaded.from_save_block(((again.value as Dictionary)["club"] as Dictionary)["staff_roster"] as Dictionary)).is_true()
 	assert_int(loaded.head_count()).is_equal(4)
+
+
+func test_staff_roster_requires_reader_six() -> void:
+	var doc: Dictionary = _doc()
+	(doc["club"] as Dictionary)["staff_roster"] = _played().to_save_block()
+	doc["min_reader_version"] = 5
+	MHSaveGame.seal(doc)
+	assert_bool(MHSaveGame.validate(doc).has("staff roster requires reader 6")).is_true()
 
 
 func test_save_document_validator_rejects_a_malformed_roster_block() -> void:

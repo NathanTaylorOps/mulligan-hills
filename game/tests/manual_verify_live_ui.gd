@@ -383,8 +383,9 @@ func _verify() -> void:
 	if craft_rating_hole.is_empty():
 		_fail("Valid craft did not produce a rating layout")
 		return
+	var craft_origin: Vector2i = live.craft_origin_dm()
 	var owned_check: MHSaveResult = MHCourseLayout.encode([craft_rating_hole],
-		live.document["course"] as Dictionary, [MHOneHolePanel.ORIGIN])
+		live.document["course"] as Dictionary, [[craft_origin.x, craft_origin.y]])
 	if not owned_check.is_ok():
 		_fail("Repaired green crosses parcel boundary: " + owned_check.message +
 			" | green radius=" + str(MHCraftConvert.green_radius_yd(live.craft_hole)) +

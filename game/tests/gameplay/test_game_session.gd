@@ -205,6 +205,25 @@ func test_booking_identity_batch_is_unique_and_bounded_to_roster() -> void:
 	assert_int(s.customer_ids_for_booking(-4, 17).size()).is_equal(0)
 
 
+func test_accepted_named_member_is_floor_for_declining_aggregate_membership() -> void:
+	var s: MHGameSession = MHGameSession.create()
+	var row: Dictionary = s.customers.rows[0] as Dictionary
+	row["visits"] = MHGolferCustomers.REGULAR_VISITS + MHGolferCustomers.MEMBER_EXTRA_VISITS
+	row["satisfaction"] = MHGolferCustomers.MEMBER_MIN_SAT
+	row["regular"] = true
+	row["member_eligible"] = true
+	row["good_member_visits"] = MHGolferCustomers.MEMBER_EXTRA_VISITS
+	s.economy.members_milli = 1000
+	assert_bool(s.accept_customer_membership(0)).is_true()
+	assert_int(s.customers.member_count()).is_equal(1)
+
+	# The aggregate model is allowed to decline toward a lower target, but cannot erase an accepted person.
+	s.economy.members_milli = MHEconomyModel.step_members_milli(s.economy.params, s.economy.members_milli, 0)
+	assert_int(s.economy.members_milli).is_less(1000)
+	s._reconcile_named_membership_floor()
+	assert_int(s.economy.members_milli).is_equal(1000)
+
+
 func test_invalid_customer_visit_is_rejected_without_mutating_ledger() -> void:
 	var s: MHGameSession = MHGameSession.create()
 	var before: Dictionary = s.customers.to_dict()

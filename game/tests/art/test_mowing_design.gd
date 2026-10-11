@@ -37,6 +37,56 @@ func test_mowing_design_round_trip_and_clamps() -> void:
 	assert_float(design.intensity).is_equal_approx(0.14, 0.0001)
 
 
+func test_serialized_mowing_contains_no_float_values() -> void:
+	var design: MHMowingDesign = MHMowingDesign.new()
+	design.intensity = 0.065
+	var saved: Dictionary = design.to_dict()
+	assert_bool(saved.has("intensity")).is_false()
+	assert_int(typeof(saved["intensity_pm"])).is_equal(TYPE_INT)
+	assert_int(int(saved["intensity_pm"])).is_equal(65)
+	var restored: MHMowingDesign = MHMowingDesign.from_dict(saved)
+	assert_float(restored.intensity).is_equal_approx(0.065, 0.0001)
+
+
+func test_persisted_mowing_contract_rejects_malformed_values() -> void:
+	var saved: Dictionary = MHMowingDesign.new().to_dict()
+	assert_bool(MHMowingDesign.is_save_dict_valid(saved)).is_true()
+	saved["direction_deg"] = 180
+	assert_bool(MHMowingDesign.is_save_dict_valid(saved)).is_false()
+	saved = MHMowingDesign.new().to_dict()
+	saved["intensity_pm"] = "65"
+	assert_bool(MHMowingDesign.is_save_dict_valid(saved)).is_false()
+	saved = MHMowingDesign.new().to_dict()
+	saved["extra"] = 1
+	assert_bool(MHMowingDesign.is_save_dict_valid(saved)).is_false()
+
+
+func test_legacy_float_backed_mowing_is_strictly_migrated() -> void:
+	var legacy: Dictionary = MHMowingDesign.new().to_dict()
+	legacy["intensity"] = 0.065
+	legacy.erase("intensity_pm")
+	assert_bool(MHMowingDesign.is_legacy_save_dict_valid(legacy)).is_true()
+	assert_bool(MHMowingDesign.is_save_dict_valid(legacy)).is_false()
+	var restored: MHMowingDesign = MHMowingDesign.from_dict(legacy)
+	assert_int(int(restored.to_dict()["intensity_pm"])).is_equal(65)
+	legacy["extra"] = 1
+	assert_bool(MHMowingDesign.is_legacy_save_dict_valid(legacy)).is_false()
+
+
+func test_craft_reader_accepts_and_normalizes_legacy_float_mowing() -> void:
+	var hole: MHCraftHole = MHCraftHole.new(8, 8)
+	var legacy: Dictionary = hole.to_dict()
+	var old_mowing: Dictionary = (legacy["mowing"] as Dictionary).duplicate(true)
+	old_mowing["intensity"] = 0.065
+	old_mowing.erase("intensity_pm")
+	legacy["mowing"] = old_mowing
+	var restored: MHCraftHole = MHCraftHole.from_dict(legacy)
+	assert_object(restored).is_not_null()
+	if restored != null:
+		assert_bool(MHMowingDesign.is_save_dict_valid(restored.mowing)).is_true()
+		assert_int(int(restored.mowing["intensity_pm"])).is_equal(65)
+
+
 func test_legacy_craft_save_gets_default_mowing() -> void:
 	var hole: MHCraftHole = MHCraftHole.new(8, 8)
 	var legacy: Dictionary = hole.to_dict()

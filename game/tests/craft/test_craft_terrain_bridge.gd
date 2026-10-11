@@ -79,3 +79,23 @@ func test_world_rect_sync_only_replaces_tiles_near_that_edit() -> void:
 	MHCraftTerrainBridge.sync_from_world_rect(hole, editor, ORIGIN, Rect2i(sample.x - 1, sample.y - 1, 3, 3))
 	assert_int(hole.get_surface(target.x, target.y)).is_equal(MHCraftHole.Surface.PATH)
 	assert_int(hole.get_surface(4, 4)).is_equal(MHCraftHole.Surface.DEEP_ROUGH)
+
+
+func test_nondefault_seed_does_not_erase_neighbouring_authored_turf() -> void:
+	var editor: MHTerrainEditor = _editor()
+	var first: MHCraftHole = MHCraftHole.new(24, 40)
+	var second: MHCraftHole = MHCraftHole.new(24, 40)
+	var first_tile: Vector2i = Vector2i(4, 4)
+	var second_tile: Vector2i = Vector2i(16, 18)
+	first.paint_tile(first_tile.x, first_tile.y, MHCraftHole.Surface.FAIRWAY)
+	second.paint_tile(second_tile.x, second_tile.y, MHCraftHole.Surface.GREEN)
+	assert_bool(MHCraftTerrainBridge.sync_nondefault_to_world(first, editor, ORIGIN, false)).is_true()
+	var first_sample: Vector2i = _sample_for(first, editor, first_tile.x, first_tile.y)
+	assert_int(editor.splat.get_weight(first_sample.x, first_sample.y, MHSplatMap.Layer.FAIRWAY)).is_equal(255)
+
+	# The second hole is rough at first_tile. A full-envelope sync would erase the
+	# first hole there; authored-only seeding must leave it intact.
+	assert_bool(MHCraftTerrainBridge.sync_nondefault_to_world(second, editor, ORIGIN, false)).is_true()
+	assert_int(editor.splat.get_weight(first_sample.x, first_sample.y, MHSplatMap.Layer.FAIRWAY)).is_equal(255)
+	var second_sample: Vector2i = _sample_for(second, editor, second_tile.x, second_tile.y)
+	assert_int(editor.splat.get_weight(second_sample.x, second_sample.y, MHSplatMap.Layer.GREEN)).is_equal(255)

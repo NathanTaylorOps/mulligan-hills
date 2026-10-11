@@ -18,6 +18,9 @@ var _growth_pct: int = 100
 var _holes_per_two: int = 3
 var _slots_per_homes: int = 3
 var _heavy_extra: int = 1
+# Guided golf expansion opens complete north/south corridors before isolated side strips.
+# Free choice remains available through buyable_parcels(); this affects recommendation only.
+const GOLF_EXPANSION_PRIORITY: Array[int] = [13, 14, 1, 2, 4, 0, 7, 11]
 
 
 static func create(defs: MHBuildingDefs) -> MHLandModel:
@@ -169,10 +172,14 @@ func buy(id: int) -> int:
 	return price
 
 
-## Suggested next parcel for a guided plan: golf first, then facility, then homes; lowest id
-## within a kind. Free choice among buyable parcels is still allowed. -1 if none left.
+## Suggested next parcel for a guided plan. Golf uses a spatially useful deterministic order
+## that opens complete course corridors; facility and homes then use ascending id.
+## Free choice among every buyable parcel remains allowed. -1 if none left.
 func recommended_next() -> int:
 	var buyable: PackedInt32Array = buyable_parcels()
+	for id: int in GOLF_EXPANSION_PRIORITY:
+		if id < _kinds.size() and buyable.has(id) and str(_kinds[id]) == "golf":
+			return id
 	for kind: String in ["golf", "facility", "homes"]:
 		for id: int in buyable:
 			if str(_kinds[id]) == kind:

@@ -154,17 +154,19 @@ func _ready() -> void:
 	craft_course.ensure_holes(MHCraftCourse.NIGHT_SLICE_HOLES)
 	craft_hole = craft_course.active()
 	# The old prototype had two unrelated terrain models: the normal editor edited
-	# the persisted world, while Build/play edited a private craft grid. Reader-4
-	# saves now carry the exact draft. Legacy unfinalized saves are migrated once by
-	# importing non-default world paint and height into the starter craft grid.
-	if session.hole_definitions().is_empty() and restored_craft == null:
+	# the persisted world, while Build/play edited a private craft grid. Current saves
+	# carry the exact multi-hole craft checkpoint. Only saves with no craft checkpoint
+	# need one-time world -> craft migration.
+	if session.hole_definitions().is_empty() and restored_course == null and restored_craft == null:
 		MHCraftTerrainBridge.overlay_nondefault_from_world(craft_hole, editor, craft_origin_dm())
-		# A brand-new slice gets the starter fairway/green stamped into the world.
-		# Existing saves keep their authored 1 m terrain exactly; the overlay above
-		# imports it into craft without rasterising the whole footprint back to 2 yd.
+		# A brand-new slice gets every starter hole's authored turf stamped into the
+		# persisted world. Write only non-default tiles: craft envelopes overlap and
+		# blanket rough writes would erase neighbouring starter holes.
 		if not loaded_existing:
 			_syncing_craft_terrain = true
-			MHCraftTerrainBridge.sync_to_world(craft_hole, editor, craft_origin_dm(), false)
+			for i: int in range(craft_course.count()):
+				MHCraftTerrainBridge.sync_nondefault_to_world(
+					craft_course.holes[i], editor, craft_course.origin(i), false)
 			_syncing_craft_terrain = false
 	one_hole.visibility_changed.connect(_on_panel_visibility)
 	one_hole.layout_changed.connect(_relayout)
@@ -414,7 +416,8 @@ func save_now() -> bool:
 	var course_checkpoint: Dictionary = {}
 	if craft_course != null:
 		course_checkpoint = craft_course.to_dict()
-	if session.hole_definitions().is_empty() and craft_hole != null:
+	elif session.hole_definitions().is_empty() and craft_hole != null:
+		# Legacy single-hole fallback only. New multi-hole saves have one craft authority: craft_course.
 		craft_checkpoint = craft_hole.to_dict()
 	var captured: MHSaveResult = MHSessionSave.capture(session, document, craft_checkpoint, course_checkpoint)
 	if not captured.is_ok():

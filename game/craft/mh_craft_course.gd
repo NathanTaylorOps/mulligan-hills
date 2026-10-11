@@ -5,9 +5,17 @@ extends RefCounted
 
 const VERSION: int = 2
 const LEGACY_VERSION: int = 1
-# Centre lines sit inside the initially-owned central golf block. The rectangular craft grid is
-# an editing coordinate system; only authored golf geometry consumes/overlaps built land.
-const DEFAULT_ORIGINS_DM: Array = [[600, 560], [960, 560], [1320, 560]]
+# Deterministic world origins for the default 18-hole draft. The first three remain inside the
+# initially-owned central golf block. Later holes use only golf parcels in the 192 m live world;
+# the rectangular craft grid is only an editing envelope, so only authored golf geometry consumes land.
+const DEFAULT_ORIGINS_DM: Array = [
+	# Six holes fit the four initially-owned golf parcels (5, 6, 9 and 10).
+	[600, 560], [960, 560], [1320, 560], [710, 560], [1070, 560], [1080, 560],
+	# The guided expansion opens the south centre first; six more holes fit there.
+	[600, 1250], [960, 1250], [1320, 1250], [710, 1250], [1070, 1250], [1080, 1250],
+	# One north-centre lane, then the completed west and east golf corridors.
+	[820, 0], [120, 0], [130, 0], [300, 0], [1560, 480], [1570, 480],
+]
 const NIGHT_SLICE_HOLES: int = 3
 const MAX_HOLES: int = 18
 
@@ -55,18 +63,27 @@ func origin(index: int) -> Vector2i:
 	return Vector2i(int(raw[0]), int(raw[1]))
 
 static func default_origin(index: int) -> Array:
-	if index < DEFAULT_ORIGINS_DM.size():
-		return (DEFAULT_ORIGINS_DM[index] as Array).duplicate()
-	# Future holes get deterministic rows on the expanded world; the night slice uses only the first three.
-	return [120 + (index % 3) * 580, 120 + (index / 3) * 760]
+	if index < 0 or index >= DEFAULT_ORIGINS_DM.size():
+		return [0, 0]
+	return (DEFAULT_ORIGINS_DM[index] as Array).duplicate()
 
 static func from_dict(raw: Variant) -> MHCraftCourse:
 	if typeof(raw) != TYPE_DICTIONARY:
 		return null
 	var d: Dictionary = raw as Dictionary
-	var version: int = int(d.get("v", -1))
+	if not MHRValidate.is_int_value(d.get("v", null)) or not MHRValidate.is_int_value(d.get("active", null)):
+		return null
+	var version: int = int(d["v"])
 	if version not in [LEGACY_VERSION, VERSION] or typeof(d.get("holes", null)) != TYPE_ARRAY:
 		return null
+	var allowed: Array = ["v", "active", "holes"]
+	if version == VERSION:
+		allowed.append("origins_dm")
+	if d.size() != allowed.size():
+		return null
+	for key: Variant in d.keys():
+		if not allowed.has(str(key)):
+			return null
 	var rows: Array = d["holes"] as Array
 	if rows.is_empty() or rows.size() > MAX_HOLES:
 		return null
@@ -88,11 +105,18 @@ static func from_dict(raw: Variant) -> MHCraftCourse:
 			var pair: Array = origins[i] as Array
 			if typeof(pair[0]) != TYPE_INT or typeof(pair[1]) != TYPE_INT:
 				return null
-			out.origins_dm.append([int(pair[0]), int(pair[1])])
+			var ox: int = int(pair[0])
+			var oy: int = int(pair[1])
+			if ox < 0 or ox > 65535 or oy < 0 or oy > 65535:
+				return null
+			out.origins_dm.append([ox, oy])
 	else:
 		for i: int in range(out.holes.size()):
 			out.origins_dm.append(default_origin(i))
-	out.active_index = clampi(int(d.get("active", 0)), 0, out.holes.size() - 1)
+	var active: int = int(d["active"])
+	if active < 0 or active >= out.holes.size():
+		return null
+	out.active_index = active
 	return out
 
 static func from_legacy_hole(hole: MHCraftHole) -> MHCraftCourse:
