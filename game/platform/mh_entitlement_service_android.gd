@@ -57,9 +57,13 @@ func purchase(product_id: String) -> void:
 		purchase_finished.emit(product_id, PurchaseResult.UNAVAILABLE, "store_not_connected")
 		return
 	var launch: Dictionary = _seam_purchase(product_id)
-	if int(launch.get("response_code", RESPONSE_OK)) != RESPONSE_OK:
+	if not _purchase_launch_is_ok(launch):
 		purchase_finished.emit(product_id, PurchaseResult.ERROR,
 			str(launch.get("debug_message", "billing_flow_launch_failed")))
+
+## Do not silently accept a missing or malformed billing launch result.
+static func _purchase_launch_is_ok(launch: Dictionary) -> bool:
+	return typeof(launch.get("response_code", null)) == TYPE_INT and int(launch["response_code"]) == RESPONSE_OK
 
 func restore() -> void:
 	# Google has no "restore" call: querying owned purchases IS the restore.
